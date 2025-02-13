@@ -1,5 +1,7 @@
 (function ($) {
     const DEFAULTS = {
+        locale: 'en-EN',
+        rounded: 5, // 1-5
         startDate: new Date(),
         startView: 'month' // day, week, month, year
     };
@@ -14,7 +16,6 @@
 
         const optionsGiven = typeof optionsOrMethod === 'object';
         const methodGiven = typeof optionsOrMethod === 'string';
-        const noOptionsOrMethod = !optionsGiven && !methodGiven;
 
         const wrapper = $(this);
         if (!wrapper.data('initBsCalendar')) {
@@ -43,6 +44,7 @@
 
     function buildFramework(wrapper) {
 
+        const settings = getSettings(wrapper);
         // Clear the wrapper first
         wrapper.empty();
 
@@ -55,7 +57,7 @@
         }).appendTo(innerWrapper);
 
         const btnNew = $('<button>', {
-            class: 'btn rounded-5 border-3 border me-auto',
+            class: `btn rounded-${settings.rounded} border-3 border me-auto`,
             html: '<i class="bi bi-plus-lg"></i> Termin',
             click: function () {
                 const date = new Date();
@@ -74,7 +76,7 @@
         }).appendTo(topNav);
 
         const todayButton = $('<button>', {
-            class: 'btn rounded-5 border-3 mx-2 border',
+            class: `btn rounded-${settings.rounded} border-3 mx-2 border`,
             html: 'Heute',
             click: function () {
                 const date = new Date();
@@ -85,7 +87,7 @@
         const dropDownView = $('<div>', {
             class: 'dropdown wc-select-calendar-view',
             html: [
-                '<a class="btn rounded-5 border border-3 dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">',
+                `<a class="btn rounded-${settings.rounded} border border-3 dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">`,
                 'Monat',
                 '</a>',
                 '<ul class="dropdown-menu">',
@@ -118,19 +120,20 @@
         }).appendTo(container);
 
         const viewContainer = $('<div>', {
-            class: 'container-fluid wc-calendar-view-container border-light border-3 rounded-5 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch'
+            class: `container-fluid wc-calendar-view-container  border-1 rounded-${settings.rounded} flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`
         }).appendTo(container);
     }
 
     function setCurrentDateName(wrapper) {
+        const settings = getSettings(wrapper);
         const date = getDate(wrapper);
         const view = getView(wrapper);
         const el = $('.wc-nav-view-name');
         const elSmall = $('.wc-nav-view-small-name');
-        const dayName = date.toLocaleDateString('de-DE', {day: 'numeric'});
-        const weekdayName = date.toLocaleDateString('de-DE', {weekday: 'long'});
-        const monthName = date.toLocaleDateString('de-DE', {month: 'long'});
-        const yearName = date.toLocaleDateString('de-DE', {year: 'numeric'});
+        const dayName = date.toLocaleDateString(settings.locale, {day: 'numeric'});
+        const weekdayName = date.toLocaleDateString(settings.locale, {weekday: 'long'});
+        const monthName = date.toLocaleDateString(settings.locale, {month: 'long'});
+        const yearName = date.toLocaleDateString(settings.locale, {year: 'numeric'});
         const calendarWeek = getCalendarWeek(date);
         switch (view) {
             case 'day':
@@ -213,6 +216,13 @@
     function events(wrapper) {
 
         wrapper
+            .on('click', '[data-date]', function (e) {
+                e.preventDefault();
+                const date = new Date($(e.currentTarget).attr('data-date'));
+                setView(wrapper, 'day');
+                setDate(wrapper, date);
+                buildByView(wrapper);
+            })
             .on('click', '.wc-nav-view-prev', function (e) {
                 e.preventDefault();
                 prev(wrapper);
@@ -296,6 +306,23 @@
         $('<h1>', {text: 'Day View'}).appendTo(container);
     }
 
+    function getShortWeekDayNames(locale) {
+        const weekDays = [];
+        const date = new Date();
+
+        // Für alle 7 Wochentage jeweils den Namen generieren
+        for (let i = 0; i < 7; i++) {
+            // Das Datum so setzen, dass es den i-ten Wochentag entspricht
+            date.setDate(date.getDate() - date.getDay() + i);
+
+            // Den kürzeren Wochentagsnamen mit der gewünschten Lokalisierung abrufen
+            const weekdayName = date.toLocaleDateString(locale, {weekday: 'short'});
+            weekDays.push(weekdayName);
+        }
+        return weekDays;
+    }
+
+
     function buildMonthView(wrapper) {
         const container = getViewContainer(wrapper); // Container: `wc-calendar-view-container`
         const settings = getSettings(wrapper);
@@ -326,10 +353,7 @@
 
         // Erste Zeile für Wochentage (Mo, Di, ...)
         const weekdaysRow = $('<div>', {
-            class: 'row d-flex flex-nowrap wc-calendar-weekdays fw-bold',
-            css: {
-                backgroundColor: '#e9eef6',
-            }
+            class: 'row d-flex flex-nowrap wc-calendar-weekdays fw-bold text-bg-secondary'
         }).append(
             $('<div>', {
                 class: 'col d-flex align-items-center justify-content-center',
@@ -337,7 +361,7 @@
                 html: '<small></small>',
             })
         );
-        const weekDays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+        const weekDays = getShortWeekDayNames(settings.locale);
         weekDays.forEach(day => {
             weekdaysRow.append(
                 $('<div>', {
@@ -360,8 +384,8 @@
             const calendarWeek = getCalendarWeek(currentDate);
             weekRow.append(
                 $('<div>', {
-                    class: 'col d-flex align-items-start py-2 fw-bold  justify-content-center',
-                    style: 'width: 24px; background-color: #e9eef6',
+                    class: 'col d-flex align-items-start py-2 fw-bold  justify-content-center text-bg-secondary',
+                    style: 'width: 24px;',
                     html: `<small>${calendarWeek}</small>`,
                 })
             );
@@ -457,7 +481,7 @@
         $('<th>', {class: '', css: {width: '15px'}, text: ''}).appendTo(weekdaysRow);
 
         // Wochentage (Mo, Di, Mi, ...) hinzufügen
-        const weekDays = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+        const weekDays = getShortWeekDayNames(settings.locale);
         weekDays.forEach(day => {
             $('<th>', {class: '', text: day}).appendTo(weekdaysRow);
         });
@@ -478,10 +502,9 @@
             $('<td>', {
                 css: {
                     maxWidth: '0px',
-                    fontSize: '10px',
-                    backgroundColor: '#e9eef6'
+                    fontSize: '10px'
                 },
-                class: '',
+                class: 'text-bg-secondary',
                 text: calendarWeek,
             }).appendTo(weekRow); // KW in die erste Spalte der Zeile einfügen
 
@@ -491,6 +514,7 @@
                 const isOtherMonth = currentDate.getMonth() !== month;
                 const dayClass = isToday ? 'rounded-circle text-bg-primary' : 'text-decoration-none'
                 const td = $('<td>', {
+                    'data-date': formatDate(currentDate),
                     css: {
                         fontSize: '10px',
                         width: '24px',
@@ -501,7 +525,6 @@
                     }, // Einheitliches Quadrat für Zentrierung
                     html: `<div class="${dayClass} w-100 h-100 d-flex justify-content-center align-items-center">${currentDate.getDate()}</div>`,
                 }).appendTo(weekRow);
-
                 // const dayNumber = $('<small>', {
                 //     css: {height: '24px', lineHeight: '24px', fontSize: '10px'},
                 //     class: `${isToday ? 'text-bg-primary rounded-circle p-1' : ''} ${
@@ -516,8 +539,19 @@
         }
     }
 
-// Hilfsfunktion zur Berechnung der Kalenderwoche
-    // Korrekte Berechnung der Kalenderwoche nach ISO-8601
+    function formatDate(date) {
+        const day = date.toLocaleDateString('en-EN', {day: 'numeric'});
+        const month = date.toLocaleDateString('en-EN', {month: 'numeric'});
+        const year = date.toLocaleDateString('en-EN', {year: 'numeric'});
+        //
+        // const year = currentDate.getFullYear();
+        // const month = String(currentDate.getMonth() + 1).padStart(2, '0'); // Monate starten bei 0
+        // const day = String(currentDate.getDate()).padStart(2, '0');
+
+        return `${year}-${month}-${day}`;
+
+    }
+
     function getCalendarWeek(date) {
         // Kopieren des Eingabedatums und Wochentagsberechnung
         const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));

@@ -2,6 +2,7 @@
   "name": "webcito/bs-calendar",
   "description": "description",
   "minimum-stability": "stable",
+  "version": "1.0.0",
   "license": "proprietary",
   "authors": [
     {
