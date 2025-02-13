@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en" class="h-100 w-100" data-bs-theme="light">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap Calendar Demo</title>
+    <link href="../vendor/twbs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+</head>
+<body class="h-100 w-100">
+<div class="d-flex justify-content-between align-items-center border-bottom border-5 px-5 mt-5">
+    <h1>$.fn.bsCalendar</h1>
+    <div class="form-check form-switch">
+        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckTheme">
+        <label class="form-check-label" for="flexSwitchCheckTheme">light / dark</label>
+    </div>
+</div>
+
+<div id="calendar" class="w-100 p-4" style="height: 800px">
+    <div class="d-flex flex-column align-items-stretch h-100 w-100">
+        <div class="d-flex align-items-center justify-content-end mb-3 wc-calendar-top-nav">
+            <div class="d-flex" role="status">
+                <select class="form-select rounded-5" aria-label="Default select example">
+                    <option value="day">Tag</option>
+                    <option value="week">Woche</option>
+                    <option value="month" selected>Monat</option>
+                    <option value="year">Jahr</option>
+                </select>
+            </div>
+        </div>
+        <div class="d-flex flex-fill wc-calendar-container border">
+            <div class="wc-calendar-left-nav  d-flex flex-column w-25">
+                <div class="p-3 wc-calendar-month-small">
+
+                </div>
+            </div>
+            <div class="container-fluid wc-calendar-view-container rounded-5 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch">
+                <div class="row d-flex flex-nowrap text-bg-secondary wc-calendar-weekdays">
+                    <div class="col d-flex align-items-center " style="width: 24px"></div>
+                    <div class="text-center col flex-fill">
+                        <small>Mo</small>
+                    </div>
+                    <div class="text-center col flex-fill">
+                        <small>Di</small>
+                    </div>
+                    <div class="text-center col flex-fill">
+                        <small>Mi</small>
+                    </div>
+                    <div class="text-center col flex-fill">
+                        <small>Do</small>
+                    </div>
+                    <div class="text-center col flex-fill">
+                        <small>Fr</small>
+                    </div>
+                    <div class="text-center col flex-fill">
+                        <small>Sa</small>
+                    </div>
+                    <div class="text-center col flex-fill">
+                        <small>So</small>
+                    </div>
+                </div>
+                <div class="row d-flex flex-nowrap flex-fill wc-calendar-content">
+                    <div class="col d-flex align-items-start text-bg-secondary justify-content-center"
+                         style="width:24px">1
+                    </div>
+                    <div class="col border flex-fill d-flex flex-column align-items-center justify-content-start">
+                        1
+                    </div>
+                    <div class="col border flex-fill d-flex flex-column align-items-center justify-content-start">
+                        1
+                    </div>
+                    <div class="col border flex-fill d-flex flex-column align-items-center justify-content-start">
+                        1
+                    </div>
+                    <div class="col border flex-fill d-flex flex-column align-items-center justify-content-start">
+                        1
+                    </div>
+                    <div class="col border flex-fill d-flex flex-column align-items-center justify-content-start">
+                        1
+                    </div>
+                    <div class="col border flex-fill d-flex flex-column align-items-center justify-content-start">
+                        1
+                    </div>
+                    <div class="col border flex-fill d-flex flex-column align-items-center justify-content-start">
+                        1
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="../vendor/components/jquery/jquery.min.js"></script>
+
+<script src="../vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../dist/bs-calendar.min.js"></script>
+<script>
+    $(function () {
+        $('#calendar').bsCalendar();
+
+        $('#flexSwitchCheckTheme')
+            .on('change', function () {
+               const theme = $('html').attr('data-bs-theme') === 'light' ? 'dark' : 'light';
+               $('html').attr('data-bs-theme', theme);
+            });
+    });
+</script>
+</body>
+</html>
