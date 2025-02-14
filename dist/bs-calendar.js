@@ -278,6 +278,13 @@
                 setDate($wrapper, date);
                 buildByView($wrapper);
             })
+            .on('click', '[data-month]', function (e) {
+                e.preventDefault();
+                const date = new Date($(e.currentTarget).attr('data-month'));
+                setView($wrapper, 'month');
+                setDate($wrapper, date);
+                buildByView($wrapper);
+            })
             .on('click', '.wc-nav-view-prev', function (e) {
                 e.preventDefault();
                 navigateBack($wrapper);
@@ -768,10 +775,12 @@
             const monthName = new Intl.DateTimeFormat(settings.locale, { month: 'long' }).format(
                 new Date(year, month)
             );
-            $('<h6>', {
+            $('<div>', {
+                'data-month': `${year}-${String(month + 1).padStart(2, '0')}-01`,
                 class: 'text-center fw-bold',
                 text: `${monthName} ${year}`, // Titel erzeugen
                 css: {
+                    cursor: 'pointer',
                     marginBottom: '10px',
                 },
             }).appendTo(monthWrapper);
