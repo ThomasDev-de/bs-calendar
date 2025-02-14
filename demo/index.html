@@ -58,52 +58,72 @@
                 today: 'Heute',
                 appointment: 'Termin',
             },
-            url(query){
-                return [{
-                    id: 1,
-                    title: 'Termin 1',
-                    start: '2025-02-14 09:30:00',
-                    end: '2025-02-14 11:20:00',
-                    allDay: false,
-                    link: 'https://www.google.com'
-                },{
-                    id: 1,
-                    title: 'Termin 2',
-                    start: '2025-02-14 11:00:00',
-                    end: '2025-02-14 18:00:00',
-                    allDay: false,
-                    link: 'https://www.google.com'
-                },{
-                    id: 3,
-                    title: 'Termin 3',
-                    start: '2025-02-14 09:00:00',
-                    end: '2025-02-14 19:00:00',
-                    allDay: false,
-                    link: 'https://www.google.com'
-                },{
-                    id: 4,
-                    title: 'Termin 4',
-                    start: '2025-02-14 12:00:00',
-                    end: '2025-02-14 13:00:00',
-                    allDay: false,
-                    link: 'https://www.google.com'
-                },{
-                    id: 5,
-                    title: 'Termin 5',
-                    start: '2025-02-14 02:00:00',
-                    end: '2025-02-14 03:00:00',
-                    allDay: false,
-                    link: 'https://www.google.com'
-                },{
-                    id: 6,
-                    title: 'Termin 6',
-                    start: '2025-02-14 12:00:00',
-                    end: '2025-02-14 17:52:00',
-                    allDay: false,
-                    link: 'https://www.google.com'
-                }];
+            url(query) {
+                console.log(query);
+                const fromDate = new Date(`${query.fromDate}T00:00:00`);
+                const toDate = new Date(`${query.toDate}T23:59:59`);
+
+                return generateRandomAppointments(100).filter(appointment => {
+                    const appointmentStart = new Date(appointment.start);
+                    const appointmentEnd = new Date(appointment.end);
+
+                    return (
+                        (appointmentStart >= fromDate && appointmentStart < toDate) || // Startzeit liegt im Bereich
+                        (appointmentEnd > fromDate && appointmentEnd <= toDate) ||    // Endzeit liegt im Bereich
+                        (appointmentStart <= fromDate && appointmentEnd >= toDate)    // Termin umspannt den Bereich
+                    );
+                });
             }
         });
+
+
+        function generateRandomAppointments(count) {
+            const appointments = [];
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+
+            for (let i = 0; i < count; i++) {
+                // Zufälliger Tag innerhalb des aktuellen Monats
+                const randomDay = Math.floor(Math.random() * new Date(currentYear, currentMonth + 1, 0).getDate()) + 1;
+
+                // Zufällige Stunde und Minute
+                const randomStartHour = Math.floor(Math.random() * 24); // Zufällige Stunde zwischen 0 und 23
+                const randomStartMinute = Math.floor(Math.random() * 60); // Zufällige Minute zwischen 0 und 59
+
+                // Zufällige Dauer (zwischen 30 und 210 Minuten / 30 Min bis 3,5 Stunden)
+                const randomDuration = Math.floor(Math.random() * 180) + 30;
+
+                const startTime = new Date(currentYear, currentMonth, randomDay, randomStartHour, randomStartMinute);
+                const endTime = new Date(startTime.getTime() + randomDuration * 60000); // Endzeit = Startzeit + Dauer in Millisekunden
+
+                // Sicherstellen, dass der Termin am selben Tag bleibt
+                if (endTime.getDate() !== startTime.getDate()) {
+                    const endOfDay = new Date(currentYear, currentMonth, randomDay, 23, 59, 59);
+                    endTime.setTime(endOfDay.getTime());
+                }
+
+                // Termin erstellen
+                const appointment = {
+                    id: i + 1,
+                    title: `Termin ${i + 1}`,
+                    start: startTime.toISOString().replace('T', ' ').substring(0, 19),
+                    end: endTime.toISOString().replace('T', ' ').substring(0, 19),
+                    allDay: false,
+                    link: 'https://www.google.com'
+                };
+
+                appointments.push(appointment);
+            }
+
+            return appointments;
+        }
+
+// Beispielaufruf:
+        console.log(generateRandomAppointments(5));
+
+// Beispielaufruf:
+        console.log(generateRandomAppointments(5));
         // $('#calendar2').bsCalendar({ rounded:5});
 
         $('#flexSwitchCheckTheme')
