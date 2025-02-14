@@ -86,7 +86,7 @@
         }).appendTo($wrapper);
 
         const topNav = $('<div>', {
-            class: 'd-flex sticky-top align-items-center justify-content-end mb-3 wc-calendar-top-nav'
+            class: 'd-flex sticky-top align-items-center justify-content-end mb-3 wc-calendar-top-nav  bg-body-tertiary rounded-' + settings.rounded
         }).appendTo(innerWrapper);
 
         const btnNew = $('<button>', {
