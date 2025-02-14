@@ -40,43 +40,31 @@
         </div>
     </div>
 </div>
-<div id="calendar2" data-locale="en-EN" class="w-100 p-4" style="height: 800px">
-    <div class="d-flex flex-column align-items-stretch h-100 w-100">
-        <div class="d-flex align-items-center justify-content-end mb-3 wc-calendar-top-nav">
-            <div class="d-flex" role="status">
-                <select class="form-select rounded-5" aria-label="Default select example">
-                    <option value="day">Tag</option>
-                    <option value="week">Woche</option>
-                    <option value="month" selected>Monat</option>
-                    <option value="year">Jahr</option>
-                </select>
-            </div>
-        </div>
-        <div class="d-flex flex-fill wc-calendar-container border">
-            <div class="wc-calendar-left-nav  d-flex flex-column w-25">
-                <div class="p-3 wc-calendar-month-small">
-
-                </div>
-            </div>
-            <div class="container-fluid wc-calendar-view-container rounded-5 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch">
-
-            </div>
-        </div>
-    </div>
-</div>
 <script src="../vendor/components/jquery/jquery.min.js"></script>
 
 <script src="../vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../dist/bs-calendar.min.js"></script>
 <script>
     $(function () {
-        $('#calendar').bsCalendar({locale:'de-DE', rounded:2});
-        $('#calendar2').bsCalendar({ rounded:5});
+        $('#calendar').bsCalendar({
+            locale: 'de',
+            startWeekOnSunday: false,
+            rounded: 5,
+            translations: {
+                day: 'Tag',
+                week: 'Woche',
+                month: 'Monat',
+                year: 'Jahr',
+                today: 'Heute',
+                appointment: 'Termin',
+            }
+        });
+        // $('#calendar2').bsCalendar({ rounded:5});
 
         $('#flexSwitchCheckTheme')
             .on('change', function () {
-               const theme = $('html').attr('data-bs-theme') === 'light' ? 'dark' : 'light';
-               $('html').attr('data-bs-theme', theme);
+                const theme = $('html').attr('data-bs-theme') === 'light' ? 'dark' : 'light';
+                $('html').attr('data-bs-theme', theme);
             });
     });
 </script>
