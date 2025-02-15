@@ -90,13 +90,26 @@
         }).appendTo(innerWrapper);
 
         const btnNew = $('<button>', {
-            class: `btn rounded-${settings.rounded} border-3 border me-auto`,
+            class: `btn rounded-${settings.rounded} border-3 border`,
             html: '<i class="bi bi-plus-lg"></i> ' + settings.translations.appointment,
             click: function () {
                 const date = new Date();
                 setDate($wrapper, date);
                 buildByView($wrapper);
             }
+        }).appendTo(topNav);
+
+        const spinner = $('<div>', {
+            class: 'spinner-border me-auto mx-3 text-secondary wc-calendar-spinner',
+            css: {
+                display: 'none'
+            },
+            role: 'status',
+            html: '<span class="visually-hidden">Loading...</span>'
+        }).appendTo(topNav);
+
+        $('<div>', {
+            class: 'me-auto',
         }).appendTo(topNav);
 
         const navDate = $('<div>', {
@@ -272,6 +285,12 @@
      */
     function handleEvents($wrapper) {
         $wrapper
+            .on('click', '[data-appointment]', function (e) {
+                e.preventDefault();
+                const element = $(e.currentTarget);
+                const appointment = element.data('appointment');
+                $wrapper.trigger('click-appointment.bs.calendar', [appointment]);
+            })
             .on('click', '[data-date]', function (e) {
                 e.preventDefault();
                 const date = new Date($(e.currentTarget).attr('data-date'));
@@ -436,7 +455,7 @@
         const settings = getSettings($wrapper);
         // Start- und Enddatum basierend auf der View berechnen
         const period = getStartAndEndDate(date, view);
-
+        const spinner = $wrapper.find('.wc-calendar-spinner');
         // Daten für den Ajax-Request zusammenstellen
         const requestData = {
             fromDate: period.start, // Startdatum im ISO-Format
@@ -454,11 +473,12 @@
         }
 
         if (typeof settings.url === 'function') {
-
+            showLoader($wrapper);
             const appointments = settings.url(requestData) || [];
             console.log('Termine per Funktion abrufen:', appointments);
             renderData($wrapper, appointments);
         } else if (typeof settings.url === 'string') {
+            showLoader($wrapper);
             // Termine per Ajax von der Datenbank abrufen
             $.ajax({
                 url: '/api/get-appointments', // Server-Endpoint
@@ -473,12 +493,155 @@
                 },
                 error: function (xhr, status, error) {
                     console.error('Fehler beim Abrufen der Termine:', status, error);
+                    hideLoader($wrapper);
                 }
             });
         }
     }
 
+    function isDarkColor(color) {
+        let r, g, b;
+
+        if (color.startsWith('#')) {
+            // Hex-Farbcode
+            r = parseInt(color.slice(1, 3), 16);
+            g = parseInt(color.slice(3, 5), 16);
+            b = parseInt(color.slice(5, 7), 16);
+        } else if (color.startsWith('rgb')) {
+            // RGB oder RGBA-Farbcodes
+            const rgbValues = color.match(/\d+/g); // Extrahiert Zahlen aus der Zeichenkette
+            r = parseInt(rgbValues[0]);
+            g = parseInt(rgbValues[1]);
+            b = parseInt(rgbValues[2]);
+        } else {
+            throw new Error('Unsupported color format');
+        }
+
+        // YIQ-Berechnung zur Bestimmung, ob die Farbe dunkel ist
+        const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+        return yiq > 128; // Return true, wenn die Farbe dunkel ist
+    }
+
+    function checkAppointmentOverlap(appointment1, appointment2) {
+        return (
+            new Date(appointment1.start) < new Date(appointment2.end) &&
+            new Date(appointment1.end) > new Date(appointment2.start)
+        );
+    }
+
+    function assignColumnsToAppointments(appointments) {
+        // Array, in dem jede Spalte mit Terminen gespeichert wird
+        const columns = [];
+
+        // Iteriere durch alle Termine
+        appointments.forEach(appointment => {
+            let placedInColumn = false;
+
+            // Gehe jede Spalte durch und prüfe, ob der Termin dort hinzugefügt werden kann
+            for (let i = 0; i < columns.length; i++) {
+                const column = columns[i];
+
+                // Verwende eine separate Funktion, um die Logik zur Überprüfung auszulagern
+                if (fitsColumn(column, appointment)) {
+                    column.push(appointment); // Termin zu dieser Spalte hinzufügen
+                    placedInColumn = true;
+                    break;
+                }
+            }
+
+            // Falls der Termin in keine Spalte passt, erstelle eine neue Spalte
+            if (!placedInColumn) {
+                columns.push([appointment]);
+            }
+        });
+
+        return columns;
+    }
+
+// Hilfsfunktion zur Prüfung auf Überschneidungen
+    function fitsColumn(column, appointment) {
+        return column.every(colAppointment => !checkAppointmentOverlap(appointment, colAppointment));
+    }
+
+    function buildAppointmentsForDay($container, appointments) {
+        const columns = assignColumnsToAppointments(appointments);
+
+        const gap = 2; // Abstand zwischen den Terminen in Pixeln
+
+        // Breite inkl. Berücksichtigung des Zwischenraums
+        const appointmentWidth = (($container.width() - 40) / columns.length) - gap;
+
+        // Gehe durch jede Spalte und positioniere die Termine
+        columns.forEach((column, columnIndex) => {
+            column.forEach((appointment) => {
+                const start = new Date(appointment.start);
+                const end = new Date(appointment.end);
+
+                const startHour = start.getHours();
+                const startMinute = start.getMinutes();
+                const endHour = end.getHours();
+                const endMinute = end.getMinutes();
+
+                const hourContainer = $container.find(`[data-day-hour="${startHour}"]`);
+                const hourPositionTop = hourContainer.position().top;
+                const minuteOffset = (startMinute / 60) * 34; // Offset in Pixel-Höhe
+                const topPosition = hourPositionTop + minuteOffset;
+
+                const durationInHours = endHour + endMinute / 60 - (startHour + startMinute / 60);
+                const appointmentHeight = durationInHours * 34;
+
+                // Berechne die `left`-Position inkl. des Zwischenraums
+                const appointmentLeft = 40 + (columnIndex * (appointmentWidth + gap));
+
+                const appointmentElement = $('<small>', {
+                    'data-appointment': true,
+                    class: 'position-absolute card shadow px-2 btn-sm wc-appointment-item overflow-hidden',
+                    css: {
+                        backgroundColor: appointment.color || '#007bff',
+                        color: !isDarkColor(appointment.color || '#007bff') ? '#ffffff' : '#000000',
+                        top: `${topPosition}px`,
+                        height: `${appointmentHeight}px`,
+                        left: `${appointmentLeft}px`,
+                        width: `${appointmentWidth}px`, // Reduzierte Breite
+                    },
+                    html: `<div class="wc-appointment-item-content card-body p-1">
+${start.toTimeString().slice(0, 5)} - ${end.toTimeString().slice(0, 5)} - 
+${appointment.title || 'Ohne Titel'}
+</div>`,
+                }).appendTo($container);
+
+                appointmentElement.data('appointment', appointment);
+            });
+        });
+    }
+
+    function buildAppointmentsForMonth($wrapper, appointments) {
+        const $container = getViewContainer($wrapper);
+        const settings = getSettings($wrapper);
+        appointments.forEach(appointment => {
+            const start = new Date(appointment.start);
+            const startDate = start.toISOString().split('T')[0];
+            const startTime = start.toLocaleTimeString(settings.locale, {hour: '2-digit', minute: '2-digit'});
+            const dayContainer = $container.find(`[data-month-date="${startDate}"]`);
+            const appointmentElement = $('<small>', {
+                'data-appointment': true,
+                css: {
+                    borderLeftColor: appointment.color || '#007bff',
+                    borderLeftWidth: '5px',
+                    borderLeftStyle: 'solid',
+                    // color: !isDarkColor(appointment.color || '#007bff') ? '#ffffff' : '#000000',
+                },
+                class: 'shadow-sm  px-2 mb-1 wc-appointment-item w-100 overflow-hidden',
+                html: `<div class="wc-appointment-item-content">${startTime} - ${appointment.title}</div>`
+            }).appendTo(dayContainer);
+            appointmentElement.data('appointment', appointment);
+        })
+    }
+
     function renderData($wrapper, appointments) {
+        // Sortieren der appointments nach ihrem Startdatum
+        appointments.sort((a, b) => new Date(a.start) - new Date(b.start));
+
         const view = getView($wrapper);
         const settings = getSettings($wrapper);
         console.log('render data in view:', view);
@@ -486,95 +649,28 @@
         switch (view) {
             case 'day':
                 const overContainer = container.find('.wc-day-view-time-slots');
-
-            function checkOverlap(appointment1, appointment2) {
-                return (
-                    new Date(appointment1.start) < new Date(appointment2.end) &&
-                    new Date(appointment1.end) > new Date(appointment2.start)
-                );
-            }
-
-            function findConflictGroups(appointments) {
-                const groups = [];
-                appointments.forEach((appointment) => {
-                    let addedToGroup = false;
-                    for (const group of groups) {
-                        if (group.some((otherAppointment) => checkOverlap(appointment, otherAppointment))) {
-                            group.push(appointment);
-                            addedToGroup = true;
-                            break;
-                        }
-                    }
-                    if (!addedToGroup) {
-                        groups.push([appointment]);
-                    }
-                });
-                return groups;
-            }
-
-                const conflictGroups = findConflictGroups(appointments);
-
-                conflictGroups.forEach((group) => {
-                    const overlapCount = group.length;
-                    group.forEach((appointment, index) => {
-                        const start = new Date(appointment.start);
-                        const end = new Date(appointment.end);
-
-                        const startHour = start.getHours();
-                        const startMinute = start.getMinutes();
-                        const endHour = end.getHours();
-                        const endMinute = end.getMinutes();
-
-                        const hourContainer = container.find(`[data-day-hour="${startHour}"]`);
-                        const hourPositionTop = hourContainer.position().top;
-                        const minuteOffset = (startMinute / 60) * 34;
-                        const topPosition = hourPositionTop + minuteOffset;
-
-                        const durationInHours = endHour + endMinute / 60 - (startHour + startMinute / 60);
-                        const appointmentHeight = durationInHours * 34;
-
-                        const appointmentWidth = (overContainer.width() - 40) / overlapCount; // 40px Platz für Timeline
-                        const appointmentLeft = 40 + (index * appointmentWidth); // 40px Verschiebung nach rechts
-
-                        const appointmentElement = $('<small>', {
-                            class: 'position-absolute card text-bg-info shadow px-2 btn-sm wc-appointment-item',
-                            css: {
-                                top: `${topPosition}px`,
-                                height: `${appointmentHeight}px`,
-                                left: `${appointmentLeft}px`,
-                                width: `${appointmentWidth}px`,
-                            },
-                            html: `<div class="wc-appointment-item-content card-body p-1">
-${start.toTimeString().slice(0, 5)} - ${end.toTimeString().slice(0, 5)} - 
-${
-                                appointment.title || 'Ohne Titel'                                    
-                            }
-</div>`,
-                        });
-
-                        overContainer.append(appointmentElement);
-                    });
-                });
-
+                buildAppointmentsForDay(overContainer, appointments);
                 break;
             case 'week':
 
                 break;
             case 'month':
-                appointments.forEach(appointment => {
-                    const start = new Date(appointment.start);
-                    const startDate = start.toISOString().split('T')[0];
-                    const startTime = start.toLocaleTimeString(settings.locale, {hour: '2-digit', minute: '2-digit'});
-                    const dayContainer = container.find(`[data-month-date="${startDate}"]`);
-                    $('<small>', {
-                        class: 'shadow-sm border-start border-5 border-success px-2 mb-1 btn-sm wc-appointment-item  w-100',
-                        html: `<div class="wc-appointment-item-content">${startTime} - ${appointment.title}</div>`
-                    }).appendTo(dayContainer);
-                })
+                buildAppointmentsForMonth($wrapper, appointments);
                 break;
             case 'year':
                 break;
         }
+        hideLoader($wrapper);
+    }
+
+    function showLoader($wrapper) {
+        const spinner = $wrapper.find('.wc-calendar-spinner');
+        spinner.show();
+    }
+
+    function hideLoader($wrapper) {
+        const spinner = $wrapper.find('.wc-calendar-spinner');
+        spinner.hide();
     }
 
     function getStartAndEndDate(date, view) {

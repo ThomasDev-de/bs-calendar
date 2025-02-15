@@ -63,7 +63,7 @@
                 const fromDate = new Date(`${query.fromDate}T00:00:00`);
                 const toDate = new Date(`${query.toDate}T23:59:59`);
 
-                return generateRandomAppointments(100).filter(appointment => {
+                return generateRandomAppointments(`${query.fromDate}T00:00:00`,`${query.toDate}T23:59:59`, query.view).filter(appointment => {
                     const appointmentStart = new Date(appointment.start);
                     const appointmentEnd = new Date(appointment.end);
 
@@ -74,42 +74,64 @@
                     );
                 });
             }
-        });
+        }).on('click-appointment.bs.calendar', function (event, appointment) {
+            event.preventDefault();
+            alert(appointment.title);
+        })
 
 
-        function generateRandomAppointments(count) {
+        function generateRandomAppointments(start, end, view) {
+            const colors = [
+                '#007bff',
+                '#6c757d',
+                '#28a745',
+                '#ffc107',
+                '#dc3545',
+                '#17a2b8',
+                '#343a40',
+                '#6f42c1',
+                '#0dcaf0',
+            ];
             const appointments = [];
-            const currentDate = new Date();
-            const currentMonth = currentDate.getMonth();
-            const currentYear = currentDate.getFullYear();
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+            let count = 0;
+            if (view === 'month') {
+                count = 50;
+            }
+            if (view === 'week') {
+                count = 10;
+            }
+            if (view === 'day') {
+                count = 25;
+            }
+            if (view === 'year') {
+                count = 200;
+            }
 
             for (let i = 0; i < count; i++) {
-                // Zufälliger Tag innerhalb des aktuellen Monats
-                const randomDay = Math.floor(Math.random() * new Date(currentYear, currentMonth + 1, 0).getDate()) + 1;
-
-                // Zufällige Stunde und Minute
-                const randomStartHour = Math.floor(Math.random() * 24); // Zufällige Stunde zwischen 0 und 23
-                const randomStartMinute = Math.floor(Math.random() * 60); // Zufällige Minute zwischen 0 und 59
+                // Zufälliger Startzeitpunkt innerhalb des angegebenen Zeitintervalls
+                const randomTimeStart = new Date(
+                    startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime())
+                );
 
                 // Zufällige Dauer (zwischen 30 und 210 Minuten / 30 Min bis 3,5 Stunden)
-                const randomDuration = Math.floor(Math.random() * 180) + 30;
+                const randomDuration = Math.floor(Math.random() * 180) + 30; // Dauer in Minuten
+                const randomTimeEnd = new Date(randomTimeStart.getTime() + randomDuration * 60000); // Endzeit berechnen
 
-                const startTime = new Date(currentYear, currentMonth, randomDay, randomStartHour, randomStartMinute);
-                const endTime = new Date(startTime.getTime() + randomDuration * 60000); // Endzeit = Startzeit + Dauer in Millisekunden
-
-                // Sicherstellen, dass der Termin am selben Tag bleibt
-                if (endTime.getDate() !== startTime.getDate()) {
-                    const endOfDay = new Date(currentYear, currentMonth, randomDay, 23, 59, 59);
-                    endTime.setTime(endOfDay.getTime());
+                // Sicherstellen, dass das Enddatum nicht außerhalb des Bereichs liegt
+                if (randomTimeEnd > endDate) {
+                    randomTimeEnd.setTime(endDate.getTime());
                 }
 
                 // Termin erstellen
                 const appointment = {
                     id: i + 1,
                     title: `Termin ${i + 1}`,
-                    start: startTime.toISOString().replace('T', ' ').substring(0, 19),
-                    end: endTime.toISOString().replace('T', ' ').substring(0, 19),
+                    start: randomTimeStart.toISOString().replace('T', ' ').substring(0, 19),
+                    end: randomTimeEnd.toISOString().replace('T', ' ').substring(0, 19),
                     allDay: false,
+                    color: colors[Math.floor(Math.random() * colors.length)],
                     link: 'https://www.google.com'
                 };
 
