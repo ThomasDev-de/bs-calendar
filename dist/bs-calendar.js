@@ -1,21 +1,34 @@
 (function ($) {
-    const DEFAULTS = {
-        locale: 'en-EN',
-        startWeekOnSunday: true,
-        rounded: 5, // 1-5
-        startDate: new Date(),
-        startView: 'month', // day, week, month, year
-        translations: {
-            day: 'Day',
-            week: 'Week',
-            month: 'Month',
-            year: 'Year',
-            today: 'Today',
-            appointment: 'Appointment',
+    $.bsCalendar = {
+        setDefaults: function (options) {
+            this.DEFAULTS = $.extend({}, this.DEFAULTS, options || {});
         },
-        url: null,
-        queryParams: null
+        getDefaults: function () {
+           return this.DEFAULTS;
+        },
+        DEFAULTS: {
+            locale: 'en-EN',
+            startWeekOnSunday: true,
+            rounded: 5, // 1-5
+            startDate: new Date(),
+            startView: 'month', // day, week, month, year
+            translations: {
+                day: 'Day',
+                week: 'Week',
+                month: 'Month',
+                year: 'Year',
+                today: 'Today',
+                appointment: 'Appointment',
+            },
+            url: null,
+            queryParams: null,
+            sidebarAddons: null,
+            debug: false,
+            formatInfoWindow: formatInfoWindow,
+            formatDuration: formatDuration,
+        }
     };
+
 
     $.fn.bsCalendar = function (optionsOrMethod, params) {
         if ($(this).length > 1) {
@@ -24,24 +37,137 @@
             });
         }
 
-
         const optionsGiven = typeof optionsOrMethod === 'object';
         const methodGiven = typeof optionsOrMethod === 'string';
 
         const wrapper = $(this);
         if (!wrapper.data('initBsCalendar')) {
-            let settings = DEFAULTS;
-            if (optionsGiven) {
-                settings = $.extend({}, DEFAULTS, wrapper.data(), optionsOrMethod);
+            let settings = $.bsCalendar.getDefaults();
+
+            if (wrapper.data() || optionsGiven) {
+                settings = $.extend({}, settings, wrapper.data(), optionsOrMethod || {});
             }
+
             setSettings(wrapper, settings);
             init(wrapper).then(function () {
                 wrapper.data('initBsCalendar', true);
+                if (settings.debug) {
+                    log('bsCalendar initialized');
+                }
+                trigger(wrapper, 'init');
             });
+        }
+
+        if (methodGiven) {
+            switch (optionsOrMethod) {
+                case 'load':
+                    // Retrieve the current settings for the given wrapper.
+                    const settings = getSettings(wrapper);
+                    // Flag to track if settings need to be updated.
+                    let changeSettings = false;
+                    // Check if 'params' is an object.
+                    if (typeof params === 'object') {
+                        // If 'params' contains 'url', update the 'url' in settings.
+                        if (params.hasOwnProperty('url')) {
+                            settings.url = params.url;
+                            // Mark that settings have been changed.
+                            changeSettings = true;
+                        }
+                        if (params.hasOwnProperty('queryParams') && typeof params.queryParams === 'function') {
+                            // If 'params' contains 'queryParams' and it is a function, update it in settings.
+                            settings.queryParams = params.queryParams;
+                            // Mark that settings have been changed.
+                            changeSettings = true;
+                        }
+                    }
+                    if (changeSettings) {
+                        // Save the updated settings if any changes were made.
+                        setSettings(wrapper, settings);
+                    }
+                    // Trigger the process to fetch updated appointment data.
+                    fetchAppointments(wrapper);
+                    break;
+            }
         }
 
         return wrapper;
     }
+
+    function formatDuration(duration) {
+        const parts = [];
+
+        if (duration.days > 0) {
+            parts.push(`${duration.days}d`);
+        }
+        if (duration.hours > 0) {
+            parts.push(`${duration.hours}h`);
+        }
+        if (duration.minutes > 0) {
+            parts.push(`${duration.minutes}m`);
+        }
+        if (duration.seconds > 0) {
+            parts.push(`${duration.seconds}s`);
+        }
+
+        return parts.length > 0 ? parts.join(' ') : '0s';
+    }
+
+    function formatInfoWindow(appointment) {
+        const description = appointment.hasOwnProperty('description') ? '<p>' + appointment.description + '</p>' : '';
+        const color = appointment.hasOwnProperty('color') ? `<i class="bi bi-circle-fill me-2" style="color: ${appointment.color}"></i>` : '';
+        const link = appointment.hasOwnProperty('link') ? `<a href="${appointment.link}" target="_blank" class="btn btn-primary btn-sm mt-3">open</a>` : '';
+        const start = new Date(appointment.start);
+        const end = new Date(appointment.end);
+        const startFormatted = start.toLocaleString('de-DE', {dateStyle: 'short', timeStyle: 'short'});
+        const endFormatted = end.toLocaleString('de-DE', {dateStyle: 'short', timeStyle: 'short'});
+        const isAllDay = appointment.hasOwnProperty('allDay') && appointment.allDay;
+        const duration = isAllDay ? '' : $.bsCalendar.getDefaults().formatDuration(appointment.duration);
+        const startEnd = [
+            `<span>Start: ${startFormatted}</span>`,
+            `<span>End: ${endFormatted}</span>`,
+            `<span>Duration: ${duration}</span>`,
+        ];
+        const period = isAllDay ?
+            `<span class="badge bg-info">all day</span>` :
+            startEnd.join('');
+        return [
+            `<div class="d-flex flex-column">`,
+            `<h4>${color}${appointment.title}</h4>`,
+            description,
+            period,
+            link,
+            `</div>`
+        ].join('');
+    }
+
+    function log(message, ...params) {
+        if (window.console && window.console.log) {
+            window.console.log('bsCalendar LOG: ' + message, ...params);
+        }
+    }
+
+    function trigger($wrapper, event, ...params) {
+        const settings = getSettings($wrapper);
+        const p = params.length > 0 ? params : [];
+
+        if (settings.debug) {
+            if (p.length > 0) {
+                log('Triggering event:', event, 'with params:', ...p);
+            } else {
+                log('Triggering event:', event, 'without params');
+            }
+
+        }
+
+        if (event !== 'all') {
+            // "all"-Event direkt auslösen
+            $wrapper.trigger('all.bs.calendar', event, ...p);
+
+            // Spezifisches Event direkt auslösen
+            $wrapper.trigger(`${event}.bs.calendar`, ...p);
+        }
+    }
+
 
     /**
      * Initializes the given wrapper element by setting up required data, structures, and event handlers.
@@ -91,7 +217,7 @@
 
         const btnNew = $('<button>', {
             class: `btn rounded-${settings.rounded} border-3 border`,
-            html: '<i class="bi bi-plus-lg"></i> ' + settings.translations.appointment,
+            html: '<i class="bi bi-plus-lg"></i><span class="d-xl-inline ms-xl-2 ml-xl-2 d-none">' + settings.translations.appointment + '</span>',
             click: function () {
                 const date = new Date();
                 setDate($wrapper, date);
@@ -100,7 +226,7 @@
         }).appendTo(topNav);
 
         const spinner = $('<div>', {
-            class: 'spinner-border me-auto mx-3 text-secondary wc-calendar-spinner',
+            class: 'spinner-border me-auto mr-auto mx-3 text-secondary wc-calendar-spinner',
             css: {
                 display: 'none'
             },
@@ -109,13 +235,13 @@
         }).appendTo(topNav);
 
         $('<div>', {
-            class: 'me-auto',
+            class: 'me-auto mr-auto',
         }).appendTo(topNav);
 
         const navDate = $('<div>', {
             class: 'd-flex mx-2 align-items-center justify-content-center wc-nav-view-wrapper',
             html: [
-                '<small class="wc-nav-view-name me-3">test</small>',
+                '<small class="wc-nav-view-name mr-3 me-3">test</small>',
                 '<a class="wc-nav-view-prev" href="#"><i class="bi bi-chevron-left"></i></a>',
                 '<a class="wc-nav-view-next mx-2" href="#"><i class="bi bi-chevron-right"></i></a>',
             ].join('')
@@ -133,7 +259,7 @@
         const dropDownView = $('<div>', {
             class: 'dropdown wc-select-calendar-view',
             html: [
-                `<a class="btn rounded-${settings.rounded} border border-3 dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">`,
+                `<a class="btn rounded-${settings.rounded} border border-3 dropdown-toggle" href="#" role="button" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">`,
                 '</a>',
                 '<ul class="dropdown-menu">',
                 '<li><a class="dropdown-item" data-view="day" href="#">' + settings.translations.day + '</a></li>',
@@ -149,20 +275,24 @@
         }).appendTo(innerWrapper);
 
         const leftBar = $('<div>', {
-            class: 'wc-calendar-left-nav d-xl-flex d-none flex-column me-4',
+            class: 'wc-calendar-left-nav d-xl-flex d-none flex-column me-4 mr-4',
             html: [
                 '<div class="pb-3">',
                 '<div class="d-flex justify-content-between">',
-                '<small class="wc-nav-view-small-name me-3">test</small>',
+                '<small class="wc-nav-view-small-name me-3 mr-3"></small>',
                 '<div>',
                 '<a class="wc-nav-view-prev" href="#"><i class="bi bi-chevron-left"></i></a>',
-                '<a class="wc-nav-view-next ms-2" href="#"><i class="bi bi-chevron-right"></i></a>',
+                '<a class="wc-nav-view-next ml-2 ms-2" href="#"><i class="bi bi-chevron-right"></i></a>',
                 '</div>',
                 '</div>',
                 '</div>',
                 '<div class="wc-calendar-month-small"></div>'
             ].join('')
         }).appendTo(container);
+
+        if (settings.sidebarAddons) {
+            $(settings.sidebarAddons).appendTo(leftBar);
+        }
 
         const viewContainer = $('<div>', {
             class: `container-fluid wc-calendar-view-container  border-1 rounded-${settings.rounded} flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`
@@ -289,7 +419,7 @@
                 e.preventDefault();
                 const element = $(e.currentTarget);
                 const appointment = element.data('appointment');
-                $wrapper.trigger('click-appointment.bs.calendar', [appointment]);
+                trigger($wrapper, 'click-appointment', [appointment, element]);
             })
             .on('click', '[data-date]', function (e) {
                 e.preventDefault();
@@ -357,8 +487,18 @@
      * @return {void}
      */
     function setView($wrapper, view) {
+        const settings = getSettings($wrapper);
         if (!['day', 'week', 'month', 'year'].includes(view)) {
+            if (settings.debug) {
+                console.error(
+                    'Invalid view type provided. Defaulting to month view.',
+                    'Provided view:', view
+                );
+            }
             view = 'month';
+        }
+        if (settings.debug) {
+            log('Set view to:', view);
         }
         $wrapper.data('view', view);
     }
@@ -371,6 +511,7 @@
      */
     function getDate($wrapper) {
         return $wrapper.data('date');
+        ;
     }
 
     /**
@@ -381,6 +522,10 @@
      * @return {void} Does not return a value.
      */
     function setDate($wrapper, date) {
+        const settings = getSettings($wrapper);
+        if (settings.debug) {
+            log('Set date to:', date);
+        }
         $wrapper.data('date', date);
     }
 
@@ -392,6 +537,7 @@
      */
     function getSettings($wrapper) {
         return $wrapper.data('settings');
+        ;
     }
 
     /**
@@ -402,6 +548,9 @@
      * @return {void} Does not return a value.
      */
     function setSettings($wrapper, settings) {
+        if (settings.debug) {
+            log('Set settings to:', settings);
+        }
         $wrapper.data('settings', settings);
     }
 
@@ -423,7 +572,12 @@
      * @return {void} This function does not return a value. It updates the DOM elements associated with the wrapper.
      */
     function buildByView($wrapper) {
+        const settings = getSettings($wrapper);
         const view = getView($wrapper);
+        if (settings.debug) {
+            log('Call buildByView with view:', view);
+        }
+
         const container = getViewContainer($wrapper).empty();
         switch (view) {
             case 'month':
@@ -441,26 +595,33 @@
             default:
                 break;
         }
+        $wrapper.find('.popover').remove();
         updateDropdownView($wrapper);
         setCurrentDateName($wrapper);
         buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
-        $wrapper.trigger('view-changed.bs.calendar', [view]);
+        trigger($wrapper, 'view', [view]);
         fetchAppointments($wrapper);
     }
 
     function fetchAppointments($wrapper) {
-        // Aktuelles Datum und View holen
-        const date = getDate($wrapper); // Gegeben: holt das aktuelle Datum
-        const view = getView($wrapper); // Neue Funktion zur Bestimmung der Ansicht
         const settings = getSettings($wrapper);
-        // Start- und Enddatum basierend auf der View berechnen
-        const period = getStartAndEndDate(date, view);
+        if (settings.debug) {
+            log('Call fetchAppointments');
+        }
+        // Get the latest date and view
+        const date = getDate($wrapper);
+        const view = getView($wrapper);
+
+        // calculate the start and end date based on the view
+        const period = getStartAndEndDate($wrapper, date, view);
         const spinner = $wrapper.find('.wc-calendar-spinner');
+        $wrapper.find('.popover').remove();
+        $wrapper.find('[data-appointment]').remove();
         // Daten für den Ajax-Request zusammenstellen
         const requestData = {
             fromDate: period.start, // Startdatum im ISO-Format
             toDate: period.end,    // Enddatum im ISO-Format
-            view: view // Z. B. 'day', 'week', 'month'
+            view: view // 'day', 'week', 'month', 'year'
         };
 
         if (typeof settings.queryParams === 'function') {
@@ -472,30 +633,52 @@
             }
         }
 
+        trigger($wrapper, 'beforeLoad', [requestData]);
+
         if (typeof settings.url === 'function') {
             showLoader($wrapper);
             const appointments = settings.url(requestData) || [];
-            console.log('Termine per Funktion abrufen:', appointments);
+            if (settings.debug) {
+                log('Call appointments by function:', appointments);
+            }
             renderData($wrapper, appointments);
         } else if (typeof settings.url === 'string') {
             showLoader($wrapper);
-            // Termine per Ajax von der Datenbank abrufen
-            $.ajax({
-                url: '/api/get-appointments', // Server-Endpoint
+
+            // Prüfen, ob bereits ein laufender Request existiert, und diesen ggf. abbrechen
+            const existingRequest = $wrapper.data('currentRequest');
+            if (existingRequest) {
+                existingRequest.abort();
+            }
+
+            if (settings.debug) {
+                log('Call appointments by URL:', settings.url);
+            }
+
+            // Neue Anfrage starten und im Wrapper speichern
+            const newRequest = $.ajax({
+                url: settings.url, // Server-Endpoint
                 method: 'POST',
                 contentType: 'application/json',
                 data: JSON.stringify(requestData), // Daten als JSON senden
                 success: function (response) {
-                    console.log('Termine per URL abrufen:', response);
                     renderData($wrapper, response || []);
-                    // Erfolg: Daten an die renderAppointments-Methode übergeben
-                    // renderAppointments($wrapper, response.appointments || []);
                 },
                 error: function (xhr, status, error) {
-                    console.error('Fehler beim Abrufen der Termine:', status, error);
-                    hideLoader($wrapper);
+                    if (status !== 'abort') {
+                        if (settings.debug) {
+                            log('Error when retrieving the dates:', status, error);
+                        }
+                        hideLoader($wrapper);
+                    }
+                },
+                complete: function () {
+                    // remove the stored request after completing the request
+                    $wrapper.removeData('currentRequest');
                 }
             });
+
+            $wrapper.data('currentRequest', newRequest); // Save Request
         }
     }
 
@@ -563,7 +746,8 @@
         return column.every(colAppointment => !checkAppointmentOverlap(appointment, colAppointment));
     }
 
-    function buildAppointmentsForDay($container, appointments) {
+    function buildAppointmentsForDay($wrapper, $container, appointments) {
+        const settings = getSettings($wrapper);
         const columns = assignColumnsToAppointments(appointments);
 
         const gap = 2; // Abstand zwischen den Terminen in Pixeln
@@ -592,10 +776,13 @@
 
                 // Berechne die `left`-Position inkl. des Zwischenraums
                 const appointmentLeft = 40 + (columnIndex * (appointmentWidth + gap));
-
+                let durationString = end.toTimeString().slice(0, 5);
+                if (typeof settings.formatDuration === "function") {
+                    durationString += " (" + settings.formatDuration(appointment.duration) + ")";
+                }
                 const appointmentElement = $('<small>', {
                     'data-appointment': true,
-                    class: 'position-absolute card shadow px-2 btn-sm wc-appointment-item overflow-hidden',
+                    class: 'position-absolute text-nowrap text-truncate shadow px-2 btn-sm wc-appointment-item overflow-hidden',
                     css: {
                         backgroundColor: appointment.color || '#007bff',
                         color: !isDarkColor(appointment.color || '#007bff') ? '#ffffff' : '#000000',
@@ -604,13 +791,10 @@
                         left: `${appointmentLeft}px`,
                         width: `${appointmentWidth}px`, // Reduzierte Breite
                     },
-                    html: `<div class="wc-appointment-item-content card-body p-1">
-${start.toTimeString().slice(0, 5)} - ${end.toTimeString().slice(0, 5)} - 
-${appointment.title || 'Ohne Titel'}
-</div>`,
+                    html: `<div class="wc-appointment-item-content">${start.toTimeString().slice(0, 5)} ${durationString} - ${appointment.title || 'Ohne Titel'}</div>`,
                 }).appendTo($container);
-
                 appointmentElement.data('appointment', appointment);
+                setPopoverForAppointment($wrapper, appointmentElement);
             });
         });
     }
@@ -634,22 +818,140 @@ ${appointment.title || 'Ohne Titel'}
                 class: 'shadow-sm  px-2 mb-1 wc-appointment-item w-100 overflow-hidden',
                 html: `<div class="wc-appointment-item-content">${startTime} - ${appointment.title}</div>`
             }).appendTo(dayContainer);
+
             appointmentElement.data('appointment', appointment);
+            setPopoverForAppointment($wrapper, appointmentElement);
         })
+    }
+
+    /**
+     * Configures a popover for a given appointment element to show additional information on hover.
+     *
+     * @param {jQuery} $wrapper - The container element within which the popover should exist.
+     * @param {jQuery} $appointmentElement - The jQuery element representing the appointment for which the popover is to be configured.
+     * @return {void} This method does not return any value.
+     */
+    function setPopoverForAppointment($wrapper, $appointmentElement) {
+        const settings = getSettings($wrapper);
+        if (typeof settings.formatInfoWindow === "function") {
+            $appointmentElement.css('cursor', 'pointer');
+            const appointment = $appointmentElement.data('appointment');
+            const delayShow = 400;
+            const delayHide = 400;
+            const activeClass = 'text-bg-light';
+            // Initialisiere das Popover
+            $appointmentElement
+                .popover({
+                    animation: false,
+                    sanitize: false,
+                    trigger: 'manual', // Steuerung über das manuelle Öffnen und Schließen
+                    html: true,
+                    // title: <i class="bi bi-circle-fill"></i> + appointment.title,
+                    content: settings.formatInfoWindow(appointment),
+                    container: $wrapper,
+                })
+                .on('mouseenter', function () {
+                    // Close all other open popovers
+                    $('[data-appointment]')
+                        .not($(this))
+                        .popover('hide')
+                        .removeClass(activeClass);
+
+                    // Delay before displaying
+                    const _this = this;
+                    $(_this).data('timeout', setTimeout(() => {
+                        $(_this).popover('show');
+                        $(_this).addClass(activeClass);
+
+                        // Hole den Popover-Content
+                        const popover = $('.popover');
+
+                        // keep the popover open as long as the mouse is on it
+                        popover.on('mouseenter', function () {
+                            clearTimeout($(_this).data('timeout'));
+                        });
+
+                        // close popover when mouse leaves him
+                        popover.on('mouseleave', function () {
+                            $(_this).data('timeout', setTimeout(() => {
+                                $(_this).popover('hide');
+                                $(_this).removeClass(activeClass);
+                            }, delayHide)); // Delay when closing
+                        });
+                    }, delayShow)); // Delay when displaying
+                })
+                .on('mouseleave', function (e) {
+                    // remove the delay for displaying
+                    clearTimeout($(this).data('timeout'));
+
+                    // Delay before closing
+                    const _this = this;
+                    $(_this).data('timeout', setTimeout(() => {
+                        $(_this).popover('hide');
+                        $(_this).removeClass(activeClass);
+                    }, delayHide));
+                });
+        }
+    }
+
+    function calculateAppointmentDurations($wrapper, appointments) {
+        const settings = getSettings($wrapper);
+
+        appointments.forEach(appointment => {
+            const start = new Date(appointment.start);
+            const end = new Date(appointment.end);
+
+            const diffMillis = end - start; // Zeitdifferenz in Millisekunden
+
+            if (appointment.allDay) {
+                // Ganztägiger Termin: Ganze Tage berechnen
+                const days = Math.ceil(diffMillis / (1000 * 60 * 60 * 24)); // Millisekunden -> Tage
+
+                appointment.duration = {
+                    days: days,
+                    hours: 0,
+                    minutes: 0,
+                    seconds: 0
+                };
+            } else {
+                // Rechnen der genauen Zeitdifferenz
+                const totalSeconds = Math.floor(diffMillis / 1000);
+
+                const days = Math.floor(totalSeconds / (24 * 3600)); // Ganze Tage
+                const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600); // Ganze Stunden
+                const minutes = Math.floor((totalSeconds % 3600) / 60); // Restliche Minuten
+                const seconds = totalSeconds % 60; // Restliche Sekunden
+
+                appointment.duration = {
+                    days: days,
+                    hours: hours,
+                    minutes: minutes,
+                    seconds: seconds
+                };
+            }
+        });
+
+        if (settings.debug) {
+            log('Calculated durations:', appointments);
+        }
     }
 
     function renderData($wrapper, appointments) {
         // Sortieren der appointments nach ihrem Startdatum
         appointments.sort((a, b) => new Date(a.start) - new Date(b.start));
 
+        calculateAppointmentDurations($wrapper, appointments);
+
         const view = getView($wrapper);
         const settings = getSettings($wrapper);
-        console.log('render data in view:', view);
+        if (settings.debug) {
+            log('Call renderData with view:', view);
+        }
         const container = getViewContainer($wrapper);
         switch (view) {
             case 'day':
                 const overContainer = container.find('.wc-day-view-time-slots');
-                buildAppointmentsForDay(overContainer, appointments);
+                buildAppointmentsForDay($wrapper, overContainer, appointments);
                 break;
             case 'week':
 
@@ -660,6 +962,7 @@ ${appointment.title || 'Ohne Titel'}
             case 'year':
                 break;
         }
+
         hideLoader($wrapper);
     }
 
@@ -673,7 +976,8 @@ ${appointment.title || 'Ohne Titel'}
         spinner.hide();
     }
 
-    function getStartAndEndDate(date, view) {
+    function getStartAndEndDate($wrapper, date, view) {
+        const settings = getSettings($wrapper);
         const startDate = new Date(date); // Neues Date-Objekt basierend auf `date`
         const endDate = new Date(date);   // Neues Date-Objekt basierend auf `date`
 
@@ -712,7 +1016,9 @@ ${appointment.title || 'Ohne Titel'}
                 break;
 
             default:
-                console.warn('Unbekannte View:', view);
+                if (settings.debug) {
+                    console.error('Unknown view:', view);
+                }
                 break;
         }
 
@@ -818,6 +1124,7 @@ ${appointment.title || 'Ohne Titel'}
                     class: 'col d-flex align-items-start py-2 fw-bold text-bg-secondary justify-content-center',
                     style: 'width: 24px;',
                     html: `<small>${calendarWeek}</small>`,
+
                 })
             );
 
@@ -831,6 +1138,10 @@ ${appointment.title || 'Ohne Titel'}
                     class: `col border flex-fill d-flex flex-column align-items-center justify-content-start ${
                         isOtherMonth ? 'text-muted' : ''
                     } ${isToday ? '' : ''}`,
+                    css: {
+                        maxHeight: '100%',
+                        overflowY: 'auto',
+                    }
                 }).appendTo(weekRow);
 
                 $('<small>', {

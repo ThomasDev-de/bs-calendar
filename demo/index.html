@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="h-100 w-100" data-bs-theme="light">
+<html lang="en" class="h-100 w-100" data-bs-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -16,29 +16,20 @@
     </div>
 </div>
 
-<div id="calendar" class="w-100 p-4" style="height: 800px">
-    <div class="d-flex flex-column align-items-stretch h-100 w-100">
-        <div class="d-flex align-items-center justify-content-end mb-3 wc-calendar-top-nav">
-            <div class="d-flex" role="status">
-                <select class="form-select rounded-5" aria-label="Default select example">
-                    <option value="day">Tag</option>
-                    <option value="week">Woche</option>
-                    <option value="month" selected>Monat</option>
-                    <option value="year">Jahr</option>
-                </select>
-            </div>
-        </div>
-        <div class="d-flex flex-fill wc-calendar-container border">
-            <div class="wc-calendar-left-nav  d-flex flex-column w-25">
-                <div class="p-3 wc-calendar-month-small">
+<div id="calendar" data-sidebar-addons="#sidebarAddons" class="w-100 p-4" style="height: 800px">
 
-                </div>
-            </div>
-            <div class="container-fluid wc-calendar-view-container rounded-5 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch">
+</div>
 
-            </div>
-        </div>
-    </div>
+<div id="sidebarAddons" class="mt-4">
+    <h6 class="text-uppercase text-center border-bottom">sidebar addons</h6>
+    <select class="form-select rounded-5 mb-3" name="user_id" aria-label="Default select example">
+        <option value="1">User 1</option>
+        <option value="2">User 2</option>
+    </select>
+    <select class="form-select rounded-5" name="type_id" aria-label="Default select example">
+        <option value="1">Type 1</option>
+        <option value="2">Type 2</option>
+    </select>
 </div>
 <script src="../vendor/components/jquery/jquery.min.js"></script>
 
@@ -46,7 +37,7 @@
 <script src="../dist/bs-calendar.min.js"></script>
 <script>
     $(function () {
-        $('#calendar').bsCalendar({
+        $.bsCalendar.setDefaults({
             locale: 'de',
             startWeekOnSunday: false,
             rounded: 5,
@@ -56,29 +47,45 @@
                 month: 'Monat',
                 year: 'Jahr',
                 today: 'Heute',
-                appointment: 'Termin',
             },
-            url(query) {
-                console.log(query);
-                const fromDate = new Date(`${query.fromDate}T00:00:00`);
-                const toDate = new Date(`${query.toDate}T23:59:59`);
+            url:url,
+            debug: true
+        });
 
-                return generateRandomAppointments(`${query.fromDate}T00:00:00`,`${query.toDate}T23:59:59`, query.view).filter(appointment => {
-                    const appointmentStart = new Date(appointment.start);
-                    const appointmentEnd = new Date(appointment.end);
-
-                    return (
-                        (appointmentStart >= fromDate && appointmentStart < toDate) || // Startzeit liegt im Bereich
-                        (appointmentEnd > fromDate && appointmentEnd <= toDate) ||    // Endzeit liegt im Bereich
-                        (appointmentStart <= fromDate && appointmentEnd >= toDate)    // Termin umspannt den Bereich
-                    );
-                });
-            }
-        }).on('click-appointment.bs.calendar', function (event, appointment) {
-            event.preventDefault();
-            alert(appointment.title);
+        const calendarElement = $('#calendar');
+        calendarElement.bsCalendar()
+            .on('click-appointment.bs.calendar', function (event, appointment, $element) {
+                event.preventDefault();
+                $element.popover('hide');
+                $element.removeClass('text-bg-light');
+                // alert(appointment.title);
+            }).on('view.bs.calendar', function (event, view) {
+            console.log(view);
+        }).on('change', '[name="user_id"], [name="type_id"]', function (event) {
+            calendarElement.bsCalendar('load', {
+                queryParams(query) {
+                    query.user_id = $('[name="user_id"]').val();
+                    query.type_id = $('[name="type_id"]').val();
+                    return query;
+                }
+            });
         })
 
+        function url(query) {
+            const fromDate = new Date(`${query.fromDate}T00:00:00`);
+            const toDate = new Date(`${query.toDate}T23:59:59`);
+
+            return generateRandomAppointments(`${query.fromDate}T00:00:00`, `${query.toDate}T23:59:59`, query.view).filter(appointment => {
+                const appointmentStart = new Date(appointment.start);
+                const appointmentEnd = new Date(appointment.end);
+
+                return (
+                    (appointmentStart >= fromDate && appointmentStart < toDate) || // Startzeit liegt im Bereich
+                    (appointmentEnd > fromDate && appointmentEnd <= toDate) ||    // Endzeit liegt im Bereich
+                    (appointmentStart <= fromDate && appointmentEnd >= toDate)    // Termin umspannt den Bereich
+                );
+            });
+        }
 
         function generateRandomAppointments(start, end, view) {
             const colors = [
@@ -97,43 +104,54 @@
             const endDate = new Date(end);
             let count = 0;
             if (view === 'month') {
-                count = 50;
+                count = Math.floor(Math.random() * 51);
             }
             if (view === 'week') {
-                count = 10;
+                count = Math.floor(Math.random() * 101);
             }
             if (view === 'day') {
-                count = 25;
+                count = Math.floor(Math.random() * 21);
             }
             if (view === 'year') {
-                count = 200;
+                count = Math.floor(Math.random() * 201);
             }
 
             for (let i = 0; i < count; i++) {
-                // Zufälliger Startzeitpunkt innerhalb des angegebenen Zeitintervalls
+                // set minute to 0, 30 or 45
+                const startMinutesOptions = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
                 const randomTimeStart = new Date(
                     startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime())
                 );
 
-                // Zufällige Dauer (zwischen 30 und 210 Minuten / 30 Min bis 3,5 Stunden)
-                const randomDuration = Math.floor(Math.random() * 180) + 30; // Dauer in Minuten
-                const randomTimeEnd = new Date(randomTimeStart.getTime() + randomDuration * 60000); // Endzeit berechnen
+                randomTimeStart.setMinutes(startMinutesOptions[Math.floor(Math.random() * startMinutesOptions.length)]);
+                randomTimeStart.setSeconds(0); // Set seconds to 0
+                randomTimeStart.setMilliseconds(0); // set milliseconds to 0
 
-                // Sicherstellen, dass das Enddatum nicht außerhalb des Bereichs liegt
+                const durationOptions = [45, 60, 90, 120];
+                const randomDuration = durationOptions[Math.floor(Math.random() * durationOptions.length)];
+
+                // calculate the end time based in the duration
+                const randomTimeEnd = new Date(randomTimeStart.getTime() + randomDuration * 60000); // Endzeit berechnen
+                // ensure that the end date is not outside the area
                 if (randomTimeEnd > endDate) {
                     randomTimeEnd.setTime(endDate.getTime());
                 }
 
+                const description = `This is a randomly generated appointment description. The appointment is meant to provide useful information about the scheduled event. Details such as the purpose of the appointment, participants, or special instructions can typically be included here. Appointment #${i + 1} is designed to showcase how descriptions enhance context.`;
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                const link = 'https://github.com/ThomasDev-de/bs-calendar';
+
                 // Termin erstellen
                 const appointment = {
                     id: i + 1,
-                    title: `Termin ${i + 1}`,
+                    title: `Appointment ${i + 1}`,
+                    description: description,
                     start: randomTimeStart.toISOString().replace('T', ' ').substring(0, 19),
                     end: randomTimeEnd.toISOString().replace('T', ' ').substring(0, 19),
-                    allDay: false,
-                    color: colors[Math.floor(Math.random() * colors.length)],
-                    link: 'https://www.google.com'
-                };
+                    allDay: i % 21 === 0,
+                    color: color,
+                    link: link
+                }
 
                 appointments.push(appointment);
             }
@@ -141,14 +159,8 @@
             return appointments;
         }
 
-// Beispielaufruf:
-        console.log(generateRandomAppointments(5));
 
-// Beispielaufruf:
-        console.log(generateRandomAppointments(5));
-        // $('#calendar2').bsCalendar({ rounded:5});
-
-        $('#flexSwitchCheckTheme')
+        $('#flexSwitchCheckTheme').prop('checked', false)
             .on('change', function () {
                 const theme = $('html').attr('data-bs-theme') === 'light' ? 'dark' : 'light';
                 $('html').attr('data-bs-theme', theme);
