@@ -4,7 +4,7 @@
             this.DEFAULTS = $.extend({}, this.DEFAULTS, options || {});
         },
         getDefaults: function () {
-           return this.DEFAULTS;
+            return this.DEFAULTS;
         },
         DEFAULTS: {
             locale: 'en-EN',
@@ -763,7 +763,7 @@
 
         for (let weekday = 0; weekday < 7; weekday++) {
             const dates = appointmentsByWeekday[weekday] || [];
-            const $dayWrapper = container.find('[data-week-day="'+weekday+'"] .wc-day-view-time-slots');
+            const $dayWrapper = container.find('[data-week-day="' + weekday + '"] .wc-day-view-time-slots');
             const margin = settings.startWeekOnSunday && weekday === 0 || !settings.startWeekOnSunday && weekday === 1;
             buildAppointmentsForDay($wrapper, $dayWrapper, dates, margin ? 0 : 0);
         }
@@ -1448,16 +1448,17 @@
 
         // Einstellungen aus dem Wrapper abrufen
         const settings = getSettings($wrapper);
-
+        const isToday = date.toDateString() === new Date().toDateString();
         if (!forWeekView) {
             $container = $('<div>', {
-                class: 'position-relative px-5 overflow-auto'
+                class: 'position-relative px-5'
+            }).appendTo($container);
+            $container = $('<div>', {
+                css: {paddingLeft: '40px'}
             }).appendTo($container);
         } else {
             const isToday = date.toDateString() === new Date().toDateString();
-            if (isToday) {
-                $container.addClass('text-bg-light');
-            }
+
         }
 
         $container.attr('data-weekday');
@@ -1466,6 +1467,9 @@
             class: 'wc-day-header py-2 text-center fw-bold mb-2',
             text: date.toLocaleDateString(settings.locale, {weekday: 'long', day: 'numeric', month: 'long'})
         }).appendTo($container);
+        if (isToday) {
+            headline.addClass('text-primary');
+        }
 
         if (forWeekView) {
             headline.attr('data-date', formatDate($wrapper, date)).css('cursor', 'pointer');
@@ -1494,7 +1498,7 @@
                 $('<div>', {
                     class: 'wc-time-label ps-2 position-absolute top-0 translate-middle text-bg-secondary',
                     css: {
-                        left:'-34px'
+                        left: '-34px'
                     },
                     html: `${hour.toString().padStart(2, '0')}:00 <i class="bi bi-caret-right-fill"></i>`
                 }).appendTo(row);
