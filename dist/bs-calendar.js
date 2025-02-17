@@ -763,9 +763,9 @@
 
         for (let weekday = 0; weekday < 7; weekday++) {
             const dates = appointmentsByWeekday[weekday] || [];
-            const $dayWrapper = container.find('[data-week-day="'+weekday+'"]');
+            const $dayWrapper = container.find('[data-week-day="'+weekday+'"] .wc-day-view-time-slots');
             const margin = settings.startWeekOnSunday && weekday === 0 || !settings.startWeekOnSunday && weekday === 1;
-            buildAppointmentsForDay($wrapper, $dayWrapper, dates, margin ? 40 : 0);
+            buildAppointmentsForDay($wrapper, $dayWrapper, dates, margin ? 0 : 0);
         }
     }
 
@@ -773,7 +773,7 @@
         const settings = getSettings($wrapper);
         const columns = assignColumnsToAppointments(appointments);
 
-        const gap = 2; // Abstand zwischen den Terminen in Pixeln
+        const gap = 1; // Abstand zwischen den Terminen in Pixeln
 
         // Breite inkl. Berücksichtigung des Zwischenraums
         const appointmentWidth = (($container.width() - marginLeft) / columns.length) - gap;
@@ -1409,7 +1409,8 @@
 
         // Wochenansicht als flexibles Layout erstellen
         const weekContainer = $('<div>', {
-            class: 'wc-week-view d-flex flex-nowrap'
+            class: 'wc-week-view d-flex flex-nowrap',
+            css: {paddingLeft: '40px'}
         }).appendTo($container);
 
         // Iteration über die Tage der Woche (von Starttag bis Endtag)
@@ -1491,7 +1492,10 @@
             if (showLabels) {
                 // Stunden-Label (z. B. 08:00)
                 $('<div>', {
-                    class: 'wc-time-label ps-2 position-absolute top-0 start-0 translate-middle text-bg-light',
+                    class: 'wc-time-label ps-2 position-absolute top-0 translate-middle text-bg-secondary',
+                    css: {
+                        left:'-34px'
+                    },
                     html: `${hour.toString().padStart(2, '0')}:00 <i class="bi bi-caret-right-fill"></i>`
                 }).appendTo(row);
             }
