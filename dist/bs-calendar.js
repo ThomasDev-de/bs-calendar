@@ -746,14 +746,37 @@
         return column.every(colAppointment => !checkAppointmentOverlap(appointment, colAppointment));
     }
 
-    function buildAppointmentsForDay($wrapper, $container, appointments) {
+    function buildAppointmentsForWeek($wrapper, appointments) {
+        const container = getViewContainer($wrapper);
+        const settings = getSettings($wrapper);
+
+        const appointmentsByWeekday = [[], [], [], [], [], [], []]; // Array für jeden Wochentag (Sonntag bis Samstag)
+
+        // Sortiere die Termine nach dem Wochentag
+        appointments.forEach(appointment => {
+            const appointmentDate = new Date(appointment.start);
+            const weekday = appointmentDate.getDay(); // Liefert den Wochentag (0 = Sonntag, 6 = Samstag)
+            appointmentsByWeekday[weekday].push(appointment);
+        });
+
+        // console.log(appointmentsByWeekday);
+
+        for (let weekday = 0; weekday < 7; weekday++) {
+            const dates = appointmentsByWeekday[weekday] || [];
+            const $dayWrapper = container.find('[data-week-day="'+weekday+'"]');
+            const margin = settings.startWeekOnSunday && weekday === 0 || !settings.startWeekOnSunday && weekday === 1;
+            buildAppointmentsForDay($wrapper, $dayWrapper, dates, margin ? 40 : 0);
+        }
+    }
+
+    function buildAppointmentsForDay($wrapper, $container, appointments, marginLeft = 40) {
         const settings = getSettings($wrapper);
         const columns = assignColumnsToAppointments(appointments);
 
         const gap = 2; // Abstand zwischen den Terminen in Pixeln
 
         // Breite inkl. Berücksichtigung des Zwischenraums
-        const appointmentWidth = (($container.width() - 40) / columns.length) - gap;
+        const appointmentWidth = (($container.width() - marginLeft) / columns.length) - gap;
 
         // Gehe durch jede Spalte und positioniere die Termine
         columns.forEach((column, columnIndex) => {
@@ -775,7 +798,7 @@
                 const appointmentHeight = durationInHours * 34;
 
                 // Berechne die `left`-Position inkl. des Zwischenraums
-                const appointmentLeft = 40 + (columnIndex * (appointmentWidth + gap));
+                const appointmentLeft = marginLeft + (columnIndex * (appointmentWidth + gap));
                 let durationString = end.toTimeString().slice(0, 5);
                 if (typeof settings.formatDuration === "function") {
                     durationString += " (" + settings.formatDuration(appointment.duration) + ")";
@@ -954,7 +977,7 @@
                 buildAppointmentsForDay($wrapper, overContainer, appointments);
                 break;
             case 'week':
-
+                buildAppointmentsForWeek($wrapper, appointments);
                 break;
             case 'month':
                 buildAppointmentsForMonth($wrapper, appointments);
@@ -1396,7 +1419,8 @@
 
             // Tagescontainer erstellen
             const dayContainer = $('<div>', {
-                class: 'wc-day-view flex-grow-1 flex-fill border-end',
+                'data-week-day': currentDate.getDay(),
+                class: 'wc-day-week-view flex-grow-1 flex-fill border-end position-relative',
             }).appendTo(weekContainer);
 
 
@@ -1414,6 +1438,8 @@
      * @param {jQuery} $wrapper - Das Wrapper-Element für den Kalender.
      * @param {Date} date - Das aktuelle Datum.
      * @param {jQuery} $container - Das Ziel-Element, in das der Inhalt eingefügt wird.
+     * @param forWeekView
+     * @param showLabels
      */
     function buildDayViewContent($wrapper, date, $container, forWeekView = false, showLabels = true) {
         // Container leeren
