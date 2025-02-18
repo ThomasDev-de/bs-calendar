@@ -137,9 +137,9 @@
         }
 
 
-        if (viewChanged) {
+        // if (viewChanged) {
             buildByView($wrapper);
-        }
+        // }
 
 
         fetchAppointments($wrapper);
