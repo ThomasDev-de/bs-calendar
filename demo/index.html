@@ -20,17 +20,87 @@
 
 </div>
 
-<div id="sidebarAddons" class="mt-4">
+<div id="sidebarAddons" class="mt-4 d-flex flex-column">
     <h6 class="text-uppercase text-center border-bottom">sidebar addons</h6>
-    <select class="form-select rounded-5 mb-3" name="user_id" aria-label="Default select example">
-        <option value="1">User 1</option>
-        <option value="2">User 2</option>
-    </select>
-    <select class="form-select rounded-5" name="type_id" aria-label="Default select example">
-        <option value="1">Type 1</option>
-        <option value="2">Type 2</option>
-    </select>
+    <small>methods</small>
+    <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
+    <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setDate">setDate (1970-01-01)</button>
+    <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday">setToday</button>
+    <button type="button" class="btn btn-primary btn-sm mb-1" data-method="clear">Clear</button>
+    <button type="button" class="btn btn-primary btn-sm mb-1" data-method="destroy">Destroy</button>
 </div>
+
+<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="d-flex justify-content-end mb-3">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="form-floating mb-3">
+                    <input name="title" type="text" class="form-control" id="floatingInputTitle"
+                           placeholder="appointment title">
+                    <label for="floatingInputTitle">Title</label>
+                </div>
+                <div class="d-flex justify-content-between align-items-center flex-nowrap mb-3">
+                    <div class="form-floating flex-fill">
+                        <input name="from_date" type="date" class="form-control" id="floatingInputDate"
+                               placeholder="date">
+                        <label for="floatingInputDate">From date</label>
+                    </div>
+                    <div class="mx-1"></div>
+                    <div class="form-floating flex-fill">
+                        <input name="to_date" type="date" class="form-control" id="floatingInputToDate"
+                               placeholder="date">
+                        <label for="floatingInputToDate">To date</label>
+                    </div>
+                </div>
+
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="allDay" role="switch"
+                           id="flexSwitchCheckDefaultAllDay">
+                    <label class="form-check-label" for="flexSwitchCheckDefaultAllDay">all day</label>
+                </div>
+
+
+                <div class="js-hide-on-all-day">
+                    <div class="d-flex justify-content-between align-items-center flex-nowrap mb-3">
+                        <div class="form-floating flex-fill">
+                            <input name="from_time" type="time" class="form-control" id="floatingInputTime"
+                                   placeholder="date">
+                            <label for="floatingInputTime">From time</label>
+                        </div>
+                        <div class="mx-1"></div>
+                        <div class="form-floating flex-fill">
+                            <input name="to_time" type="time" class="form-control" id="floatingInputToTime"
+                                   placeholder="date">
+                            <label for="floatingInputToTime">To time</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <textarea class="form-control" style="height:300px" name="description"
+                              placeholder="Leave a comment here" id="floatingTextareaDescription"></textarea>
+                    <label for="floatingTextareaDescription">Description</label>
+                </div>
+
+                <div class="form-floating mb-3">
+                    <input name="link" type="text" class="form-control" id="floatingInputLink"
+                           placeholder="appointment link">
+                    <label for="floatingInputLink">Link</label>
+                </div>
+
+                <div class="d-flex justify-content-end align-items-center">
+                    <label for="floatingInputColor" class="d-none"></label>
+                    <input type="color" name="color" class="form-control me-2" id="floatingInputColor">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script src="../vendor/components/jquery/jquery.min.js"></script>
 
 <script src="../vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -41,6 +111,7 @@
             locale: 'de',
             startWeekOnSunday: false,
             rounded: 5,
+            views: ['day', 'month'],
             translations: {
                 day: 'Tag',
                 week: 'Woche',
@@ -49,27 +120,68 @@
                 today: 'Heute',
                 appointment: 'Termin'
             },
-            url:url,
+            url: url,
             debug: true
         });
-
+        const modal = $('#exampleModal');
         const calendarElement = $('#calendar');
         calendarElement.bsCalendar()
-            .on('click-appointment.bs.calendar', function (event, appointment, $element) {
+            .on('add.bs.calendar', function (event, data) {
+                console.log(data);
+                modal.find('input[name="title"]').val(null);
+                modal.find('input[name="from_date"]').val(data.date);
+                modal.find('input[name="to_date"]').val(data.date);
+                modal.find('input[name="from_time"]').val(null);
+                modal.find('input[name="to_time"]').val(null);
+                modal.find('input[name="allDay"]').prop('checked', false).trigger('change');
+                modal.find('textarea[name="description"]').val(null);
+                modal.find('input[name="color"]').val(null);
+                modal.find('input[name="link"]').val(null);
+                modal.modal('show');
+            })
+            .on('edit.bs.calendar', function (event, appointment, $element) {
                 event.preventDefault();
-                $element.popover('hide');
-                $element.removeClass('text-bg-light');
-                // alert(appointment.title);
+                console.log(appointment);
+                const start = new Date(appointment.start);
+                const end = new Date(appointment.end);
+                const isAllDay = appointment.allDay;
+                const title = appointment.title;
+                const description = appointment.description;
+                const color = appointment.color;
+                const link = appointment.link;
+                modal.find('input[name="title"]').val(title);
+                modal.find('input[name="from_date"]').val(start.toISOString().split('T')[0]);
+                modal.find('input[name="to_date"]').val(end.toISOString().split('T')[0]);
+                modal.find('input[name="from_time"]').val(start.toISOString().split('T')[1].split('.')[0]);
+                modal.find('input[name="to_time"]').val(end.toISOString().split('T')[1].split('.')[0]);
+                modal.find('input[name="allDay"]').prop('checked', isAllDay).trigger('change');
+                modal.find('textarea[name="description"]').val(description);
+                modal.find('input[name="color"]').val(color);
+                modal.find('input[name="link"]').val(link);
+                modal.modal('show');
             }).on('view.bs.calendar', function (event, view) {
             console.log(view);
-        }).on('change', '[name="user_id"], [name="type_id"]', function (event) {
-            calendarElement.bsCalendar('load', {
-                queryParams(query) {
-                    query.user_id = $('[name="user_id"]').val();
-                    query.type_id = $('[name="type_id"]').val();
-                    return query;
-                }
-            });
+        }).on('click', '[data-method]', function (event) {
+            event.preventDefault();
+            switch ($(this).data('method')) {
+                case 'destroy':
+                    calendarElement.bsCalendar('destroy');
+                    break;
+                case 'clear':
+                    calendarElement.bsCalendar('clear');
+                    break;
+                case 'refresh':
+                    calendarElement.bsCalendar('refresh', {view: 'day'});
+                    break;
+                case 'setDate':
+                    calendarElement.bsCalendar('setDate', {date: '1970-01-01', view: 'day'});
+                    break;
+                case 'setToday':
+                    calendarElement.bsCalendar('setToday', 'day');
+                    break;
+                default:
+                    break;
+            }
         })
 
         function url(query) {
@@ -161,6 +273,15 @@
         }
 
 
+        $('#flexSwitchCheckDefaultAllDay').prop('checked', false)
+            .on('change', function () {
+                const isAllDay = $(this).prop('checked');
+                // if (isAllDay) {
+                $('.js-hide-on-all-day').toggle(!isAllDay);
+                // }
+
+
+            });
         $('#flexSwitchCheckTheme').prop('checked', false)
             .on('change', function () {
                 const theme = $('html').attr('data-bs-theme') === 'light' ? 'dark' : 'light';

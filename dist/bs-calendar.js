@@ -12,6 +12,7 @@
             rounded: 5, // 1-5
             startDate: new Date(),
             startView: 'month', // day, week, month, year
+            views: ['year', 'month', 'week', 'day'],
             translations: {
                 day: 'Day',
                 week: 'Week',
@@ -30,6 +31,16 @@
     };
 
 
+    /**
+     * jQuery plugin that initializes and manages a Bootstrap-based calendar.
+     * Provides functionality for creating, updating, and interacting with a dynamic calendar widget.
+     *
+     * @function
+     * @name $.fn.bsCalendar
+     * @param {Object|undefined|string} optionsOrMethod - Configuration options for the calendar.
+     * @param {Object|undefined|string} params - Configuration options for the calendar.
+     * @returns {jQuery} An instance of jQuery that allows for method chaining.
+     */
     $.fn.bsCalendar = function (optionsOrMethod, params) {
         if ($(this).length > 1) {
             return $(this).each(function (i, e) {
@@ -49,48 +60,170 @@
             }
 
             setSettings(wrapper, settings);
-            init(wrapper).then(function () {
-                wrapper.data('initBsCalendar', true);
-                if (settings.debug) {
-                    log('bsCalendar initialized');
-                }
-                trigger(wrapper, 'init');
-            });
+            init(wrapper);
         }
 
         if (methodGiven) {
             switch (optionsOrMethod) {
-                case 'load':
-                    // Retrieve the current settings for the given wrapper.
-                    const settings = getSettings(wrapper);
-                    // Flag to track if settings need to be updated.
-                    let changeSettings = false;
-                    // Check if 'params' is an object.
-                    if (typeof params === 'object') {
-                        // If 'params' contains 'url', update the 'url' in settings.
-                        if (params.hasOwnProperty('url')) {
-                            settings.url = params.url;
-                            // Mark that settings have been changed.
-                            changeSettings = true;
-                        }
-                        if (params.hasOwnProperty('queryParams') && typeof params.queryParams === 'function') {
-                            // If 'params' contains 'queryParams' and it is a function, update it in settings.
-                            settings.queryParams = params.queryParams;
-                            // Mark that settings have been changed.
-                            changeSettings = true;
-                        }
-                    }
-                    if (changeSettings) {
-                        // Save the updated settings if any changes were made.
-                        setSettings(wrapper, settings);
-                    }
-                    // Trigger the process to fetch updated appointment data.
-                    fetchAppointments(wrapper);
+                case 'refresh':
+                    methodRefresh(wrapper, params);
+                    break;
+                case 'clear':
+                    methodClear(wrapper);
+                    break;
+                case 'updateOptions':
+                    methodUpdateOptions(wrapper, params);
+                    break;
+                case 'destroy':
+                    destroy(wrapper);
+                    break;
+                case 'setDate':
+                    methodSetDate(wrapper, params);
+                    break;
+                case 'setToday':
+                    setToday(wrapper, params);
                     break;
             }
         }
 
         return wrapper;
+    }
+
+    function setToday($wrapper, view) {
+        let viewChanged = false;
+        const settings = getSettings($wrapper);
+        if(view && settings.views.includes(view)) {
+            const viewBefore = getView($wrapper);
+            if (viewBefore !== view) {
+                setView($wrapper, view);
+                viewChanged = true;
+            }
+        }
+        const date = new Date();
+        setDate($wrapper, date);
+        // if (viewChanged) {
+            buildByView($wrapper);
+        // }
+        fetchAppointments($wrapper);
+    }
+    function methodSetDate($wrapper, object) {
+        const settings = getSettings($wrapper);
+        let date = null;
+        let viewChanged = false;
+        if (typeof object === "string") {
+            date = new Date(object);
+        } else if (object instanceof Date) {
+            date = object;
+        } else if (typeof object === "object") {
+            if (object.hasOwnProperty('date')) {
+                if (typeof object.date === "string") {
+                    date = new Date(object.date);
+                } else if (object.date instanceof Date) {
+                    date = object.date;
+                }
+            }
+            if (object.hasOwnProperty('view') && settings.views.includes(object.view)) {
+                const viewBefore = getView($wrapper);
+                if (viewBefore !== object.view) {
+                    setView($wrapper, object.view);
+                    viewChanged = true;
+                }
+            }
+        }
+
+
+        if (date) {
+            setDate($wrapper, date);
+        }
+
+
+        if (viewChanged) {
+            buildByView($wrapper);
+        }
+
+
+        fetchAppointments($wrapper);
+    }
+
+    function methodClear($wrapper) {
+        $wrapper.find('[data-appointment]').remove();
+        setAppointments($wrapper, []);
+    }
+
+    /**
+     * Destroys and cleans up the specified wrapper element by removing associated data and content.
+     *
+     * @param {jQuery} $wrapper - The jQuery-wrapped DOM element to be cleaned up and reset.
+     * @return {void} Does not return a value.
+     */
+    function destroy($wrapper) {
+        $wrapper.removeData('initBsCalendar');
+        $wrapper.removeData('settings');
+        $wrapper.removeData('view');
+        $wrapper.removeData('date');
+        $wrapper.removeData('appointments');
+        $wrapper.empty();
+    };
+
+    function methodUpdateOptions($wrapper, options) {
+        if (typeof options === 'object') {
+            const settingsBefore = getSettings($wrapper);
+            const newSettings = $.extend({}, $.bsCalendar.getDefaults(), $wrapper.data(), settingsBefore, options || {});
+            destroy($wrapper);
+            setSettings($wrapper, newSettings);
+            init($wrapper);
+        }
+    }
+
+    /**
+     * Updates and applies settings for a given wrapper element based on the provided parameters.
+     *
+     * @param {HTMLElement} $wrapper - The DOM element representing the wrapper where settings are applied.
+     * @param {Object} object - The configuration object with optional keys to update settings.
+     * @param {string} [object.url] - The URL to update and fetch appointment data from.
+     * @param {string} [object.view] - The view name to set if it exists in the available views.
+     * @param {Function} [object.queryParams] - A callback function to define or modify query parameters.
+     *
+     * @return {void} Does not return a value.
+     */
+    function methodRefresh($wrapper, object) {
+        // Retrieve the current settings for the given wrapper.
+        const settings = getSettings($wrapper);
+        // Flag to track if settings need to be updated.
+        let changeSettings = false;
+        let rebuildView = false;
+        // Check if 'params' is an object.
+        if (typeof object === 'object') {
+            // If 'params' contains 'url', update the 'url' in settings.
+            if (object.hasOwnProperty('url')) {
+                settings.url = object.url;
+                // Mark that settings have been changed.
+                changeSettings = true;
+            }
+
+            if (object.hasOwnProperty('view') && settings.views.includes(object.view)) {
+                setView($wrapper, object.view);
+
+                rebuildView = true;
+                changeSettings = true;
+            }
+
+            if (object.hasOwnProperty('queryParams') && typeof object.queryParams === 'function') {
+                // If 'params' contains 'queryParams' and it is a function, update it in settings.
+                settings.queryParams = object.queryParams;
+                // Mark that settings have been changed.
+                changeSettings = true;
+            }
+        }
+        if (changeSettings) {
+            // Save the updated settings if any changes were made.
+            setSettings($wrapper, settings);
+        }
+        if (rebuildView) {
+            buildByView($wrapper);
+        }
+        // Trigger the process to fetch updated appointment data.
+        fetchAppointments($wrapper);
     }
 
     function formatDuration(duration) {
@@ -148,7 +281,7 @@
 
     function trigger($wrapper, event, ...params) {
         const settings = getSettings($wrapper);
-        const p = params.length > 0 ? params : [];
+        const p = params && params.length > 0 ? params : [];
 
         if (settings.debug) {
             if (p.length > 0) {
@@ -179,6 +312,18 @@
         return new Promise((resolve, reject) => {
             try {
                 const settings = getSettings($wrapper);
+                if (!settings.hasOwnProperty('views') || settings.views.length === 0) {
+                    settings.views = ['day', 'week', 'month', 'year'];
+                    setSettings($wrapper, settings);
+                }
+                if (!settings.hasOwnProperty('startView') || !settings.startView) {
+                    settings.startView = 'month';
+                    setSettings($wrapper, settings);
+                }
+                if (!settings.views.includes(settings.startView)) {
+                    settings.startView = settings.views[0];
+                    setSettings($wrapper, settings);
+                }
                 setView($wrapper, settings.startView);
                 setDate($wrapper, settings.startDate);
                 handleEvents($wrapper);
@@ -186,11 +331,57 @@
                 buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
                 buildByView($wrapper);
 
+                $wrapper.data('initBsCalendar', true);
+                if (settings.debug) {
+                    log('bsCalendar initialized');
+                }
+                trigger($wrapper, 'init');
+
                 resolve($wrapper);
             } catch (error) {
                 reject(error);
             }
         });
+    }
+
+    /**
+     * Sets the appointments after sorting and calculating their durations,
+     * then stores them in the given wrapper element.
+     *
+     * @param {jQuery} $wrapper - A jQuery wrapper element where the appointments data will be stored.
+     * @param {Array<Object>} appointments - An array of appointment objects to be processed and stored.
+     * @return {void} Does not return a value.
+     */
+    function setAppointments($wrapper, appointments) {
+        if (appointments && Array.isArray(appointments) && appointments.length > 0) {
+            appointments = sortAppointmentByStart(appointments);
+            calculateAppointmentDurations($wrapper, appointments);
+        } else {
+            appointments = [];
+        }
+
+        $wrapper.data('appointments', appointments);
+    }
+
+    /**
+     * Sorts a list of appointments by their start time in ascending order.
+     *
+     * @param {Array<Object>} appointments - An array of appointment objects where each object contains a 'start' property representing the starting time of the appointment.
+     * @return {Array<Object>} The sorted array of appointment objects in ascending order of their start times.
+     */
+    function sortAppointmentByStart(appointments) {
+        appointments.sort((a, b) => new Date(a.start) - new Date(b.start));
+        return appointments;
+    }
+
+    /**
+     * Retrieves the list of appointments associated with the provided wrapper element.
+     *
+     * @param {jQuery} $wrapper - The jQuery wrapper element containing the appointments data.
+     * @return {Array<Object>} The appointments data stored in the wrapper element, or undefined if no data is found.
+     */
+    function getAppointments($wrapper) {
+        return $wrapper.data('appointments');
     }
 
     /**
@@ -218,11 +409,7 @@
         const btnNew = $('<button>', {
             class: `btn rounded-${settings.rounded} border-3 border`,
             html: '<i class="bi bi-plus-lg"></i><span class="d-xl-inline ms-xl-2 ml-xl-2 d-none">' + settings.translations.appointment + '</span>',
-            click: function () {
-                const date = new Date();
-                setDate($wrapper, date);
-                buildByView($wrapper);
-            }
+            'data-add-appointment': true
         }).appendTo(topNav);
 
         const spinner = $('<div>', {
@@ -248,27 +435,29 @@
         }).appendTo(topNav);
 
         const todayButton = $('<button>', {
-            class: `btn rounded-${settings.rounded} border-3 mx-2 border`,
+            class: `btn rounded-${settings.rounded} border-3 ms-2 border`,
             html: settings.translations.today,
-            click: function () {
-                const date = new Date();
-                setDate($wrapper, date);
-                buildByView($wrapper);
-            }
+            'data-today': true
         }).appendTo(topNav);
-        const dropDownView = $('<div>', {
-            class: 'dropdown wc-select-calendar-view',
-            html: [
-                `<a class="btn rounded-${settings.rounded} border border-3 dropdown-toggle" href="#" role="button" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">`,
-                '</a>',
-                '<ul class="dropdown-menu">',
-                '<li><a class="dropdown-item" data-view="day" href="#">' + settings.translations.day + '</a></li>',
-                '<li><a class="dropdown-item" data-view="week" href="#">' + settings.translations.week + '</a></li>',
-                '<li><a class="dropdown-item active" data-view="month" href="#">' + settings.translations.month + '</a></li>',
-                '<li><a class="dropdown-item" data-view="year" href="#">' + settings.translations.year + '</a></li>',
-                '</ul>',
-            ].join('')
-        }).appendTo(topNav);
+
+        // If only one view is desired, give no selection
+        if (settings.views.length > 1) {
+            const dropDownView = $('<div>', {
+                class: 'dropdown wc-select-calendar-view ms-2',
+                html: [
+                    `<a class="btn rounded-${settings.rounded} border border-3 dropdown-toggle" href="#" role="button" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">`,
+                    '</a>',
+                    '<ul class="dropdown-menu">',
+                    '</ul>',
+                ].join('')
+            }).appendTo(topNav);
+
+            settings.views.forEach(view => {
+                const li = $('<li>', {
+                    html: `<a class="dropdown-item" data-view="${view}" href="#">${settings.translations[view]}</a>`
+                }).appendTo(dropDownView.find('ul'));
+            });
+        }
 
         const container = $('<div>', {
             class: 'd-flex flex-fill wc-calendar-container'
@@ -415,6 +604,26 @@
      */
     function handleEvents($wrapper) {
         $wrapper
+            .on('click', '[data-add-appointment]', function (e) {
+                e.preventDefault();
+                const date = getDate($wrapper);
+                const formattedDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
+                const view = getView($wrapper);
+                const period = getStartAndEndDateByView($wrapper);
+                const data = {
+                    date: period.date,
+                    view: {
+                        type: view,
+                        start: period.start,
+                        end: period.end
+                    }
+                };
+                trigger($wrapper, 'add', [data]);
+            })
+            .on('click', '[data-today]', function (e) {
+                e.preventDefault();
+                setToday($wrapper);
+            })
             .on('click', '[data-appointment]', function (e) {
                 e.preventDefault();
                 const element = $(e.currentTarget);
@@ -422,21 +631,27 @@
                 element.removeClass('text-bg-light');
 
                 const appointment = element.data('appointment');
-                trigger($wrapper, 'click-appointment', [appointment, element]);
+                trigger($wrapper, 'edit', [appointment, element]);
             })
             .on('click', '[data-date]', function (e) {
                 e.preventDefault();
-                const date = new Date($(e.currentTarget).attr('data-date'));
-                setView($wrapper, 'day');
-                setDate($wrapper, date);
-                buildByView($wrapper);
+                const settings = getSettings($wrapper);
+                if (settings.views.includes('day')) {
+                    const date = new Date($(e.currentTarget).attr('data-date'));
+                    setView($wrapper, 'day');
+                    setDate($wrapper, date);
+                    buildByView($wrapper);
+                }
             })
             .on('click', '[data-month]', function (e) {
                 e.preventDefault();
-                const date = new Date($(e.currentTarget).attr('data-month'));
-                setView($wrapper, 'month');
-                setDate($wrapper, date);
-                buildByView($wrapper);
+                const settings = getSettings($wrapper);
+                if (settings.views.includes('month')) {
+                    const date = new Date($(e.currentTarget).attr('data-month'));
+                    setView($wrapper, 'month');
+                    setDate($wrapper, date);
+                    buildByView($wrapper);
+                }
             })
             .on('click', '.wc-nav-view-prev', function (e) {
                 e.preventDefault();
@@ -616,7 +831,7 @@
         const view = getView($wrapper);
 
         // calculate the start and end date based on the view
-        const period = getStartAndEndDate($wrapper, date, view);
+        const period = getStartAndEndDateByView($wrapper);
         const spinner = $wrapper.find('.wc-calendar-spinner');
         $wrapper.find('.popover').remove();
         $wrapper.find('[data-appointment]').remove();
@@ -644,7 +859,8 @@
             if (settings.debug) {
                 log('Call appointments by function:', appointments);
             }
-            renderData($wrapper, appointments);
+            setAppointments($wrapper, appointments);
+            renderAppointments($wrapper);
         } else if (typeof settings.url === 'string') {
             showLoader($wrapper);
 
@@ -661,11 +877,12 @@
             // Neue Anfrage starten und im Wrapper speichern
             const newRequest = $.ajax({
                 url: settings.url, // Server-Endpoint
-                method: 'POST',
+                method: 'GET',
                 contentType: 'application/json',
                 data: JSON.stringify(requestData), // Daten als JSON senden
                 success: function (response) {
-                    renderData($wrapper, response || []);
+                    setAppointments($wrapper, response || []);
+                    renderAppointments($wrapper);
                 },
                 error: function (xhr, status, error) {
                     if (status !== 'abort') {
@@ -689,13 +906,13 @@
         let r, g, b;
 
         if (color.startsWith('#')) {
-            // Hex-Farbcode
+            // Hex-color code
             r = parseInt(color.slice(1, 3), 16);
             g = parseInt(color.slice(3, 5), 16);
             b = parseInt(color.slice(5, 7), 16);
         } else if (color.startsWith('rgb')) {
-            // RGB oder RGBA-Farbcodes
-            const rgbValues = color.match(/\d+/g); // Extrahiert Zahlen aus der Zeichenkette
+            // RGB or RGBA color codes
+            const rgbValues = color.match(/\d+/g); // extract numbers from the character chain
             r = parseInt(rgbValues[0]);
             g = parseInt(rgbValues[1]);
             b = parseInt(rgbValues[2]);
@@ -703,9 +920,9 @@
             throw new Error('Unsupported color format');
         }
 
-        // YIQ-Berechnung zur Bestimmung, ob die Farbe dunkel ist
+        // YiQ calculation for determination whether the color is dark
         const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-        return yiq > 128; // Return true, wenn die Farbe dunkel ist
+        return yiq > 128; // return true when the color is dark
     }
 
     function checkAppointmentOverlap(appointment1, appointment2) {
@@ -962,12 +1179,8 @@
         }
     }
 
-    function renderData($wrapper, appointments) {
-        // Sortieren der appointments nach ihrem Startdatum
-        appointments.sort((a, b) => new Date(a.start) - new Date(b.start));
-
-        calculateAppointmentDurations($wrapper, appointments);
-
+    function renderAppointments($wrapper) {
+        const appointments = getAppointments($wrapper);
         const view = getView($wrapper);
         const settings = getSettings($wrapper);
         if (settings.debug) {
@@ -1002,8 +1215,10 @@
         spinner.hide();
     }
 
-    function getStartAndEndDate($wrapper, date, view) {
+    function getStartAndEndDateByView($wrapper) {
         const settings = getSettings($wrapper);
+        const date = getDate($wrapper);
+        const view = getView($wrapper);
         const startDate = new Date(date); // Neues Date-Objekt basierend auf `date`
         const endDate = new Date(date);   // Neues Date-Objekt basierend auf `date`
 
@@ -1049,6 +1264,7 @@
         }
 
         return {
+            date: date.toISOString().split('T')[0],
             start: startDate.toISOString().split('T')[0],
             end: endDate.toISOString().split('T')[0]
         };
