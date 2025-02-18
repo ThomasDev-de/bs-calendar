@@ -418,6 +418,9 @@
             .on('click', '[data-appointment]', function (e) {
                 e.preventDefault();
                 const element = $(e.currentTarget);
+                element.popover('hide');
+                element.removeClass('text-bg-light');
+
                 const appointment = element.data('appointment');
                 trigger($wrapper, 'click-appointment', [appointment, element]);
             })
@@ -765,11 +768,11 @@
             const dates = appointmentsByWeekday[weekday] || [];
             const $dayWrapper = container.find('[data-week-day="' + weekday + '"] .wc-day-view-time-slots');
             const margin = settings.startWeekOnSunday && weekday === 0 || !settings.startWeekOnSunday && weekday === 1;
-            buildAppointmentsForDay($wrapper, $dayWrapper, dates, margin ? 0 : 0);
+            buildAppointmentsForDay($wrapper, $dayWrapper, dates, margin ? 1 : 1);
         }
     }
 
-    function buildAppointmentsForDay($wrapper, $container, appointments, marginLeft = 40) {
+    function buildAppointmentsForDay($wrapper, $container, appointments, marginLeft = 1) {
         const settings = getSettings($wrapper);
         const columns = assignColumnsToAppointments(appointments);
 
