@@ -1,4 +1,83 @@
-(function($){$.setupResize={setDefaults(o={}){this.DEFAULTS=$.extend(true,this.DEFAULTS,o||{})},setDefault(prop,value){this.DEFAULTS[prop]=value},getDefaults(){return this.DEFAULTS},DEFAULTS:{debug:false,wait:400}};$.fn.resize=function(callbackOrOptions=null){if($(this).length>1){return $(this).each(function(i,e){return $(e).resize(callbackOrOptions)})}const $element=$(this);const SETUP=$.setupResize.getDefaults();let sizes=getElementDimensions();let waitingTimeout=null;if($element.data("initResize")!==true){const customSettings=typeof callbackOrOptions==="object"?callbackOrOptions:{};const settings=$.extend({},$.setupResize.getDefaults(),customSettings);$element.data("resizeSettings",settings);$element.data("initResize",true)}const resizeObserver=new ResizeObserver(e=>{if($element.data("initResize")){let settings=$element.data("resizeSettings");if(waitingTimeout===null){waitingTimeout=setTimeout(()=>{waitingTimeout=null;onResizingFinished()},settings.wait)}}$element.data("initResize",true)});function getElementDimensions(){return{width:$element.outerWidth(),height:$element.outerHeight()}}function onResizingFinished(){if(waitingTimeout!==null){clearTimeout(waitingTimeout)}const newSizes=getElementDimensions();const changeWidth=newSizes.width!==sizes.width;const changeHeight=newSizes.height!==sizes.height;if(!changeWidth&&!changeHeight)return;let axis;if(changeWidth&&changeHeight){axis="both"}else if(changeWidth){axis="x"}else{axis="y"}const diff={width:newSizes.width-sizes.width,height:newSizes.height-sizes.height};$element.trigger("resize",[axis,newSizes,sizes,diff]);const settings=$element.data("resizeSettings");if(settings.debug){const content=["resized on axis: "+axis,"new size: "+JSON.stringify(newSizes),"before size: "+JSON.stringify(sizes),"diff size: "+JSON.stringify(diff)];$element.html(content.join("<br>"))}if(typeof callbackOrOptions==="function"){callbackOrOptions(axis,newSizes,sizes,diff)}sizes=newSizes}resizeObserver.observe($element.get(0));$element.on("remove",function(){resizeObserver.disconnect()});return $element}})(jQuery);(function ($) {
+(function ($) {
+    $.setupResize = {
+        setDefaults(o = {}) {
+            this.DEFAULTS = $.extend(true, this.DEFAULTS, o || {})
+        }, setDefault(prop, value) {
+            this.DEFAULTS[prop] = value
+        }, getDefaults() {
+            return this.DEFAULTS
+        }, DEFAULTS: {debug: false, wait: 400}
+    };
+    $.fn.resize = function (callbackOrOptions = null) {
+        if ($(this).length > 1) {
+            return $(this).each(function (i, e) {
+                return $(e).resize(callbackOrOptions)
+            })
+        }
+        const $element = $(this);
+        const SETUP = $.setupResize.getDefaults();
+        let sizes = getElementDimensions();
+        let waitingTimeout = null;
+        if ($element.data("initResize") !== true) {
+            const customSettings = typeof callbackOrOptions === "object" ? callbackOrOptions : {};
+            const settings = $.extend({}, $.setupResize.getDefaults(), customSettings);
+            $element.data("resizeSettings", settings);
+            $element.data("initResize", true)
+        }
+        const resizeObserver = new ResizeObserver(e => {
+            if ($element.data("initResize")) {
+                let settings = $element.data("resizeSettings");
+                if (waitingTimeout === null) {
+                    waitingTimeout = setTimeout(() => {
+                        waitingTimeout = null;
+                        onResizingFinished()
+                    }, settings.wait)
+                }
+            }
+            $element.data("initResize", true)
+        });
+
+        function getElementDimensions() {
+            return {width: $element.outerWidth(), height: $element.outerHeight()}
+        }
+
+        function onResizingFinished() {
+            if (waitingTimeout !== null) {
+                clearTimeout(waitingTimeout)
+            }
+            const newSizes = getElementDimensions();
+            const changeWidth = newSizes.width !== sizes.width;
+            const changeHeight = newSizes.height !== sizes.height;
+            if (!changeWidth && !changeHeight) return;
+            let axis;
+            if (changeWidth && changeHeight) {
+                axis = "both"
+            } else if (changeWidth) {
+                axis = "x"
+            } else {
+                axis = "y"
+            }
+            const diff = {width: newSizes.width - sizes.width, height: newSizes.height - sizes.height};
+            $element.trigger("resize", [axis, newSizes, sizes, diff]);
+            const settings = $element.data("resizeSettings");
+            if (settings.debug) {
+                const content = ["resized on axis: " + axis, "new size: " + JSON.stringify(newSizes), "before size: " + JSON.stringify(sizes), "diff size: " + JSON.stringify(diff)];
+                $element.html(content.join("<br>"))
+            }
+            if (typeof callbackOrOptions === "function") {
+                callbackOrOptions(axis, newSizes, sizes, diff)
+            }
+            sizes = newSizes
+        }
+
+        resizeObserver.observe($element.get(0));
+        $element.on("remove", function () {
+            resizeObserver.disconnect()
+        });
+        return $element
+    }
+})(jQuery);
+(function ($) {
     $.bsCalendar = {
         setDefaults: function (options) {
             this.DEFAULTS = $.extend({}, this.DEFAULTS, options || {});
@@ -556,7 +635,7 @@
             class: `container-fluid wc-calendar-view-container  border-1 rounded-${settings.rounded} flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`
         }).appendTo(container);
 
-        viewContainer.resize({wait: 100});
+        viewContainer.resize({wait: 400});
         viewContainer.on('resize', (e, direction, sizes, oldSizes, diffSizes) => {
             const view = getView($wrapper);
             if (direction === 'x' && ['day', 'week'].includes(view) && settings.views.includes(view)) {
@@ -1138,6 +1217,7 @@
             date1.getDate() === date2.getDate()
         );
     }
+
     function buildAppointmentsForMonth($wrapper, appointments) {
         const $container = getViewContainer($wrapper);
         const settings = getSettings($wrapper);
@@ -1154,15 +1234,15 @@
                 const sameDate = isSameDate(fakeStart, start);
                 const isNotStartOnThisDay = multipleStartDates && !sameDate;
                 const isStartOnThisDay = multipleStartDates && sameDate;
-                if (! isNotStartOnThisDay) {
+                if (!isNotStartOnThisDay) {
                     console.warn('Appointment start date does not match the start date of the appointment:', startDate, startString);
                 }
                 const startTime = start.toLocaleTimeString(settings.locale, {hour: '2-digit', minute: '2-digit'});
                 const dayContainer = $container.find(`[data-month-date="${startString}"]`);
                 let iconClass = `bi-clock`;
-                if(appointment.allDay){
+                if (appointment.allDay) {
                     iconClass = `bi-circle-fill`;
-                } else if (isStartOnThisDay){
+                } else if (isStartOnThisDay) {
                     iconClass = `bi-arrow-bar-right`;
                 } else if (isNotStartOnThisDay) {
                     iconClass = `bi-arrow-bar-left`;
@@ -1326,6 +1406,7 @@
                 break;
         }
     }
+
     function renderAppointments($wrapper) {
         buildAppointmentsForView($wrapper);
         hideLoader($wrapper);
@@ -1819,7 +1900,7 @@
         }
 
         const allDayContainer = $('<div>', {
-            'data-all-day':true,
+            'data-all-day': true,
             class: 'd-flex flex-column flex-fill',
         }).appendTo($container);
 
