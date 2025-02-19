@@ -20,14 +20,21 @@
 
 </div>
 
-<div id="sidebarAddons" class="mt-4 d-flex flex-column">
-    <h6 class="text-uppercase text-center border-bottom">sidebar addons</h6>
-    <small>methods</small>
-    <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
-    <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setDate">setDate (1970-01-01)</button>
-    <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday">setToday</button>
-    <button type="button" class="btn btn-primary btn-sm mb-1" data-method="clear">Clear</button>
-    <button type="button" class="btn btn-primary btn-sm mb-1" data-method="destroy">Destroy</button>
+<div id="sidebarAddons" class="mt-4 card">
+    <div class="card-header">
+        <h6 class="text-uppercase text-center mb-0">sidebar addons</h6>
+    </div>
+    <div class="card-body d-flex flex-column">
+        <div class="text-uppercase text-center mb-3"><small>plugin methods</small></div>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setDate">setDate(1970-01-01, 'day')
+        </button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday">setToday</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="clear">Clear</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="destroy">Destroy</button>
+        <div class="text-uppercase text-center mb-3"><small>query params</small></div>
+    </div>
+
 </div>
 
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -110,6 +117,7 @@
             locale: 'de',
             startWeekOnSunday: false,
             rounded: 5,
+            defaultColor: 'var(--bs-primary)',
             translations: {
                 day: 'Tag',
                 week: 'Woche',
@@ -215,10 +223,10 @@
             const endDate = new Date(end);
             let count = 0;
             if (view === 'month') {
-                count = Math.floor(Math.random() * 51);
+                count = Math.floor(Math.random() * 210);
             }
             if (view === 'week') {
-                count = Math.floor(Math.random() * 21);
+                count = Math.floor(Math.random() * 45);
             }
             if (view === 'day') {
                 count = Math.floor(Math.random() * 21);
@@ -238,7 +246,7 @@
                 randomTimeStart.setSeconds(0); // Set seconds to 0
                 randomTimeStart.setMilliseconds(0); // set milliseconds to 0
 
-                const durationOptions = [45, 60, 90, 120];
+                const durationOptions = [45, 60, 90, 120, 240, 500];
                 const randomDuration = durationOptions[Math.floor(Math.random() * durationOptions.length)];
 
                 // calculate the end time based in the duration

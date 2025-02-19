@@ -1,4 +1,4 @@
-(function ($) {
+(function($){$.setupResize={setDefaults(o={}){this.DEFAULTS=$.extend(true,this.DEFAULTS,o||{})},setDefault(prop,value){this.DEFAULTS[prop]=value},getDefaults(){return this.DEFAULTS},DEFAULTS:{debug:false,wait:400}};$.fn.resize=function(callbackOrOptions=null){if($(this).length>1){return $(this).each(function(i,e){return $(e).resize(callbackOrOptions)})}const $element=$(this);const SETUP=$.setupResize.getDefaults();let sizes=getElementDimensions();let waitingTimeout=null;if($element.data("initResize")!==true){const customSettings=typeof callbackOrOptions==="object"?callbackOrOptions:{};const settings=$.extend({},$.setupResize.getDefaults(),customSettings);$element.data("resizeSettings",settings);$element.data("initResize",true)}const resizeObserver=new ResizeObserver(e=>{if($element.data("initResize")){let settings=$element.data("resizeSettings");if(waitingTimeout===null){waitingTimeout=setTimeout(()=>{waitingTimeout=null;onResizingFinished()},settings.wait)}}$element.data("initResize",true)});function getElementDimensions(){return{width:$element.outerWidth(),height:$element.outerHeight()}}function onResizingFinished(){if(waitingTimeout!==null){clearTimeout(waitingTimeout)}const newSizes=getElementDimensions();const changeWidth=newSizes.width!==sizes.width;const changeHeight=newSizes.height!==sizes.height;if(!changeWidth&&!changeHeight)return;let axis;if(changeWidth&&changeHeight){axis="both"}else if(changeWidth){axis="x"}else{axis="y"}const diff={width:newSizes.width-sizes.width,height:newSizes.height-sizes.height};$element.trigger("resize",[axis,newSizes,sizes,diff]);const settings=$element.data("resizeSettings");if(settings.debug){const content=["resized on axis: "+axis,"new size: "+JSON.stringify(newSizes),"before size: "+JSON.stringify(sizes),"diff size: "+JSON.stringify(diff)];$element.html(content.join("<br>"))}if(typeof callbackOrOptions==="function"){callbackOrOptions(axis,newSizes,sizes,diff)}sizes=newSizes}resizeObserver.observe($element.get(0));$element.on("remove",function(){resizeObserver.disconnect()});return $element}})(jQuery);(function ($) {
     $.bsCalendar = {
         setDefaults: function (options) {
             this.DEFAULTS = $.extend({}, this.DEFAULTS, options || {});
@@ -12,6 +12,7 @@
             rounded: 5, // 1-5
             startDate: new Date(),
             startView: 'month', // day, week, month, year
+            defaultColor: 'var(--bs-danger)',
             views: ['year', 'month', 'week', 'day'],
             translations: {
                 day: 'Day',
@@ -92,7 +93,7 @@
     function setToday($wrapper, view) {
         let viewChanged = false;
         const settings = getSettings($wrapper);
-        if(view && settings.views.includes(view)) {
+        if (view && settings.views.includes(view)) {
             const viewBefore = getView($wrapper);
             if (viewBefore !== view) {
                 setView($wrapper, view);
@@ -102,10 +103,11 @@
         const date = new Date();
         setDate($wrapper, date);
         // if (viewChanged) {
-            buildByView($wrapper);
+        buildByView($wrapper);
         // }
         fetchAppointments($wrapper);
     }
+
     function methodSetDate($wrapper, object) {
         const settings = getSettings($wrapper);
         let date = null;
@@ -138,7 +140,7 @@
 
 
         // if (viewChanged) {
-            buildByView($wrapper);
+        buildByView($wrapper);
         // }
 
 
@@ -354,7 +356,9 @@
      */
     function setAppointments($wrapper, appointments) {
         if (appointments && Array.isArray(appointments) && appointments.length > 0) {
+
             appointments = sortAppointmentByStart(appointments);
+            appointments = splitMultiDayAppointments(appointments);
             calculateAppointmentDurations($wrapper, appointments);
         } else {
             appointments = [];
@@ -370,7 +374,19 @@
      * @return {Array<Object>} The sorted array of appointment objects in ascending order of their start times.
      */
     function sortAppointmentByStart(appointments) {
-        appointments.sort((a, b) => new Date(a.start) - new Date(b.start));
+        appointments.sort((a, b) => {
+            // All-Day-Termine zuerst
+            if (a.allDay && !b.allDay) {
+                return -1; // a vor b
+            }
+            if (!a.allDay && b.allDay) {
+                return 1; // b vor a
+            }
+
+            // Innerhalb gleicher Kategorie nach Startdatum sortieren
+            return new Date(a.start) - new Date(b.start);
+        });
+
         return appointments;
     }
 
@@ -382,6 +398,41 @@
      */
     function getAppointments($wrapper) {
         return $wrapper.data('appointments');
+    }
+
+    function splitMultiDayAppointments(appointments) {
+        appointments.forEach(appointment => {
+            const start = new Date(appointment.start);
+            const end = new Date(appointment.end);
+
+            // Array, das alle Tage zwischen Start und Ende enthält
+            const displayDates = [];
+            let tempDate = new Date(start); // Basis (Startdatum)
+
+            // Sorge dafür, dass tempDate nur den Datumsteil berücksichtigt (ohne Uhrzeit)
+            tempDate.setHours(0, 0, 0, 0);
+            end.setHours(0, 0, 0, 0);
+
+            while (tempDate <= end) {
+                // Datum zum Array hinzufügen (ohne Zeitzonenfehler, Lokale Zeit)
+                displayDates.push(
+                    `${tempDate.getFullYear()}-${(tempDate.getMonth() + 1)
+                        .toString()
+                        .padStart(2, '0')}-${tempDate.getDate()
+                        .toString()
+                        .padStart(2, '0')}`
+                );
+
+                // TempDate auf den nächsten Tag erhöhen
+                tempDate.setDate(tempDate.getDate() + 1);
+            }
+
+            // Zusätzliche Daten zuweisen
+            appointment.isSingleDay = displayDates.length === 1;
+            appointment.displayDates = displayDates;
+        });
+
+        return appointments; // Das Array der erweiterten Termine zurückgeben
     }
 
     /**
@@ -452,11 +503,29 @@
                 ].join('')
             }).appendTo(topNav);
 
+            function getIcon(view) {
+                switch (view) {
+                    case 'day':
+                        return '<i class="bi bi-calendar-day me-2 mr-2"></i>';
+                        break;
+                    case 'week':
+                        return '<i class="bi bi-calendar-week me-2 mr-2"></i>';
+                        break;
+                    case 'month':
+                        return '<i class="bi bi-calendar-month me-2 mr-2"></i>';
+                        break;
+                    case 'year':
+                        return '<i class="bi bi-calendar4 me-2 mr-2"></i>';
+                }
+            }
+
             settings.views.forEach(view => {
                 const li = $('<li>', {
-                    html: `<a class="dropdown-item" data-view="${view}" href="#">${settings.translations[view]}</a>`
+                    html: `<a class="dropdown-item" data-view="${view}" href="#">${getIcon(view)} ${settings.translations[view]}</a>`
                 }).appendTo(dropDownView.find('ul'));
             });
+
+
         }
 
         const container = $('<div>', {
@@ -486,6 +555,15 @@
         const viewContainer = $('<div>', {
             class: `container-fluid wc-calendar-view-container  border-1 rounded-${settings.rounded} flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`
         }).appendTo(container);
+
+        viewContainer.resize({wait: 100});
+        viewContainer.on('resize', (e, direction, sizes, oldSizes, diffSizes) => {
+            const view = getView($wrapper);
+            if (direction === 'x' && ['day', 'week'].includes(view) && settings.views.includes(view)) {
+                buildAppointmentsForView($wrapper);
+                console.log(e, direction, sizes, oldSizes, diffSizes);
+            }
+        })
     }
 
     /**
@@ -603,6 +681,7 @@
      * @return {void} This function does not return a value.
      */
     function handleEvents($wrapper) {
+
         $wrapper
             .on('click', '[data-add-appointment]', function (e) {
                 e.preventDefault();
@@ -673,7 +752,7 @@
                 setView($wrapper, view);
                 buildByView($wrapper);
 
-            })
+            });
     }
 
     function updateDropdownView($wrapper) {
@@ -681,7 +760,9 @@
         const view = getView($wrapper);
         dropdown.find('.dropdown-item.active').removeClass('active');
         dropdown.find(`[data-view="${view}"]`).addClass('active');
-        dropdown.find('.dropdown-toggle').text(dropdown.find(`[data-view="${view}"]`).text());
+        const activeItem = dropdown.find(`[data-view="${view}"]`);
+
+        dropdown.find('.dropdown-toggle').html(activeItem.html());
     }
 
 
@@ -902,7 +983,7 @@
         }
     }
 
-    function isDarkColor(color) {
+    function isDarkBackgroundColor(color) {
         let r, g, b;
 
         if (color.startsWith('#')) {
@@ -974,9 +1055,11 @@
 
         // Sortiere die Termine nach dem Wochentag
         appointments.forEach(appointment => {
-            const appointmentDate = new Date(appointment.start);
-            const weekday = appointmentDate.getDay(); // Liefert den Wochentag (0 = Sonntag, 6 = Samstag)
-            appointmentsByWeekday[weekday].push(appointment);
+            appointment.displayDates.forEach(startString => {
+                const appointmentDate = new Date(appointment.start);
+                const weekday = appointmentDate.getDay(); // Liefert den Wochentag (0 = Sonntag, 6 = Samstag)
+                appointmentsByWeekday[weekday].push(appointment);
+            })
         });
 
         // console.log(appointmentsByWeekday);
@@ -1023,47 +1106,87 @@
                 if (typeof settings.formatDuration === "function") {
                     durationString += " (" + settings.formatDuration(appointment.duration) + ")";
                 }
+                const backgroundColor = appointment.color || settings.defaultColor;
                 const appointmentElement = $('<small>', {
                     'data-appointment': true,
-                    class: 'position-absolute text-nowrap text-truncate shadow px-2 btn-sm wc-appointment-item overflow-hidden',
+                    class: 'position-absolute text-nowrap text-truncate shadow px-2 btn-sm  overflow-hidden',
                     css: {
-                        backgroundColor: appointment.color || '#007bff',
-                        color: !isDarkColor(appointment.color || '#007bff') ? '#ffffff' : '#000000',
+                        backgroundColor: backgroundColor,
                         top: `${topPosition}px`,
                         height: `${appointmentHeight}px`,
                         left: `${appointmentLeft}px`,
                         width: `${appointmentWidth}px`, // Reduzierte Breite
                     },
-                    html: `<div class="wc-appointment-item-content">${start.toTimeString().slice(0, 5)} ${durationString} - ${appointment.title || 'Ohne Titel'}</div>`,
+                    html: `<div class="">${start.toTimeString().slice(0, 5)} ${durationString} - ${appointment.title || 'Ohne Titel'}</div>`,
                 }).appendTo($container);
                 appointmentElement.data('appointment', appointment);
+                setColorByBackgroundColor(appointmentElement, settings.defaultColor);
                 setPopoverForAppointment($wrapper, appointmentElement);
             });
         });
     }
 
+    function setColorByBackgroundColor($el, defaultColor) {
+        const backgroundColor = $el.css('background-color') || defaultColor;
+        $el.css('color', !isDarkBackgroundColor(backgroundColor) ? '#ffffff' : '#000000');
+    }
+
+    function isSameDate(date1, date2) {
+        return (
+            date1.getFullYear() === date2.getFullYear() &&
+            date1.getMonth() === date2.getMonth() &&
+            date1.getDate() === date2.getDate()
+        );
+    }
     function buildAppointmentsForMonth($wrapper, appointments) {
         const $container = getViewContainer($wrapper);
         const settings = getSettings($wrapper);
+        if (settings.debug) {
+            log('Call buildAppointmentsForMonth with appointments:', appointments);
+        }
+        const max = 6;
         appointments.forEach(appointment => {
-            const start = new Date(appointment.start);
-            const startDate = start.toISOString().split('T')[0];
-            const startTime = start.toLocaleTimeString(settings.locale, {hour: '2-digit', minute: '2-digit'});
-            const dayContainer = $container.find(`[data-month-date="${startDate}"]`);
-            const appointmentElement = $('<small>', {
-                'data-appointment': true,
-                css: {
-                    borderLeftColor: appointment.color || '#007bff',
-                    borderLeftWidth: '5px',
-                    borderLeftStyle: 'solid',
-                    // color: !isDarkColor(appointment.color || '#007bff') ? '#ffffff' : '#000000',
-                },
-                class: 'shadow-sm  px-2 mb-1 wc-appointment-item w-100 overflow-hidden',
-                html: `<div class="wc-appointment-item-content">${startTime} - ${appointment.title}</div>`
-            }).appendTo(dayContainer);
+            const multipleStartDates = appointment.displayDates.length > 1;
+            appointment.displayDates.forEach(startString => {
+                const fakeStart = new Date(startString);
+                const start = new Date(appointment.start);
+                const startDate = start.toISOString().split('T')[0];
+                const sameDate = isSameDate(fakeStart, start);
+                const isNotStartOnThisDay = multipleStartDates && !sameDate;
+                const isStartOnThisDay = multipleStartDates && sameDate;
+                if (! isNotStartOnThisDay) {
+                    console.warn('Appointment start date does not match the start date of the appointment:', startDate, startString);
+                }
+                const startTime = start.toLocaleTimeString(settings.locale, {hour: '2-digit', minute: '2-digit'});
+                const dayContainer = $container.find(`[data-month-date="${startString}"]`);
+                let iconClass = `bi-clock`;
+                if(appointment.allDay){
+                    iconClass = `bi-circle-fill`;
+                } else if (isStartOnThisDay){
+                    iconClass = `bi-arrow-bar-right`;
+                } else if (isNotStartOnThisDay) {
+                    iconClass = `bi-arrow-bar-left`;
+                }
+                const timeToShow = appointment.allDay ? '' : `<small class="me-1 mr-1">${startTime}</small>`;
+                const appointmentElement = $('<small>', {
+                    'data-appointment': true,
+                    css: {
+                        fontSize: '12px',
+                        lineHeight: '16px'
+                    },
+                    class: 'px-1 w-100 overflow-hidden',
+                    html: [
+                        `<div class=" d-flex align-items-center flex-nowrap">`,
+                        `<i class="bi ${iconClass} me-1 mr-1" style="color: ${appointment.color || settings.defaultColor}; font-size: 12px"></i>`,
+                        timeToShow,
+                        `<strong class="text-nowrap">${appointment.title}</strong>`,
+                        `</div>`
+                    ].join('')
+                }).appendTo(dayContainer);
 
-            appointmentElement.data('appointment', appointment);
-            setPopoverForAppointment($wrapper, appointmentElement);
+                appointmentElement.data('appointment', appointment);
+                setPopoverForAppointment($wrapper, appointmentElement);
+            })
         })
     }
 
@@ -1179,7 +1302,8 @@
         }
     }
 
-    function renderAppointments($wrapper) {
+    function buildAppointmentsForView($wrapper) {
+        $wrapper.find('[data-appointment]').remove();
         const appointments = getAppointments($wrapper);
         const view = getView($wrapper);
         const settings = getSettings($wrapper);
@@ -1201,7 +1325,9 @@
             case 'year':
                 break;
         }
-
+    }
+    function renderAppointments($wrapper) {
+        buildAppointmentsForView($wrapper);
         hideLoader($wrapper);
     }
 
@@ -1333,7 +1459,7 @@
             class: 'row d-flex flex-nowrap wc-calendar-weekdays fw-bold text-bg-secondary',
         }).append(
             $('<div>', {
-                class: 'col d-flex align-items-center justify-content-center',
+                class: 'col px-1 d-flex align-items-center justify-content-center',
                 style: 'width: 24px',
                 html: '<small></small>',
             })
@@ -1344,7 +1470,7 @@
         weekDays.forEach(day => {
             weekdaysRow.append(
                 $('<div>', {
-                    class: 'text-center col flex-fill',
+                    class: 'text-center col px-1 flex-fill',
                     html: `<small>${day}</small>`,
                 })
             );
@@ -1363,7 +1489,7 @@
             const calendarWeek = getCalendarWeek(currentDate);
             weekRow.append(
                 $('<div>', {
-                    class: 'col d-flex align-items-start py-2 fw-bold text-bg-secondary justify-content-center',
+                    class: 'col px-1 d-flex align-items-start py-2 fw-bold text-bg-secondary justify-content-center',
                     style: 'width: 24px;',
                     html: `<small>${calendarWeek}</small>`,
 
@@ -1377,7 +1503,7 @@
                 const dayClass = isToday ? 'rounded-circle text-bg-primary' : '';
                 const dayWrapper = $('<div>', {
                     'data-month-date': formatDate($wrapper, currentDate),
-                    class: `col border flex-fill d-flex flex-column align-items-center justify-content-start ${
+                    class: `col px-1 border flex-fill d-flex flex-column align-items-center justify-content-start ${
                         isOtherMonth ? 'text-muted' : ''
                     } ${isToday ? '' : ''}`,
                     css: {
@@ -1675,9 +1801,6 @@
             $container = $('<div>', {
                 css: {paddingLeft: '40px'}
             }).appendTo($container);
-        } else {
-            const isToday = date.toDateString() === new Date().toDateString();
-
         }
 
         $container.attr('data-weekday');
@@ -1686,6 +1809,7 @@
             class: 'wc-day-header py-2 text-center fw-bold mb-2',
             text: date.toLocaleDateString(settings.locale, {weekday: 'long', day: 'numeric', month: 'long'})
         }).appendTo($container);
+
         if (isToday) {
             headline.addClass('text-primary');
         }
@@ -1693,6 +1817,11 @@
         if (forWeekView) {
             headline.attr('data-date', formatDate($wrapper, date)).css('cursor', 'pointer');
         }
+
+        const allDayContainer = $('<div>', {
+            'data-all-day':true,
+            class: 'd-flex flex-column flex-fill',
+        }).appendTo($container);
 
         // Container für Zeitslots
         const timeSlots = $('<div>', {
