@@ -695,7 +695,7 @@
                 e.preventDefault();
                 setToday($wrapper);
             })
-            .on('click', '[data-appointment]', function (e) {
+            .on('click touchend', '[data-appointment]', function (e) {
                 e.preventDefault();
                 const element = $(e.currentTarget);
                 element.popover('hide');
@@ -1222,7 +1222,7 @@
                     content: settings.formatInfoWindow(appointment),
                     container: $wrapper,
                 })
-                .on('mouseenter', function () {
+                .on('mouseenter touchstart', function () {
                     // Close all other open popovers
                     $('[data-appointment]')
                         .not($(this))
@@ -1244,7 +1244,7 @@
                         });
 
                         // close popover when mouse leaves him
-                        popover.on('mouseleave', function () {
+                        popover.on('mouseleave touchend', function () {
                             $(_this).data('timeout', setTimeout(() => {
                                 $(_this).popover('hide');
                                 $(_this).removeClass(activeClass);
@@ -1252,7 +1252,7 @@
                         });
                     }, delayShow)); // Delay when displaying
                 })
-                .on('mouseleave', function (e) {
+                .on('mouseleave touchend', function (e) {
                     // remove the delay for displaying
                     clearTimeout($(this).data('timeout'));
 
