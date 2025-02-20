@@ -1,83 +1,4 @@
 (function ($) {
-    $.setupResize = {
-        setDefaults(o = {}) {
-            this.DEFAULTS = $.extend(true, this.DEFAULTS, o || {})
-        }, setDefault(prop, value) {
-            this.DEFAULTS[prop] = value
-        }, getDefaults() {
-            return this.DEFAULTS
-        }, DEFAULTS: {debug: false, wait: 400}
-    };
-    $.fn.resize = function (callbackOrOptions = null) {
-        if ($(this).length > 1) {
-            return $(this).each(function (i, e) {
-                return $(e).resize(callbackOrOptions)
-            })
-        }
-        const $element = $(this);
-        const SETUP = $.setupResize.getDefaults();
-        let sizes = getElementDimensions();
-        let waitingTimeout = null;
-        if ($element.data("initResize") !== true) {
-            const customSettings = typeof callbackOrOptions === "object" ? callbackOrOptions : {};
-            const settings = $.extend({}, $.setupResize.getDefaults(), customSettings);
-            $element.data("resizeSettings", settings);
-            $element.data("initResize", true)
-        }
-        const resizeObserver = new ResizeObserver(e => {
-            if ($element.data("initResize")) {
-                let settings = $element.data("resizeSettings");
-                if (waitingTimeout === null) {
-                    waitingTimeout = setTimeout(() => {
-                        waitingTimeout = null;
-                        onResizingFinished()
-                    }, settings.wait)
-                }
-            }
-            $element.data("initResize", true)
-        });
-
-        function getElementDimensions() {
-            return {width: $element.outerWidth(), height: $element.outerHeight()}
-        }
-
-        function onResizingFinished() {
-            if (waitingTimeout !== null) {
-                clearTimeout(waitingTimeout)
-            }
-            const newSizes = getElementDimensions();
-            const changeWidth = newSizes.width !== sizes.width;
-            const changeHeight = newSizes.height !== sizes.height;
-            if (!changeWidth && !changeHeight) return;
-            let axis;
-            if (changeWidth && changeHeight) {
-                axis = "both"
-            } else if (changeWidth) {
-                axis = "x"
-            } else {
-                axis = "y"
-            }
-            const diff = {width: newSizes.width - sizes.width, height: newSizes.height - sizes.height};
-            $element.trigger("resize", [axis, newSizes, sizes, diff]);
-            const settings = $element.data("resizeSettings");
-            if (settings.debug) {
-                const content = ["resized on axis: " + axis, "new size: " + JSON.stringify(newSizes), "before size: " + JSON.stringify(sizes), "diff size: " + JSON.stringify(diff)];
-                $element.html(content.join("<br>"))
-            }
-            if (typeof callbackOrOptions === "function") {
-                callbackOrOptions(axis, newSizes, sizes, diff)
-            }
-            sizes = newSizes
-        }
-
-        resizeObserver.observe($element.get(0));
-        $element.on("remove", function () {
-            resizeObserver.disconnect()
-        });
-        return $element
-    }
-})(jQuery);
-(function ($) {
     $.bsCalendar = {
         setDefaults: function (options) {
             this.DEFAULTS = $.extend({}, this.DEFAULTS, options || {});
@@ -407,8 +328,9 @@
                 }
                 setView($wrapper, settings.startView);
                 setDate($wrapper, settings.startDate);
-                handleEvents($wrapper);
                 buildFramework($wrapper);
+                handleEvents($wrapper);
+
                 buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
                 buildByView($wrapper);
 
@@ -635,14 +557,6 @@
             class: `container-fluid wc-calendar-view-container  border-1 rounded-${settings.rounded} flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`
         }).appendTo(container);
 
-        viewContainer.resize({wait: 400});
-        viewContainer.on('resize', (e, direction, sizes, oldSizes, diffSizes) => {
-            const view = getView($wrapper);
-            if (direction === 'x' && ['day', 'week'].includes(view) && settings.views.includes(view)) {
-                buildAppointmentsForView($wrapper);
-                console.log(e, direction, sizes, oldSizes, diffSizes);
-            }
-        })
     }
 
     /**
@@ -760,7 +674,6 @@
      * @return {void} This function does not return a value.
      */
     function handleEvents($wrapper) {
-
         $wrapper
             .on('click', '[data-add-appointment]', function (e) {
                 e.preventDefault();
@@ -830,9 +743,9 @@
                 a.addClass('active');
                 setView($wrapper, view);
                 buildByView($wrapper);
-
-            });
+            })
     }
+
 
     function updateDropdownView($wrapper) {
         const dropdown = $wrapper.find('.wc-select-calendar-view');
@@ -1157,8 +1070,11 @@
 
         const gap = 1; // Abstand zwischen den Terminen in Pixeln
 
-        // Breite inkl. Berücksichtigung des Zwischenraums
-        const appointmentWidth = (($container.width() - marginLeft) / columns.length) - gap;
+        // Breite inkl. Berücksichtigung des Zwischenraums (relativ in % berechnen)
+        const containerWidth = $container.width();
+        const containerHeight = $container.height();
+
+        const appointmentWidthPercent = ((containerWidth - marginLeft) / columns.length - gap) / containerWidth * 100;
 
         // Gehe durch jede Spalte und positioniere die Termine
         columns.forEach((column, columnIndex) => {
@@ -1174,30 +1090,40 @@
                 const hourContainer = $container.find(`[data-day-hour="${startHour}"]`);
                 const hourPositionTop = hourContainer.position().top;
                 const minuteOffset = (startMinute / 60) * 34; // Offset in Pixel-Höhe
-                const topPosition = hourPositionTop + minuteOffset;
+                const topPositionInPixels = hourPositionTop + minuteOffset;
 
                 const durationInHours = endHour + endMinute / 60 - (startHour + startMinute / 60);
-                const appointmentHeight = durationInHours * 34;
+                const appointmentHeightInPixels = durationInHours * 34;
 
-                // Berechne die `left`-Position inkl. des Zwischenraums
-                const appointmentLeft = marginLeft + (columnIndex * (appointmentWidth + gap));
+                // Konvertiere `topPosition` und `appointmentHeight` in Prozent
+                const topPositionPercent = (topPositionInPixels / containerHeight) * 100;
+                const appointmentHeightPercent = (appointmentHeightInPixels / containerHeight) * 100;
+
+                // Berechne die `left`-Position relativ in % inkl. des Zwischenraums
+                const appointmentLeftInPixels = marginLeft + (columnIndex * (appointmentWidthPercent * containerWidth / 100 + gap));
+                const appointmentLeftPercent = (appointmentLeftInPixels / containerWidth) * 100;
+
                 let durationString = end.toTimeString().slice(0, 5);
                 if (typeof settings.formatDuration === "function") {
                     durationString += " (" + settings.formatDuration(appointment.duration) + ")";
                 }
+
                 const backgroundColor = appointment.color || settings.defaultColor;
+
+                // Setze die Termin-Elemente
                 const appointmentElement = $('<small>', {
                     'data-appointment': true,
-                    class: 'position-absolute text-nowrap text-truncate shadow px-2 btn-sm  overflow-hidden',
+                    class: 'position-absolute text-nowrap text-truncate shadow px-2 btn-sm overflow-hidden',
                     css: {
                         backgroundColor: backgroundColor,
-                        top: `${topPosition}px`,
-                        height: `${appointmentHeight}px`,
-                        left: `${appointmentLeft}px`,
-                        width: `${appointmentWidth}px`, // Reduzierte Breite
+                        top: `${topPositionPercent}%`, // Top in %
+                        height: `${appointmentHeightPercent}%`, // Höhe in %
+                        left: `${appointmentLeftPercent}%`, // Linke Position in %
+                        width: `${appointmentWidthPercent}%`, // Breite in %
                     },
                     html: `<div class="">${start.toTimeString().slice(0, 5)} ${durationString} - ${appointment.title || 'Ohne Titel'}</div>`,
                 }).appendTo($container);
+
                 appointmentElement.data('appointment', appointment);
                 setColorByBackgroundColor(appointmentElement, settings.defaultColor);
                 setPopoverForAppointment($wrapper, appointmentElement);
