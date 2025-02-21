@@ -193,8 +193,9 @@
         function url(query) {
             const fromDate = new Date(`${query.fromDate}T00:00:00`);
             const toDate = new Date(`${query.toDate}T23:59:59`);
+            const search = query.search;
 
-            return generateRandomAppointments(`${query.fromDate}T00:00:00`, `${query.toDate}T23:59:59`, query.view).filter(appointment => {
+            const appointments = generateRandomAppointments(`${query.fromDate}T00:00:00`, `${query.toDate}T23:59:59`, query.view).filter(appointment => {
                 const appointmentStart = new Date(appointment.start);
                 const appointmentEnd = new Date(appointment.end);
 
@@ -204,6 +205,13 @@
                     (appointmentStart <= fromDate && appointmentEnd >= toDate)    // Termin umspannt den Bereich
                 );
             });
+console.log(appointments);
+            if (search) {
+                return appointments.filter(appointment => {
+                    return appointment.title.toLowerCase().includes(search.toLowerCase());
+                });
+            }
+            return appointments;
         }
 
         function generateRandomAppointments(start, end, view) {
@@ -233,6 +241,9 @@
             }
             if (view === 'year') {
                 count = Math.floor(Math.random() * 201);
+            }
+            if (view === 'search') {
+                count = Math.floor(Math.random() * 21);
             }
 
             for (let i = 0; i < count; i++) {
