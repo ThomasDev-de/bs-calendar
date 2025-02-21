@@ -1,3 +1,43 @@
+/**
+ * @fileOverview A jQuery plugin to create and manage a Bootstrap-based calendar with rich configuration options.
+ *               This plugin provides functionalities for dynamic calendar creation, updating views,
+ *               handling user interactions, and more. It is designed to be flexible, allowing customization
+ *               through defined default settings or options provided at runtime.
+ *
+ * @author Thomas Kirsch
+ * @version 1.0.0
+ * @license MIT
+ * @requires jQuery ^3
+ * @requires Bootstrap ^v4 | ^v5
+ *
+ * @description
+ * This file defines a jQuery plugin `bsCalendar` that can be used to instantiate and manage a Bootstrap-based calendar
+ * with various views such as day, week, month, and year. The plugin allows for customization via options and methods,
+ * enabling the implementation of advanced functionalities like setting appointments, clearing schedules, updating views,
+ * and much more.
+ *
+ * Features:
+ * - Configurable default settings, including locale, start date, start week day, view types, and translations.
+ * - Methods for interaction, such as clearing elements, setting dates, and dynamically updating calendar options.
+ * - Support for fetching appointments and populating the calendar dynamically.
+ * - Fully responsive design adhering to Bootstrap's standards.
+ *
+ * Usage:
+ * Initialize the calendar:
+ * ```JavaScript
+ * $('#calendar').bsCalendar({ startView: 'week', locale: 'de-DE' });
+ * ```
+ * Call a method:
+ * ```JavaScript
+ * $('#calendar').bsCalendar('refresh');
+ * ```
+ *
+ * See the individual method and function documentation in this file for more details.
+ *
+ * @file Thomas Kirsch
+ * @date 2025-02-21
+ */
+
 (function ($) {
     $.bsCalendar = {
         setDefaults: function (options) {
@@ -32,6 +72,8 @@
             formatDuration: formatDuration,
         }
     };
+
+    const viewContainerClass = 'wc-calendar-view-container';
 
 
     /**
@@ -92,6 +134,16 @@
         return wrapper;
     }
 
+    /**
+     * Sets today's date in the specified wrapper and optionally updates the view.
+     * If a new view is passed and differs from the current view, it will switch to the new view.
+     * Also triggers the fetching of appointments and updates the view accordingly.
+     *
+     * @param {jQuery} $wrapper - The wrapper object containing the calendar or context-related elements.
+     * @param {string} [view] - The optional view to set (e.g., 'day', 'week', 'month').
+     *                          Should be included in the available views defined in settings.
+     * @return {void} - Does not return a value.
+     */
     function setToday($wrapper, view) {
         let viewChanged = false;
         const settings = getSettings($wrapper);
@@ -110,6 +162,18 @@
         fetchAppointments($wrapper);
     }
 
+    /**
+     * Sets the date and optionally updates the view based on the provided object.
+     * This method is responsible for managing date and view changes within the given wrapper.
+     *
+     * @param {jQuery} $wrapper - The wrapper element where settings are applied.
+     * @param {string|Date|Object} object - The date or object containing date and view details.
+     *        If a string, it is converted to a Date object. If a Date instance, it is directly used.
+     *        If an object, it may contain:
+     *        - `date` (string|Date): Represents the target date to set.
+     *        - `view` (string): Represents the target view to set, validated against available views in settings.
+     * @return {void} This method does not return a value.
+     */
     function methodSetDate($wrapper, object) {
         const settings = getSettings($wrapper);
         let date = null;
@@ -149,6 +213,12 @@
         fetchAppointments($wrapper);
     }
 
+    /**
+     * Clears all appointment-related elements within the specified wrapper and resets its appointments list.
+     *
+     * @param {jQuery} $wrapper The jQuery object representing the wrapper containing elements to be cleared.
+     * @return {void} This method does not return any value.
+     */
     function methodClear($wrapper) {
         $wrapper.find('[data-appointment]').remove();
         setAppointments($wrapper, []);
@@ -167,8 +237,15 @@
         $wrapper.removeData('date');
         $wrapper.removeData('appointments');
         $wrapper.empty();
-    };
+    }
 
+    /**
+     * Updates the settings of a given wrapper element with the provided options.
+     *
+     * @param {jQuery} $wrapper - The jQuery-wrapped DOM element to which settings are applied.
+     * @param {Object} options - An object containing new configuration options to update the settings.
+     * @return {void} This method does not return a value.
+     */
     function methodUpdateOptions($wrapper, options) {
         if (typeof options === 'object') {
             const settingsBefore = getSettings($wrapper);
@@ -230,6 +307,16 @@
         fetchAppointments($wrapper);
     }
 
+    /**
+     * Formats a duration object into a human-readable string.
+     *
+     * @param {Object} duration - The duration object containing time components.
+     * @param {number} duration.days - The number of days in the duration.
+     * @param {number} duration.hours - The number of hours in the duration.
+     * @param {number} duration.minutes - The number of minutes in the duration.
+     * @param {number} duration.seconds - The number of seconds in the duration.
+     * @return {string} A formatted string representing the duration in the format of "Xd Xh Xm Xs". If all components are zero, returns "0s".
+     */
     function formatDuration(duration) {
         const parts = [];
 
@@ -249,6 +336,14 @@
         return parts.length > 0 ? parts.join(' ') : '0s';
     }
 
+    /**
+     * Formats an HTML string for an information window based on the given appointment data.
+     *
+     * @param {Object} appointment - The appointment object containing details to format the information window.
+     * @param {number} [appointment.duration] - The duration of the appointment in milliseconds.
+     *
+     * @return {string} An HTML string representing the formatted information window for the appointment.
+     */
     function formatInfoWindow(appointment) {
         const description = appointment.hasOwnProperty('description') ? '<p>' + appointment.description + '</p>' : '';
         const color = appointment.hasOwnProperty('color') ? `<i class="bi bi-circle-fill me-2" style="color: ${appointment.color}"></i>` : '';
@@ -283,6 +378,14 @@
         }
     }
 
+    /**
+     * Triggers a specified event on a given wrapper element with optional parameters.
+     *
+     * @param {jQuery} $wrapper The jQuery wrapper element on which the event will be triggered.
+     * @param {string} event The name of the event to be triggered.
+     * @param {...any} params Additional parameters to pass to the event when triggered.
+     * @return {void} Does not return a value.
+     */
     function trigger($wrapper, event, ...params) {
         const settings = getSettings($wrapper);
         const p = params && params.length > 0 ? params : [];
@@ -403,6 +506,13 @@
         return $wrapper.data('appointments');
     }
 
+    /**
+     * Splits multi-day appointments into individual days, assigning additional metadata to each appointment.
+     * Each appointment will include a list of all dates it spans and a flag indicating if it is a single-day appointment.
+     *
+     * @param {Array} appointments - An array of appointment objects. Each appointment object must have `start` and `end` properties in ISO date format.
+     * @return {Array} - The modified array of appointment objects with the added `isSingleDay` boolean and `displayDates` array properties.
+     */
     function splitMultiDayAppointments(appointments) {
         appointments.forEach(appointment => {
             const start = new Date(appointment.start);
@@ -439,6 +549,25 @@
     }
 
     /**
+     * Returns the HTML string representing an icon based on the provided calendar view type.
+     *
+     * @param {string} view - The view type of the calendar. Expected values are 'day', 'week', 'month', or 'year'.
+     * @return {string} The HTML string representing the corresponding icon for the provided view type.
+     */
+    function getIcon(view) {
+        switch (view) {
+            case 'day':
+                return '<i class="bi bi-calendar-day me-2 mr-2"></i>';
+            case 'week':
+                return '<i class="bi bi-calendar-week me-2 mr-2"></i>';
+            case 'month':
+                return '<i class="bi bi-calendar-month me-2 mr-2"></i>';
+            case 'year':
+                return '<i class="bi bi-calendar4 me-2 mr-2"></i>';
+        }
+    }
+
+    /**
      * Builds a dynamic framework for a calendar application within the specified wrapper element.
      * This method initializes and structures the user interface by adding navigation components,
      * buttons, and view containers.
@@ -460,13 +589,13 @@
             class: 'd-flex sticky-top align-items-center justify-content-end mb-3 wc-calendar-top-nav  bg-body-tertiary rounded-' + settings.rounded
         }).appendTo(innerWrapper);
 
-        const btnNew = $('<button>', {
+        $('<button>', {
             class: `btn rounded-${settings.rounded} border-3 border`,
-            html: '<i class="bi bi-plus-lg"></i><span class="d-xl-inline ms-xl-2 ml-xl-2 d-none">' + settings.translations.appointment + '</span>',
+            html: '<i class="bi bi-plus-lg"></i>',
             'data-add-appointment': true
         }).appendTo(topNav);
 
-        const spinner = $('<div>', {
+        $('<div>', {
             class: 'spinner-border me-auto mr-auto mx-3 text-secondary wc-calendar-spinner',
             css: {
                 display: 'none'
@@ -478,7 +607,14 @@
         $('<div>', {
             class: 'me-auto mr-auto',
         }).appendTo(topNav);
-
+        if (settings.search) {
+            $('<input>', {
+                type: 'search',
+                class: 'form-control ms-2 rounded-' + settings.rounded + ' border-3 border',
+                placeholder: settings.translations.search || 'search',
+                'data-search': true
+            }).appendTo(topNav);
+        }
         const navDate = $('<div>', {
             class: 'd-flex ms-2 align-items-center justify-content-center wc-nav-view-wrapper flex-nowrap text-nowrap',
             html: [
@@ -488,16 +624,8 @@
             ].join('')
         }).appendTo(topNav);
 
-        if (settings.search) {
-            const searchInput = $('<input>', {
-                type: 'search',
-                class: 'form-control ms-2 rounded-' + settings.rounded + ' border-3 border',
-                placeholder: settings.translations.search || 'search',
-                'data-search': true
-            }).appendTo(navDate);
-        }
 
-        const todayButton = $('<button>', {
+        $('<button>', {
             class: `btn rounded-${settings.rounded} border-3 ms-2 border`,
             html: settings.translations.today,
             'data-today': true
@@ -515,24 +643,9 @@
                 ].join('')
             }).appendTo(topNav);
 
-            function getIcon(view) {
-                switch (view) {
-                    case 'day':
-                        return '<i class="bi bi-calendar-day me-2 mr-2"></i>';
-                        break;
-                    case 'week':
-                        return '<i class="bi bi-calendar-week me-2 mr-2"></i>';
-                        break;
-                    case 'month':
-                        return '<i class="bi bi-calendar-month me-2 mr-2"></i>';
-                        break;
-                    case 'year':
-                        return '<i class="bi bi-calendar4 me-2 mr-2"></i>';
-                }
-            }
 
             settings.views.forEach(view => {
-                const li = $('<li>', {
+                $('<li>', {
                     html: `<a class="dropdown-item" data-view="${view}" href="#">${getIcon(view)} ${settings.translations[view]}</a>`
                 }).appendTo(dropDownView.find('ul'));
             });
@@ -562,8 +675,8 @@
             $(settings.sidebarAddons).appendTo(leftBar);
         }
 
-        const viewContainer = $('<div>', {
-            class: `container-fluid wc-calendar-view-container  border-1 rounded-${settings.rounded} flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`
+        $('<div>', {
+            class: `container-fluid ${viewContainerClass} border-1 rounded-${settings.rounded} flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`
         }).appendTo(container);
 
     }
@@ -683,23 +796,28 @@
      * @return {void} This function does not return a value.
      */
     function handleEvents($wrapper) {
+        let searchTimeout;
         $wrapper
             .on('keyup input', '[data-search]', function (e) {
                 e.preventDefault();
-                const search = $(e.currentTarget).val();
-                const settings = getSettings($wrapper);
-                if (search) {
-                    setView($wrapper, 'search');
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
                 }
-                else{
-                    setView($wrapper, settings.startView);
-                }
-                buildByView($wrapper);
+                searchTimeout = setTimeout(() => {
+                    const search = $(e.currentTarget).val();
+                    const settings = getSettings($wrapper);
+                    if (search) {
+                        setView($wrapper, 'search');
+                    } else {
+                        setView($wrapper, settings.startView);
+                    }
+                    buildByView($wrapper);
+                }, 400)
+
             })
             .on('click', '[data-add-appointment]', function (e) {
                 e.preventDefault();
                 const date = getDate($wrapper);
-                const formattedDate = date.toISOString().split('T')[0]; // YYYY-MM-DD
                 const view = getView($wrapper);
                 const period = getStartAndEndDateByView($wrapper);
                 const data = {
@@ -768,6 +886,13 @@
     }
 
 
+    /**
+     * Updates the dropdown view by modifying the active item in the dropdown menu
+     * based on the view currently set in the wrapper element.
+     *
+     * @param {jQuery} $wrapper - A jQuery object representing the wrapper element containing the dropdown and view information.
+     * @return {void} This function does not return any value.
+     */
     function updateDropdownView($wrapper) {
         const dropdown = $wrapper.find('.wc-select-calendar-view');
         const view = getView($wrapper);
@@ -823,7 +948,7 @@
      */
     function getDate($wrapper) {
         return $wrapper.data('date');
-        ;
+
     }
 
     /**
@@ -849,7 +974,7 @@
      */
     function getSettings($wrapper) {
         return $wrapper.data('settings');
-        ;
+
     }
 
     /**
@@ -873,7 +998,7 @@
      * @return {jQuery} A jQuery object representing the view container element.
      */
     function getViewContainer($wrapper) {
-        return $wrapper.find('.wc-calendar-view-container');
+        return $wrapper.find('.' + viewContainerClass);
     }
 
     /**
@@ -890,7 +1015,6 @@
             log('Call buildByView with view:', view);
         }
 
-        const container = getViewContainer($wrapper).empty();
         switch (view) {
             case 'month':
                 buildMonthView($wrapper);
@@ -910,6 +1034,9 @@
             default:
                 break;
         }
+        if (view !== 'search') {
+            getSearchElement($wrapper).val(null)
+        }
         $wrapper.find('.popover').remove();
         updateDropdownView($wrapper);
         setCurrentDateName($wrapper);
@@ -918,20 +1045,27 @@
         fetchAppointments($wrapper);
     }
 
+    /**
+     * Fetches and processes appointments for a given wrapper element. The function retrieves
+     * appointment data based on the selected view, date range, and additional search criteria, and
+     * then renders the appointments within the wrapper. It supports URL callbacks or string-based
+     * AJAX requests for data retrieval.
+     *
+     * @param {jQuery} $wrapper - A jQuery object representing the wrapper element where appointments will be fetched and displayed.
+     * @return {void} - This function does not return a value. It updates the DOM of the provided wrapper with the fetched appointments.
+     */
     function fetchAppointments($wrapper) {
         const settings = getSettings($wrapper);
         if (settings.debug) {
             log('Call fetchAppointments');
         }
         // Get the latest date and view
-        const date = getDate($wrapper);
         const view = getView($wrapper);
         const searchElement = getSearchElement($wrapper);
         const search = searchElement?.val() ?? null;
 
         // calculate the start and end date based on the view
         const period = getStartAndEndDateByView($wrapper);
-        const spinner = $wrapper.find('.wc-calendar-spinner');
         $wrapper.find('.popover').remove();
         $wrapper.find('[data-appointment]').remove();
         // Daten für den Ajax-Request zusammenstellen
@@ -1002,6 +1136,14 @@
         }
     }
 
+    /**
+     * Determines if the given background color is dark based on its RGB or hexadecimal value.
+     * Uses the YiQ calculation formula to determine brightness and darkness thresholds.
+     *
+     * @param {string} color A string representing the background color in either hex format (e.g., "#RRGGBB") or RGB(A) format (e.g., "rgb(255, 255, 255)").
+     * @return {boolean} Returns true if the background color is considered dark, otherwise returns false.
+     * @throws {Error} Throws an error if the color format is not supported.
+     */
     function isDarkBackgroundColor(color) {
         let r, g, b;
 
@@ -1025,6 +1167,13 @@
         return yiq > 128; // return true when the color is dark
     }
 
+    /**
+     * Checks if two appointments overlap based on their start and end times.
+     *
+     * @param {Object} appointment1 The first appointment object with `start` and `end` properties as date strings.
+     * @param {Object} appointment2 The second appointment object with `start` and `end` properties as date strings.
+     * @return {boolean} Returns true if the two appointments overlap; otherwise, false.
+     */
     function checkAppointmentOverlap(appointment1, appointment2) {
         return (
             new Date(appointment1.start) < new Date(appointment2.end) &&
@@ -1032,6 +1181,12 @@
         );
     }
 
+    /**
+     * Assigns appointments to columns ensuring no overlapping appointments exist in the same column.
+     *
+     * @param {Array} appointments - An array of appointment objects to be assigned to columns.
+     * @return {Array} - An array of columns where each column is an array of appointments that do not overlap.
+     */
     function assignColumnsToAppointments(appointments) {
         // Array, in dem jede Spalte mit Terminen gespeichert wird
         const columns = [];
@@ -1061,11 +1216,26 @@
         return columns;
     }
 
-// Hilfsfunktion zur Prüfung auf Überschneidungen
+
+    /**
+     * Checks if the given appointment can fit in the specified column
+     * without overlapping with any other appointments already in the column.
+     *
+     * @param {Array} column - An array of existing appointments in the column.
+     * @param {Object} appointment - The appointment to check for potential overlap.
+     * @return {boolean} Returns true if the appointment fits in the column without overlap, otherwise false.
+     */
     function fitsColumn(column, appointment) {
         return column.every(colAppointment => !checkAppointmentOverlap(appointment, colAppointment));
     }
 
+    /**
+     * Constructs and organizes appointments for each day of the week based on the provided appointments data.
+     *
+     * @param {jQuery} $wrapper - The wrapper element containing the week view DOM structure.
+     * @param {Array<Object>} appointments - An array of appointment objects, each containing relevant scheduling details such as start times and display dates.
+     * @return {void} This method does not return a value. It modifies the DOM structure to display appointments organized by weekdays.
+     */
     function buildAppointmentsForWeek($wrapper, appointments) {
         const container = getViewContainer($wrapper);
         const settings = getSettings($wrapper);
@@ -1091,6 +1261,15 @@
         }
     }
 
+    /**
+     * Builds and displays a set of appointments for the specified day within a container.
+     *
+     * @param {jQuery} $wrapper - The wrapper element containing the calendar.
+     * @param {jQuery} $container - The container element where appointments should be rendered.
+     * @param {Array} appointments - An array of appointment objects, each containing details such as start, end, title, and color.
+     * @param {number} [marginLeft=1] - The left margin offset in pixels.
+     * @return {void} This function does not return a value. It renders appointments into the provided container.
+     */
     function buildAppointmentsForDay($wrapper, $container, appointments, marginLeft = 1) {
         const settings = getSettings($wrapper);
         const columns = assignColumnsToAppointments(appointments);
@@ -1158,11 +1337,27 @@
         });
     }
 
+    /**
+     * Sets the text color of an element based on its background color to ensure proper contrast.
+     * If the background color is dark, the text color is set to white (#ffffff).
+     * If the background color is light, the text color is set to black (#000000).
+     *
+     * @param {jQuery} $el - The jQuery element whose text color is to be adjusted.
+     * @param {string} defaultColor - The default background color to use if the element does not have a defined background color.
+     * @return {void} No return value, the method modifies the element's style directly.
+     */
     function setColorByBackgroundColor($el, defaultColor) {
         const backgroundColor = $el.css('background-color') || defaultColor;
         $el.css('color', !isDarkBackgroundColor(backgroundColor) ? '#ffffff' : '#000000');
     }
 
+    /**
+     * Compares two Date objects to determine if they represent the same calendar date.
+     *
+     * @param {Date} date1 - The first date to compare.
+     * @param {Date} date2 - The second date to compare.
+     * @return {boolean} Returns true if the two dates have the same year, month, and day; otherwise, false.
+     */
     function isSameDate(date1, date2) {
         return (
             date1.getFullYear() === date2.getFullYear() &&
@@ -1171,38 +1366,134 @@
         );
     }
 
+    /**
+     * Builds and displays the list of appointments in the search result container.
+     *
+     * @param {jQuery} $wrapper - The jQuery DOM element wrapper containing the context where appointments will be created.
+     * @param {Array<Object>} appointments - An array of appointment objects containing the details needed for rendering.
+     * @return {void} This function does not return a value.
+     */
     function buildAppointmentsForSearch($wrapper, appointments) {
         const settings = getSettings($wrapper);
         const $container = getViewContainer($wrapper).find('.wc-search-result-container').css('font-size', '.9rem');
-        if (! appointments.length) {
-            $container.html('<div class="d-flex h-100 w-100 align-items-center justify-content-center"> <i class="bi bi-calendar2-x fs-4"></i></div>');
+        const itemsPerPage = 10; // Anzahl der Termine pro Seite
+        const totalItems = appointments.length;
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+
+        if (!appointments.length) {
+            $container.html('<div class="d-flex h-100 w-100 align-items-center justify-content-center"><i class="bi bi-calendar2-x fs-4"></i></div>');
             return;
         }
-        appointments.forEach(appointment => {
-            const appointmentElement = $('<div>', {
-                'data-appointment': true,
-                class: 'list-group-item d-flex align-items-center g-3 py-1 overflow-hidden',
-                html: `
-        <div class="day fw-bold fs-3 text-center" style="width: 60px;" data-date="${formatDate($wrapper, new Date(appointment.start))}">
-            ${new Date(appointment.start).getDate()}
-        </div>
-        <div class="text-muted" style="width: 150px;">
-            ${new Date(appointment.start).toLocaleDateString(settings.locale, {
-                    month: 'short',
-                    year: 'numeric',
-                    weekday: 'short'
-                })}
-        </div>
-        <div class="title-container flex-fill text-nowrap">
-            ${appointment.title}
-        </div>
-        `
-            }).appendTo($container);
-            appointmentElement.data('appointment', appointment);
-            setPopoverForAppointment($wrapper, appointmentElement);
-        })
+
+        /**
+         * Funktion: Render die Termine der aktuellen Seite
+         */
+        function renderPage(page = 1) {
+            // Berechne Start und Ende
+            const startIndex = (page - 1) * itemsPerPage;
+            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+
+            // Alte Inhalte leeren
+            $container.empty();
+
+            // Container für Termine hinzufügen
+            const $appointmentContainer = $('<div>', {class: 'list-group list-group-flush mb-3'}).appendTo($container);
+
+            // Termine für diese Seite generieren
+            const pageAppointments = appointments.slice(startIndex, endIndex);
+            // Pagination erneut anhängen (falls gelöscht wurde)
+            // if (appointments.length > itemsPerPage) {
+            //     renderPagination(page);
+            // }
+            pageAppointments.forEach((appointment) => {
+                const html = [
+                    `<div class="day fw-bold fs-3 text-center" style="width: 60px;" data-date="${formatDate($wrapper, new Date(appointment.start))}">`,
+                    `${new Date(appointment.start).getDate()}`,
+                    `</div>`,
+                    `<div class="text-muted" style="width: 150px;">`,
+                    `${new Date(appointment.start).toLocaleDateString(settings.locale, {
+                        month: 'short',
+                        year: 'numeric',
+                        weekday: 'short'
+                    })}`,
+                    `</div>`,
+                    `<div class="title-container flex-fill text-nowrap">`,
+                    `${appointment.title}`,
+                    `</div>`,
+                ].join('');
+                const appointmentElement = $('<div>', {
+                    'data-appointment': true,
+                    class: 'list-group-item d-flex align-items-center g-3 py-1 overflow-hidden',
+                    html: html,
+                }).appendTo($appointmentContainer);
+
+                // Popover hinzufügen
+                appointmentElement.data('appointment', appointment);
+                setPopoverForAppointment($wrapper, appointmentElement);
+            });
+
+            // Pagination erneut anhängen (falls gelöscht wurde)
+            if (appointments.length > itemsPerPage) {
+                renderPagination(page);
+            }
+        }
+
+        /**
+         * Funktion: Erstelle Pagination unten im Container
+         */
+        function renderPagination(activePage) {
+            // Vorhandene Pagination entfernen
+            const $pagination = $('<nav>', { 'aria-label': 'Page navigation' });
+            const $paginationList = $('<ul>', { class: 'pagination justify-content-end' }).appendTo($pagination);
+
+            // Berechnung des Textes "1-10 / X appointments"
+            const startIndex = (activePage - 1) * itemsPerPage + 1; // Erster Termin auf der Seite (1-basiert)
+            const endIndex = Math.min(activePage * itemsPerPage, totalItems); // Letzter Termin auf der Seite
+            const statusText = `${startIndex}-${endIndex} / ${totalItems}`;
+
+            // Text vor der Pagination anzeigen
+            const $statusText = $('<div>', {
+                class: 'text-muted mb-2 text-end', // Stil für den Text
+                text: statusText,
+            });
+
+            // Pagination List generieren
+            for (let i = 1; i <= totalPages; i++) {
+                const $pageItem = $('<li>', { class: 'page-item' });
+                if (i === activePage) {
+                    $pageItem.addClass('active'); // Aktive Seite markieren
+                }
+
+                const $pageLink = $('<a>', {
+                    class: 'page-link',
+                    href: '#',
+                    text: i,
+                    click: function (e) {
+                        e.preventDefault(); // Standardlink-Verhalten deaktivieren
+                        renderPage(i); // Seite neu rendern
+                    }
+                });
+
+                $pageLink.appendTo($pageItem);
+                $pageItem.appendTo($paginationList);
+            }
+
+            // Beides in den Container einfügen (Text + Pagination)
+            $container.append($statusText); // Text einfügen
+            $container.append($pagination); // Pagination hinzufügen
+        }
+
+        // Zeige die erste Seite standardmäßig an
+        renderPage(1);
     }
 
+    /**
+     * Generates and appends appointment elements for a given month based on the provided data.
+     *
+     * @param {jQuery} $wrapper - The jQuery object representing the wrapper element for the calendar view.
+     * @param {Array<Object>} appointments - A list of appointment objects. Each object should include `displayDates`, `start`, `allDay`, `title`, and optionally `color`.
+     * @return {void} This function does not return a value; it updates the DOM by injecting appointment elements.
+     */
     function buildAppointmentsForMonth($wrapper, appointments) {
         const $container = getViewContainer($wrapper);
         const settings = getSettings($wrapper);
@@ -1325,6 +1616,15 @@
         }
     }
 
+    /**
+     * Calculates the duration for a list of appointments and appends the calculated duration
+     * to each appointment object. Durations include days, hours, minutes, and seconds.
+     *
+     * @param {jQuery} $wrapper - A wrapper object containing relevant settings.
+     * @param {Array} appointments - Array of appointment objects containing `start`, `end`,
+     * and `allDay` properties. Each object will be updated with a `duration` property.
+     * @return {void} - This function does not return a value; it modifies the appointments array in place.
+     */
     function calculateAppointmentDurations($wrapper, appointments) {
         const settings = getSettings($wrapper);
 
@@ -1367,6 +1667,12 @@
         }
     }
 
+    /**
+     * Builds and renders appointment elements for the current view inside the specified wrapper.
+     *
+     * @param {jQuery} $wrapper The jQuery element representing the wrapper in which appointments will be rendered.
+     * @return {void} This function does not return a value.
+     */
     function buildAppointmentsForView($wrapper) {
         $wrapper.find('[data-appointment]').remove();
         const appointments = getAppointments($wrapper);
@@ -1395,21 +1701,49 @@
         }
     }
 
+    /**
+     * Renders the appointments by building the view and hiding the loader.
+     *
+     * @param {Object} $wrapper - The wrapper element where the appointments will be rendered.
+     * @return {void} This method does not return a value.
+     */
     function renderAppointments($wrapper) {
         buildAppointmentsForView($wrapper);
         hideLoader($wrapper);
     }
 
+    /**
+     * Displays a loading spinner inside a given wrapper element.
+     *
+     * @param {jQuery} $wrapper - The jQuery object representing the wrapper element that contains the loading spinner.
+     * @return {void} This method does not return a value.
+     */
     function showLoader($wrapper) {
         const spinner = $wrapper.find('.wc-calendar-spinner');
         spinner.show();
     }
 
+    /**
+     * Hides the loading spinner within the specified wrapper element.
+     *
+     * @param {jQuery} $wrapper - The jQuery object representing the wrapper element that contains the loading spinner.
+     * @return {void} This function does not return a value.
+     */
     function hideLoader($wrapper) {
         const spinner = $wrapper.find('.wc-calendar-spinner');
         spinner.hide();
     }
 
+    /**
+     * Calculates the start and end dates based on the provided view type and a given date context.
+     *
+     * @param {jQuery} $wrapper - A wrapper element or object providing context for obtaining
+     *                            settings, date, and view type.
+     * @return {Object} An object containing the following properties:
+     *                  - `date`: The original date in ISO string format (yyyy-mm-dd).
+     *                  - `start`: The calculated start date in ISO string format (yyyy-mm-dd) based on the view.
+     *                  - `end`: The calculated end date in ISO string format (yyyy-mm-dd) based on the view.
+     */
     function getStartAndEndDateByView($wrapper) {
         const settings = getSettings($wrapper);
         const date = getDate($wrapper);
@@ -1466,6 +1800,12 @@
         };
     }
 
+    /**
+     * Retrieves the element within the specified wrapper that has the `data-search` attribute.
+     *
+     * @param {jQuery} $wrapper - The jQuery object representing the wrapper element to search within.
+     * @return {jQuery|null} The jQuery object containing the matched element, or null if no match is found.
+     */
     function getSearchElement($wrapper) {
         return $wrapper.find('[data-search]') || null;
     }
@@ -1492,6 +1832,14 @@
         return startWeekOnSunday ? weekDays : weekDays.slice(1).concat(weekDays[0]);
     }
 
+    /**
+     * Builds the search view by creating and appending the necessary DOM elements
+     * to the wrapper's container. It initializes the container, configures its
+     * structure, and attaches the search result container.
+     *
+     * @param {Object} $wrapper - The jQuery wrapped DOM element acting as the main wrapper for the search view.
+     * @return {void} This function does not return a value.
+     */
     function buildSearchView($wrapper) {
         const container = getViewContainer($wrapper);
         const settings = getSettings($wrapper);
@@ -1746,6 +2094,12 @@
         }
     }
 
+    /**
+     * Constructs and initializes the day view content within the provided wrapper element.
+     *
+     * @param {jQuery} $wrapper - A jQuery object representing the wrapper element where the day view will be built.
+     * @return {void} This function does not return a value.
+     */
     function buildDayView($wrapper) {
         const container = getViewContainer($wrapper);
         const date = getDate($wrapper);
