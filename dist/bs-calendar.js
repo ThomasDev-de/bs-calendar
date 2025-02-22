@@ -221,6 +221,7 @@
      */
     function methodClear($wrapper) {
         $wrapper.find('[data-appointment]').remove();
+        $wrapper.find('.popover').remove();
         setAppointments($wrapper, []);
     }
 
@@ -1063,11 +1064,10 @@
         const view = getView($wrapper);
         const searchElement = getSearchElement($wrapper);
         const search = searchElement?.val() ?? null;
-
         // calculate the start and end date based on the view
         const period = getStartAndEndDateByView($wrapper);
-        $wrapper.find('.popover').remove();
-        $wrapper.find('[data-appointment]').remove();
+
+        methodClear($wrapper);
         // Daten für den Ajax-Request zusammenstellen
         const requestData = {
             fromDate: period.start, // Startdatum im ISO-Format
