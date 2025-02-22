@@ -231,16 +231,16 @@ console.log(appointments);
             const endDate = new Date(end);
             let count = 0;
             if (view === 'month') {
-                count = Math.floor(Math.random() * 210);
+                count = Math.floor(Math.random() * 61);
             }
             if (view === 'week') {
-                count = Math.floor(Math.random() * 45);
-            }
-            if (view === 'day') {
                 count = Math.floor(Math.random() * 21);
             }
+            if (view === 'day') {
+                count = Math.floor(Math.random() * 6);
+            }
             if (view === 'year') {
-                count = Math.floor(Math.random() * 201);
+                count = Math.floor(Math.random() * 1);
             }
             if (view === 'search') {
                 count = Math.floor(Math.random() * 21);

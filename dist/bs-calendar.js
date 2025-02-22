@@ -2101,7 +2101,7 @@
      * @return {void} This function does not return a value.
      */
     function buildDayView($wrapper) {
-        const container = getViewContainer($wrapper);
+        const container = getViewContainer($wrapper).empty();
         const date = getDate($wrapper);
         buildDayViewContent($wrapper, date, container);
         // $('<h1>', {text: 'Day View'}).appendTo(container);
