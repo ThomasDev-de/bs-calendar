@@ -1090,7 +1090,7 @@
                 break;
         }
         if (view !== 'search') {
-            getSearchElement($wrapper).val(null)
+            toggleSearchMode($wrapper, false, true);
         }
         $wrapper.find('.popover').remove();
         updateDropdownView($wrapper);
