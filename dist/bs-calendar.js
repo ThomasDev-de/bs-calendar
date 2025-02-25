@@ -809,6 +809,7 @@
     }
 
     function toggleSearchMode($wrapper, status, manual = false) {
+        return;
         const a = $wrapper.find('.js-btn-search');
         const input = $wrapper.find('[data-search-input]');
         const collapse = $wrapper.find(a.attr('href'));
@@ -826,7 +827,7 @@
             if (manual) {
                 collapse.collapse('hide');
             }
-            setView($wrapper, settings.startView);
+            setView($wrapper, getLastView($wrapper) || settings.startView);
         }
         navElements.prop('disabled', status);
         $wrapper.data('searchMode', status);
@@ -864,8 +865,7 @@
                         toggleSearchMode($wrapper, true);
                         buildByView($wrapper);
                     }, 400)
-                }
-                else {
+                } else {
                     clearTimeout(searchTimeout);
                 }
 
@@ -969,6 +969,17 @@
         return $wrapper.data('view');
     }
 
+    function getLastView($wrapper) {
+        return $wrapper.data('lastView');
+    }
+
+    function setLastView($wrapper, view) {
+        const currentView = getView($wrapper);
+        if (currentView !== view) {
+            $wrapper.data('lastView', view);
+        }
+    }
+
     /**
      * Sets the view type for a given wrapper element.
      * The view can be one of 'day', 'week', 'month', or 'year'. If an invalid view
@@ -1065,9 +1076,16 @@
      */
     function buildByView($wrapper) {
         const settings = getSettings($wrapper);
+
         const view = getView($wrapper);
+        setLastView($wrapper, view);
+
         if (settings.debug) {
             log('Call buildByView with view:', view);
+        }
+
+        if (view !== 'search') {
+            toggleSearchMode($wrapper, false, true);
         }
 
         switch (view) {
@@ -1089,9 +1107,7 @@
             default:
                 break;
         }
-        if (view !== 'search') {
-            toggleSearchMode($wrapper, false, true);
-        }
+
         $wrapper.find('.popover').remove();
         updateDropdownView($wrapper);
         setCurrentDateName($wrapper);
