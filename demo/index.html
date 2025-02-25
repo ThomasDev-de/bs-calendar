@@ -116,7 +116,7 @@
         $.bsCalendar.setDefaults({
             locale: 'de',
             startWeekOnSunday: false,
-            rounded: 5,
+            rounded: 0,
             defaultColor: 'var(--bs-primary)',
             translations: {
                 day: 'Tag',
@@ -240,7 +240,7 @@ console.log(appointments);
                 count = Math.floor(Math.random() * 6);
             }
             if (view === 'year') {
-                count = Math.floor(Math.random() * 1);
+                count = Math.floor(Math.random() * 2);
             }
             if (view === 'search') {
                 count = Math.floor(Math.random() * 21);

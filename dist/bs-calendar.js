@@ -1,3 +1,5 @@
+// noinspection JSUnresolvedReference,JSValidateTypes
+
 /**
  * @fileOverview A jQuery plugin to create and manage a Bootstrap-based calendar with rich configuration options.
  *               This plugin provides functionalities for dynamic calendar creation, updating views,
@@ -7,8 +9,8 @@
  * @author Thomas Kirsch
  * @version 1.0.0
  * @license MIT
- * @requires jQuery ^3
- * @requires Bootstrap ^v4 | ^v5
+ * @requires "jQuery" ^3
+ * @requires "Bootstrap" ^v4 | ^v5
  *
  * @description
  * This file defines a jQuery plugin `bsCalendar` that can be used to instantiate and manage a Bootstrap-based calendar
@@ -34,14 +36,15 @@
  *
  * See the individual method and function documentation in this file for more details.
  *
- * @file Thomas Kirsch
+ * @file bs-calendar.js
  * @date 2025-02-21
+ * @global jQuery
  */
 
 (function ($) {
     $.bsCalendar = {
         setDefaults: function (options) {
-            this.DEFAULTS = $.extend({}, this.DEFAULTS, options || {});
+            this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
         },
         getDefaults: function () {
             return this.DEFAULTS;
@@ -63,6 +66,7 @@
                 today: 'Today',
                 appointment: 'Appointment',
                 search: 'Search',
+                searchNoResult: 'No results found'
             },
             url: null,
             queryParams: null,
@@ -74,7 +78,6 @@
     };
 
     const viewContainerClass = 'wc-calendar-view-container';
-
 
     /**
      * jQuery plugin that initializes and manages a Bootstrap-based calendar.
@@ -101,11 +104,13 @@
             let settings = $.bsCalendar.getDefaults();
 
             if (wrapper.data() || optionsGiven) {
-                settings = $.extend({}, settings, wrapper.data(), optionsOrMethod || {});
+                settings = $.extend(true, {}, settings, wrapper.data(), optionsOrMethod || {});
             }
 
             setSettings(wrapper, settings);
-            init(wrapper);
+            init(wrapper).then(() => {
+                // do nothing
+            });
         }
 
         if (methodGiven) {
@@ -137,7 +142,7 @@
     /**
      * Sets today's date in the specified wrapper and optionally updates the view.
      * If a new view is passed and differs from the current view, it will switch to the new view.
-     * Also triggers the fetching of appointments and updates the view accordingly.
+     * It Also triggers the fetching of appointments and updates the view accordingly.
      *
      * @param {jQuery} $wrapper - The wrapper object containing the calendar or context-related elements.
      * @param {string} [view] - The optional view to set (e.g., 'day', 'week', 'month').
@@ -145,21 +150,16 @@
      * @return {void} - Does not return a value.
      */
     function setToday($wrapper, view) {
-        let viewChanged = false;
         const settings = getSettings($wrapper);
         if (view && settings.views.includes(view)) {
             const viewBefore = getView($wrapper);
             if (viewBefore !== view) {
                 setView($wrapper, view);
-                viewChanged = true;
             }
         }
         const date = new Date();
         setDate($wrapper, date);
-        // if (viewChanged) {
         buildByView($wrapper);
-        // }
-        fetchAppointments($wrapper);
     }
 
     /**
@@ -177,7 +177,6 @@
     function methodSetDate($wrapper, object) {
         const settings = getSettings($wrapper);
         let date = null;
-        let viewChanged = false;
         if (typeof object === "string") {
             date = new Date(object);
         } else if (object instanceof Date) {
@@ -194,7 +193,6 @@
                 const viewBefore = getView($wrapper);
                 if (viewBefore !== object.view) {
                     setView($wrapper, object.view);
-                    viewChanged = true;
                 }
             }
         }
@@ -204,17 +202,12 @@
             setDate($wrapper, date);
         }
 
-
-        // if (viewChanged) {
         buildByView($wrapper);
-        // }
-
-
-        fetchAppointments($wrapper);
     }
 
     /**
-     * Clears all appointment-related elements within the specified wrapper and resets its appointments list.
+     * Clears all appointment-related elements within the specified
+     * wrapper and resets its appointment list.
      *
      * @param {jQuery} $wrapper The jQuery object representing the wrapper containing elements to be cleared.
      * @return {void} This method does not return any value.
@@ -237,6 +230,7 @@
         $wrapper.removeData('view');
         $wrapper.removeData('date');
         $wrapper.removeData('appointments');
+        $wrapper.removeData('searchMode');
         $wrapper.empty();
     }
 
@@ -250,17 +244,19 @@
     function methodUpdateOptions($wrapper, options) {
         if (typeof options === 'object') {
             const settingsBefore = getSettings($wrapper);
-            const newSettings = $.extend({}, $.bsCalendar.getDefaults(), $wrapper.data(), settingsBefore, options || {});
+            const newSettings = $.extend(true, {}, $.bsCalendar.getDefaults(), $wrapper.data(), settingsBefore, options || {});
             destroy($wrapper);
             setSettings($wrapper, newSettings);
-            init($wrapper);
+            init($wrapper).then(() => {
+                // do nothing
+            });
         }
     }
 
     /**
      * Updates and applies settings for a given wrapper element based on the provided parameters.
      *
-     * @param {HTMLElement} $wrapper - The DOM element representing the wrapper where settings are applied.
+     * @param {jQuery} $wrapper - The DOM element representing the wrapper where settings are applied.
      * @param {Object} object - The configuration object with optional keys to update settings.
      * @param {string} [object.url] - The URL to update and fetch appointment data from.
      * @param {string} [object.view] - The view name to set if it exists in the available views.
@@ -312,11 +308,8 @@
      * Formats a duration object into a human-readable string.
      *
      * @param {Object} duration - The duration object containing time components.
-     * @param {number} duration.days - The number of days in the duration.
-     * @param {number} duration.hours - The number of hours in the duration.
-     * @param {number} duration.minutes - The number of minutes in the duration.
-     * @param {number} duration.seconds - The number of seconds in the duration.
-     * @return {string} A formatted string representing the duration in the format of "Xd Xh Xm Xs". If all components are zero, returns "0s".
+     * @return {string} A formatted string representing the duration in the format of "Xd Xh Xm Xs".
+     * If all components are zero, returns "0s".
      */
     function formatDuration(duration) {
         const parts = [];
@@ -457,7 +450,7 @@
      * Sets the appointments after sorting and calculating their durations,
      * then stores them in the given wrapper element.
      *
-     * @param {jQuery} $wrapper - A jQuery wrapper element where the appointments data will be stored.
+     * @param {jQuery} $wrapper - A jQuery wrapper element where the appointment data will be stored.
      * @param {Array<Object>} appointments - An array of appointment objects to be processed and stored.
      * @return {void} Does not return a value.
      */
@@ -500,8 +493,8 @@
     /**
      * Retrieves the list of appointments associated with the provided wrapper element.
      *
-     * @param {jQuery} $wrapper - The jQuery wrapper element containing the appointments data.
-     * @return {Array<Object>} The appointments data stored in the wrapper element, or undefined if no data is found.
+     * @param {jQuery} $wrapper - The jQuery wrapper element containing the appointment data.
+     * @return {Array<Object>} The appointment data stored in the wrapper element, or undefined if no data is found.
      */
     function getAppointments($wrapper) {
         return $wrapper.data('appointments');
@@ -587,12 +580,12 @@
         }).appendTo($wrapper);
 
         const topNav = $('<div>', {
-            class: 'd-flex sticky-top align-items-center justify-content-end mb-3 wc-calendar-top-nav  bg-body-tertiary rounded-' + settings.rounded
+            class: 'd-flex sticky-top align-items-center px-0 justify-content-end mb-3 wc-calendar-top-nav  bg-body-tertiary rounded-' + settings.rounded
         }).appendTo(innerWrapper);
 
         $('<button>', {
             class: `btn rounded-${settings.rounded} border-3 border`,
-            html: '<i class="bi bi-plus-lg"></i>',
+            html: '<i class="bi bi-plus-lg fs-5"></i>',
             'data-add-appointment': true
         }).appendTo(topNav);
 
@@ -608,15 +601,9 @@
         $('<div>', {
             class: 'me-auto mr-auto',
         }).appendTo(topNav);
-        if (settings.search) {
-            $('<input>', {
-                type: 'search',
-                class: 'form-control ms-2 rounded-' + settings.rounded + ' border-3 border',
-                placeholder: settings.translations.search || 'search',
-                'data-search': true
-            }).appendTo(topNav);
-        }
-        const navDate = $('<div>', {
+
+
+        $('<div>', {
             class: 'd-flex ms-2 align-items-center justify-content-center wc-nav-view-wrapper flex-nowrap text-nowrap',
             html: [
                 '<small class="wc-nav-view-name mr-3 me-3"></small>',
@@ -625,6 +612,38 @@
             ].join('')
         }).appendTo(topNav);
 
+        if (settings.search) {
+
+            const uniqueId = 'collapse_' + Math.random().toString(36).substr(2, 9);
+            $('<a>', {
+                class: `btn rounded-${settings.rounded} border-3 border js-btn-search`,
+                html: '<i class="bi bi-search"></i>',
+                'data-bs-toggle': 'collapse',
+                'data-toggle': 'collapse',
+                'aria-expanded': 'false',
+                'aria-controls': uniqueId,
+                'href': '#' + uniqueId,
+            }).appendTo(topNav);
+
+            const collapse = $('<div>', {
+                id: uniqueId,
+                class: 'collapse'
+            }).insertAfter(topNav);
+
+            const collapseInner = $('<div>', {
+                class: 'd-flex align-items-center justify-content-center pb-3',
+            }).appendTo(collapse);
+
+            $('<input>', {
+                type: 'search',
+                css: {
+                    maxWidth: '400px',
+                },
+                class: 'form-control rounded-' + settings.rounded + ' border-3 border',
+                placeholder: settings.translations.search || 'search',
+                'data-search-input': true
+            }).appendTo(collapseInner);
+        }
 
         $('<button>', {
             class: `btn rounded-${settings.rounded} border-3 ms-2 border`,
@@ -685,7 +704,7 @@
     /**
      * Updates the elements displaying the current date information based on the provided wrapper's settings, date, and view.
      *
-     * @param {Object} $wrapper The wrapper object containing settings, date, and view for obtaining and formatting the current date.
+     * @param {jQuery} $wrapper The wrapper object containing settings, date, and view for obtaining and formatting the current date.
      * @return {void} Does not return a value, directly updates the text content of the targeted elements with formatted date information.
      */
     function setCurrentDateName($wrapper) {
@@ -720,7 +739,7 @@
     /**
      * Navigates back in time based on the current view type (month, year, week, or day).
      *
-     * @param {Object} $wrapper - The wrapper object containing the current view and date context.
+     * @param {jQuery} $wrapper - The wrapper object containing the current view and date context.
      * @return {void} The function performs navigation and updates the date in the wrapper object.
      */
     function navigateBack($wrapper) {
@@ -753,10 +772,10 @@
     }
 
     /**
-     * Navigates forward in the calendar based on the current view (e.g., day, week, month, year).
+     * Navigates forward in the calendar based on the current view (e.g. day, week, month, year).
      * Updates the date and rebuilds the view accordingly.
      *
-     * @param {Object} $wrapper - The wrapper element that contains the calendar state and view information.
+     * @param {jQuery} $wrapper - The wrapper element that contains the calendar state and view information.
      * @return {void} - This function does not return a value. It updates the calendar state directly.
      */
     function navigateForward($wrapper) {
@@ -789,6 +808,34 @@
         buildByView($wrapper);
     }
 
+    function toggleSearchMode($wrapper, status, manual = false) {
+        const a = $wrapper.find('.js-btn-search');
+        const input = $wrapper.find('[data-search-input]');
+        const collapse = $wrapper.find(a.attr('href'));
+        const navElements = $('[class*="wc-nav-view-"]');
+        const settings = getSettings($wrapper);
+        if (status) {
+            a.addClass('btn-primary');
+            if (manual) {
+                collapse.collapse('show');
+            }
+            setView($wrapper, 'search');
+        } else {
+            a.removeClass('btn-primary');
+            input.val(null);
+            if (manual) {
+                collapse.collapse('hide');
+            }
+            setView($wrapper, settings.startView);
+        }
+        navElements.prop('disabled', status);
+        $wrapper.data('searchMode', status);
+    }
+
+    function inSearchMode($wrapper) {
+        return $wrapper.data('searchMode') || false;
+    }
+
     /**
      * Attaches event listeners to a given wrapper element to handle user interactions with the calendar interface.
      *
@@ -799,26 +846,33 @@
     function handleEvents($wrapper) {
         let searchTimeout;
         $wrapper
-            .on('keyup input', '[data-search]', function (e) {
+            .on('show.bs.collapse', '.collapse', function (e) {
+                toggleSearchMode($wrapper, true);
+            })
+            .on('hide.bs.collapse', '.collapse', function (e) {
+                toggleSearchMode($wrapper, false);
+            })
+            .on('keyup input', '[data-search-input]', function (e) {
                 e.preventDefault();
-                if (searchTimeout) {
+                if (inSearchMode($wrapper)) {
+                    if (searchTimeout) {
+                        clearTimeout(searchTimeout);
+                    }
+                    searchTimeout = setTimeout(() => {
+                        const searchString = $(e.currentTarget).val();
+                        const settings = getSettings($wrapper);
+                        toggleSearchMode($wrapper, true);
+                        buildByView($wrapper);
+                    }, 400)
+                }
+                else {
                     clearTimeout(searchTimeout);
                 }
-                searchTimeout = setTimeout(() => {
-                    const search = $(e.currentTarget).val();
-                    const settings = getSettings($wrapper);
-                    if (search) {
-                        setView($wrapper, 'search');
-                    } else {
-                        setView($wrapper, settings.startView);
-                    }
-                    buildByView($wrapper);
-                }, 400)
+
 
             })
             .on('click', '[data-add-appointment]', function (e) {
                 e.preventDefault();
-                const date = getDate($wrapper);
                 const view = getView($wrapper);
                 const period = getStartAndEndDateByView($wrapper);
                 const data = {
@@ -1230,7 +1284,7 @@
     }
 
     /**
-     * Constructs and organizes appointments for each day of the week based on the provided appointments data.
+     * Constructs and organizes appointments for each day of the week based on the provided appointments' data.
      *
      * @param {jQuery} $wrapper - The wrapper element containing the week view DOM structure.
      * @param {Array<Object>} appointments - An array of appointment objects, each containing relevant scheduling details such as start times and display dates.
@@ -1245,7 +1299,7 @@
         // Sortiere die Termine nach dem Wochentag
         appointments.forEach(appointment => {
             appointment.displayDates.forEach(startString => {
-                const appointmentDate = new Date(appointment.start);
+                const appointmentDate = new Date(startString);
                 const weekday = appointmentDate.getDay(); // Liefert den Wochentag (0 = Sonntag, 6 = Samstag)
                 appointmentsByWeekday[weekday].push(appointment);
             })
@@ -1274,15 +1328,15 @@
         const settings = getSettings($wrapper);
         const columns = assignColumnsToAppointments(appointments);
 
-        const gap = 1; // Abstand zwischen den Terminen in Pixeln
+        const gap = 1; // distance between the appointments in pixels
 
-        // Breite inkl. Berücksichtigung des Zwischenraums (relativ in % berechnen)
+        // Calculate width including consideration of the space (relatively in %)
         const containerWidth = $container.width();
         const containerHeight = $container.height();
 
         const appointmentWidthPercent = ((containerWidth - marginLeft) / columns.length - gap) / containerWidth * 100;
 
-        // Gehe durch jede Spalte und positioniere die Termine
+        // go through each column and position the appointments
         columns.forEach((column, columnIndex) => {
             column.forEach((appointment) => {
                 const start = new Date(appointment.start);
@@ -1301,11 +1355,11 @@
                 const durationInHours = endHour + endMinute / 60 - (startHour + startMinute / 60);
                 const appointmentHeightInPixels = durationInHours * 34;
 
-                // Konvertiere `topPosition` und `appointmentHeight` in Prozent
+                // convert `top position` and` AppointmentHeight` in percent
                 const topPositionPercent = (topPositionInPixels / containerHeight) * 100;
                 const appointmentHeightPercent = (appointmentHeightInPixels / containerHeight) * 100;
 
-                // Berechne die `left`-Position relativ in % inkl. des Zwischenraums
+                // Calculate the `Left` position relatively in % including the space
                 const appointmentLeftInPixels = marginLeft + (columnIndex * (appointmentWidthPercent * containerWidth / 100 + gap));
                 const appointmentLeftPercent = (appointmentLeftInPixels / containerWidth) * 100;
 
@@ -1316,16 +1370,16 @@
 
                 const backgroundColor = appointment.color || settings.defaultColor;
 
-                // Setze die Termin-Elemente
+                // Set the appointment elements
                 const appointmentElement = $('<small>', {
                     'data-appointment': true,
                     class: 'position-absolute text-nowrap text-truncate shadow px-2 btn-sm overflow-hidden',
                     css: {
                         backgroundColor: backgroundColor,
-                        top: `${topPositionPercent}%`, // Top in %
-                        height: `${appointmentHeightPercent}%`, // Höhe in %
-                        left: `${appointmentLeftPercent}%`, // Linke Position in %
-                        width: `${appointmentWidthPercent}%`, // Breite in %
+                        top: `${topPositionPercent}%`,
+                        height: `${appointmentHeightPercent}%`,
+                        left: `${appointmentLeftPercent}%`,
+                        width: `${appointmentWidthPercent}%`,
                     },
                     html: `<div class="">${start.toTimeString().slice(0, 5)} ${durationString} - ${appointment.title || 'Ohne Titel'}</div>`,
                 }).appendTo($container);
@@ -1381,7 +1435,7 @@
         const totalPages = Math.ceil(totalItems / itemsPerPage);
 
         if (!appointments.length) {
-            $container.html('<div class="d-flex h-100 w-100 align-items-center justify-content-center"><i class="bi bi-calendar2-x fs-4"></i></div>');
+            $container.html('<div class="d-flex p-5 align-items-center justify-content-center">' + settings.translations.searchNoResult + '</div>');
             return;
         }
 
@@ -1443,8 +1497,8 @@
          */
         function renderPagination(activePage) {
             // Vorhandene Pagination entfernen
-            const $pagination = $('<nav>', { 'aria-label': 'Page navigation' });
-            const $paginationList = $('<ul>', { class: 'pagination justify-content-end' }).appendTo($pagination);
+            const $pagination = $('<nav>', {'aria-label': 'Page navigation'});
+            const $paginationList = $('<ul>', {class: 'pagination justify-content-end'}).appendTo($pagination);
 
             // Berechnung des Textes "1-10 / X appointments"
             const startIndex = (activePage - 1) * itemsPerPage + 1; // Erster Termin auf der Seite (1-basiert)
@@ -1459,24 +1513,27 @@
 
             // Pagination List generieren
             for (let i = 1; i <= totalPages; i++) {
-                const $pageItem = $('<li>', { class: 'page-item' });
+                const $pageItem = $('<li>', {class: 'page-item'});
                 if (i === activePage) {
                     $pageItem.addClass('active'); // Aktive Seite markieren
                 }
 
                 const $pageLink = $('<a>', {
                     class: 'page-link',
-                    href: '#',
-                    text: i,
-                    click: function (e) {
-                        e.preventDefault(); // Standardlink-Verhalten deaktivieren
-                        renderPage(i); // Seite neu rendern
-                    }
+                    href: '#' + i,
+                    text: i
                 });
 
                 $pageLink.appendTo($pageItem);
                 $pageItem.appendTo($paginationList);
             }
+
+            $paginationList.on('click', 'a.page-link', function (e) {
+                e.preventDefault();
+                const a = $(e.currentTarget);
+                const page = a.attr('href').replace('#', '');
+                renderPage(page);
+            })
 
             // Beides in den Container einfügen (Text + Pagination)
             $container.append($statusText); // Text einfügen
@@ -1500,7 +1557,7 @@
         if (settings.debug) {
             log('Call buildAppointmentsForMonth with appointments:', appointments);
         }
-        const max = 6;
+
         appointments.forEach(appointment => {
             const multipleStartDates = appointment.displayDates.length > 1;
             appointment.displayDates.forEach(startString => {
@@ -1602,7 +1659,7 @@
                         });
                     }, delayShow)); // Delay when displaying
                 })
-                .on('mouseleave touchend', function (e) {
+                .on('mouseleave touchend', function () {
                     // remove the delay for displaying
                     clearTimeout($(this).data('timeout'));
 
@@ -1623,7 +1680,7 @@
      * @param {jQuery} $wrapper - A wrapper object containing relevant settings.
      * @param {Array} appointments - Array of appointment objects containing `start`, `end`,
      * and `allDay` properties. Each object will be updated with a `duration` property.
-     * @return {void} - This function does not return a value; it modifies the appointments array in place.
+     * @return {void} - This function does not return a value; it modifies the appointment array in place.
      */
     function calculateAppointmentDurations($wrapper, appointments) {
         const settings = getSettings($wrapper);
@@ -1704,7 +1761,7 @@
     /**
      * Renders the appointments by building the view and hiding the loader.
      *
-     * @param {Object} $wrapper - The wrapper element where the appointments will be rendered.
+     * @param {jQuery} $wrapper - The wrapper element where the appointments will be rendered.
      * @return {void} This method does not return a value.
      */
     function renderAppointments($wrapper) {
@@ -1748,42 +1805,42 @@
         const settings = getSettings($wrapper);
         const date = getDate($wrapper);
         const view = getView($wrapper);
-        const startDate = new Date(date); // Neues Date-Objekt basierend auf `date`
-        const endDate = new Date(date);   // Neues Date-Objekt basierend auf `date`
+        const startDate = new Date(date);
+        const endDate = new Date(date);
 
         switch (view) {
             case 'day':
-                // Start und Ende bleiben innerhalb eines Tages
+                // Start and end remain within a day
                 break;
 
             case 'week':
-                // Startdatum: Montag der laufenden Woche
-                const dayOfWeek = startDate.getDay(); // 0 = Sonntag, 1 = Montag, ...
-                const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Abweichung zum Montag berechnen
+                // start date: Monday of the current week
+                const dayOfWeek = startDate.getDay(); // 0 = Sunday, 1 = Monday, ...
+                const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Calculate deviation from Monday
                 startDate.setDate(startDate.getDate() + diffToMonday);
 
-                // Enddatum: Sonntag der gleichen Woche
+                // end date: Sunday of the same week
                 endDate.setDate(startDate.getDate() + 6);
                 break;
 
             case 'month':
-                // Startdatum: 1. Tag des Monats
+                // start date: 1st day of the month
                 startDate.setDate(1);
 
-                // Enddatum: Letzter Tag des Monats
-                endDate.setMonth(startDate.getMonth() + 1); // Zum nächsten Monat wechseln
-                endDate.setDate(0); // Geht einen Tag zurück: Letzter Tag des Vormonats (aktueller Monat)
+                // end date: last day of the month
+                endDate.setMonth(startDate.getMonth() + 1); // change to the next month
+                endDate.setDate(0); // Goes back one day: the last day of the previous month (current month)
                 break;
 
             case 'year':
             case 'search':
-                // Startdatum: 1. Januar des aktuellen Jahres
-                startDate.setMonth(0); // Januar
-                startDate.setDate(1);  // 1. Tag
+                // start date: January 1 of the current year
+                startDate.setMonth(0); // January
+                startDate.setDate(1);  // 1 day
 
-                // Enddatum: 31. Dezember des aktuellen Jahres
-                endDate.setMonth(11); // Dezember
-                endDate.setDate(31);  // Letzter Tag
+                // end date: December 31 of the current year
+                endDate.setMonth(11); // December
+                endDate.setDate(31);  // last day
                 break;
 
             default:
@@ -1812,18 +1869,18 @@
 
 
     /**
-     * Gibt die verkürzten Namen der Wochentage basierend auf der Locale zurück,
-     * angepasst an den Starttag der Woche.
+     * Returns the shortened names of the weekdays based on the local,
+     * adapted to the start day of the week.
      *
-     * @param {string} locale - Die Locale wie 'en-US' oder 'de-DE'.
-     * @param {boolean} startWeekOnSunday - Gibt an, ob die Woche mit Sonntag beginnen soll.
-     * @returns {string[]} - Ein Array der Wochentagsnamen, z. B. ['So.', 'Mo.', 'Di.', ...].
+     * @param {string} locale - The local like 'en-us' or 'de-de'.
+     * @param {boolean} startWeekOnSunday - Indicates whether the week should start with Sunday.
+     * @returns {string[]} - An array of the weekday names, e.g. B. ['So.', 'Mo.', 'Di.', ...].
      */
     function getShortWeekDayNames(locale, startWeekOnSunday) {
-        // Intl.DateTimeFormat zur dynamischen Ermittlung der Wochentagnamen nutzen.
+        // Use intl.dateTimeFormat to dynamic determination of the weekday names.
         const formatter = new Intl.DateTimeFormat(locale, {weekday: 'short'});
 
-        // Wochentagsnamen für Sonntag (0) bis Samstag (6) sammeln.
+        // collect weekday names for Sunday (0) to Saturday (6).
         const weekDays = [...Array(7).keys()].map(day =>
             formatter.format(new Date(Date.UTC(2023, 0, day + 1))) // Beispieljahr, Tag + 1
         );
@@ -1837,16 +1894,14 @@
      * to the wrapper's container. It initializes the container, configures its
      * structure, and attaches the search result container.
      *
-     * @param {Object} $wrapper - The jQuery wrapped DOM element acting as the main wrapper for the search view.
+     * @param {jQuery} $wrapper - The jQuery wrapped DOM element acting as the main wrapper for the search view.
      * @return {void} This function does not return a value.
      */
     function buildSearchView($wrapper) {
         const container = getViewContainer($wrapper);
-        const settings = getSettings($wrapper);
-        const searchElement = getSearchElement($wrapper);
-        // Container leeren und neue Struktur generieren
+        // Empty the container and generate new structure
         container.empty();
-        const $searchContainer = $('<div>', {
+        $('<div>', {
             class: 'wc-search-result-container list-group list-group-flush vh-100 overflow-auto',
         }).appendTo(container);
     }
@@ -1865,39 +1920,45 @@
 
         const {locale, startWeekOnSunday} = settings;
 
-        // Berechnung der Kalenderdaten
+        // calculation of the calendar data
         const year = date.getFullYear();
         const month = date.getMonth();
         const firstDayOfMonth = new Date(year, month, 1);
         const lastDayOfMonth = new Date(year, month + 1, 0);
 
-        // Starten mit dem richtigen Wochentag (Möglichkeit: Sonntag oder Montag)
+        // start with the right day of the week (possibility: Sunday or Monday)
         let calendarStart = new Date(firstDayOfMonth);
         while (calendarStart.getDay() !== (startWeekOnSunday ? 0 : 1)) {
             calendarStart.setDate(calendarStart.getDate() - 1);
         }
 
-        // Enden mit dem richtigen Wochentag (Samstag oder Sonntag)
+        // end with the right day of the week (Saturday or Sunday)
         let calendarEnd = new Date(lastDayOfMonth);
         while (calendarEnd.getDay() !== (startWeekOnSunday ? 6 : 0)) {
             calendarEnd.setDate(calendarEnd.getDate() + 1);
         }
 
-        // Container leeren und neue Struktur generieren
+        // Empty the container and generate new structure
         container.empty();
 
-        // Wochentagszeile erstellen
+        // Create the weekday line
         const weekdaysRow = $('<div>', {
-            class: 'row d-flex flex-nowrap wc-calendar-weekdays fw-bold text-bg-secondary',
+            class: 'row d-flex flex-nowrap wc-calendar-weekdays fw-bold',
         }).append(
             $('<div>', {
                 class: 'col px-1 d-flex align-items-center justify-content-center',
                 style: 'width: 24px',
+                css: {
+                    width: '24px',
+                    maxWidth: '24px',
+                    minWidth: '24px',
+                    fontSize: '12px',
+                },
                 html: '<small></small>',
             })
         );
 
-        // Dynamische Wochennamen basierend auf Locale und Flag
+        // dynamic weekly names based on local and flag
         const weekDays = getShortWeekDayNames(locale, startWeekOnSunday);
         weekDays.forEach(day => {
             weekdaysRow.append(
@@ -1910,25 +1971,30 @@
 
         container.append(weekdaysRow);
 
-        // Tage darstellen
+        // represent days
         let currentDate = new Date(calendarStart);
         while (currentDate <= calendarEnd) {
             const weekRow = $('<div>', {
                 class: 'row d-flex flex-nowrap flex-fill wc-calendar-content',
             });
 
-            // Kalenderwoche berechnen
+            // calculate calendar week
             const calendarWeek = getCalendarWeek(currentDate);
             weekRow.append(
                 $('<div>', {
-                    class: 'col px-1 d-flex align-items-start py-2 fw-bold text-bg-secondary justify-content-center',
-                    style: 'width: 24px;',
+                    class: 'col px-1 d-flex align-items-start py-2 fw-bold  justify-content-center',
+                    css: {
+                        fontSize: '12px',
+                        width: '24px',
+                        maxWidth: '24px',
+                        minWidth: '24px',
+                    },
                     html: `<small>${calendarWeek}</small>`,
 
                 })
             );
 
-            // Tage der Woche (Mo-So oder So-Sa) zeichnen
+            // draw days of the week (Mon-Sun or SO-SA)
             for (let i = 0; i < 7; i++) {
                 const isToday = currentDate.toDateString() === new Date().toDateString();
                 const isOtherMonth = currentDate.getMonth() !== month;
@@ -1956,7 +2022,7 @@
                     text: currentDate.getDate(),
                 }).appendTo(dayWrapper);
 
-                // Nächster Tag
+                // next day
                 currentDate.setDate(currentDate.getDate() + 1);
             }
 
@@ -1965,39 +2031,42 @@
     }
 
     /**
-     * Builds a small month view calendar inside the provided wrapper element.
+     * Builds a small-view calendar for a specific month and appends it to the provided container.
      *
-     * @param {jQuery} $wrapper - The jQuery wrapper object containing the calendar structure.
-     * @return {void} - This function does not return a value.
+     * @param {jQuery} $wrapper The wrapper element containing configuration and state for the calendar.
+     * @param {Date} forDate The date object indicating the target month for which the small-view calendar will be constructed.
+     * @param {jQuery} $container The jQuery container element where the small-view calendar will be rendered.
+     * @return {void} This function does not return a value,
+     * it directly updates the DOM by appending the constructed calendar to the container.
      */
     function buildMonthSmallView($wrapper, forDate, $container) {
-        // Container für Miniaturansicht holen
+        // Get container for miniature view
 
         const settings = getSettings($wrapper);
         const date = forDate; // Aktuelles Datum
         const activeDate = getDate($wrapper);
 
-        // Berechnung der Monatsdaten
+        // calculation of the monthly data
         const year = date.getFullYear();
         const month = date.getMonth();
 
-        // 1. Tag und letzter Tag des Monats
+        // 1st day and last day of the month
         const firstDayOfMonth = new Date(year, month, 1);
         const lastDayOfMonth = new Date(year, month + 1, 0);
 
-        // Beginn mit dem Montag vor dem Monatsbeginn
+        // Start on Monday before the start of the month
         let calendarStart = new Date(firstDayOfMonth);
         while (calendarStart.getDay() !== 1) {
             calendarStart.setDate(calendarStart.getDate() - 1);
         }
 
-        // Ende mit dem Sonntag nach dem Monatsende
+        // end with the Sunday after the end of the month
         let calendarEnd = new Date(lastDayOfMonth);
         while (calendarEnd.getDay() !== 0) {
             calendarEnd.setDate(calendarEnd.getDate() + 1);
         }
 
-        // Container leeren und Miniaturkalender vorbereiten
+        // Empty the container and prepare a miniature calendar
         $container.empty();
         $container.addClass('table-responsive');
 
@@ -2018,7 +2087,7 @@
             },
         }).appendTo($container);
 
-        // Kopfzeile für Wochentage erstellen
+        // Create header for weekdays
         const thead = $('<thead>').appendTo(table);
         const weekdaysRow = $('<tr>', {
             class: '',
@@ -2027,16 +2096,16 @@
             }
         }).appendTo(thead);
 
-        // Erste Spalte (KW)
+        // First column (CW)
         $('<th>', {class: '', css: {width: '15px'}, text: ''}).appendTo(weekdaysRow);
 
-        // Wochentage (Mo, Di, Mi, ...) hinzufügen
+        // Add weekly days (Mon, Tue, Wed, ...)
         const weekDays = getShortWeekDayNames(settings.locale, settings.startWeekOnSunday);
         weekDays.forEach(day => {
             $('<th>', {class: '', text: day}).appendTo(weekdaysRow);
         });
 
-        // Inhalt des Kalenders erzeugen
+        // create the content of the calendar
         const tbody = $('<tbody>').appendTo(table);
         let currentDate = new Date(calendarStart);
 
@@ -2047,7 +2116,7 @@
                 }
             }).appendTo(tbody);
 
-            // Kalenderwoche berechnen
+            // calculate calendar week
             const calendarWeek = getCalendarWeek(currentDate);
             $('<td>', {
                 css: {
@@ -2056,9 +2125,9 @@
                 },
                 class: 'border-end pe-1 text-end text-secondary fw-bold',
                 text: calendarWeek,
-            }).appendTo(weekRow); // KW in die erste Spalte der Zeile einfügen
+            }).appendTo(weekRow); // insert cw into the first column of the line
 
-            // Tage der Woche (Mo - So) hinzufügen
+            // days of the week (Mon-Sun) add
             for (let i = 0; i < 7; i++) {
                 const isToday = currentDate.toDateString() === new Date().toDateString();
                 const isOtherMonth = currentDate.getMonth() !== month;
@@ -2068,13 +2137,16 @@
                 if (isToday) {
                     dayClass += '  text-bg-primary ';
                 }
+
                 if (isOtherMonth) {
                     dayClass += ' text-muted opacity-50';
                 }
+
                 if (isSelected && !isToday) {
                     dayClass += ' border border-warning';
                 }
-                const td = $('<td>', {
+
+                $('<td>', {
                     'data-date': formatDate($wrapper, currentDate),
                     css: {
                         cursor: 'pointer',
@@ -2084,11 +2156,11 @@
                         lineHeight: '24px',
                         verticalAlign: 'middle',
                         textAlign: 'center',
-                    }, // Einheitliches Quadrat für Zentrierung
+                    }, // uniform square for centering
                     html: `<div class="${dayClass} w-100 h-100 d-flex justify-content-center align-items-center">${currentDate.getDate()}</div>`,
                 }).appendTo(weekRow);
 
-                // Zum nächsten Tag springen
+                // jump to the next day
                 currentDate.setDate(currentDate.getDate() + 1);
             }
         }
@@ -2104,7 +2176,6 @@
         const container = getViewContainer($wrapper).empty();
         const date = getDate($wrapper);
         buildDayViewContent($wrapper, date, container);
-        // $('<h1>', {text: 'Day View'}).appendTo(container);
     }
 
 
@@ -2112,7 +2183,7 @@
      * Formats a given date object into a string based on the locale settings retrieved from the provided wrapper element.
      * The returned format is "YYYY-MM-DD".
      *
-     * @param {HTMLElement} $wrapper - The HTML element from which locale settings are determined.
+     * @param {jQuery} $wrapper - The HTML element from which locale settings are determined.
      * @param {Date} date - The date object to be formatted.
      * @return {string} The formatted date as a string in "YYYY-MM-DD" format.
      */
@@ -2140,19 +2211,17 @@
      * @return {number} The ISO 8601 calendar week number for the provided date.
      */
     function getCalendarWeek(date) {
-        // Kopieren des Eingabedatums und Wochentagsberechnung
+        // copy of the input date and weekday calculation
         const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
         const dayNr = (target.getUTCDay() + 6) % 7; // Montag = 0, Sonntag = 6
         target.setUTCDate(target.getUTCDate() - dayNr + 3); // Auf den Donnerstag der aktuellen Woche schieben
 
-        // Der erste Donnerstag des Jahres
+        // The first Thursday of the year
         const firstThursday = new Date(Date.UTC(target.getUTCFullYear(), 0, 4));
         const firstDayOfWeek = firstThursday.getUTCDate() - ((firstThursday.getUTCDay() + 6) % 7);
 
-        // Anzahl Wochen zwischen erstem Donnerstag und aktuellem Donnerstag berechnen
-        const weekNumber = Math.floor(1 + (target - new Date(Date.UTC(target.getUTCFullYear(), 0, firstDayOfWeek))) / (7 * 24 * 60 * 60 * 1000));
-
-        return weekNumber;
+        // Calculate number weeks between the first Thursday and the current Thursday
+        return Math.floor(1 + (target - new Date(Date.UTC(target.getUTCFullYear(), 0, firstDayOfWeek))) / (7 * 24 * 60 * 60 * 1000));
     }
 
 
@@ -2163,73 +2232,68 @@
      * @return {void} This method does not return any value.
      */
     function buildWeekView($wrapper) {
-        // Den Hauptcontainer für die Ansicht holen
+        // get the main container for the view
         const $viewContainer = getViewContainer($wrapper);
-        // Container leeren (alte Inhalte entfernen)
+        // empty container (remove the old content)
         $viewContainer.empty();
 
         const $container = $('<div>', {
             class: 'position-relative px-5'
         }).appendTo($viewContainer);
 
-        // Aktuelles Datum für die Ansicht holen
+        // Get the latest date for the view
         const date = getDate($wrapper);
 
-        // Einstellungen aus dem Wrapper abrufen
+        // Call settings from the wrapper
         const settings = getSettings($wrapper);
 
-        // Berechnung des ersten Tags der Woche basierend auf startWeekOnSunday
+        // Calculation of the first day of the week based on startWeekOnSunday
         const {startWeekOnSunday} = settings;
-        const currentDay = date.getDay(); // Wochentag (0 = Sonntag, 1 = Montag, ...)
+        const currentDay = date.getDay(); // weekday (0 = Sunday, 1 = Monday, ...)
         const startOfWeek = new Date(date);
         const startOffset = startWeekOnSunday ? currentDay : (currentDay === 0 ? 6 : currentDay - 1);
         startOfWeek.setDate(date.getDate() - startOffset);
 
-        // Berechnung des letzten Tags der Woche
+        // calculation of the last day of the week
         const endOfWeek = new Date(startOfWeek);
         endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-
-        // Wochenansicht als flexibles Layout erstellen
+        // Create weekly view as a flexible layout
         const weekContainer = $('<div>', {
             class: 'wc-week-view d-flex flex-nowrap',
             css: {paddingLeft: '40px'}
         }).appendTo($container);
 
-        // Iteration über die Tage der Woche (von Starttag bis Endtag)
+        // iteration over the days of the week (from starting day to end day)
         for (let day = 0; day < 7; day++) {
             const currentDate = new Date(startOfWeek);
-            currentDate.setDate(startOfWeek.getDate() + day); // Nächsten Tag berechnen
+            currentDate.setDate(startOfWeek.getDate() + day); // calculate the next day
 
-            // Tagescontainer erstellen
+            // Create day container
             const dayContainer = $('<div>', {
                 'data-week-day': currentDate.getDay(),
                 class: 'wc-day-week-view flex-grow-1 flex-fill border-end position-relative',
             }).appendTo(weekContainer);
 
 
-            // Labels werden nur im ersten Container (der 1. Spalte) angezeigt
+            // labels are only displayed in the first container (the 1st column)
             const showLabels = day === 0;
 
-            // Funktion buildDayViewContent verwenden, um die Ansicht für den Tag zu erstellen
             buildDayViewContent($wrapper, currentDate, dayContainer, true, showLabels);
         }
     }
 
     /**
-     * Baut eine Tagesübersicht mit Stunden-Labels und horizontalen Linien für jede Zeile.
+     * Build a daily overview with hourly labels and horizontal lines for each line.
      *
-     * @param {jQuery} $wrapper - Das Wrapper-Element für den Kalender.
-     * @param {Date} date - Das aktuelle Datum.
-     * @param {jQuery} $container - Das Ziel-Element, in das der Inhalt eingefügt wird.
+     * @param {jQuery} $wrapper - The wrapper element for the calendar.
+     * @param {Date} date - The current date.
+     * @param {jQuery} $container - The target element in which the content is inserted.
      * @param forWeekView
      * @param showLabels
      */
     function buildDayViewContent($wrapper, date, $container, forWeekView = false, showLabels = true) {
-        // Container leeren
-        // $container.empty();
-
-        // Einstellungen aus dem Wrapper abrufen
+        // Call settings from the wrapper
         const settings = getSettings($wrapper);
         const isToday = date.toDateString() === new Date().toDateString();
         if (!forWeekView) {
@@ -2256,21 +2320,20 @@
             headline.attr('data-date', formatDate($wrapper, date)).css('cursor', 'pointer');
         }
 
-        const allDayContainer = $('<div>', {
+        $('<div>', {
             'data-all-day': true,
             class: 'd-flex flex-column flex-fill',
         }).appendTo($container);
 
-        // Container für Zeitslots
+        // Container for time slots
         const timeSlots = $('<div>', {
             class: 'wc-day-view-time-slots d-flex flex-column position-relative  py-2'
         }).appendTo($container);
 
-        // Stunden (von 0 bis 23) mit einer horizontalen Linie präsentieren
+        // present hours (from 0 to 23) with a horizontal line
         for (let hour = 0; hour <= 24; hour++) {
-            // Zeilencontainer für die Stunde
-            // Überschrift über die Tagesansicht hinzufügen
-
+            // line container for the hour
+            // Add heading about the daily view
             const row = $('<div>', {
                 'data-day-hour': hour,
                 css: {
@@ -2280,7 +2343,7 @@
             }).appendTo(timeSlots);
 
             if (showLabels) {
-                // Stunden-Label (z. B. 08:00)
+                // hourly label (e.g. 08:00)
                 $('<div>', {
                     class: 'wc-time-label ps-2 position-absolute top-0 translate-middle text-bg-secondary',
                     css: {
@@ -2299,41 +2362,41 @@
      * @return {void} This function does not return a value.
      */
     function buildYearView($wrapper) {
-        const container = getViewContainer($wrapper); // Haupt-Container für die Jahresansicht
-        const settings = getSettings($wrapper); // Einstellungen des Kalenders
-        const date = getDate($wrapper); // Aktuelles Datum aus den Einstellungen
-        const year = date.getFullYear(); // Das Jahr bestimmen
+        const container = getViewContainer($wrapper);
+        const settings = getSettings($wrapper);
+        const date = getDate($wrapper);
+        const year = date.getFullYear();
 
-        // Container vorher leeren
+        // empty the container beforehand
         container.empty();
 
-        // Flex-Layout für alle 12 Monatskalender
+        // Flex layout for all 12 monthly calendars
         const grid = $('<div>', {
-            class: 'd-flex flex-wrap p-3', // Flexbox für Inline-Darstellung
+            class: 'd-flex flex-wrap p-3', // Flexbox for inline representation
             css: {
-                gap: '10px', // Abstand zwischen Kalendern
+                gap: '10px', // distance between calendars
             },
         }).appendTo(container);
 
-        // Für jeden Monat einen kleinen Kalender rendern
+        // render a small calendar for each month
         for (let month = 0; month < 12; month++) {
-            // Ein Wrapper für jeden Monatskalender erstellen
+            // Create a wrapper for every monthly calendar
             const monthWrapper = $('<div>', {
                 class: 'd-flex shadow p-3 flex-column rounded-' + settings.rounded + ' align-items-center wc-year-month-container', // Col-Layout für Titel und Kalender
                 css: {
-                    width: '200px', // Feste Breite für jeden Kalender
-                    margin: '5px', // Abstand am Rand
+                    width: '200px', // fixed width for every calendar
+                    margin: '5px', // distance on the edge
                 },
             }).appendTo(grid);
 
-            // Monatsname und Jahr als Titel (z. B. "Januar 2023")
+            // monthly name and year as the title (e.g. "January 2023")
             const monthName = new Intl.DateTimeFormat(settings.locale, {month: 'long'}).format(
                 new Date(year, month)
             );
             $('<div>', {
                 'data-month': `${year}-${String(month + 1).padStart(2, '0')}-01`,
                 class: 'text-center fw-bold',
-                text: `${monthName} ${year}`, // Titel erzeugen
+                text: `${monthName} ${year}`,
                 css: {
                     cursor: 'pointer',
                     marginBottom: '10px',
@@ -2342,10 +2405,9 @@
 
             const monthContainer = $('<div>').appendTo(monthWrapper)
 
-            // Kleinen Monatskalender einfügen
-            const tempDate = new Date(year, month, 1); // Startdatum des aktuellen Monats
-            // setDate($wrapper, tempDate); // Temporäres Datum setzen
-            buildMonthSmallView($wrapper, tempDate, monthContainer); // buildMonthSmallView verwenden
+            // Insert small monthly calendars
+            const tempDate = new Date(year, month, 1); // start date of the current month
+            buildMonthSmallView($wrapper, tempDate, monthContainer);
         }
     }
 }(jQuery))
