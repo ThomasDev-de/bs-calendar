@@ -1780,7 +1780,7 @@
      * @return {void} This method does not return any value.
      */
     function setPopoverForAppointment($wrapper, $appointmentElement) {
-        return;
+        // return;
         const settings = getSettings($wrapper);
         if (typeof settings.formatInfoWindow === "function") {
             $appointmentElement.css('cursor', 'pointer');
@@ -2475,8 +2475,8 @@
      * @param {jQuery} $wrapper - The wrapper element for the calendar.
      * @param {Date} date - The current date.
      * @param {jQuery} $container - The target element in which the content is inserted.
-     * @param forWeekView
-     * @param showLabels
+     * @param {boolean} forWeekView
+     * @param {boolean} showLabels
      */
     function buildDayViewContent($wrapper, date, $container, forWeekView = false, showLabels = true) {
         // Call settings from the wrapper
