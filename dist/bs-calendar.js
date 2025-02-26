@@ -128,12 +128,15 @@
         }
 
         if (methodGiven) {
+            const inSearchMode = getSearchMode(wrapper);
             switch (optionsOrMethod) {
                 case 'refresh':
                     methodRefresh(wrapper, params);
                     break;
                 case 'clear':
-                    methodClear(wrapper);
+                    if (!inSearchMode) {
+                        methodClear(wrapper);
+                    }
                     break;
                 case 'updateOptions':
                     methodUpdateOptions(wrapper, params);
@@ -142,10 +145,14 @@
                     destroy(wrapper);
                     break;
                 case 'setDate':
-                    methodSetDate(wrapper, params);
+                    if (!inSearchMode) {
+                        methodSetDate(wrapper, params);
+                    }
                     break;
                 case 'setToday':
-                    setToday(wrapper, params);
+                    if (!inSearchMode) {
+                        setToday(wrapper, params);
+                    }
                     break;
             }
         }
@@ -839,7 +846,6 @@
             navElements.removeClass('opacity-50');
             addButton.removeClass('opacity-50');
             input.appendTo('.js-search-input-wrapper');
-
         }
 
         // navElements.toggle('disabled');
@@ -1662,7 +1668,7 @@
 
             // Text vor der Pagination anzeigen
             const $statusText = $('<div>', {
-                class: 'text-muted me-2', // Stil für den Text
+                class: 'text-muted me-auto', // Stil für den Text
                 text: statusText,
             });
 
@@ -1699,7 +1705,7 @@
             });
 
             const $paginationWrapper = $('<div>', {
-                class: 'd-flex align-items-center justify-content-end'
+                class: 'd-flex align-items-center justify-content-center'
             }).appendTo($container);
             // Beides in den Container einfügen (Text + Pagination)
             $statusText.appendTo($paginationWrapper);
