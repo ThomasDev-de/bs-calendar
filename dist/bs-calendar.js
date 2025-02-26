@@ -68,6 +68,20 @@
                 search: 'Search',
                 searchNoResult: 'No results found'
             },
+            icons: {
+                day: 'bi bi-calendar-day',
+                week: 'bi bi-calendar-week',
+                month: 'bi bi-calendar-month',
+                year: 'bi bi-calendar4',
+                add: 'bi bi-plus-lg',
+                search: 'bi bi-search',
+                prev: 'bi bi-chevron-left',
+                next: 'bi bi-chevron-right',
+                link: 'bi bi-box-arrow-up-right',
+                appointment: 'bi bi-clock',
+                appointmentAllDay: 'bi bi-circle-fill',
+                timeSlot: 'bi bi-caret-right-fill',
+            },
             url: null,
             queryParams: null,
             sidebarAddons: null,
@@ -212,10 +226,12 @@
      * @param {jQuery} $wrapper The jQuery object representing the wrapper containing elements to be cleared.
      * @return {void} This method does not return any value.
      */
-    function methodClear($wrapper) {
+    function methodClear($wrapper, removeAppointments = true) {
         $wrapper.find('[data-appointment]').remove();
         $wrapper.find('.popover').remove();
-        setAppointments($wrapper, []);
+        if (removeAppointments) {
+            setAppointments($wrapper, []);
+        }
     }
 
     /**
@@ -334,8 +350,6 @@
      * Formats an HTML string for an information window based on the given appointment data.
      *
      * @param {Object} appointment - The appointment object containing details to format the information window.
-     * @param {number} [appointment.duration] - The duration of the appointment in milliseconds.
-     *
      * @return {string} An HTML string representing the formatted information window for the appointment.
      */
     function formatInfoWindow(appointment) {
@@ -427,6 +441,7 @@
                 }
                 setView($wrapper, settings.startView);
                 setDate($wrapper, settings.startDate);
+                setSearchMode($wrapper, false);
                 buildFramework($wrapper);
                 handleEvents($wrapper);
 
@@ -543,25 +558,6 @@
     }
 
     /**
-     * Returns the HTML string representing an icon based on the provided calendar view type.
-     *
-     * @param {string} view - The view type of the calendar. Expected values are 'day', 'week', 'month', or 'year'.
-     * @return {string} The HTML string representing the corresponding icon for the provided view type.
-     */
-    function getIcon(view) {
-        switch (view) {
-            case 'day':
-                return '<i class="bi bi-calendar-day me-2 mr-2"></i>';
-            case 'week':
-                return '<i class="bi bi-calendar-week me-2 mr-2"></i>';
-            case 'month':
-                return '<i class="bi bi-calendar-month me-2 mr-2"></i>';
-            case 'year':
-                return '<i class="bi bi-calendar4 me-2 mr-2"></i>';
-        }
-    }
-
-    /**
      * Builds a dynamic framework for a calendar application within the specified wrapper element.
      * This method initializes and structures the user interface by adding navigation components,
      * buttons, and view containers.
@@ -585,7 +581,7 @@
 
         $('<button>', {
             class: `btn rounded-${settings.rounded} border-3 border`,
-            html: '<i class="bi bi-plus-lg fs-5"></i>',
+            html: `<i class="${settings.icons.add} fs-5"></i>`,
             'data-add-appointment': true
         }).appendTo(topNav);
 
@@ -607,8 +603,8 @@
             class: 'd-flex ms-2 align-items-center justify-content-center wc-nav-view-wrapper flex-nowrap text-nowrap',
             html: [
                 '<small class="wc-nav-view-name mr-3 me-3"></small>',
-                '<a class="wc-nav-view-prev" href="#"><i class="bi bi-chevron-left"></i></a>',
-                '<a class="wc-nav-view-next mx-2" href="#"><i class="bi bi-chevron-right"></i></a>',
+                `<a data-prev href="#"><i class="${settings.icons.prev}"></i></a>`,
+                `<a class="mx-2" data-next href="#"><i class="${settings.icons.next}"></i></a>`,
             ].join('')
         }).appendTo(topNav);
 
@@ -617,7 +613,7 @@
             const uniqueId = 'collapse_' + Math.random().toString(36).substr(2, 9);
             $('<a>', {
                 class: `btn rounded-${settings.rounded} border-3 border js-btn-search`,
-                html: '<i class="bi bi-search"></i>',
+                html: `<i class="${settings.icons.search}"></i>`,
                 'data-bs-toggle': 'collapse',
                 'data-toggle': 'collapse',
                 'aria-expanded': 'false',
@@ -631,7 +627,7 @@
             }).insertAfter(topNav);
 
             const collapseInner = $('<div>', {
-                class: 'd-flex align-items-center justify-content-center pb-3',
+                class: 'd-flex align-items-center justify-content-center pb-3 js-search-input-wrapper',
             }).appendTo(collapse);
 
             $('<input>', {
@@ -666,7 +662,7 @@
 
             settings.views.forEach(view => {
                 $('<li>', {
-                    html: `<a class="dropdown-item" data-view="${view}" href="#">${getIcon(view)} ${settings.translations[view]}</a>`
+                    html: `<a class="dropdown-item" data-view="${view}" href="#"><i class="${settings.icons[view]} me-2 mr-2"></i> ${settings.translations[view]}</a>`
                 }).appendTo(dropDownView.find('ul'));
             });
         }
@@ -682,8 +678,8 @@
                 '<div class="d-flex justify-content-between">',
                 '<small class="wc-nav-view-small-name me-3 mr-3"></small>',
                 '<div>',
-                '<a class="wc-nav-view-prev" href="#"><i class="bi bi-chevron-left"></i></a>',
-                '<a class="wc-nav-view-next ml-2 ms-2" href="#"><i class="bi bi-chevron-right"></i></a>',
+                `<a data-prev href="#"><i class="${settings.icons.prev}"></i></a>`,
+                `<a class="ml-2 ms-2" data-next href="#"><i class="${settings.icons.next}"></i></a>`,
                 '</div>',
                 '</div>',
                 '</div>',
@@ -809,28 +805,55 @@
     }
 
     function toggleSearchMode($wrapper, status, manual = false) {
-        return;
+        // return;
         const a = $wrapper.find('.js-btn-search');
-        const input = $wrapper.find('[data-search-input]');
+        const input = getSearchElement($wrapper)
         const collapse = $wrapper.find(a.attr('href'));
         const navElements = $('[class*="wc-nav-view-"]');
         const settings = getSettings($wrapper);
+        const selectView = getSelectViewElement($wrapper);
+        const todayButton = getTodayButtonElement($wrapper);
+        const addButton = getAddButtonElement($wrapper);
+        const selectViewElementDropDownItems = selectView.find('.dropdown-item');
         if (status) {
+            setSearchMode($wrapper, true);
             a.addClass('btn-primary');
             if (manual) {
                 collapse.collapse('show');
             }
-            setView($wrapper, 'search');
+            buildByView($wrapper);
+            selectView.addClass('opacity-50')
+            todayButton.addClass('opacity-50')
+            navElements.addClass('opacity-50');
+            addButton.addClass('opacity-50');
+            input.focus();
         } else {
+            setSearchMode($wrapper, false);
             a.removeClass('btn-primary');
             input.val(null);
             if (manual) {
                 collapse.collapse('hide');
             }
-            setView($wrapper, getLastView($wrapper) || settings.startView);
+            selectView.removeClass('opacity-50')
+            todayButton.removeClass('opacity-50');
+            navElements.removeClass('opacity-50');
+            addButton.removeClass('opacity-50');
+            input.appendTo('.js-search-input-wrapper');
+
         }
+
+        // navElements.toggle('disabled');
         navElements.prop('disabled', status);
+        selectViewElementDropDownItems.toggleClass('disabled', status);
+    }
+
+    function setSearchMode($wrapper, status) {
         $wrapper.data('searchMode', status);
+    }
+
+    function getSearchMode($wrapper) {
+
+        return $wrapper.data('searchMode');
     }
 
     function inSearchMode($wrapper) {
@@ -852,55 +875,84 @@
             })
             .on('hide.bs.collapse', '.collapse', function (e) {
                 toggleSearchMode($wrapper, false);
+                buildByView($wrapper)
             })
             .on('keyup input', '[data-search-input]', function (e) {
                 e.preventDefault();
-                if (inSearchMode($wrapper)) {
+                const input = $(this);
+                input.appendTo('.js-search-input-wrapper');
+                input.focus();
+                // only when I am in search mode
+                if (getSearchMode($wrapper)) {
+                    // delete previous timeouts
                     if (searchTimeout) {
                         clearTimeout(searchTimeout);
                     }
+                    // Set delay
                     searchTimeout = setTimeout(() => {
-                        const searchString = $(e.currentTarget).val();
-                        const settings = getSettings($wrapper);
-                        toggleSearchMode($wrapper, true);
                         buildByView($wrapper);
                     }, 400)
                 } else {
                     clearTimeout(searchTimeout);
                 }
-
-
             })
             .on('click', '[data-add-appointment]', function (e) {
                 e.preventDefault();
-                const view = getView($wrapper);
-                const period = getStartAndEndDateByView($wrapper);
-                const data = {
-                    date: period.date,
-                    view: {
-                        type: view,
-                        start: period.start,
-                        end: period.end
-                    }
-                };
-                trigger($wrapper, 'add', [data]);
+                const inSearchMode = getSearchMode($wrapper);
+                if (inSearchMode) {
+                    e.stopPropagation();
+                } else {
+                    const view = getView($wrapper);
+                    const period = getStartAndEndDateByView($wrapper);
+                    const data = {
+                        date: period.date,
+                        view: {
+                            type: view,
+                            start: period.start,
+                            end: period.end
+                        }
+                    };
+                    trigger($wrapper, 'add', [data]);
+                }
             })
             .on('click', '[data-today]', function (e) {
                 e.preventDefault();
-                setToday($wrapper);
+                const inSearchMode = getSearchMode($wrapper);
+                if (inSearchMode) {
+                    e.stopPropagation();
+                } else {
+                    setToday($wrapper);
+                }
+
             })
             .on('click touchend', '[data-appointment]', function (e) {
+                const clickedOnDate = $(e.target).is('[data-date]');
+                const clickedOnMonth = $(e.target).is('[data-month]');
+                const clickedOnToday = $(e.target).is('[data-today]');
+                const clickedOnAncor = $(e.target).is('a[href]') || $(e.target).closest('a[href]').length > 0;
+                // check whether the goal is a [data date] or a link with [href]
+                if (clickedOnToday || clickedOnDate || clickedOnMonth || clickedOnAncor) {
+                    // stop the execution of the parent event
+                    e.stopPropagation();
+                    return;
+                }
+
                 e.preventDefault();
                 const element = $(e.currentTarget);
                 element.popover('hide');
                 element.removeClass('text-bg-light');
 
+                const settings = getSettings($wrapper);
                 const appointment = element.data('appointment');
                 trigger($wrapper, 'edit', [appointment, element]);
             })
             .on('click', '[data-date]', function (e) {
                 e.preventDefault();
                 const settings = getSettings($wrapper);
+                const inSearchMode = getSearchMode($wrapper);
+                if (inSearchMode) {
+                    toggleSearchMode($wrapper, false, true);
+                }
                 if (settings.views.includes('day')) {
                     const date = new Date($(e.currentTarget).attr('data-date'));
                     setView($wrapper, 'day');
@@ -918,28 +970,60 @@
                     buildByView($wrapper);
                 }
             })
-            .on('click', '.wc-nav-view-prev', function (e) {
+            .on('click', '[data-prev]', function (e) {
                 e.preventDefault();
-                navigateBack($wrapper);
+                const inSearchMode = getSearchMode($wrapper);
+                if (inSearchMode) {
+                    e.stopPropagation();
+                } else {
+                    navigateBack($wrapper);
+                }
             })
-            .on('click', '.wc-nav-view-next', function (e) {
+            .on('click', '[data-next]', function (e) {
                 e.preventDefault();
-                navigateForward($wrapper);
+                const inSearchMode = getSearchMode($wrapper);
+                if (inSearchMode) {
+                    e.stopPropagation();
+                } else {
+                    navigateForward($wrapper);
+                }
             })
             .on('click', '.wc-select-calendar-view [data-view]', function (e) {
                 e.preventDefault();
-                const dropdown = $(e.currentTarget).closest('.dropdown');
-                dropdown.find('.dropdown-item.active').removeClass('active');
-                const a = $(e.currentTarget);
-                const translate = a.text();
-                dropdown.find('.dropdown-toggle').text(translate);
-                const view = a.data('view');
-                a.addClass('active');
-                setView($wrapper, view);
-                buildByView($wrapper);
+                const inSearchMode = getSearchMode($wrapper);
+                if (inSearchMode) {
+                    e.stopPropagation();
+                } else {
+                    setView($wrapper, $(e.currentTarget).data('view'));
+                    buildByView($wrapper);
+                }
             })
     }
 
+    function getSelectViewElement($wrapper) {
+        return $wrapper.find('.wc-select-calendar-view');
+    }
+
+    function getTodayButtonElement($wrapper) {
+        return $wrapper.find('[data-today]');
+    }
+
+    function getAddButtonElement($wrapper) {
+        return $wrapper.find('[data-add-appointment]');
+    }
+
+    function isValueEmpty(value) {
+        if (value === null || value === undefined) {
+            return true; // Null or undefined
+        }
+        if (Array.isArray(value)) {
+            return value.length === 0; // Empty array
+        }
+        if (typeof value === 'string') {
+            return value.trim().length === 0; // Empty string (including only spaces)
+        }
+        return false; // All other values are considered non-empty (including numbers)
+    }
 
     /**
      * Updates the dropdown view by modifying the active item in the dropdown menu
@@ -949,7 +1033,7 @@
      * @return {void} This function does not return any value.
      */
     function updateDropdownView($wrapper) {
-        const dropdown = $wrapper.find('.wc-select-calendar-view');
+        const dropdown = getSelectViewElement($wrapper);
         const view = getView($wrapper);
         dropdown.find('.dropdown-item.active').removeClass('active');
         dropdown.find(`[data-view="${view}"]`).addClass('active');
@@ -974,10 +1058,8 @@
     }
 
     function setLastView($wrapper, view) {
-        const currentView = getView($wrapper);
-        if (currentView !== view) {
-            $wrapper.data('lastView', view);
-        }
+        $wrapper.data('lastView', view);
+        console.log('------------------- last view: ' + view);
     }
 
     /**
@@ -991,6 +1073,9 @@
      */
     function setView($wrapper, view) {
         const settings = getSettings($wrapper);
+        const lastView = getLastView($wrapper);
+        const currentView = getView($wrapper);
+
         if (view !== 'search' && !['day', 'week', 'month', 'year'].includes(view)) {
             if (settings.debug) {
                 console.error(
@@ -1000,6 +1085,11 @@
             }
             view = 'month';
         }
+
+        if (currentView !== view) {
+            setLastView($wrapper, currentView);
+        }
+
         if (settings.debug) {
             log('Set view to:', view);
         }
@@ -1076,43 +1166,38 @@
      */
     function buildByView($wrapper) {
         const settings = getSettings($wrapper);
-
         const view = getView($wrapper);
-        setLastView($wrapper, view);
-
         if (settings.debug) {
             log('Call buildByView with view:', view);
         }
 
-        if (view !== 'search') {
-            toggleSearchMode($wrapper, false, true);
-        }
+        if (getSearchMode($wrapper)) {
+            buildSearchView($wrapper);
+        } else {
+            switch (view) {
+                case 'month':
+                    buildMonthView($wrapper);
+                    break;
+                case 'week':
+                    buildWeekView($wrapper);
+                    break;
+                case 'year':
+                    buildYearView($wrapper);
+                    break;
+                case 'day':
+                    buildDayView($wrapper);
+                    break;
+                default:
+                    break;
+            }
 
-        switch (view) {
-            case 'month':
-                buildMonthView($wrapper);
-                break;
-            case 'week':
-                buildWeekView($wrapper);
-                break;
-            case 'year':
-                buildYearView($wrapper);
-                break;
-            case 'day':
-                buildDayView($wrapper);
-                break;
-            case 'search':
-                buildSearchView($wrapper);
-                break;
-            default:
-                break;
+            updateDropdownView($wrapper);
+            setCurrentDateName($wrapper);
+            buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
+            trigger($wrapper, 'view', [view]);
         }
 
         $wrapper.find('.popover').remove();
-        updateDropdownView($wrapper);
-        setCurrentDateName($wrapper);
-        buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
-        trigger($wrapper, 'view', [view]);
         fetchAppointments($wrapper);
     }
 
@@ -1126,33 +1211,54 @@
      * @return {void} - This function does not return a value. It updates the DOM of the provided wrapper with the fetched appointments.
      */
     function fetchAppointments($wrapper) {
+        methodClear($wrapper);
+
         const settings = getSettings($wrapper);
+        let skipLoading = false;
+
         if (settings.debug) {
             log('Call fetchAppointments');
         }
-        // Get the latest date and view
-        const view = getView($wrapper);
-        const searchElement = getSearchElement($wrapper);
-        const search = searchElement?.val() ?? null;
-        // calculate the start and end date based on the view
-        const period = getStartAndEndDateByView($wrapper);
 
-        methodClear($wrapper);
+
+        let requestData;
+        const inSearchMode = getSearchMode($wrapper);
         // Daten für den Ajax-Request zusammenstellen
-        const requestData = {
-            fromDate: period.start, // Startdatum im ISO-Format
-            toDate: period.end,    // Enddatum im ISO-Format
-            view: view, // 'day', 'week', 'month', 'year'
-            search: search // ?string
-        };
+        if (!inSearchMode) {
+            // Get the latest date and view
+            const view = getView($wrapper);
+            // calculate the start and end date based on the view
+            const period = getStartAndEndDateByView($wrapper);
+            requestData = {
+                fromDate: period.start, // Startdatum im ISO-Format
+                toDate: period.end,    // Enddatum im ISO-Format
+                view: view, // 'day', 'week', 'month', 'year'
+            };
+        } else {
+            const searchElement = getSearchElement($wrapper);
+            const search = searchElement?.val() ?? null;
+            skipLoading = isValueEmpty(search);
+            requestData = {
+                search: search // ?string
+            };
+        }
+
 
         if (typeof settings.queryParams === 'function') {
             const queryParams = settings.queryParams(requestData);
             for (const key in queryParams) {
-                if (key !== 'fromDate' && key !== 'toDate' && key !== 'view' && key !== 'search') {
-                    requestData[key] = queryParams[key];
-                }
+                requestData[key] = queryParams[key];
             }
+        }
+
+        if (skipLoading) {
+            if (settings.debug) {
+                log('Skip loading appointments because search is empty');
+            }
+
+            setAppointments($wrapper, []);
+            renderAppointments($wrapper);
+            return;
         }
 
         trigger($wrapper, 'beforeLoad', [requestData]);
@@ -1444,19 +1550,31 @@
      * @return {void} This function does not return a value.
      */
     function buildAppointmentsForSearch($wrapper, appointments) {
+        const $container = getViewContainer($wrapper).find('.wc-search-result-container');
         const settings = getSettings($wrapper);
-        const $container = getViewContainer($wrapper).find('.wc-search-result-container').css('font-size', '.9rem');
-        const itemsPerPage = 10; // Anzahl der Termine pro Seite
-        const totalItems = appointments.length;
-        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const input = getSearchElement($wrapper);
+        const search = input.val().trim();
+        if (isValueEmpty(search)) {
+            $container.html('<div class="d-flex p-5 align-items-center justify-content-center"></div>');
+            input.appendTo($container.find('.d-flex'));
+            input.focus();
+            return;
+        }
 
         if (!appointments.length) {
             $container.html('<div class="d-flex p-5 align-items-center justify-content-center">' + settings.translations.searchNoResult + '</div>');
             return;
         }
 
+        $container
+            .css('font-size', '.9rem').addClass('py-4');
+
+        const itemsPerPage = 10; // Anzahl der Termine pro Seite
+        const totalItems = appointments.length;
+        const totalPages = Math.ceil(totalItems / itemsPerPage);
+
         /**
-         * Funktion: Render die Termine der aktuellen Seite
+         * Function: render the dates of the current page
          */
         function renderPage(page = 1) {
             // Berechne Start und Ende
@@ -1465,6 +1583,11 @@
 
             // Alte Inhalte leeren
             $container.empty();
+
+            // Pagination erneut anhängen (falls gelöscht wurde)
+            if (appointments.length > itemsPerPage) {
+                renderPagination(page);
+            }
 
             // Container für Termine hinzufügen
             const $appointmentContainer = $('<div>', {class: 'list-group list-group-flush mb-3'}).appendTo($container);
@@ -1476,8 +1599,19 @@
             //     renderPagination(page);
             // }
             pageAppointments.forEach((appointment) => {
+                const borderLeftColor = appointment.color || settings.defaultColor;
+                const firstCollStyle = [
+                    `border-left-color:${borderLeftColor}`,
+                    `border-left-width:5px`,
+                    `border-left-style:dotted`,
+                    `cursor:pointer`,
+                    `font-size:1.75rem`,
+                    `width: 60px`
+                ].join(';');
+
+                const link = appointment.link ? `<a class="btn btn-link p-0 mx-3 btn-sm " href="${appointment.link}" target="_blank"><i class="${settings.icons.link}"></i></a>` : '';
                 const html = [
-                    `<div class="day fw-bold fs-3 text-center" style="width: 60px;" data-date="${formatDate($wrapper, new Date(appointment.start))}">`,
+                    `<div class="day fw-bold text-center" style="${firstCollStyle}" data-date="${formatDateToDateString(new Date(appointment.start))}">`,
                     `${new Date(appointment.start).getDate()}`,
                     `</div>`,
                     `<div class="text-muted" style="width: 150px;">`,
@@ -1488,13 +1622,18 @@
                     })}`,
                     `</div>`,
                     `<div class="title-container flex-fill text-nowrap">`,
-                    `${appointment.title}`,
-                    `</div>`,
+                    `${appointment.title}` + link,
+                    `</div>`
                 ].join('');
+
+
                 const appointmentElement = $('<div>', {
                     'data-appointment': true,
                     class: 'list-group-item d-flex align-items-center g-3 py-1 overflow-hidden',
                     html: html,
+                    css: {
+                        borderLeftColor: borderLeftColor,
+                    },
                 }).appendTo($appointmentContainer);
 
                 // Popover hinzufügen
@@ -1514,7 +1653,7 @@
         function renderPagination(activePage) {
             // Vorhandene Pagination entfernen
             const $pagination = $('<nav>', {'aria-label': 'Page navigation'});
-            const $paginationList = $('<ul>', {class: 'pagination justify-content-end'}).appendTo($pagination);
+            const $paginationList = $('<ul>', {class: 'pagination mb-0'}).appendTo($pagination);
 
             // Berechnung des Textes "1-10 / X appointments"
             const startIndex = (activePage - 1) * itemsPerPage + 1; // Erster Termin auf der Seite (1-basiert)
@@ -1523,7 +1662,7 @@
 
             // Text vor der Pagination anzeigen
             const $statusText = $('<div>', {
-                class: 'text-muted mb-2 text-end', // Stil für den Text
+                class: 'text-muted me-2', // Stil für den Text
                 text: statusText,
             });
 
@@ -1546,18 +1685,31 @@
 
             $paginationList.on('click', 'a.page-link', function (e) {
                 e.preventDefault();
-                const a = $(e.currentTarget);
-                const page = a.attr('href').replace('#', '');
-                renderPage(page);
-            })
+                const $clickedLink = $(this);
+                const page = $clickedLink.attr('href').replace('#', '');
 
+                // Entferne die alte Active-Klasse
+                $paginationList.find('.active').removeClass('active');
+
+                // Setze die neue Active-Klasse
+                $clickedLink.parent().addClass('active');
+
+                // Render die neue Seite
+                renderPage(Number(page));
+            });
+
+            const $paginationWrapper = $('<div>', {
+                class: 'd-flex align-items-center justify-content-end'
+            }).appendTo($container);
             // Beides in den Container einfügen (Text + Pagination)
-            $container.append($statusText); // Text einfügen
-            $container.append($pagination); // Pagination hinzufügen
+            $statusText.appendTo($paginationWrapper);
+            $pagination.appendTo($paginationWrapper);
+            // $container.append($statusText); // Text einfügen
+            // $container.append($pagination); // Pagination hinzufügen
         }
 
         // Zeige die erste Seite standardmäßig an
-        renderPage(1);
+        renderPage(1, totalPages);
     }
 
     /**
@@ -1579,22 +1731,17 @@
             appointment.displayDates.forEach(startString => {
                 const fakeStart = new Date(startString);
                 const start = new Date(appointment.start);
-                const startDate = start.toISOString().split('T')[0];
                 const sameDate = isSameDate(fakeStart, start);
                 const isNotStartOnThisDay = multipleStartDates && !sameDate;
                 const isStartOnThisDay = multipleStartDates && sameDate;
-                if (!isNotStartOnThisDay) {
-                    console.warn('Appointment start date does not match the start date of the appointment:', startDate, startString);
-                }
+                // if (!isNotStartOnThisDay) {
+                //     console.warn('Appointment start date does not match the start date of the appointment:', startDate, startString);
+                // }
                 const startTime = start.toLocaleTimeString(settings.locale, {hour: '2-digit', minute: '2-digit'});
                 const dayContainer = $container.find(`[data-month-date="${startString}"]`);
-                let iconClass = `bi-clock`;
+                let iconClass = settings.icons.appointment;
                 if (appointment.allDay) {
-                    iconClass = `bi-circle-fill`;
-                } else if (isStartOnThisDay) {
-                    iconClass = `bi-arrow-bar-right`;
-                } else if (isNotStartOnThisDay) {
-                    iconClass = `bi-arrow-bar-left`;
+                    iconClass = settings.icons.appointmentAllDay;
                 }
                 const timeToShow = appointment.allDay ? '' : `<small class="me-1 mr-1">${startTime}</small>`;
                 const appointmentElement = $('<small>', {
@@ -1606,7 +1753,7 @@
                     class: 'px-1 w-100 overflow-hidden',
                     html: [
                         `<div class=" d-flex align-items-center flex-nowrap">`,
-                        `<i class="bi ${iconClass} me-1 mr-1" style="color: ${appointment.color || settings.defaultColor}; font-size: 12px"></i>`,
+                        `<i class="${iconClass} me-1 mr-1" style="color: ${appointment.color || settings.defaultColor}; font-size: 12px"></i>`,
                         timeToShow,
                         `<strong class="text-nowrap">${appointment.title}</strong>`,
                         `</div>`
@@ -1627,6 +1774,7 @@
      * @return {void} This method does not return any value.
      */
     function setPopoverForAppointment($wrapper, $appointmentElement) {
+        return;
         const settings = getSettings($wrapper);
         if (typeof settings.formatInfoWindow === "function") {
             $appointmentElement.css('cursor', 'pointer');
@@ -1641,7 +1789,6 @@
                     sanitize: false,
                     trigger: 'manual', // Steuerung über das manuelle Öffnen und Schließen
                     html: true,
-                    // title: <i class="bi bi-circle-fill"></i> + appointment.title,
                     content: settings.formatInfoWindow(appointment),
                     container: $wrapper,
                 })
@@ -1747,31 +1894,40 @@
      * @return {void} This function does not return a value.
      */
     function buildAppointmentsForView($wrapper) {
-        $wrapper.find('[data-appointment]').remove();
-        const appointments = getAppointments($wrapper);
-        const view = getView($wrapper);
+        methodClear($wrapper, false);
+
         const settings = getSettings($wrapper);
-        if (settings.debug) {
-            log('Call renderData with view:', view);
+        const appointments = getAppointments($wrapper);
+        const isSearchMode = getSearchMode($wrapper);
+
+        if (isSearchMode) {
+            if (settings.debug) {
+                log('Call renderData in search mode');
+            }
+            buildAppointmentsForSearch($wrapper, appointments);
+        } else {
+            const view = getView($wrapper);
+            const container = getViewContainer($wrapper);
+            if (settings.debug) {
+                log('Call renderData with view:', view);
+            }
+
+            switch (view) {
+                case 'day':
+                    const overContainer = container.find('.wc-day-view-time-slots');
+                    buildAppointmentsForDay($wrapper, overContainer, appointments);
+                    break;
+                case 'week':
+                    buildAppointmentsForWeek($wrapper, appointments);
+                    break;
+                case 'month':
+                    buildAppointmentsForMonth($wrapper, appointments);
+                    break;
+                case 'year':
+                    break;
+            }
         }
-        const container = getViewContainer($wrapper);
-        switch (view) {
-            case 'day':
-                const overContainer = container.find('.wc-day-view-time-slots');
-                buildAppointmentsForDay($wrapper, overContainer, appointments);
-                break;
-            case 'week':
-                buildAppointmentsForWeek($wrapper, appointments);
-                break;
-            case 'month':
-                buildAppointmentsForMonth($wrapper, appointments);
-                break;
-            case 'search':
-                buildAppointmentsForSearch($wrapper, appointments);
-                break;
-            case 'year':
-                break;
-        }
+
     }
 
     /**
@@ -1867,41 +2023,65 @@
         }
 
         return {
-            date: date.toISOString().split('T')[0],
-            start: startDate.toISOString().split('T')[0],
-            end: endDate.toISOString().split('T')[0]
+            date: formatDateToDateString(date),
+            start: formatDateToDateString(startDate),
+            end: formatDateToDateString(endDate)
         };
+    }
+
+    /**
+     * Converts a string or JavaScript Date object into a string formatted as an SQL date (YYYY-MM-DD).
+     *
+     * @param {string|Date} date - The input date, either as a string or as a Date object.
+     * @return {string} A string representation of the date in the SQL date format (YYYY-MM-DD).
+     */
+    function formatDateToDateString(date) {
+        const dateObj = typeof date === 'string' ? new Date(date) : date;
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     /**
      * Retrieves the element within the specified wrapper that has the `data-search` attribute.
      *
      * @param {jQuery} $wrapper - The jQuery object representing the wrapper element to search within.
-     * @return {jQuery|null} The jQuery object containing the matched element, or null if no match is found.
+     * @return {jQuery} The jQuery object containing the matched element, or null if no match is found.
      */
     function getSearchElement($wrapper) {
-        return $wrapper.find('[data-search]') || null;
+        return $wrapper.find('[data-search-input]') || null;
     }
 
-
     /**
-     * Returns the shortened names of the weekdays based on the local,
+     * Returns the shortened names of the weekdays based on the locale,
      * adapted to the start day of the week.
      *
-     * @param {string} locale - The local like 'en-us' or 'de-de'.
+     * This function retrieves the short names of the weekdays (e.g., "Sun", "Mon", etc.)
+     * for the specified locale and rearranges the order of the days depending on
+     * whether the week starts on Sunday or Monday.
+     *
+     * @param {string} locale - The locale like 'en-US' or 'de-DE', used to format names.
      * @param {boolean} startWeekOnSunday - Indicates whether the week should start with Sunday.
-     * @returns {string[]} - An array of the weekday names, e.g. B. ['So.', 'Mo.', 'Di.', ...].
+     * @returns {string[]} - An array of the short weekday names, e.g., ['Sun', 'Mon', 'Tue', ...].
      */
     function getShortWeekDayNames(locale, startWeekOnSunday) {
-        // Use intl.dateTimeFormat to dynamic determination of the weekday names.
-        const formatter = new Intl.DateTimeFormat(locale, {weekday: 'short'});
+        // Create an Intl.DateTimeFormat instance for the provided locale to format weekdays.
+        // The 'short' option generates abbreviated weekday names (e.g., 'Mon', 'Tue').
+        const formatter = new Intl.DateTimeFormat(locale, { weekday: 'short' });
 
-        // collect weekday names for Sunday (0) to Saturday (6).
+        // Generate an array of all weekdays (0 = Sunday, 1 = Monday, ..., 6 = Saturday).
+        // Use Date.UTC to ensure consistent results in all environments (ignoring local time zones).
         const weekDays = [...Array(7).keys()].map(day =>
-            formatter.format(new Date(Date.UTC(2023, 0, day + 1))) // Beispieljahr, Tag + 1
+            // Add 1 to the day index to represent the day of the month.
+            // Example: '2023-01-01' for Sunday, '2023-01-02' for Monday, and so on.
+            formatter.format(new Date(Date.UTC(2023, 0, day + 1)))
         );
 
-        // Reihenfolge anpassen, wenn die Woche auf Montag starten soll.
+        // If the week should start on Sunday, return the weekdays as-is.
+        // Otherwise, reorder the array to start from Monday:
+        // - day 1 (Monday) to day 6 (Saturday) remain first (`weekDays.slice(1)`),
+        // - day 0 (Sunday) is moved to the end (`weekDays[0]`).
         return startWeekOnSunday ? weekDays : weekDays.slice(1).concat(weekDays[0]);
     }
 
@@ -1918,7 +2098,7 @@
         // Empty the container and generate new structure
         container.empty();
         $('<div>', {
-            class: 'wc-search-result-container list-group list-group-flush vh-100 overflow-auto',
+            class: 'wc-search-result-container list-group list-group-flush overflow-auto',
         }).appendTo(container);
     }
 
@@ -1931,6 +2111,10 @@
      */
     function buildMonthView($wrapper) {
         const container = getViewContainer($wrapper);
+        // container.css({
+        //     paddingBottom: '24px',
+        //     paddingRight: '24px',
+        // });
         const settings = getSettings($wrapper);
         const date = getDate($wrapper);
 
@@ -1960,6 +2144,10 @@
         // Create the weekday line
         const weekdaysRow = $('<div>', {
             class: 'row d-flex flex-nowrap wc-calendar-weekdays fw-bold',
+            css: {
+                fontSize: '12px',
+                lineHeight: '24px'
+            }
         }).append(
             $('<div>', {
                 class: 'col px-1 d-flex align-items-center justify-content-center',
@@ -1998,7 +2186,7 @@
             const calendarWeek = getCalendarWeek(currentDate);
             weekRow.append(
                 $('<div>', {
-                    class: 'col px-1 d-flex align-items-start py-2 fw-bold  justify-content-center',
+                    class: 'col px-1 d-flex align-items-start py-2 fw-bold justify-content-center',
                     css: {
                         fontSize: '12px',
                         width: '24px',
@@ -2016,7 +2204,7 @@
                 const isOtherMonth = currentDate.getMonth() !== month;
                 const dayClass = isToday ? 'rounded-circle text-bg-primary' : '';
                 const dayWrapper = $('<div>', {
-                    'data-month-date': formatDate($wrapper, currentDate),
+                    'data-month-date': formatDateToDateString(currentDate),
                     class: `col px-1 border flex-fill d-flex flex-column align-items-center justify-content-start ${
                         isOtherMonth ? 'text-muted' : ''
                     } ${isToday ? '' : ''}`,
@@ -2027,7 +2215,7 @@
                 }).appendTo(weekRow);
 
                 $('<small>', {
-                    'data-date': formatDate($wrapper, currentDate),
+                    'data-date': formatDateToDateString(currentDate),
                     css: {
                         width: '24px',
                         height: '24px',
@@ -2163,7 +2351,7 @@
                 }
 
                 $('<td>', {
-                    'data-date': formatDate($wrapper, currentDate),
+                    'data-date': formatDateToDateString(currentDate),
                     css: {
                         cursor: 'pointer',
                         fontSize: '10px',
@@ -2192,30 +2380,6 @@
         const container = getViewContainer($wrapper).empty();
         const date = getDate($wrapper);
         buildDayViewContent($wrapper, date, container);
-    }
-
-
-    /**
-     * Formats a given date object into a string based on the locale settings retrieved from the provided wrapper element.
-     * The returned format is "YYYY-MM-DD".
-     *
-     * @param {jQuery} $wrapper - The HTML element from which locale settings are determined.
-     * @param {Date} date - The date object to be formatted.
-     * @return {string} The formatted date as a string in "YYYY-MM-DD" format.
-     */
-    function formatDate($wrapper, date) {
-        const settings = getSettings($wrapper);
-        let day = date.toLocaleDateString(settings.locale, {day: 'numeric'});
-        if (day < 10) {
-            day = '0' + day;
-        }
-        let month = date.toLocaleDateString(settings.locale, {month: 'numeric'});
-        if (month < 10) {
-            month = '0' + month;
-        }
-        const year = date.toLocaleDateString(settings.locale, {year: 'numeric'});
-        return `${year}-${month}-${day}`;
-
     }
 
     /**
@@ -2333,7 +2497,7 @@
         }
 
         if (forWeekView) {
-            headline.attr('data-date', formatDate($wrapper, date)).css('cursor', 'pointer');
+            headline.attr('data-date', formatDateToDateString(date)).css('cursor', 'pointer');
         }
 
         $('<div>', {
@@ -2365,7 +2529,7 @@
                     css: {
                         left: '-34px'
                     },
-                    html: `${hour.toString().padStart(2, '0')}:00 <i class="bi bi-caret-right-fill"></i>`
+                    html: `${hour.toString().padStart(2, '0')}:00 <i class="${settings.icons.timeSlot}"></i>`
                 }).appendTo(row);
             }
         }

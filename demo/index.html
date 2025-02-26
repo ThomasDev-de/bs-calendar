@@ -116,7 +116,7 @@
         $.bsCalendar.setDefaults({
             locale: 'de',
             startWeekOnSunday: false,
-            rounded: 0,
+            rounded: 5,
             defaultColor: 'var(--bs-primary)',
             translations: {
                 day: 'Tag',
@@ -148,73 +148,143 @@
             .on('edit.bs.calendar', function (event, appointment, $element) {
                 event.preventDefault();
                 console.log(appointment);
-                const start = new Date(appointment.start);
-                const end = new Date(appointment.end);
+
+                const start = appointment.start; // Exakt erhaltenes Datum und Uhrzeit
+                const end = appointment.end;     // Exakt erhaltenes Datum und Uhrzeit
                 const isAllDay = appointment.allDay;
                 const title = appointment.title;
                 const description = appointment.description;
                 const color = appointment.color;
                 const link = appointment.link;
+
                 modal.find('input[name="title"]').val(title);
-                modal.find('input[name="from_date"]').val(start.toISOString().split('T')[0]);
-                modal.find('input[name="to_date"]').val(end.toISOString().split('T')[0]);
-                modal.find('input[name="from_time"]').val(start.toISOString().split('T')[1].split('.')[0]);
-                modal.find('input[name="to_time"]').val(end.toISOString().split('T')[1].split('.')[0]);
+
+// Direkt das Datum und die Uhrzeit einfügen
+                modal.find('input[name="from_date"]').val(start.split(' ')[0]);   // Datum aus 'YYYY-MM-DD HH:mm:ss'
+                modal.find('input[name="to_date"]').val(end.split(' ')[0]);       // Datum aus 'YYYY-MM-DD HH:mm:ss'
+                modal.find('input[name="from_time"]').val(start.split(' ')[1]);   // Uhrzeit aus 'YYYY-MM-DD HH:mm:ss'
+                modal.find('input[name="to_time"]').val(end.split(' ')[1]);       // Uhrzeit aus 'YYYY-MM-DD HH:mm:ss'
+
                 modal.find('input[name="allDay"]').prop('checked', isAllDay).trigger('change');
                 modal.find('textarea[name="description"]').val(description);
                 modal.find('input[name="color"]').val(color);
                 modal.find('input[name="link"]').val(link);
                 modal.modal('show');
-            }).on('view.bs.calendar', function (event, view) {
-            console.log(view);
-        }).on('click', '[data-method]', function (event) {
-            event.preventDefault();
-            switch ($(this).data('method')) {
-                case 'destroy':
-                    calendarElement.bsCalendar('destroy');
-                    break;
-                case 'clear':
-                    calendarElement.bsCalendar('clear');
-                    break;
-                case 'refresh':
-                    calendarElement.bsCalendar('refresh', {view: 'day'});
-                    break;
-                case 'setDate':
-                    calendarElement.bsCalendar('setDate', {date: '1970-01-01', view: 'day'});
-                    break;
-                case 'setToday':
-                    calendarElement.bsCalendar('setToday', 'day');
-                    break;
-                default:
-                    break;
-            }
-        })
+            })
+            .on('view.bs.calendar', function (event, view) {
+                console.log(view);
+            })
+            .on('click', '[data-method]', function (event) {
+                event.preventDefault();
+                switch ($(this).data('method')) {
+                    case 'destroy':
+                        calendarElement.bsCalendar('destroy');
+                        break;
+                    case 'clear':
+                        calendarElement.bsCalendar('clear');
+                        break;
+                    case 'refresh':
+                        calendarElement.bsCalendar('refresh');
+                        break;
+                    case 'setDate':
+                        calendarElement.bsCalendar('setDate', {date: '1970-01-01', view: 'day'});
+                        break;
+                    case 'setToday':
+                        calendarElement.bsCalendar('setToday', 'day');
+                        break;
+                    default:
+                        break;
+                }
+            })
 
         function url(query) {
-            const fromDate = new Date(`${query.fromDate}T00:00:00`);
-            const toDate = new Date(`${query.toDate}T23:59:59`);
+            // Standardwerte setzen, falls fromDate oder toDate nicht verfügbar sind
+            const fromDate = query.fromDate ? new Date(`${query.fromDate}T00:00:00`) : null;
+            const toDate = query.toDate ? new Date(`${query.toDate}T23:59:59`) : null;
             const search = query.search;
 
-            const appointments = generateRandomAppointments(`${query.fromDate}T00:00:00`, `${query.toDate}T23:59:59`, query.view).filter(appointment => {
+            // Wenn nur ein Suchbegriff existiert, nutze die neue Funktion
+            if (search && !fromDate && !toDate) {
+                return getAppointmentsBySearch(search);
+            }
+
+            // Generierung von zufälligen Terminen (basierend auf Zeitraum)
+            const appointments = generateRandomAppointments(
+                (fromDate || new Date('1970-01-01T00:00:00')).toISOString(),
+                (toDate || new Date('9999-12-31T23:59:59')).toISOString(),
+                query.view
+            );
+
+            // Filter nach Zeitraum
+            const filteredAppointments = appointments.filter(appointment => {
                 const appointmentStart = new Date(appointment.start);
                 const appointmentEnd = new Date(appointment.end);
 
                 return (
-                    (appointmentStart >= fromDate && appointmentStart < toDate) || // Startzeit liegt im Bereich
-                    (appointmentEnd > fromDate && appointmentEnd <= toDate) ||    // Endzeit liegt im Bereich
-                    (appointmentStart <= fromDate && appointmentEnd >= toDate)    // Termin umspannt den Bereich
+                    (!fromDate || appointmentStart >= fromDate) &&
+                    (!toDate || appointmentEnd <= toDate)
                 );
             });
-console.log(appointments);
+
+            // Falls ein Suchbegriff existiert, zusätzlich nach Titel filtern
             if (search) {
-                return appointments.filter(appointment => {
+                return filteredAppointments.filter(appointment => {
                     return appointment.title.toLowerCase().includes(search.toLowerCase());
                 });
             }
-            return appointments;
+
+            // Rückgabe der (zeitlich gefilterten) Termine
+            return filteredAppointments;
+        }
+        function getAppointmentsBySearch(search) {
+            // Wenn kein Suchbegriff angegeben wurde, direkt leeres Array zurückgeben
+            if (!search) {
+                return [];
+            }
+
+            const appointments = generateStaticAppointmentsForSearch();
+            // Wenn ein Suchbegriff angegeben ist, generiere zufällige Appointments mit Filterung
+            return appointments.filter(appointment => appointment.title.toLowerCase().includes(search.toLowerCase()));
         }
 
-        function generateRandomAppointments(start, end, view) {
+        function generateStaticAppointmentsForSearch() {
+            const staticAppointments = []; // Array für Termine
+            const colors = ['#FF5733', '#33FF57', '#3357FF', '#F1C40F', '#9B59B6']; // Beispiel-Farbpalette
+            const links = ['https://example.com/event', 'https://example.com/details']; // Beispiel-Links
+
+            for (let i = 0; i < 46; i++) {
+                // Zufällige Beschreibung
+                const description = `Description for Appointment ${i + 1}`;
+
+                // Zufällige Zeitpunkte für Start und Ende
+                const randomTimeStart = new Date(2023, 9, Math.floor(Math.random() * 30) + 1, Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
+                const randomTimeEnd = new Date(randomTimeStart);
+                randomTimeEnd.setHours(randomTimeEnd.getHours() + 2); // Termin dauert 2 Stunden
+
+                // Zufällige Farbe und Link
+                const color = colors[i % colors.length];
+                const link = links[i % links.length];
+
+                // Termin erstellen
+                const appointment = {
+                    id: i + 1,
+                    title: `Appointment ${i + 1}`,
+                    description: description,
+                    start: randomTimeStart.toISOString().replace('T', ' ').substring(0, 19),
+                    end: randomTimeEnd.toISOString().replace('T', ' ').substring(0, 19),
+                    allDay: i % 21 === 0, // Jeder 21. Termin ein Ganztages-Termin
+                    color: color,
+                    link: link
+                };
+
+                // Termin hinzufügen
+                staticAppointments.push(appointment);
+            }
+
+            return staticAppointments;
+        }
+
+        function generateRandomAppointments(start, end, view = null) {
             const colors = [
                 '#007bff',
                 '#6c757d',
@@ -230,6 +300,9 @@ console.log(appointments);
             const startDate = new Date(start);
             const endDate = new Date(end);
             let count = 0;
+            if (view === null) {
+                count = Math.floor(Math.random() * 120);
+            }
             if (view === 'month') {
                 count = Math.floor(Math.random() * 61);
             }
@@ -241,9 +314,6 @@ console.log(appointments);
             }
             if (view === 'year') {
                 count = Math.floor(Math.random() * 2);
-            }
-            if (view === 'search') {
-                count = Math.floor(Math.random() * 21);
             }
 
             for (let i = 0; i < count; i++) {
