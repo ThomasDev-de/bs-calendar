@@ -2469,6 +2469,27 @@
         }
     }
 
+    function buildHeaderForDay($wrapper, date) {
+        const settings = getSettings($wrapper);
+        const day =  date.toLocaleDateString(settings.locale, {day: 'numeric'})
+        const shortMonth = date.toLocaleDateString(settings.locale, {month: 'short'})
+        const longMonth = date.toLocaleDateString(settings.locale, {month: 'long'});
+        const shortWeekday = date.toLocaleDateString(settings.locale, {weekday: 'short'});
+        const longWeekday = date.toLocaleDateString(settings.locale, {weekday: 'long'});
+        return  [
+            `<div class="p-2">`,
+            `<div class="d-none d-xl-flex flex-wrap justify-content-center align-items-center">`,
+            `<strong>${longWeekday}</strong>`,
+            `<small class="mx-1"></small>`,
+            `<strong class="text-nowrap">${day}. ${longMonth}</strong>`,
+            `</div>`,
+            `<div class="d-flex d-xl-none flex-wrap flex-column justify-content-center align-items-center">`,
+            `<strong>${shortWeekday}</strong>`,
+            `<small class="text-nowrap">${day} ${shortMonth}</small>`,
+            `</div>`,
+            `</div>`,
+        ].join('');
+    }
     /**
      * Build a daily overview with hourly labels and horizontal lines for each line.
      *
@@ -2492,10 +2513,12 @@
         }
 
         $container.attr('data-weekday');
+        const longHeader = date.toLocaleDateString(settings.locale, {weekday: 'long', day: 'numeric', month: 'long'});
+        const shortHeader = date.toLocaleDateString(settings.locale, {weekday: 'short', day: 'numeric', month: 'short'});
 
         const headline = $('<div>', {
-            class: 'wc-day-header py-2 text-center fw-bold mb-2',
-            text: date.toLocaleDateString(settings.locale, {weekday: 'long', day: 'numeric', month: 'long'})
+            class: 'wc-day-header mb-2',
+            html: buildHeaderForDay($wrapper, date)
         }).appendTo($container);
 
         if (isToday) {
