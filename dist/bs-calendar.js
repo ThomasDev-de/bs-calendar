@@ -2503,6 +2503,7 @@
         // Call settings from the wrapper
         const settings = getSettings($wrapper);
         const isToday = date.toDateString() === new Date().toDateString();
+     
         if (!forWeekView) {
             $container = $('<div>', {
                 class: 'position-relative px-5'
@@ -2554,7 +2555,7 @@
             if (showLabels) {
                 // hourly label (e.g. 08:00)
                 $('<div>', {
-                    class: 'wc-time-label ps-2 position-absolute top-0 translate-middle text-bg-secondary',
+                    class: 'wc-time-label ps-2 position-absolute top-0 translate-middle',
                     css: {
                         left: '-34px'
                     },

@@ -15,8 +15,4 @@
     "twbs/bootstrap": "^5",
     "twbs/bootstrap-icons": "^1"
   }
-  ,
-  "require-dev": {
-    "roave/security-advisories": "dev-latest"
-  }
 }
