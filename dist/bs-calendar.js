@@ -1271,12 +1271,27 @@
 
         if (typeof settings.url === 'function') {
             showLoader($wrapper);
-            const appointments = settings.url(requestData) || [];
-            if (settings.debug) {
-                log('Call appointments by function:', appointments);
-            }
-            setAppointments($wrapper, appointments);
-            renderAppointments($wrapper);
+
+            // Da die Funktion `settings.url` nun eine Promise zurückgibt
+            settings.url(requestData)
+                .then(appointments => {
+                    // Debug-Ausgabe, falls aktiviert
+                    if (settings.debug) {
+                        log('Call appointments by function:', appointments);
+                    }
+
+                    // Verarbeitung der erhaltenen Termine
+                    setAppointments($wrapper, appointments);
+                    renderAppointments($wrapper);
+                })
+                .catch(error => {
+                    // Fehler behandeln und ggf. Debug-Informationen ausgeben
+                    if (settings.debug) {
+                        log('Error fetching appointments:', error);
+                    }
+                    // Es kann zusätzlich ein Notification-System verwendet werden, um den Nutzer zu benachrichtigen
+                    console.error("Es gab einen Fehler beim Abrufen der Termine:", error);
+                });
         } else if (typeof settings.url === 'string') {
             showLoader($wrapper);
 

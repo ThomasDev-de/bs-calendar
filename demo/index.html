@@ -33,6 +33,13 @@
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="clear">Clear</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="destroy">Destroy</button>
         <div class="text-uppercase text-center mb-3"><small>query params</small></div>
+        <div class="form-group">
+            <select class="form-select" id="selectUser">
+                <option selected>All users</option>
+                <option value="1">John Doe 1</option>
+                <option value="2">John Doe 2</option>
+            </select>
+        </div>
     </div>
 
 </div>
@@ -198,43 +205,50 @@
             })
 
         function url(query) {
-            // Standardwerte setzen, falls fromDate oder toDate nicht verfügbar sind
-            const fromDate = query.fromDate ? new Date(`${query.fromDate}T00:00:00`) : null;
-            const toDate = query.toDate ? new Date(`${query.toDate}T23:59:59`) : null;
-            const search = query.search;
+            return new Promise((resolve, reject) => {
+                try {
+                    // Standardwerte setzen, falls fromDate oder toDate nicht verfügbar sind
+                    const fromDate = query.fromDate ? new Date(`${query.fromDate}T00:00:00`) : null;
+                    const toDate = query.toDate ? new Date(`${query.toDate}T23:59:59`) : null;
+                    const search = query.search;
 
-            // Wenn nur ein Suchbegriff existiert, nutze die neue Funktion
-            if (search && !fromDate && !toDate) {
-                return getAppointmentsBySearch(search);
-            }
+                    // Wenn nur ein Suchbegriff existiert, nutze die neue Funktion
+                    if (search && !fromDate && !toDate) {
+                        return resolve(getAppointmentsBySearch(search));
+                    }
 
-            // Generierung von zufälligen Terminen (basierend auf Zeitraum)
-            const appointments = generateRandomAppointments(
-                (fromDate || new Date('1970-01-01T00:00:00')).toISOString(),
-                (toDate || new Date('9999-12-31T23:59:59')).toISOString(),
-                query.view
-            );
+                    // Generierung von zufälligen Terminen (basierend auf Zeitraum)
+                    const appointments = generateRandomAppointments(
+                        (fromDate || new Date('1970-01-01T00:00:00')).toISOString(),
+                        (toDate || new Date('9999-12-31T23:59:59')).toISOString(),
+                        query.view
+                    );
 
-            // Filter nach Zeitraum
-            const filteredAppointments = appointments.filter(appointment => {
-                const appointmentStart = new Date(appointment.start);
-                const appointmentEnd = new Date(appointment.end);
+                    // Filter nach Zeitraum
+                    const filteredAppointments = appointments.filter(appointment => {
+                        const appointmentStart = new Date(appointment.start);
+                        const appointmentEnd = new Date(appointment.end);
 
-                return (
-                    (!fromDate || appointmentStart >= fromDate) &&
-                    (!toDate || appointmentEnd <= toDate)
-                );
+                        return (
+                            (!fromDate || appointmentStart >= fromDate) &&
+                            (!toDate || appointmentEnd <= toDate)
+                        );
+                    });
+
+                    // Falls ein Suchbegriff existiert, zusätzlich nach Titel filtern
+                    if (search) {
+                        const searchFilteredAppointments = filteredAppointments.filter(appointment => {
+                            return appointment.title.toLowerCase().includes(search.toLowerCase());
+                        });
+                        return resolve(searchFilteredAppointments);
+                    }
+
+                    // Rückgabe der (zeitlich gefilterten) Termine
+                    resolve(filteredAppointments);
+                } catch (error) {
+                    reject(error);
+                }
             });
-
-            // Falls ein Suchbegriff existiert, zusätzlich nach Titel filtern
-            if (search) {
-                return filteredAppointments.filter(appointment => {
-                    return appointment.title.toLowerCase().includes(search.toLowerCase());
-                });
-            }
-
-            // Rückgabe der (zeitlich gefilterten) Termine
-            return filteredAppointments;
         }
         function getAppointmentsBySearch(search) {
             // Wenn kein Suchbegriff angegeben wurde, direkt leeres Array zurückgeben
