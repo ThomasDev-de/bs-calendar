@@ -6,6 +6,12 @@
     <title>Bootstrap Calendar Demo</title>
     <link href="../vendor/twbs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="../vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+<style>
+    .popover{
+        min-width: 400px; /* Max Width of the popover (depending on the container!) */
+        max-width: 600px; /* Max Width of the popover (depending on the container!) */
+    }
+</style>
 </head>
 <body class="h-100 w-100">
 <div class="d-flex justify-content-between align-items-center border-bottom border-5 px-5">
@@ -204,8 +210,15 @@
                 }
             })
 
-        function url(query) {
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        async function url(query) {
+            await sleep( Math.floor(Math.random() * 2001)); // Wartet synchron für 2 Sekunden
+
             return new Promise((resolve, reject) => {
+
                 try {
                     // Standardwerte setzen, falls fromDate oder toDate nicht verfügbar sind
                     const fromDate = query.fromDate ? new Date(`${query.fromDate}T00:00:00`) : null;
@@ -327,7 +340,7 @@
                 count = Math.floor(Math.random() * 6);
             }
             if (view === 'year') {
-                count = Math.floor(Math.random() * 2);
+                count = Math.floor(Math.random() * 200);
             }
 
             for (let i = 0; i < count; i++) {

@@ -320,11 +320,11 @@
             // Save the updated settings if any changes were made.
             setSettings($wrapper, settings);
         }
-        if (rebuildView) {
+        // if (rebuildView) {
             buildByView($wrapper);
-        }
+        // }
         // Trigger the process to fetch updated appointment data.
-        fetchAppointments($wrapper);
+        // fetchAppointments($wrapper);
     }
 
     /**
@@ -1235,11 +1235,19 @@
             const view = getView($wrapper);
             // calculate the start and end date based on the view
             const period = getStartAndEndDateByView($wrapper);
-            requestData = {
-                fromDate: period.start, // Startdatum im ISO-Format
-                toDate: period.end,    // Enddatum im ISO-Format
-                view: view, // 'day', 'week', 'month', 'year'
-            };
+            if(view === 'year') {
+                requestData = {
+                    year: new Date(period.date).getFullYear(),
+                    view: view, // 'year'
+                };
+            }
+            else {
+                requestData = {
+                    fromDate: period.start, // Startdatum im ISO-Format
+                    toDate: period.end,    // Enddatum im ISO-Format
+                    view: view, // 'day', 'week', 'month'
+                };
+            }
         } else {
             const searchElement = getSearchElement($wrapper);
             const search = searchElement?.val() ?? null;
@@ -1248,7 +1256,6 @@
                 search: search // ?string
             };
         }
-
 
         if (typeof settings.queryParams === 'function') {
             const queryParams = settings.queryParams(requestData);
@@ -1285,6 +1292,7 @@
                     renderAppointments($wrapper);
                 })
                 .catch(error => {
+                    hideLoader($wrapper);
                     // Fehler behandeln und ggf. Debug-Informationen ausgeben
                     if (settings.debug) {
                         log('Error fetching appointments:', error);
@@ -2264,13 +2272,15 @@
      * @return {void} This function does not return a value,
      * it directly updates the DOM by appending the constructed calendar to the container.
      */
-    function buildMonthSmallView($wrapper, forDate, $container) {
+    function buildMonthSmallView($wrapper, forDate, $container, forYearView = false) {
         // Get container for miniature view
 
         const settings = getSettings($wrapper);
         const date = forDate; // Aktuelles Datum
         const activeDate = getDate($wrapper);
 
+        const cellSize = forYearView ? 36 : 24;
+        const fontSize = forYearView ? 12 : 10;
         // calculation of the monthly data
         const year = date.getFullYear();
         const month = date.getMonth();
@@ -2317,7 +2327,7 @@
         const weekdaysRow = $('<tr>', {
             class: '',
             css: {
-                height: '24px'
+                height: `${cellSize}px`
             }
         }).appendTo(thead);
 
@@ -2327,7 +2337,7 @@
         // Add weekly days (Mon, Tue, Wed, ...)
         const weekDays = getShortWeekDayNames(settings.locale, settings.startWeekOnSunday);
         weekDays.forEach(day => {
-            $('<th>', {class: '', text: day}).appendTo(weekdaysRow);
+            $('<th>', {class: '', text: day, css: {width:`${cellSize}px`}}).appendTo(weekdaysRow);
         });
 
         // create the content of the calendar
@@ -2337,7 +2347,7 @@
         while (currentDate <= calendarEnd) {
             const weekRow = $('<tr>', {
                 css: {
-                    fontSize: '10px',
+                    fontSize: `${fontSize}px`,
                 }
             }).appendTo(tbody);
 
@@ -2345,8 +2355,8 @@
             const calendarWeek = getCalendarWeek(currentDate);
             $('<td>', {
                 css: {
-                    width: '10px',
-                    fontSize: '10px'
+                    width: `${fontSize}px`,
+                    fontSize: `${fontSize}px`
                 },
                 class: 'border-end pe-1 text-end text-secondary fw-bold',
                 text: calendarWeek,
@@ -2371,14 +2381,16 @@
                     dayClass += ' border border-warning';
                 }
 
+
                 $('<td>', {
                     'data-date': formatDateToDateString(currentDate),
+                    class: `position-relative overflow-hidden`,
                     css: {
                         cursor: 'pointer',
-                        fontSize: '10px',
-                        width: '24px',
-                        height: '24px',
-                        lineHeight: '24px',
+                        fontSize: `${fontSize}px`,
+                        width: `${cellSize}px`,
+                        height: `${cellSize}px`,
+                        lineHeight: `${cellSize}px`,
                         verticalAlign: 'middle',
                         textAlign: 'center',
                     }, // uniform square for centering
@@ -2538,7 +2550,7 @@
         }).appendTo($container);
 
         if (isToday) {
-            headline.addClass('text-primary');
+            // headline.addClass('fw-bold');
         }
 
         if (forWeekView) {
@@ -2609,7 +2621,7 @@
             const monthWrapper = $('<div>', {
                 class: 'd-flex shadow p-3 flex-column rounded-' + settings.rounded + ' align-items-center wc-year-month-container', // Col-Layout für Titel und Kalender
                 css: {
-                    width: '200px', // fixed width for every calendar
+                    // width: '200px', // fixed width for every calendar
                     margin: '5px', // distance on the edge
                 },
             }).appendTo(grid);
@@ -2632,7 +2644,7 @@
 
             // Insert small monthly calendars
             const tempDate = new Date(year, month, 1); // start date of the current month
-            buildMonthSmallView($wrapper, tempDate, monthContainer);
+            buildMonthSmallView($wrapper, tempDate, monthContainer, true);
         }
     }
 }(jQuery))
