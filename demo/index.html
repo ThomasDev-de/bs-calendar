@@ -22,9 +22,12 @@
     </div>
 </div>
 
-<div id="calendar" data-sidebar-addons="#sidebarAddons" class="w-100 p-4" style="height: 800px">
+<div class="d-flex justify-content-center align-items-center w-100 w-xl-75">
+    <div id="calendar" data-sidebar-addons="#sidebarAddons" class="p-4 w-100">
 
+    </div>
 </div>
+
 
 <div id="sidebarAddons" class="mt-4 card">
     <div class="card-header">
@@ -44,6 +47,7 @@
                 <option selected>All users</option>
                 <option value="1">John Doe 1</option>
                 <option value="2">John Doe 2</option>
+                <option value="3">John Doe 3</option>
             </select>
         </div>
     </div>
@@ -171,13 +175,10 @@
                 const link = appointment.link;
 
                 modal.find('input[name="title"]').val(title);
-
-// Direkt das Datum und die Uhrzeit einfügen
                 modal.find('input[name="from_date"]').val(start.split(' ')[0]);   // Datum aus 'YYYY-MM-DD HH:mm:ss'
                 modal.find('input[name="to_date"]').val(end.split(' ')[0]);       // Datum aus 'YYYY-MM-DD HH:mm:ss'
                 modal.find('input[name="from_time"]').val(start.split(' ')[1]);   // Uhrzeit aus 'YYYY-MM-DD HH:mm:ss'
                 modal.find('input[name="to_time"]').val(end.split(' ')[1]);       // Uhrzeit aus 'YYYY-MM-DD HH:mm:ss'
-
                 modal.find('input[name="allDay"]').prop('checked', isAllDay).trigger('change');
                 modal.find('textarea[name="description"]').val(description);
                 modal.find('input[name="color"]').val(color);

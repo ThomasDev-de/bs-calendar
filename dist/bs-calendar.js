@@ -69,7 +69,7 @@
                 today: 'Today',
                 appointment: 'Appointment',
                 search: 'Search',
-                searchNoResult: 'No results found'
+                searchNoResult: 'No appointment found'
             },
             icons: {
                 day: 'bi bi-calendar-day',
@@ -95,6 +95,9 @@
     };
 
     const viewContainerClass = 'wc-calendar-view-container';
+
+    const topNavClass = 'wc-calendar-top-nav';
+    const topSearchClass = 'wc-calendar-top-search-nav';
 
     /**
      * jQuery plugin that initializes and manages a Bootstrap-based calendar.
@@ -526,7 +529,10 @@
      * @param {Array<Object>} appointments - An array of appointment objects where each object contains a 'start' property representing the starting time of the appointment.
      * @return {Array<Object>} The sorted array of appointment objects in ascending order of their start times.
      */
-    function sortAppointmentByStart(appointments, sortAllDay = true) {
+    async function sortAppointmentByStart(appointments, sortAllDay = true) {
+        if(!appointments || !Array.isArray(appointments) || appointments.length === 0){
+            return [];
+        }
         return new Promise((resolve, reject) => {
             try {
                 // Sortiere die Termine
@@ -623,8 +629,12 @@
         }).appendTo($wrapper);
 
         const topNav = $('<div>', {
-            class: 'd-flex sticky-top align-items-center px-0 justify-content-end mb-3 wc-calendar-top-nav  bg-body-tertiary rounded-' + settings.rounded
+            class: `d-flex sticky-top align-items-center px-0 justify-content-end mb-3 ${topNavClass} bg-body-tertiary rounded-${settings.rounded}`
         }).appendTo(innerWrapper);
+
+        const topSearchNav = $('<div>', {
+            class: `d-none sticky-top align-items-center px-0 justify-content-center mb-3 ${topSearchClass} bg-body-tertiary rounded-${settings.rounded}`
+        });
 
         $('<button>', {
             class: `btn rounded-${settings.rounded} border-3 border`,
@@ -656,27 +666,17 @@
         }).appendTo(topNav);
 
         if (settings.search) {
-
-            const uniqueId = 'collapse_' + Math.random().toString(36).substr(2, 9);
-            $('<a>', {
+            topSearchNav.insertAfter(topNav);
+            // add a search button to topnav
+            const showSearchbar = $('<button>', {
                 class: `btn rounded-${settings.rounded} border-3 border js-btn-search`,
-                html: `<i class="${settings.icons.search}"></i>`,
-                'data-bs-toggle': 'collapse',
-                'data-toggle': 'collapse',
-                'aria-expanded': 'false',
-                'aria-controls': uniqueId,
-                'href': '#' + uniqueId,
+                html: `<i class="${settings.icons.search}"></i>`
             }).appendTo(topNav);
+            showSearchbar.on('click', function () {
+                toggleSearchMode($wrapper, true);
+            });
 
-            const collapse = $('<div>', {
-                id: uniqueId,
-                class: 'collapse'
-            }).insertAfter(topNav);
-
-            const collapseInner = $('<div>', {
-                class: 'd-flex align-items-center justify-content-center pb-3 js-search-input-wrapper',
-            }).appendTo(collapse);
-
+            // add the search input to top search bar
             $('<input>', {
                 type: 'search',
                 css: {
@@ -685,7 +685,16 @@
                 class: 'form-control rounded-' + settings.rounded + ' border-3 border',
                 placeholder: settings.translations.search || 'search',
                 'data-search-input': true
-            }).appendTo(collapseInner);
+            }).appendTo(topSearchNav);
+
+            // add a close button
+            const btnCloseSearch = $('<a>', {
+                class: `btn btn-close rounded-${settings.rounded} p-2 ms-2 aria-label="Close" border-3 border js-btn-close-search`,
+            }).appendTo(topSearchNav);
+
+            btnCloseSearch.on('click', function () {
+                toggleSearchMode($wrapper, false, true);
+            })
         }
 
         $('<button>', {
@@ -851,48 +860,29 @@
         buildByView($wrapper);
     }
 
-    function toggleSearchMode($wrapper, status, manual = false) {
+    function toggleSearchMode($wrapper, status, rebuildView = true) {
         // return;
         const a = $wrapper.find('.js-btn-search');
         const input = getSearchElement($wrapper)
-        const collapse = $wrapper.find(a.attr('href'));
-        const navElements = $('[class*="wc-nav-view-"]');
         const settings = getSettings($wrapper);
-        const selectView = getSelectViewElement($wrapper);
-        const todayButton = getTodayButtonElement($wrapper);
-        const addButton = getAddButtonElement($wrapper);
-        const selectViewElementDropDownItems = selectView.find('.dropdown-item');
         if (status) {
+            $wrapper.find('.'+topNavClass).toggleClass('d-none d-flex');
+            $wrapper.find('.'+topSearchClass).toggleClass('d-none d-flex');
             setSearchMode($wrapper, true);
-            a.addClass('btn-primary');
-            if (manual) {
-                collapse.collapse('show');
-            }
             buildByView($wrapper);
-            selectView.addClass('opacity-50')
-            todayButton.addClass('opacity-50')
-            navElements.addClass('opacity-50');
-            addButton.addClass('opacity-50');
             input.focus();
         } else {
+            $wrapper.find('.'+topNavClass).toggleClass('d-none d-flex');
+            $wrapper.find('.'+topSearchClass).toggleClass('d-none d-flex');
             setSearchMode($wrapper, false);
             const search = {limit: settings.search.limit, offset: settings.search.offset};
             setSearchPagination($wrapper, search);
-            a.removeClass('btn-primary');
             input.val(null);
-            if (manual) {
-                collapse.collapse('hide');
+            if (rebuildView) {
+                buildByView($wrapper)
             }
-            selectView.removeClass('opacity-50')
-            todayButton.removeClass('opacity-50');
-            navElements.removeClass('opacity-50');
-            addButton.removeClass('opacity-50');
-            input.appendTo('.js-search-input-wrapper');
-        }
 
-        // navElements.toggle('disabled');
-        navElements.prop('disabled', status);
-        selectViewElementDropDownItems.toggleClass('disabled', status);
+        }
     }
 
     function setSearchPagination($wrapper, object) {
@@ -929,29 +919,27 @@
         let searchTimeout;
         $wrapper
             .on('click', '.wc-search-pagination [data-page]', function (e) {
+                // A page in the search navigation was clicked
                 e.preventDefault();
+                // determine the requested page
                 const $clickedLink = $(e.currentTarget);
                 const newPage = parseInt($clickedLink.attr('data-page'));
+                // update the pagination cries
                 const searchPagination = getSearchPagination($wrapper);
                 searchPagination.offset = (newPage - 1) * searchPagination.limit;
                 const search = {limit: searchPagination.limit, offset: searchPagination.offset};
                 setSearchPagination($wrapper, search);
+                // delete the navigation buttons because they are rebuilt
                 $wrapper.find('.wc-search-pagination').remove();
+                // get the appointments
                 fetchAppointments($wrapper);
-            })
-            .on('show.bs.collapse', '.collapse', function (e) {
-                toggleSearchMode($wrapper, true);
-            })
-            .on('hide.bs.collapse', '.collapse', function (e) {
-                toggleSearchMode($wrapper, false);
-                buildByView($wrapper)
             })
             .on('keyup input', '[data-search-input]', function (e) {
                 e.preventDefault();
                 const input = $(this);
                 const settings = getSettings($wrapper);
 
-                input.appendTo('.js-search-input-wrapper');
+                // input.appendTo('.js-search-input-wrapper');
                 input.focus();
                 // only when I am in search mode
                 if (getSearchMode($wrapper)) {
@@ -1024,7 +1012,7 @@
                 const settings = getSettings($wrapper);
                 const inSearchMode = getSearchMode($wrapper);
                 if (inSearchMode) {
-                    toggleSearchMode($wrapper, false, true);
+                    toggleSearchMode($wrapper, false, false);
                 }
                 if (settings.views.includes('day')) {
                     const date = new Date($(e.currentTarget).attr('data-date'));
@@ -2692,9 +2680,31 @@
                 'data-day-hour': hour,
                 css: {
                     height: '34px',
+                    cursor: 'copy',
                 },
                 class: 'd-flex align-items-center border-top position-relative'
             }).appendTo(timeSlots);
+            row.on('click', function () {
+                const formatted = formatDateToDateString(date) + ' ' +
+                    String(hour).padStart(2, '0') + ':' +
+                    '00' + ':' +
+                    '00';
+
+                const newDate = new Date(formatted);
+                const untilDate = new Date(newDate);
+                untilDate.setMinutes(untilDate.getMinutes() + 30);
+
+                const period = getStartAndEndDateByView($wrapper);
+                const data = {
+                    date: formatDateToDateString(newDate),
+                    view: {
+                        type: getView($wrapper),
+                        start: formatDateToDateString(newDate),
+                        end: formatDateToDateString(untilDate)
+                    }
+                };
+                trigger($wrapper, 'add', [data]);
+            })
 
             if (showLabels) {
                 // hourly label (e.g. 08:00)
