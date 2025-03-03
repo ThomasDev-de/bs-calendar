@@ -53,7 +53,10 @@
             locale: 'en-EN',
             startWeekOnSunday: true,
             rounded: 5, // 1-5
-            search: true,
+            search: {
+                limit: 10,
+                offset: 0
+            },
             startDate: new Date(),
             startView: 'month', // day, week, month, year
             defaultColor: 'var(--bs-danger)',
@@ -237,7 +240,9 @@
         $wrapper.find('[data-appointment]').remove();
         $wrapper.find('.popover').remove();
         if (removeAppointments) {
-            setAppointments($wrapper, []);
+            setAppointments($wrapper, []).then(cleanedAppointments => {
+                // empty
+            });
         }
     }
 
@@ -254,6 +259,7 @@
         $wrapper.removeData('date');
         $wrapper.removeData('appointments');
         $wrapper.removeData('searchMode');
+        $wrapper.removeData('searchPagination');
         $wrapper.empty();
     }
 
@@ -321,7 +327,7 @@
             setSettings($wrapper, settings);
         }
         // if (rebuildView) {
-            buildByView($wrapper);
+        buildByView($wrapper);
         // }
         // Trigger the process to fetch updated appointment data.
         // fetchAppointments($wrapper);
@@ -434,6 +440,7 @@
         return new Promise((resolve, reject) => {
             try {
                 const settings = getSettings($wrapper);
+                $wrapper.addClass('position-relative');
                 if (!settings.hasOwnProperty('views') || settings.views.length === 0) {
                     settings.views = ['day', 'week', 'month', 'year'];
                     setSettings($wrapper, settings);
@@ -449,6 +456,11 @@
                 setView($wrapper, settings.startView);
                 setDate($wrapper, settings.startDate);
                 setSearchMode($wrapper, false);
+                let searchObject = settings.search
+                && settings.search.hasOwnProperty('limit')
+                && settings.search.hasOwnProperty('offset') ?
+                    {limit: settings.search.limit, offset: settings.search.offset} : null;
+                setSearchPagination($wrapper, searchObject);
                 buildFramework($wrapper);
                 handleEvents($wrapper);
 
@@ -476,17 +488,36 @@
      * @param {Array<Object>} appointments - An array of appointment objects to be processed and stored.
      * @return {void} Does not return a value.
      */
-    function setAppointments($wrapper, appointments) {
-        if (appointments && Array.isArray(appointments) && appointments.length > 0) {
+    async function setAppointments($wrapper, appointments) {
+        return new Promise((resolve, reject) => {
+            if (appointments && Array.isArray(appointments) && appointments.length > 0) {
+                const inSearchMode = getSearchMode($wrapper);
+                // Async-Sortierung
+                sortAppointmentByStart(appointments, !inSearchMode)
+                    .then(sortedAppointments => {
+                        // Multiday-Termine verarbeiten
+                        appointments = splitMultiDayAppointments(sortedAppointments);
 
-            appointments = sortAppointmentByStart(appointments);
-            appointments = splitMultiDayAppointments(appointments);
-            calculateAppointmentDurations($wrapper, appointments);
-        } else {
-            appointments = [];
-        }
+                        // Dauer der Termine berechnen
+                        calculateAppointmentDurations($wrapper, appointments);
 
-        $wrapper.data('appointments', appointments);
+                        // Appointments setzen
+                        $wrapper.data('appointments', appointments);
+
+                        // Promise erfolgreich auflösen
+                        resolve(appointments);
+                    })
+                    .catch(error => {
+                        console.error("Fehler bei der Verarbeitung der Termine:", error);
+                        reject(error); // Promise ablehnen, wenn ein Fehler auftritt
+                    });
+            } else {
+                // Keine Termine vorhanden
+                appointments = [];
+                $wrapper.data('appointments', appointments);
+                resolve(appointments); // Leere Liste zurückgeben
+            }
+        });
     }
 
     /**
@@ -495,21 +526,30 @@
      * @param {Array<Object>} appointments - An array of appointment objects where each object contains a 'start' property representing the starting time of the appointment.
      * @return {Array<Object>} The sorted array of appointment objects in ascending order of their start times.
      */
-    function sortAppointmentByStart(appointments) {
-        appointments.sort((a, b) => {
-            // All-Day-Termine zuerst
-            if (a.allDay && !b.allDay) {
-                return -1; // a vor b
-            }
-            if (!a.allDay && b.allDay) {
-                return 1; // b vor a
-            }
+    function sortAppointmentByStart(appointments, sortAllDay = true) {
+        return new Promise((resolve, reject) => {
+            try {
+                // Sortiere die Termine
+                appointments.sort((a, b) => {
+                    if (sortAllDay) {
+                        // All-Day-Termine zuerst
+                        if (a.allDay && !b.allDay) {
+                            return -1; // a vor b
+                        }
+                        if (!a.allDay && b.allDay) {
+                            return 1; // b vor a
+                        }
+                    }
 
-            // Innerhalb gleicher Kategorie nach Startdatum sortieren
-            return new Date(a.start) - new Date(b.start);
+                    // Innerhalb gleicher Kategorie nach Startdatum sortieren
+                    return new Date(a.start) - new Date(b.start);
+                });
+
+                resolve(appointments); // Gib das sortierte Array zurück
+            } catch (error) {
+                reject(error); // Falls ein Fehler auftritt, verwirf das Promise
+            }
         });
-
-        return appointments;
     }
 
     /**
@@ -836,6 +876,8 @@
             input.focus();
         } else {
             setSearchMode($wrapper, false);
+            const search = {limit: settings.search.limit, offset: settings.search.offset};
+            setSearchPagination($wrapper, search);
             a.removeClass('btn-primary');
             input.val(null);
             if (manual) {
@@ -851,6 +893,16 @@
         // navElements.toggle('disabled');
         navElements.prop('disabled', status);
         selectViewElementDropDownItems.toggleClass('disabled', status);
+    }
+
+    function setSearchPagination($wrapper, object) {
+        console.log('***** setSearchPagination', object);
+        const pagination = isValueEmpty(object) ? null : object;
+        $wrapper.data('searchPagination', pagination);
+    }
+
+    function getSearchPagination($wrapper) {
+        return $wrapper.data('searchPagination');
     }
 
     function setSearchMode($wrapper, status) {
@@ -876,6 +928,17 @@
     function handleEvents($wrapper) {
         let searchTimeout;
         $wrapper
+            .on('click', '.wc-search-pagination [data-page]', function (e) {
+                e.preventDefault();
+                const $clickedLink = $(e.currentTarget);
+                const newPage = parseInt($clickedLink.attr('data-page'));
+                const searchPagination = getSearchPagination($wrapper);
+                searchPagination.offset = (newPage - 1) * searchPagination.limit;
+                const search = {limit: searchPagination.limit, offset: searchPagination.offset};
+                setSearchPagination($wrapper, search);
+                $wrapper.find('.wc-search-pagination').remove();
+                fetchAppointments($wrapper);
+            })
             .on('show.bs.collapse', '.collapse', function (e) {
                 toggleSearchMode($wrapper, true);
             })
@@ -886,6 +949,8 @@
             .on('keyup input', '[data-search-input]', function (e) {
                 e.preventDefault();
                 const input = $(this);
+                const settings = getSettings($wrapper);
+
                 input.appendTo('.js-search-input-wrapper');
                 input.focus();
                 // only when I am in search mode
@@ -896,6 +961,8 @@
                     }
                     // Set delay
                     searchTimeout = setTimeout(() => {
+                        const search = {limit: settings.search.limit, offset: settings.search.offset};
+                        setSearchPagination($wrapper, search);
                         buildByView($wrapper);
                     }, 400)
                 } else {
@@ -1235,13 +1302,12 @@
             const view = getView($wrapper);
             // calculate the start and end date based on the view
             const period = getStartAndEndDateByView($wrapper);
-            if(view === 'year') {
+            if (view === 'year') {
                 requestData = {
                     year: new Date(period.date).getFullYear(),
                     view: view, // 'year'
                 };
-            }
-            else {
+            } else {
                 requestData = {
                     fromDate: period.start, // Startdatum im ISO-Format
                     toDate: period.end,    // Enddatum im ISO-Format
@@ -1253,6 +1319,7 @@
             const search = searchElement?.val() ?? null;
             skipLoading = isValueEmpty(search);
             requestData = {
+                ...getSearchPagination($wrapper),
                 search: search // ?string
             };
         }
@@ -1269,27 +1336,32 @@
                 log('Skip loading appointments because search is empty');
             }
 
-            setAppointments($wrapper, []);
-            renderAppointments($wrapper);
+            setAppointments($wrapper, []).then(cleanedAppointments => {
+                renderAppointments($wrapper);
+            });
             return;
         }
 
         trigger($wrapper, 'beforeLoad', [requestData]);
+        showLoader($wrapper);
 
         if (typeof settings.url === 'function') {
-            showLoader($wrapper);
-
-            // Da die Funktion `settings.url` nun eine Promise zurückgibt
             settings.url(requestData)
                 .then(appointments => {
-                    // Debug-Ausgabe, falls aktiviert
                     if (settings.debug) {
                         log('Call appointments by function:', appointments);
                     }
+                    if (inSearchMode) {
+                        setAppointments($wrapper, appointments.rows).then(cleanedAppointments => {
+                            buildAppointmentsForSearch($wrapper, cleanedAppointments, appointments.total);
+                        });
 
-                    // Verarbeitung der erhaltenen Termine
-                    setAppointments($wrapper, appointments);
-                    renderAppointments($wrapper);
+                    } else {
+                        setAppointments($wrapper, appointments).then(cleanedAppointments => {
+                            renderAppointments($wrapper);
+                        });
+                    }
+                    hideLoader($wrapper);
                 })
                 .catch(error => {
                     hideLoader($wrapper);
@@ -1297,13 +1369,9 @@
                     if (settings.debug) {
                         log('Error fetching appointments:', error);
                     }
-                    // Es kann zusätzlich ein Notification-System verwendet werden, um den Nutzer zu benachrichtigen
-                    console.error("Es gab einen Fehler beim Abrufen der Termine:", error);
                 });
         } else if (typeof settings.url === 'string') {
-            showLoader($wrapper);
-
-            // Prüfen, ob bereits ein laufender Request existiert, und diesen ggf. abbrechen
+            // Check whether there is already a current request and cancel it if necessary
             const existingRequest = $wrapper.data('currentRequest');
             if (existingRequest) {
                 existingRequest.abort();
@@ -1313,15 +1381,25 @@
                 log('Call appointments by URL:', settings.url);
             }
 
-            // Neue Anfrage starten und im Wrapper speichern
+            // Start new request and save it in the wrapper
             const newRequest = $.ajax({
-                url: settings.url, // Server-Endpoint
+                url: settings.url,
                 method: 'GET',
                 contentType: 'application/json',
-                data: JSON.stringify(requestData), // Daten als JSON senden
+                data: JSON.stringify(requestData),
                 success: function (response) {
-                    setAppointments($wrapper, response || []);
-                    renderAppointments($wrapper);
+                    if (inSearchMode) {
+                        setAppointments($wrapper, response.rows).then(cleanedAppointments => {
+                            buildAppointmentsForSearch($wrapper, cleanedAppointments, response.total);
+                        });
+
+                    } else {
+                        setAppointments($wrapper, response).then(cleanedAppointments => {
+                            renderAppointments($wrapper);
+                        });
+
+                    }
+                    hideLoader($wrapper);
                 },
                 error: function (xhr, status, error) {
                     if (status !== 'abort') {
@@ -1332,7 +1410,6 @@
                     }
                 },
                 complete: function () {
-                    // remove the stored request after completing the request
                     $wrapper.removeData('currentRequest');
                 }
             });
@@ -1578,11 +1655,18 @@
      * @param {Array<Object>} appointments - An array of appointment objects containing the details needed for rendering.
      * @return {void} This function does not return a value.
      */
-    function buildAppointmentsForSearch($wrapper, appointments) {
+    function buildAppointmentsForSearch($wrapper, appointments, total) {
         const $container = getViewContainer($wrapper).find('.wc-search-result-container');
         const settings = getSettings($wrapper);
+
+        if (settings.debug) {
+            log('Call buildAppointmentsForSearch with appointments:', appointments, total);
+        }
+
         const input = getSearchElement($wrapper);
         const search = input.val().trim();
+
+        // Wenn kein Suchbegriff vorhanden ist
         if (isValueEmpty(search)) {
             $container.html('<div class="d-flex p-5 align-items-center justify-content-center"></div>');
             input.appendTo($container.find('.d-flex'));
@@ -1590,155 +1674,158 @@
             return;
         }
 
+        // Wenn keine Suchergebnisse vorhanden sind
         if (!appointments.length) {
             $container.html('<div class="d-flex p-5 align-items-center justify-content-center">' + settings.translations.searchNoResult + '</div>');
             return;
         }
 
-        $container
-            .css('font-size', '.9rem').addClass('py-4');
+        $container.css('font-size', '.9rem').addClass('py-4');
 
-        const itemsPerPage = 10; // Anzahl der Termine pro Seite
-        const totalItems = appointments.length;
-        const totalPages = Math.ceil(totalItems / itemsPerPage);
+        const searchPagination = getSearchPagination($wrapper);
+        const page = Math.floor(searchPagination.offset / searchPagination.limit) + 1;
+        const itemsPerPage = searchPagination.limit;
+        const totalPages = Math.ceil(total / itemsPerPage);
 
-        /**
-         * Function: render the dates of the current page
-         */
-        function renderPage(page = 1) {
-            // Berechne Start und Ende
-            const startIndex = (page - 1) * itemsPerPage;
-            const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
+        const startIndex = (page - 1) * itemsPerPage;
+        const endIndex = Math.min(startIndex + itemsPerPage, total);
+        const visibleAppointments = appointments.slice(0, endIndex - startIndex);
 
-            // Alte Inhalte leeren
-            $container.empty();
+        $container.empty();
 
-            // Pagination erneut anhängen (falls gelöscht wurde)
-            if (appointments.length > itemsPerPage) {
-                renderPagination(page);
+        // Pagination oben hinzufügen
+        buildSearchPagination($container, page, totalPages, itemsPerPage, total);
+
+        // Terminliste
+        const $appointmentContainer = $('<div>', {class: 'list-group list-group-flush mb-3'}).appendTo($container);
+
+        visibleAppointments.forEach((appointment) => {
+            const borderLeftColor = appointment.color || settings.defaultColor;
+            const firstCollStyle = [
+                `border-left-color:${borderLeftColor}`,
+                `border-left-width:5px`,
+                `border-left-style:dotted`,
+                `cursor:pointer`,
+                `font-size:1.75rem`,
+                `width: 60px`,
+            ].join(';');
+
+            const link = appointment.link
+                ? `<a class="btn btn-link p-0 mx-3 btn-sm " href="${appointment.link}" target="_blank"><i class="${settings.icons.link}"></i></a>`
+                : '';
+
+            const html = [
+                `<div class="day fw-bold text-center" style="${firstCollStyle}" data-date="${formatDateToDateString(new Date(appointment.start))}">`,
+                `${new Date(appointment.start).getDate()}`,
+                `</div>`,
+                `<div class="text-muted" style="width: 150px;">`,
+                `${new Date(appointment.start).toLocaleDateString(settings.locale, {
+                    month: 'short',
+                    year: 'numeric',
+                    weekday: 'short'
+                })}`,
+                `</div>`,
+                `<div class="title-container flex-fill text-nowrap">`,
+                `${appointment.title}` + link,
+                `</div>`,
+            ].join('');
+
+            const appointmentElement = $('<div>', {
+                'data-appointment': true,
+                class: 'list-group-item d-flex align-items-center g-3 py-1 overflow-hidden',
+                html: html,
+                css: {
+                    borderLeftColor: borderLeftColor,
+                },
+            }).appendTo($appointmentContainer);
+
+            appointmentElement.data('appointment', appointment);
+            setPopoverForAppointment($wrapper, appointmentElement);
+        });
+
+        // Pagination unten hinzufügen
+        buildSearchPagination($container, page, totalPages, itemsPerPage, total);
+    }
+
+    function buildSearchPagination($container, currentPage, totalPages, itemsPerPage, total) {
+
+        if (totalPages <= 1) {
+            return;
+        }
+
+        const $paginationWrapper = $('<div>', {
+            class: 'd-flex align-items-center justify-content-between my-1 wc-search-pagination',
+        }).appendTo($container);
+
+        // Anzeige der Suchergebnisse (Start - Ende | Gesamt)
+        const startIndexDisplay = (currentPage - 1) * itemsPerPage + 1;
+        const endIndexDisplay = Math.min(currentPage * itemsPerPage, total);
+        const statusText = `${startIndexDisplay}-${endIndexDisplay} | ${total}`;
+
+        $('<div>', {
+            class: 'alert alert-secondary me-4 py-2 px-4',
+            text: statusText,
+        }).appendTo($paginationWrapper);
+
+        const $pagination = $('<nav>', {'aria-label': 'Page navigation'}).appendTo($paginationWrapper);
+        const $paginationList = $('<ul>', {class: 'pagination mb-0'}).appendTo($pagination);
+
+        // Maximalanzahl von Seiten links und rechts der aktuellen Seite
+        const maxAdjacentPages = 2;
+
+        // Hilfsfunktion: Seiten hinzufügen
+        const addPage = (page) => {
+            const $pageItem = $('<li>', {class: 'page-item'});
+            if (page === currentPage) {
+                $pageItem.addClass('active');
             }
-
-            // Container für Termine hinzufügen
-            const $appointmentContainer = $('<div>', {class: 'list-group list-group-flush mb-3'}).appendTo($container);
-
-            // Termine für diese Seite generieren
-            const pageAppointments = appointments.slice(startIndex, endIndex);
-            // Pagination erneut anhängen (falls gelöscht wurde)
-            // if (appointments.length > itemsPerPage) {
-            //     renderPagination(page);
-            // }
-            pageAppointments.forEach((appointment) => {
-                const borderLeftColor = appointment.color || settings.defaultColor;
-                const firstCollStyle = [
-                    `border-left-color:${borderLeftColor}`,
-                    `border-left-width:5px`,
-                    `border-left-style:dotted`,
-                    `cursor:pointer`,
-                    `font-size:1.75rem`,
-                    `width: 60px`
-                ].join(';');
-
-                const link = appointment.link ? `<a class="btn btn-link p-0 mx-3 btn-sm " href="${appointment.link}" target="_blank"><i class="${settings.icons.link}"></i></a>` : '';
-                const html = [
-                    `<div class="day fw-bold text-center" style="${firstCollStyle}" data-date="${formatDateToDateString(new Date(appointment.start))}">`,
-                    `${new Date(appointment.start).getDate()}`,
-                    `</div>`,
-                    `<div class="text-muted" style="width: 150px;">`,
-                    `${new Date(appointment.start).toLocaleDateString(settings.locale, {
-                        month: 'short',
-                        year: 'numeric',
-                        weekday: 'short'
-                    })}`,
-                    `</div>`,
-                    `<div class="title-container flex-fill text-nowrap">`,
-                    `${appointment.title}` + link,
-                    `</div>`
-                ].join('');
-
-
-                const appointmentElement = $('<div>', {
-                    'data-appointment': true,
-                    class: 'list-group-item d-flex align-items-center g-3 py-1 overflow-hidden',
-                    html: html,
-                    css: {
-                        borderLeftColor: borderLeftColor,
-                    },
-                }).appendTo($appointmentContainer);
-
-                // Popover hinzufügen
-                appointmentElement.data('appointment', appointment);
-                setPopoverForAppointment($wrapper, appointmentElement);
+            const $pageLink = $('<a>', {
+                'data-page': page,
+                class: 'page-link',
+                href: '#' + page,
+                text: page,
             });
+            $pageLink.appendTo($pageItem);
+            $pageItem.appendTo($paginationList);
+        };
 
-            // Pagination erneut anhängen (falls gelöscht wurde)
-            if (appointments.length > itemsPerPage) {
-                renderPagination(page);
+        // Hilfsfunktion: Trunkierung (`...`)
+        const addEllipsis = () => {
+            $('<li>', {
+                class: 'page-item disabled',
+            }).append(
+                $('<span>', {class: 'page-link', text: '...'})
+            ).appendTo($paginationList);
+        };
+
+        // 1. Erste Seite immer anzeigen
+        if (currentPage > maxAdjacentPages + 1) {
+            addPage(1); // Erste Seite
+            if (currentPage > maxAdjacentPages + 2) {
+                addEllipsis(); // Trunkierung
             }
         }
 
-        /**
-         * Funktion: Erstelle Pagination unten im Container
-         */
-        function renderPagination(activePage) {
-            // Vorhandene Pagination entfernen
-            const $pagination = $('<nav>', {'aria-label': 'Page navigation'});
-            const $paginationList = $('<ul>', {class: 'pagination mb-0'}).appendTo($pagination);
-
-            // Berechnung des Textes "1-10 / X appointments"
-            const startIndex = (activePage - 1) * itemsPerPage + 1; // Erster Termin auf der Seite (1-basiert)
-            const endIndex = Math.min(activePage * itemsPerPage, totalItems); // Letzter Termin auf der Seite
-            const statusText = `${startIndex}-${endIndex} / ${totalItems}`;
-
-            // Text vor der Pagination anzeigen
-            const $statusText = $('<div>', {
-                class: 'text-muted me-auto', // Stil für den Text
-                text: statusText,
-            });
-
-            // Pagination List generieren
-            for (let i = 1; i <= totalPages; i++) {
-                const $pageItem = $('<li>', {class: 'page-item'});
-                if (i === activePage) {
-                    $pageItem.addClass('active'); // Aktive Seite markieren
-                }
-
-                const $pageLink = $('<a>', {
-                    class: 'page-link',
-                    href: '#' + i,
-                    text: i
-                });
-
-                $pageLink.appendTo($pageItem);
-                $pageItem.appendTo($paginationList);
-            }
-
-            $paginationList.on('click', 'a.page-link', function (e) {
-                e.preventDefault();
-                const $clickedLink = $(this);
-                const page = $clickedLink.attr('href').replace('#', '');
-
-                // Entferne die alte Active-Klasse
-                $paginationList.find('.active').removeClass('active');
-
-                // Setze die neue Active-Klasse
-                $clickedLink.parent().addClass('active');
-
-                // Render die neue Seite
-                renderPage(Number(page));
-            });
-
-            const $paginationWrapper = $('<div>', {
-                class: 'd-flex align-items-center justify-content-center'
-            }).appendTo($container);
-            // Beides in den Container einfügen (Text + Pagination)
-            $statusText.appendTo($paginationWrapper);
-            $pagination.appendTo($paginationWrapper);
-            // $container.append($statusText); // Text einfügen
-            // $container.append($pagination); // Pagination hinzufügen
+        // 2. Links von der aktuellen Seite
+        for (let i = Math.max(1, currentPage - maxAdjacentPages); i < currentPage; i++) {
+            addPage(i);
         }
 
-        // Zeige die erste Seite standardmäßig an
-        renderPage(1, totalPages);
+        // 3. Aktuelle Seite
+        addPage(currentPage);
+
+        // 4. Rechts von der aktuellen Seite
+        for (let i = currentPage + 1; i <= Math.min(totalPages, currentPage + maxAdjacentPages); i++) {
+            addPage(i);
+        }
+
+        // 5. Letzte Seite immer anzeigen
+        if (currentPage < totalPages - maxAdjacentPages) {
+            if (currentPage < totalPages - maxAdjacentPages - 1) {
+                addEllipsis(); // Trunkierung
+            }
+            addPage(totalPages); // Letzte Seite
+        }
     }
 
     /**
@@ -1929,11 +2016,11 @@
         const appointments = getAppointments($wrapper);
         const isSearchMode = getSearchMode($wrapper);
 
-        if (isSearchMode) {
+        if (false && isSearchMode) {
             if (settings.debug) {
                 log('Call renderData in search mode');
             }
-            buildAppointmentsForSearch($wrapper, appointments);
+            buildAppointmentsForSearch($wrapper, appointments.rows, appointments.total);
         } else {
             const view = getView($wrapper);
             const container = getViewContainer($wrapper);
@@ -1953,10 +2040,20 @@
                     buildAppointmentsForMonth($wrapper, appointments);
                     break;
                 case 'year':
+                    buildAppointmentsForYear($wrapper, appointments);
                     break;
             }
         }
 
+    }
+
+    function buildAppointmentsForYear($wrapper, appointments) {
+        const $container = getViewContainer($wrapper);
+        appointments.forEach(appointment => {
+            if (appointment.hasOwnProperty('date') && appointment.hasOwnProperty('total') && parseInt(appointment.total) > 0) {
+                $container.find(`[data-date="${appointment.date}"] .badge`).text(appointment.total);
+            }
+        })
     }
 
     /**
@@ -1967,7 +2064,6 @@
      */
     function renderAppointments($wrapper) {
         buildAppointmentsForView($wrapper);
-        hideLoader($wrapper);
     }
 
     /**
@@ -1979,6 +2075,11 @@
     function showLoader($wrapper) {
         const spinner = $wrapper.find('.wc-calendar-spinner');
         spinner.show();
+
+        $('<div>', {
+            class: 'wc-calendar-overlay opacity-25 position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center',
+            html: '<div class="spinner-grow" role="status"  style="width: 7rem; height: 7rem;"><span class="visually-hidden">Loading...</span></div>'
+        }).appendTo($wrapper);
     }
 
     /**
@@ -1989,6 +2090,7 @@
      */
     function hideLoader($wrapper) {
         const spinner = $wrapper.find('.wc-calendar-spinner');
+        $wrapper.find('.wc-calendar-overlay').remove();
         spinner.hide();
     }
 
@@ -2097,7 +2199,7 @@
     function getShortWeekDayNames(locale, startWeekOnSunday) {
         // Create an Intl.DateTimeFormat instance for the provided locale to format weekdays.
         // The 'short' option generates abbreviated weekday names (e.g., 'Mon', 'Tue').
-        const formatter = new Intl.DateTimeFormat(locale, { weekday: 'short' });
+        const formatter = new Intl.DateTimeFormat(locale, {weekday: 'short'});
 
         // Generate an array of all weekdays (0 = Sunday, 1 = Monday, ..., 6 = Saturday).
         // Use Date.UTC to ensure consistent results in all environments (ignoring local time zones).
@@ -2303,7 +2405,7 @@
 
         // Empty the container and prepare a miniature calendar
         $container.empty();
-        $container.addClass('table-responsive');
+        $container.addClass('table-responsive overflow-visible');
 
         const table = $('<table>', {
             class: 'wc-mini-calendar',
@@ -2337,7 +2439,7 @@
         // Add weekly days (Mon, Tue, Wed, ...)
         const weekDays = getShortWeekDayNames(settings.locale, settings.startWeekOnSunday);
         weekDays.forEach(day => {
-            $('<th>', {class: '', text: day, css: {width:`${cellSize}px`}}).appendTo(weekdaysRow);
+            $('<th>', {class: '', text: day, css: {width: `${cellSize}px`}}).appendTo(weekdaysRow);
         });
 
         // create the content of the calendar
@@ -2381,20 +2483,30 @@
                     dayClass += ' border border-warning';
                 }
 
+                let badge = '';
+                if (forYearView) {
+                    badge = `<span class="badge rounded-pill bg-success position-absolute top-100 start-50 translate-middle"></span>`;
+                }
+
+                const tdContent = [`<div class="${dayClass} w-100 h-100 d-flex justify-content-center flex-column align-items-center">`,
+                    `<span>${currentDate.getDate()}</span>`,
+                    badge,
+                    `</div>`
+                ].join('')
 
                 $('<td>', {
                     'data-date': formatDateToDateString(currentDate),
-                    class: `position-relative overflow-hidden`,
+                    class: `position-relative`,
                     css: {
                         cursor: 'pointer',
                         fontSize: `${fontSize}px`,
                         width: `${cellSize}px`,
                         height: `${cellSize}px`,
-                        lineHeight: `${cellSize}px`,
+                        lineHeight: `${cellSize / 2}px`,
                         verticalAlign: 'middle',
                         textAlign: 'center',
-                    }, // uniform square for centering
-                    html: `<div class="${dayClass} w-100 h-100 d-flex justify-content-center align-items-center">${currentDate.getDate()}</div>`,
+                    },
+                    html: tdContent,
                 }).appendTo(weekRow);
 
                 // jump to the next day
@@ -2498,12 +2610,12 @@
 
     function buildHeaderForDay($wrapper, date) {
         const settings = getSettings($wrapper);
-        const day =  date.toLocaleDateString(settings.locale, {day: 'numeric'})
+        const day = date.toLocaleDateString(settings.locale, {day: 'numeric'})
         const shortMonth = date.toLocaleDateString(settings.locale, {month: 'short'})
         const longMonth = date.toLocaleDateString(settings.locale, {month: 'long'});
         const shortWeekday = date.toLocaleDateString(settings.locale, {weekday: 'short'});
         const longWeekday = date.toLocaleDateString(settings.locale, {weekday: 'long'});
-        return  [
+        return [
             `<div class="p-2">`,
             `<div class="d-none d-xl-flex flex-wrap justify-content-center align-items-center">`,
             `<strong>${longWeekday}</strong>`,
@@ -2517,6 +2629,7 @@
             `</div>`,
         ].join('');
     }
+
     /**
      * Build a daily overview with hourly labels and horizontal lines for each line.
      *
@@ -2530,7 +2643,7 @@
         // Call settings from the wrapper
         const settings = getSettings($wrapper);
         const isToday = date.toDateString() === new Date().toDateString();
-     
+
         if (!forWeekView) {
             $container = $('<div>', {
                 class: 'position-relative px-5'
@@ -2542,7 +2655,11 @@
 
         $container.attr('data-weekday');
         const longHeader = date.toLocaleDateString(settings.locale, {weekday: 'long', day: 'numeric', month: 'long'});
-        const shortHeader = date.toLocaleDateString(settings.locale, {weekday: 'short', day: 'numeric', month: 'short'});
+        const shortHeader = date.toLocaleDateString(settings.locale, {
+            weekday: 'short',
+            day: 'numeric',
+            month: 'short'
+        });
 
         const headline = $('<div>', {
             class: 'wc-day-header mb-2',

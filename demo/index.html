@@ -130,7 +130,7 @@
             locale: 'de',
             startWeekOnSunday: false,
             rounded: 5,
-            defaultColor: 'var(--bs-primary)',
+            defaultColor: 'var(--bs-danger)',
             translations: {
                 day: 'Tag',
                 week: 'Woche',
@@ -214,20 +214,50 @@
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
+        function generateDates(year) {
+            // Number of entries to be generated: Randomly between 1 and 500
+            const entriesCount = Math.floor(Math.random() * 100) + 1;
+
+            // generate an array with random entries
+            return Array.from({length: entriesCount}, () => {
+                // random date within the specified year
+                const randomDate = new Date(
+                    year,                                // specified year
+                    Math.floor(Math.random() * 12),     // month: 0 (Jan) to 11 (Dec)
+                    Math.floor(Math.random() * 28) + 1  // Day: 1 to 28 (safe area)
+                );
+
+                // Formatting of the date for 'YYYY-MM-DD'
+                const formattedDate = randomDate.toISOString().split('T')[0];
+
+                // random total value: 0 to 6
+                const total = Math.floor(Math.random() * 7);
+
+                return {date: formattedDate, total: total};
+            });
+        }
+
         async function url(query) {
-            await sleep( Math.floor(Math.random() * 2001)); // Wartet synchron für 2 Sekunden
+            console.log('index url',query);
+            await sleep( Math.floor(Math.random() * 1000)); // Wartet synchron für 2 Sekunden
 
             return new Promise((resolve, reject) => {
-
                 try {
                     // Standardwerte setzen, falls fromDate oder toDate nicht verfügbar sind
                     const fromDate = query.fromDate ? new Date(`${query.fromDate}T00:00:00`) : null;
                     const toDate = query.toDate ? new Date(`${query.toDate}T23:59:59`) : null;
                     const search = query.search;
 
+
                     // Wenn nur ein Suchbegriff existiert, nutze die neue Funktion
                     if (search && !fromDate && !toDate) {
-                        return resolve(getAppointmentsBySearch(search));
+                        const limit = query.limit;
+                        const offset = query.offset;
+                        return resolve(getAppointmentsBySearch(search, limit, offset));
+                    }
+
+                    if (query.view === 'year') {
+                        return resolve(generateDates(query.year));
                     }
 
                     // Generierung von zufälligen Terminen (basierend auf Zeitraum)
@@ -263,15 +293,31 @@
                 }
             });
         }
-        function getAppointmentsBySearch(search) {
+        function getAppointmentsBySearch(search, limit, offset) {
             // Wenn kein Suchbegriff angegeben wurde, direkt leeres Array zurückgeben
             if (!search) {
-                return [];
+                return { rows: [], total: 0 };
             }
 
             const appointments = generateStaticAppointmentsForSearch();
-            // Wenn ein Suchbegriff angegeben ist, generiere zufällige Appointments mit Filterung
-            return appointments.filter(appointment => appointment.title.toLowerCase().includes(search.toLowerCase()));
+
+            // Filtere die Termine basierend auf dem Suchbegriff
+            const filteredAppointments = appointments.filter(appointment =>
+                appointment.title.toLowerCase().includes(search.toLowerCase())
+            );
+
+            // Berechne die Gesamtzahl der Treffer
+            const total = filteredAppointments.length;
+
+            // Wende limit und offset an, um die Ergebnisse einzuschränken
+            const startIndex = offset || 0; // Standardwert für offset ist 0
+            const endIndex = limit ? startIndex + limit : total;
+
+            // Schneide das Ergebnis gemäß limit und offset zu
+            const rows = filteredAppointments.slice(startIndex, endIndex);
+
+            // Gib das Ergebnis als Objekt zurück
+            return { rows, total };
         }
 
         function generateStaticAppointmentsForSearch() {
@@ -282,9 +328,11 @@
             for (let i = 0; i < 46; i++) {
                 // Zufällige Beschreibung
                 const description = `Description for Appointment ${i + 1}`;
+                const randomMonth = Math.floor(Math.random() * 12); // Zufälliger Monat (0-11)
+                const randomYear = Math.floor(Math.random() * (2025 - 2022 + 1)) + 2022;
 
                 // Zufällige Zeitpunkte für Start und Ende
-                const randomTimeStart = new Date(2023, 9, Math.floor(Math.random() * 30) + 1, Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
+                const randomTimeStart = new Date(randomYear, randomMonth, Math.floor(Math.random() * 27) + 1, Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
                 const randomTimeEnd = new Date(randomTimeStart);
                 randomTimeEnd.setHours(randomTimeEnd.getHours() + 2); // Termin dauert 2 Stunden
 
@@ -337,7 +385,7 @@
                 count = Math.floor(Math.random() * 21);
             }
             if (view === 'day') {
-                count = Math.floor(Math.random() * 6);
+                count = Math.floor(Math.random() * 61);
             }
             if (view === 'year') {
                 count = Math.floor(Math.random() * 200);
