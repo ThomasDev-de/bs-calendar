@@ -530,7 +530,7 @@
      * @return {Array<Object>} The sorted array of appointment objects in ascending order of their start times.
      */
     async function sortAppointmentByStart(appointments, sortAllDay = true) {
-        if(!appointments || !Array.isArray(appointments) || appointments.length === 0){
+        if (!appointments || !Array.isArray(appointments) || appointments.length === 0) {
             return [];
         }
         return new Promise((resolve, reject) => {
@@ -637,7 +637,7 @@
         });
 
         $('<button>', {
-            class: `btn rounded-${settings.rounded} border-3 border`,
+            class: `btn rounded-${settings.rounded} border`,
             html: `<i class="${settings.icons.add} fs-5"></i>`,
             'data-add-appointment': true
         }).appendTo(topNav);
@@ -669,7 +669,7 @@
             topSearchNav.insertAfter(topNav);
             // add a search button to topnav
             const showSearchbar = $('<button>', {
-                class: `btn rounded-${settings.rounded} border-3 border js-btn-search`,
+                class: `btn rounded-${settings.rounded} border js-btn-search`,
                 html: `<i class="${settings.icons.search}"></i>`
             }).appendTo(topNav);
             showSearchbar.on('click', function () {
@@ -682,14 +682,15 @@
                 css: {
                     maxWidth: '400px',
                 },
-                class: 'form-control rounded-' + settings.rounded + ' border-3 border',
+                class: 'form-control rounded-' + settings.rounded + '  border',
                 placeholder: settings.translations.search || 'search',
                 'data-search-input': true
             }).appendTo(topSearchNav);
 
             // add a close button
             const btnCloseSearch = $('<a>', {
-                class: `btn btn-close rounded-${settings.rounded} p-2 ms-2 aria-label="Close" border-3 border js-btn-close-search`,
+                class: `btn btn-close rounded-${settings.rounded} p-2 ms-2 js-btn-close-search`,
+                "aria-label":"Close"
             }).appendTo(topSearchNav);
 
             btnCloseSearch.on('click', function () {
@@ -698,7 +699,7 @@
         }
 
         $('<button>', {
-            class: `btn rounded-${settings.rounded} border-3 ms-2 border`,
+            class: `btn rounded-${settings.rounded} ms-2 border`,
             html: settings.translations.today,
             'data-today': true
         }).appendTo(topNav);
@@ -708,7 +709,7 @@
             const dropDownView = $('<div>', {
                 class: 'dropdown wc-select-calendar-view ms-2',
                 html: [
-                    `<a class="btn rounded-${settings.rounded} border border-3 dropdown-toggle" href="#" role="button" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">`,
+                    `<a class="btn rounded-${settings.rounded} border dropdown-toggle" href="#" role="button" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">`,
                     '</a>',
                     '<ul class="dropdown-menu">',
                     '</ul>',
@@ -866,14 +867,14 @@
         const input = getSearchElement($wrapper)
         const settings = getSettings($wrapper);
         if (status) {
-            $wrapper.find('.'+topNavClass).toggleClass('d-none d-flex');
-            $wrapper.find('.'+topSearchClass).toggleClass('d-none d-flex');
+            $wrapper.find('.' + topNavClass).toggleClass('d-none d-flex');
+            $wrapper.find('.' + topSearchClass).toggleClass('d-none d-flex');
             setSearchMode($wrapper, true);
             buildByView($wrapper);
             input.focus();
         } else {
-            $wrapper.find('.'+topNavClass).toggleClass('d-none d-flex');
-            $wrapper.find('.'+topSearchClass).toggleClass('d-none d-flex');
+            $wrapper.find('.' + topNavClass).toggleClass('d-none d-flex');
+            $wrapper.find('.' + topSearchClass).toggleClass('d-none d-flex');
             setSearchMode($wrapper, false);
             const search = {limit: settings.search.limit, offset: settings.search.offset};
             setSearchPagination($wrapper, search);
@@ -2230,109 +2231,101 @@
      */
     function buildMonthView($wrapper) {
         const container = getViewContainer($wrapper);
-        // container.css({
-        //     paddingBottom: '24px',
-        //     paddingRight: '24px',
-        // });
         const settings = getSettings($wrapper);
         const date = getDate($wrapper);
 
-        const {locale, startWeekOnSunday} = settings;
+        const { locale, startWeekOnSunday } = settings;
 
-        // calculation of the calendar data
+        // Berechnung der Start- und Enddaten des Kalenders
         const year = date.getFullYear();
         const month = date.getMonth();
         const firstDayOfMonth = new Date(year, month, 1);
         const lastDayOfMonth = new Date(year, month + 1, 0);
 
-        // start with the right day of the week (possibility: Sunday or Monday)
         let calendarStart = new Date(firstDayOfMonth);
         while (calendarStart.getDay() !== (startWeekOnSunday ? 0 : 1)) {
             calendarStart.setDate(calendarStart.getDate() - 1);
         }
 
-        // end with the right day of the week (Saturday or Sunday)
         let calendarEnd = new Date(lastDayOfMonth);
         while (calendarEnd.getDay() !== (startWeekOnSunday ? 6 : 0)) {
             calendarEnd.setDate(calendarEnd.getDate() + 1);
         }
 
-        // Empty the container and generate new structure
+        // Container leeren und neue Struktur generieren
         container.empty();
 
-        // Create the weekday line
-        const weekdaysRow = $('<div>', {
-            class: 'row d-flex flex-nowrap wc-calendar-weekdays fw-bold',
-            css: {
-                fontSize: '12px',
-                lineHeight: '24px'
-            }
-        }).append(
-            $('<div>', {
-                class: 'col px-1 d-flex align-items-center justify-content-center',
-                style: 'width: 24px',
-                css: {
-                    width: '24px',
-                    maxWidth: '24px',
-                    minWidth: '24px',
-                    fontSize: '12px',
-                },
-                html: '<small></small>',
-            })
-        );
-
-        // dynamic weekly names based on local and flag
+        // Dynamische Wochentagsnamen basierend auf der Lokalisierung und Startwochentag
         const weekDays = getShortWeekDayNames(locale, startWeekOnSunday);
-        weekDays.forEach(day => {
-            weekdaysRow.append(
-                $('<div>', {
-                    class: 'text-center col px-1 flex-fill',
-                    html: `<small>${day}</small>`,
-                })
-            );
-        });
 
-        container.append(weekdaysRow);
-
-        // represent days
+        // Tage rendern
         let currentDate = new Date(calendarStart);
+        let isFirstRow = true; // Prüft, ob es die erste Zeile ist
+
         while (currentDate <= calendarEnd) {
             const weekRow = $('<div>', {
-                class: 'row d-flex flex-nowrap flex-fill wc-calendar-content',
+                class: 'row border-top d-flex flex-nowrap flex-fill wc-calendar-content',
             });
 
-            // calculate calendar week
+            // Kalenderwoche berechnen und hinzufügen
             const calendarWeek = getCalendarWeek(currentDate);
+            const paddingTop = isFirstRow ? '1.75rem' : '.75rem';
             weekRow.append(
                 $('<div>', {
-                    class: 'col px-1 d-flex align-items-start py-2 fw-bold justify-content-center',
+                    class: `col px-1 d-flex align-items-start pt-${paddingTop} fw-bold justify-content-center bg-body-tertiary`,
                     css: {
+                        paddingTop: paddingTop,
                         fontSize: '12px',
                         width: '24px',
                         maxWidth: '24px',
                         minWidth: '24px',
                     },
                     html: `<small>${calendarWeek}</small>`,
-
                 })
             );
 
-            // draw days of the week (Mon-Sun or SO-SA)
             for (let i = 0; i < 7; i++) {
                 const isToday = currentDate.toDateString() === new Date().toDateString();
                 const isOtherMonth = currentDate.getMonth() !== month;
                 const dayClass = isToday ? 'rounded-circle text-bg-primary' : '';
+                // Berechne Border-Klassen basierend auf der Position der Zelle
+                const isLastRow = currentDate.getTime() === calendarEnd.getTime(); // Prüft genau, ob wir beim letzten Datum des Kalenders sind
+
+                const isLastColumn = i === 6;
+                let borderClasses = [];
+                if (isLastRow) {
+                    borderClasses.push('border-bottom');
+                }
+                borderClasses.push('border-start border-left');
+                if (isLastColumn) {
+                    borderClasses.push('border-end border-right');
+                }
+
+                // Wenn es die erste Zeile ist, Wochentagsnamen hinzufügen
                 const dayWrapper = $('<div>', {
                     'data-month-date': formatDateToDateString(currentDate),
-                    class: `col px-1 border flex-fill d-flex flex-column align-items-center justify-content-start ${
+                    class: `col ${borderClasses.join(' ')} px-1 flex-fill d-flex flex-column align-items-center justify-content-start ${
                         isOtherMonth ? 'text-muted' : ''
                     } ${isToday ? '' : ''}`,
                     css: {
                         maxHeight: '100%',
                         overflowY: 'auto',
-                    }
+                    },
                 }).appendTo(weekRow);
 
+                // Wochentagsnamen in der ersten Zeile hinzufügen
+                if (isFirstRow) {
+                    $('<small>', {
+                        class: 'text-center text-uppercase fw-bold pt-1',
+                        css: {
+                            lineHeight: '16px',
+                            fontSize: '10px',
+                        },
+                        text: weekDays[i], // Holt den entsprechenden Wochentagsnamen
+                    }).appendTo(dayWrapper);
+                }
+
+                // Tageszahl hinzufügen
                 $('<small>', {
                     'data-date': formatDateToDateString(currentDate),
                     css: {
@@ -2341,16 +2334,40 @@
                         lineHeight: '24px',
                         fontSize: '12px',
                     },
-                    class: `${dayClass} text-center`,
+                    class: `${dayClass} text-center my-1`,
                     text: currentDate.getDate(),
                 }).appendTo(dayWrapper);
 
-                // next day
+                // Zum nächsten Tag wechseln
                 currentDate.setDate(currentDate.getDate() + 1);
             }
 
+            isFirstRow = false; // Nur für die erste Zeile Wochentagsnamen hinzufügen
+            calculateSquaresForMonthView($wrapper); // Höhe & Breite anpassen
             container.append(weekRow);
         }
+    }
+
+    function calculateSquaresForMonthView($wrapper) {
+        const view = getView($wrapper);
+        if (view === 'month') {
+            const calendarContainer = getViewContainer($wrapper); // Der Container des Kalenders
+            const dayElements = calendarContainer.find('[data-month-date]');
+
+            // Höhe eines Tages berechnen
+            let squareHeight = 0;
+            dayElements.each(function () {
+                const width = $(this).outerWidth(); // Breite des Elements
+                $(this).css('height', `${width}px`); // Höhe setzen
+                squareHeight = width; // Speichere die Höhe für die spätere Berechnung
+            });
+
+// Dynamische Containerhöhe setzen
+            const rowCount = Math.ceil(dayElements.length / 7); // Anzahl der Zeilen
+            const totalHeight = rowCount * squareHeight; // Gesamthöhe berechnen
+            calendarContainer.css('height', `${totalHeight}px`);
+        }
+
     }
 
     /**
@@ -2448,7 +2465,7 @@
                     width: `${fontSize}px`,
                     fontSize: `${fontSize}px`
                 },
-                class: 'border-end pe-1 text-end text-secondary fw-bold',
+                class: 'px-1 text-center bg-body-tertiary',
                 text: calendarWeek,
             }).appendTo(weekRow); // insert cw into the first column of the line
 
@@ -2473,7 +2490,7 @@
 
                 let badge = '';
                 if (forYearView) {
-                    badge = `<span class="badge rounded-pill bg-success position-absolute top-100 start-50 translate-middle"></span>`;
+                    badge = `<span class="badge rounded-pill bg-warning position-absolute top-100 start-50 translate-middle"></span>`;
                 }
 
                 const tdContent = [`<div class="${dayClass} w-100 h-100 d-flex justify-content-center flex-column align-items-center">`,
@@ -2604,13 +2621,27 @@
         const shortWeekday = date.toLocaleDateString(settings.locale, {weekday: 'short'});
         const longWeekday = date.toLocaleDateString(settings.locale, {weekday: 'long'});
         const justify = forWeekView ? 'center' : 'start';
+        const isToday = date.toDateString() === new Date().toDateString();
+        const todayColor = isToday ? 'text-primary' : '';
+        const todayClass = isToday ? 'text-bg-primary rounded-circle' : '';
+        const circleCss = [
+            'width: 44px',
+            'height: 44px',
+            'line-height: 44px',
+        ].join(';');
 
-            return [
-                `<div class="d-flex flex-column justify-content-center p-2 align-items-${justify}">`,
-                `<small>${shortWeekday}</small>`,
-                `<span class="h2">${day}</span>`,
-                `</div>`
-                ].join('')
+        return [
+            `<div class="d-flex flex-column justify-content-center  w-100 p-2 align-items-${justify} ${todayColor}">`,
+            `<div class="d-flex justify-content-center" style="width: 44px"><small>${shortWeekday}</small></div>`,
+            `<span style="${circleCss}" class="h2 m-0 text-center ${todayClass}">${day}</span>`,
+            `</div>`
+        ].join('')
+        return [
+            `<div class="d-flex flex-column justify-content-center p-2 align-items-${justify} ${todayColor}">`,
+            `<div class="d-flex justify-content-center flex-fill"><small>${shortWeekday}</small></div>`,
+            `<span style="${circleCss}" class="h2 m-0 text-center ${todayClass}">${day}</span>`,
+            `</div>`
+        ].join('')
         return [
             `<div class="p-2">`,
             `<div class="d-none d-xl-flex flex-wrap justify-content-center align-items-center">`,
@@ -2754,7 +2785,7 @@
         for (let month = 0; month < 12; month++) {
             // Create a wrapper for every monthly calendar
             const monthWrapper = $('<div>', {
-                class: 'd-flex shadow p-3 flex-column rounded-' + settings.rounded + ' align-items-center wc-year-month-container', // Col-Layout für Titel und Kalender
+                class: 'd-flex p-2 flex-column rounded-' + settings.rounded + ' align-items-start wc-year-month-container', // Col-Layout für Titel und Kalender
                 css: {
                     // width: '200px', // fixed width for every calendar
                     margin: '5px', // distance on the edge
@@ -2767,8 +2798,9 @@
             );
             $('<div>', {
                 'data-month': `${year}-${String(month + 1).padStart(2, '0')}-01`,
-                class: 'text-center fw-bold',
-                text: `${monthName} ${year}`,
+                class: 'w-bold',
+                // text: `${monthName} ${year}`,
+                text: `${monthName}`,
                 css: {
                     cursor: 'pointer',
                     marginBottom: '10px',
