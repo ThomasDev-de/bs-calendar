@@ -99,7 +99,10 @@
     const topNavClass = 'wc-calendar-top-nav';
     const topSearchClass = 'wc-calendar-top-search-nav';
 
+    const hourSlotHeight = 30;
+
     /**
+     /**
      * jQuery plugin that initializes and manages a Bootstrap-based calendar.
      * Provides functionality for creating, updating, and interacting with a dynamic calendar widget.
      *
@@ -484,6 +487,26 @@
     }
 
     /**
+     * Extracts and returns the time in HH:mm format from a given datetime object or string.
+     * If the time is midnight (00:00), it returns null.
+     *
+     * @param {Date|string} date - The datetime value, which can be a Date object or a date string.
+     * @return {string|null} The formatted time in HH:mm format or null if the time is midnight.
+     */
+    function getTimeFromDatetime(date) {
+        if (typeof date === 'string') {
+            date = new Date(date);
+        }
+
+        if (date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) {
+            return null; // Kein Zeitanteil vorhanden
+        }
+
+        // Zeitformat HH:mm:ss zurückgeben (Mit Padding für Minuten/Sekunden)
+        return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
+    }
+
+    /**
      * Sets the appointments after sorting and calculating their durations,
      * then stores them in the given wrapper element.
      *
@@ -494,8 +517,28 @@
     async function setAppointments($wrapper, appointments) {
         return new Promise((resolve, reject) => {
             if (appointments && Array.isArray(appointments) && appointments.length > 0) {
+                // Preliminary processing: Add start time and endtime
+                appointments = appointments.map(appointment => {
+                    // check whether the appointment is a full-day date
+                    if (appointment.allDay) {
+                        // Set times for all-day appointments to zero
+                        appointment.startTime = null;
+                        appointment.endTime = null;
+                    } else {
+                        // check whether `start` and` end` have a time share
+                        const startDateTime = new Date(appointment.start);
+                        const endDateTime = new Date(appointment.end);
+
+                        // If there is time content, extract, otherwise `zero`
+                        appointment.startTime = getTimeFromDatetime(startDateTime);
+                        appointment.endTime = getTimeFromDatetime(endDateTime);
+                    }
+
+                    return appointment;
+                });
+
+                // Weiterverarbeitung (Suche, Sortierung etc.)
                 const inSearchMode = getSearchMode($wrapper);
-                // Async-Sortierung
                 sortAppointmentByStart(appointments, !inSearchMode)
                     .then(sortedAppointments => {
                         // Multiday-Termine verarbeiten
@@ -638,7 +681,7 @@
 
         $('<button>', {
             class: `btn rounded-${settings.rounded} border`,
-            html: `<i class="${settings.icons.add} fs-5"></i>`,
+            html: `<i class="${settings.icons.add}"></i>`,
             'data-add-appointment': true
         }).appendTo(topNav);
 
@@ -673,7 +716,8 @@
                 html: `<i class="${settings.icons.search}"></i>`
             }).appendTo(topNav);
             showSearchbar.on('click', function () {
-                toggleSearchMode($wrapper, true);
+                toggleSearchBar($wrapper, true);
+                // toggleSearchMode($wrapper, true);
             });
 
             // add the search input to top search bar
@@ -688,13 +732,16 @@
             }).appendTo(topSearchNav);
 
             // add a close button
-            const btnCloseSearch = $('<a>', {
+            const btnCloseSearch = $('<button>', {
                 class: `btn btn-close rounded-${settings.rounded} p-2 ms-2 js-btn-close-search`,
-                "aria-label":"Close"
+                "aria-label": "Close"
             }).appendTo(topSearchNav);
 
             btnCloseSearch.on('click', function () {
-                toggleSearchMode($wrapper, false, true);
+                toggleSearchBar($wrapper, false);
+                if (getSearchMode($wrapper)) {
+                    toggleSearchMode($wrapper, false, true);
+                }
             })
         }
 
@@ -861,29 +908,55 @@
         buildByView($wrapper);
     }
 
-    function toggleSearchMode($wrapper, status, rebuildView = true) {
-        // return;
-        const a = $wrapper.find('.js-btn-search');
-        const input = getSearchElement($wrapper)
-        const settings = getSettings($wrapper);
+    /**
+     * Toggles the visibility of the search bar within the specified wrapper element.
+     *
+     * @param {jQuery} $wrapper - The jQuery object representing the container element that holds the search bar and navigation elements.
+     * @param {boolean} status - A boolean indicating whether to show or hide the search bar.
+     * If true, the search bar will be displayed and focused; if false, it will be hidden and cleared.
+     * @return {void} This method does not return a value.
+     */
+    function toggleSearchBar($wrapper, status) {
+        const input = getSearchElement($wrapper);
+        const topNav = $wrapper.find('.' + topNavClass);
+        const topSearchNav = $wrapper.find('.' + topSearchClass);
         if (status) {
-            $wrapper.find('.' + topNavClass).toggleClass('d-none d-flex');
-            $wrapper.find('.' + topSearchClass).toggleClass('d-none d-flex');
-            setSearchMode($wrapper, true);
-            buildByView($wrapper);
+            topNav.removeClass('d-flex').addClass('d-none');
+            topSearchNav.removeClass('d-none').addClass('d-flex');
             input.focus();
         } else {
-            $wrapper.find('.' + topNavClass).toggleClass('d-none d-flex');
-            $wrapper.find('.' + topSearchClass).toggleClass('d-none d-flex');
-            setSearchMode($wrapper, false);
-            const search = {limit: settings.search.limit, offset: settings.search.offset};
-            setSearchPagination($wrapper, search);
             input.val(null);
+            topNav.removeClass('d-none').addClass('d-flex');
+            topSearchNav.removeClass('d-flex').addClass('d-none');
+        }
+    }
+
+    function toggleSearchMode($wrapper, status, rebuildView = true) {
+        const settings = getSettings($wrapper);
+        // toggleSearchBar($wrapper, status);
+        setSearchMode($wrapper, status);
+
+        if (status) {
+            buildByView($wrapper);
+        } else {
+            const search = {
+                limit: settings.search.limit,
+                offset: settings.search.offset
+            };
+
+            setSearchPagination($wrapper, search);
+
             if (rebuildView) {
                 buildByView($wrapper)
             }
 
         }
+    }
+
+    function resetSearchPagination($wrapper) {
+        const settings = getSettings($wrapper);
+        const search = {limit: settings.search.limit, offset: settings.search.offset};
+        setSearchPagination($wrapper, search);
     }
 
     function setSearchPagination($wrapper, object) {
@@ -917,7 +990,17 @@
      * @return {void} This function does not return a value.
      */
     function handleEvents($wrapper) {
-        let searchTimeout;
+        let resizeTimer;
+
+        $(window).on('resize', function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(function () {
+                // Aktionen ausführen, wenn Resizing abgeschlossen ist
+                console.log('Resizing beendet!');
+                onResize($wrapper); // Deine Funktion hier aufrufen
+            }, 100); // Verzögerung von 200 Millisekunden
+        });
+
         $wrapper
             .on('click', '.wc-search-pagination [data-page]', function (e) {
                 // A page in the search navigation was clicked
@@ -935,28 +1018,29 @@
                 // get the appointments
                 fetchAppointments($wrapper);
             })
-            .on('keyup input', '[data-search-input]', function (e) {
+            .on('keyup', '[data-search-input]', function (e) {
                 e.preventDefault();
-                const input = $(this);
-                const settings = getSettings($wrapper);
-
-                // input.appendTo('.js-search-input-wrapper');
-                input.focus();
-                // only when I am in search mode
-                if (getSearchMode($wrapper)) {
-                    // delete previous timeouts
-                    if (searchTimeout) {
-                        clearTimeout(searchTimeout);
-                    }
-                    // Set delay
-                    searchTimeout = setTimeout(() => {
-                        const search = {limit: settings.search.limit, offset: settings.search.offset};
-                        setSearchPagination($wrapper, search);
-                        buildByView($wrapper);
-                    }, 400)
-                } else {
-                    clearTimeout(searchTimeout);
+                const input = $(e.currentTarget);
+                const isEmpty = isValueEmpty(input.val()); // Check if the input is empty
+                let inSearchMode = getSearchMode($wrapper);
+                if (!inSearchMode && !isEmpty) {
+                    setSearchMode($wrapper, true, false);
+                    inSearchMode = true;
                 }
+
+                // If input is empty, stop here and optionally disable search mode
+                if (isEmpty) {
+                    toggleSearchMode($wrapper, false, true); // End search mode if necessary
+                    return;
+                }
+
+                // Trigger search immediately if Enter key is pressed or input field gets updated
+                const isEnterKey = e.type === 'keyup' && (e.key === 'Enter' || e.which === 13 || e.keyCode === 13);
+
+                if (isEnterKey) {
+                    triggerSearch($wrapper);
+                }
+
             })
             .on('click', '[data-add-appointment]', function (e) {
                 e.preventDefault();
@@ -1061,6 +1145,14 @@
                 }
             })
     }
+
+    // Benutzerdefinierte Suchfunktion (z. B. API-Aufruf oder Filter anwenden)
+    function triggerSearch($wrapper) {
+        const settings = getSettings($wrapper); // Einstellungen holen
+        resetSearchPagination($wrapper);
+        buildByView($wrapper); // Ansicht aktualisieren
+    }
+
 
     function getSelectViewElement($wrapper) {
         return $wrapper.find('.wc-select-calendar-view');
@@ -1252,7 +1344,7 @@
                 default:
                     break;
             }
-
+            onResize($wrapper);
             updateDropdownView($wrapper);
             setCurrentDateName($wrapper);
             buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
@@ -1507,7 +1599,7 @@
      * @param {Array<Object>} appointments - An array of appointment objects, each containing relevant scheduling details such as start times and display dates.
      * @return {void} This method does not return a value. It modifies the DOM structure to display appointments organized by weekdays.
      */
-    function buildAppointmentsForWeek($wrapper, appointments) {
+    function drawAppointmentsForWeek($wrapper, appointments) {
         const container = getViewContainer($wrapper);
         const settings = getSettings($wrapper);
 
@@ -1528,7 +1620,7 @@
             const dates = appointmentsByWeekday[weekday] || [];
             const $dayWrapper = container.find('[data-week-day="' + weekday + '"] .wc-day-view-time-slots');
             const margin = settings.startWeekOnSunday && weekday === 0 || !settings.startWeekOnSunday && weekday === 1;
-            buildAppointmentsForDay($wrapper, $dayWrapper, dates, margin ? 1 : 1);
+            drawAppointmentsForDay($wrapper, $dayWrapper, dates, margin ? 1 : 1);
         }
     }
 
@@ -1541,7 +1633,7 @@
      * @param {number} [marginLeft=1] - The left margin offset in pixels.
      * @return {void} This function does not return a value. It renders appointments into the provided container.
      */
-    function buildAppointmentsForDay($wrapper, $container, appointments, marginLeft = 1) {
+    function drawAppointmentsForDay($wrapper, $container, appointments, marginLeft = 1) {
         const settings = getSettings($wrapper);
         const columns = assignColumnsToAppointments(appointments);
 
@@ -1556,54 +1648,59 @@
         // go through each column and position the appointments
         columns.forEach((column, columnIndex) => {
             column.forEach((appointment) => {
-                const start = new Date(appointment.start);
-                const end = new Date(appointment.end);
+                appointment.displayDates.forEach((startString) => {
+                    const startDay = new Date(startString);
+                    if (appointment.allDay) {
+                        const allDayWrapper = $wrapper.find('[data-all-day="' + startDay.getDay() + '"]');
+                        allDayWrapper.addClass('pb-3');
+                        const appointmentElement = $('<div>', {
+                            'data-appointment': true,
+                            html: appointment.title,
+                            class: `badge mx-1 mb-1 flex-fill`,
+                            css: {
+                                backgroundColor: appointment.color || settings.defaultColor
+                            }
+                        }).appendTo(allDayWrapper);
+                        appointmentElement.data('appointment', appointment);
+                        setColorByBackgroundColor(appointmentElement, settings.defaultColor);
+                        setPopoverForAppointment($wrapper, appointmentElement)
+                        return;
+                    }
+                    // const fakeStart = new Date(startString);
+                    const start = new Date(startString + ' ' + appointment.startTime);
+                    const end = new Date(appointment.end);
 
-                const startHour = start.getHours();
-                const startMinute = start.getMinutes();
-                const endHour = end.getHours();
-                const endMinute = end.getMinutes();
+                    const position = calculateSlotPosition(start, end)
 
-                const hourContainer = $container.find(`[data-day-hour="${startHour}"]`);
-                const hourPositionTop = hourContainer.position().top;
-                const minuteOffset = (startMinute / 60) * 34; // Offset in Pixel-Höhe
-                const topPositionInPixels = hourPositionTop + minuteOffset;
+                    // Calculate the `Left` position relatively in % including the space
+                    const appointmentLeftInPixels = marginLeft + (columnIndex * (appointmentWidthPercent * containerWidth / 100 + gap));
+                    const appointmentLeftPercent = (appointmentLeftInPixels / containerWidth) * 100;
 
-                const durationInHours = endHour + endMinute / 60 - (startHour + startMinute / 60);
-                const appointmentHeightInPixels = durationInHours * 34;
+                    let durationString = end.toTimeString().slice(0, 5);
+                    if (typeof settings.formatDuration === "function") {
+                        durationString += " (" + settings.formatDuration(appointment.duration) + ")";
+                    }
 
-                // convert `top position` and` AppointmentHeight` in percent
-                const topPositionPercent = (topPositionInPixels / containerHeight) * 100;
-                const appointmentHeightPercent = (appointmentHeightInPixels / containerHeight) * 100;
+                    const backgroundColor = appointment.color || settings.defaultColor;
 
-                // Calculate the `Left` position relatively in % including the space
-                const appointmentLeftInPixels = marginLeft + (columnIndex * (appointmentWidthPercent * containerWidth / 100 + gap));
-                const appointmentLeftPercent = (appointmentLeftInPixels / containerWidth) * 100;
+                    // Set the appointment elements
+                    const appointmentElement = $('<small>', {
+                        'data-appointment': true,
+                        class: 'position-absolute text-nowrap text-truncate shadow px-2 btn-sm overflow-hidden',
+                        css: {
+                            backgroundColor: backgroundColor,
+                            top: `${position.top}px`,
+                            height: `${position.height}px`,
+                            left: `${appointmentLeftPercent}%`,
+                            width: `${appointmentWidthPercent}%`,
+                        },
+                        html: `<div class="">${start.toTimeString().slice(0, 5)} ${durationString} - ${appointment.title || 'Ohne Titel'}</div>`,
+                    }).appendTo($container);
 
-                let durationString = end.toTimeString().slice(0, 5);
-                if (typeof settings.formatDuration === "function") {
-                    durationString += " (" + settings.formatDuration(appointment.duration) + ")";
-                }
-
-                const backgroundColor = appointment.color || settings.defaultColor;
-
-                // Set the appointment elements
-                const appointmentElement = $('<small>', {
-                    'data-appointment': true,
-                    class: 'position-absolute text-nowrap text-truncate shadow px-2 btn-sm overflow-hidden',
-                    css: {
-                        backgroundColor: backgroundColor,
-                        top: `${topPositionPercent}%`,
-                        height: `${appointmentHeightPercent}%`,
-                        left: `${appointmentLeftPercent}%`,
-                        width: `${appointmentWidthPercent}%`,
-                    },
-                    html: `<div class="">${start.toTimeString().slice(0, 5)} ${durationString} - ${appointment.title || 'Ohne Titel'}</div>`,
-                }).appendTo($container);
-
-                appointmentElement.data('appointment', appointment);
-                setColorByBackgroundColor(appointmentElement, settings.defaultColor);
-                setPopoverForAppointment($wrapper, appointmentElement);
+                    appointmentElement.data('appointment', appointment);
+                    setColorByBackgroundColor(appointmentElement, settings.defaultColor);
+                    setPopoverForAppointment($wrapper, appointmentElement);
+                });
             });
         });
     }
@@ -1824,7 +1921,7 @@
      * @param {Array<Object>} appointments - A list of appointment objects. Each object should include `displayDates`, `start`, `allDay`, `title`, and optionally `color`.
      * @return {void} This function does not return a value; it updates the DOM by injecting appointment elements.
      */
-    function buildAppointmentsForMonth($wrapper, appointments) {
+    function drawAppointmentsForMonth($wrapper, appointments) {
         const $container = getViewContainer($wrapper);
         const settings = getSettings($wrapper);
         if (settings.debug) {
@@ -2020,23 +2117,23 @@
             switch (view) {
                 case 'day':
                     const overContainer = container.find('.wc-day-view-time-slots');
-                    buildAppointmentsForDay($wrapper, overContainer, appointments);
+                    drawAppointmentsForDay($wrapper, overContainer, appointments);
                     break;
                 case 'week':
-                    buildAppointmentsForWeek($wrapper, appointments);
+                    drawAppointmentsForWeek($wrapper, appointments);
                     break;
                 case 'month':
-                    buildAppointmentsForMonth($wrapper, appointments);
+                    drawAppointmentsForMonth($wrapper, appointments);
                     break;
                 case 'year':
-                    buildAppointmentsForYear($wrapper, appointments);
+                    drawAppointmentsForYear($wrapper, appointments);
                     break;
             }
         }
 
     }
 
-    function buildAppointmentsForYear($wrapper, appointments) {
+    function drawAppointmentsForYear($wrapper, appointments) {
         const $container = getViewContainer($wrapper);
         appointments.forEach(appointment => {
             if (appointment.hasOwnProperty('date') && appointment.hasOwnProperty('total') && parseInt(appointment.total) > 0) {
@@ -2234,7 +2331,7 @@
         const settings = getSettings($wrapper);
         const date = getDate($wrapper);
 
-        const { locale, startWeekOnSunday } = settings;
+        const {locale, startWeekOnSunday} = settings;
 
         // Berechnung der Start- und Enddaten des Kalenders
         const year = date.getFullYear();
@@ -2343,29 +2440,41 @@
             }
 
             isFirstRow = false; // Nur für die erste Zeile Wochentagsnamen hinzufügen
-            calculateSquaresForMonthView($wrapper); // Höhe & Breite anpassen
+            // onResize($wrapper); // Höhe & Breite anpassen
             container.append(weekRow);
         }
     }
 
-    function calculateSquaresForMonthView($wrapper) {
+    /**
+     * Adjusts the height of calendar day elements to maintain a square aspect ratio
+     * within a container, dynamically setting the container's overall height
+     * based on the number of rows required.
+     *
+     * @param {jQuery} $wrapper - A jQuery-wrapped element that acts as the wrapper
+     *                            for the calendar view, used to determine the view context.
+     * @return {void} This function does not return anything.
+     */
+    function onResize($wrapper) {
         const view = getView($wrapper);
+        const calendarContainer = getViewContainer($wrapper);
         if (view === 'month') {
-            const calendarContainer = getViewContainer($wrapper); // Der Container des Kalenders
+
             const dayElements = calendarContainer.find('[data-month-date]');
 
-            // Höhe eines Tages berechnen
+            // calculate the height of a day
             let squareHeight = 0;
             dayElements.each(function () {
-                const width = $(this).outerWidth(); // Breite des Elements
-                $(this).css('height', `${width}px`); // Höhe setzen
-                squareHeight = width; // Speichere die Höhe für die spätere Berechnung
+                const width = $(this).outerWidth(); // width of the element
+                $(this).css('height', `${width}px`); // set height
+                squareHeight = width; // save the height for the later calculation
             });
 
-// Dynamische Containerhöhe setzen
+            // set dynamic container height
             const rowCount = Math.ceil(dayElements.length / 7); // Anzahl der Zeilen
             const totalHeight = rowCount * squareHeight; // Gesamthöhe berechnen
             calendarContainer.css('height', `${totalHeight}px`);
+        } else {
+            calendarContainer.css('height', '');
         }
 
     }
@@ -2527,9 +2636,24 @@
      * @return {void} This function does not return a value.
      */
     function buildDayView($wrapper) {
-        const container = getViewContainer($wrapper).empty();
+        const $container = getViewContainer($wrapper).empty();
         const date = getDate($wrapper);
-        buildDayViewContent($wrapper, date, container);
+        const headline = $('<div>', {
+            class: 'wc-day-header mb-2 ms-5',
+            css: {
+                paddingLeft: '40px'
+            },
+            html: buildHeaderForDay($wrapper, date, false)
+        }).appendTo($container);
+        headline.attr('data-date', formatDateToDateString(date)).css('cursor', 'pointer');
+        const allDayContainer = $('<div>', {
+            'data-all-day': date.getDay(),
+            class: 'mx-5',
+            css: {
+                paddingLeft: '40px'
+            }
+        }).appendTo($container);
+        buildDayViewContent($wrapper, date, $container);
     }
 
     /**
@@ -2588,11 +2712,42 @@
         const endOfWeek = new Date(startOfWeek);
         endOfWeek.setDate(startOfWeek.getDate() + 6);
 
+        //////// All Day Wrapper
+        const wrappAllDay = $('<div>', {
+            class: 'd-flex flex-nowrap flex-fill w-100',
+            css: {
+                paddingLeft: '40px'
+            },
+        }).appendTo($container);
+
+        for (let day = 0; day < 7; day++) {
+            const col = $('<div>', {
+                class: 'flex-grow-1 d-flex flex-column jusify-content-center align-items-center flex-fill border-end position-relative overflow-hidden',
+                css: {
+                    width: '14.28%' // Fixe Breite für 7 Spalten
+                }
+
+            }).appendTo(wrappAllDay);
+            const currentDate = new Date(startOfWeek);
+            currentDate.setDate(startOfWeek.getDate() + day); // calculate the next day
+            const headline = $('<div>', {
+                class: 'wc-day-header mb-2',
+                html: buildHeaderForDay($wrapper, currentDate, false)
+            }).appendTo(col);
+            headline.attr('data-date', formatDateToDateString(currentDate)).css('cursor', 'pointer');
+            const allDayContainer = $('<div>', {
+                'data-all-day': currentDate.getDay(),
+                class: 'd-flex flex-column align-items-stretch flex-fill w-100',
+            }).appendTo(col);
+        }
+        ////////
+
         // Create weekly view as a flexible layout
         const weekContainer = $('<div>', {
             class: 'wc-week-view d-flex flex-nowrap',
             css: {paddingLeft: '40px'}
         }).appendTo($container);
+
 
         // iteration over the days of the week (from starting day to end day)
         for (let day = 0; day < 7; day++) {
@@ -2633,28 +2788,10 @@
         return [
             `<div class="d-flex flex-column justify-content-center  w-100 p-2 align-items-${justify} ${todayColor}">`,
             `<div class="d-flex justify-content-center" style="width: 44px"><small>${shortWeekday}</small></div>`,
-            `<span style="${circleCss}" class="h2 m-0 text-center ${todayClass}">${day}</span>`,
+            `<span style="${circleCss}" class="h4 m-0 text-center ${todayClass}">${day}</span>`,
             `</div>`
         ].join('')
-        return [
-            `<div class="d-flex flex-column justify-content-center p-2 align-items-${justify} ${todayColor}">`,
-            `<div class="d-flex justify-content-center flex-fill"><small>${shortWeekday}</small></div>`,
-            `<span style="${circleCss}" class="h2 m-0 text-center ${todayClass}">${day}</span>`,
-            `</div>`
-        ].join('')
-        return [
-            `<div class="p-2">`,
-            `<div class="d-none d-xl-flex flex-wrap justify-content-center align-items-center">`,
-            `<strong>${longWeekday}</strong>`,
-            `<small class="mx-1"></small>`,
-            `<strong class="text-nowrap">${day}. ${longMonth}</strong>`,
-            `</div>`,
-            `<div class="d-flex d-xl-none flex-wrap flex-column justify-content-center align-items-center">`,
-            `<strong>${shortWeekday}</strong>`,
-            `<small class="text-nowrap">${day} ${shortMonth}</small>`,
-            `</div>`,
-            `</div>`,
-        ].join('');
+
     }
 
     /**
@@ -2673,33 +2810,23 @@
 
         if (!forWeekView) {
             $container = $('<div>', {
-                class: 'position-relative px-5'
+                class: 'position-relative px-5',
             }).appendTo($container);
+
             $container = $('<div>', {
                 css: {paddingLeft: '40px'}
             }).appendTo($container);
         }
 
         $container.attr('data-weekday');
+        $container.css('boxSizing', 'border-box');
+
         const longHeader = date.toLocaleDateString(settings.locale, {weekday: 'long', day: 'numeric', month: 'long'});
         const shortHeader = date.toLocaleDateString(settings.locale, {
             weekday: 'short',
             day: 'numeric',
             month: 'short'
         });
-
-        const headline = $('<div>', {
-            class: 'wc-day-header mb-2',
-            html: buildHeaderForDay($wrapper, date, forWeekView)
-        }).appendTo($container);
-
-        if (isToday) {
-            // headline.addClass('fw-bold');
-        }
-
-        if (forWeekView) {
-            headline.attr('data-date', formatDateToDateString(date)).css('cursor', 'pointer');
-        }
 
         $('<div>', {
             'data-all-day': true,
@@ -2708,7 +2835,7 @@
 
         // Container for time slots
         const timeSlots = $('<div>', {
-            class: 'wc-day-view-time-slots d-flex flex-column position-relative  py-2'
+            class: 'wc-day-view-time-slots d-flex flex-column position-relative'
         }).appendTo($container);
 
         // present hours (from 0 to 23) with a horizontal line
@@ -2718,7 +2845,8 @@
             const row = $('<div>', {
                 'data-day-hour': hour,
                 css: {
-                    height: '34px',
+                    boxSizing: 'border-box',
+                    height: hourSlotHeight + 'px',
                     cursor: 'copy',
                 },
                 class: 'd-flex align-items-center border-top position-relative'
@@ -2750,12 +2878,81 @@
                 $('<div>', {
                     class: 'wc-time-label ps-2 position-absolute top-0 translate-middle',
                     css: {
-                        left: '-34px'
+                        left: `-34px`
                     },
                     html: `${hour.toString().padStart(2, '0')}:00 <i class="${settings.icons.timeSlot}"></i>`
                 }).appendTo(row);
             }
         }
+
+        if (isToday) {
+            addCurrentTimeIndicator($wrapper, timeSlots)
+        }
+
+    }
+
+    function addCurrentTimeIndicator($wrapper, $container) {
+        const now = new Date();
+        // Erstelle eine Linie, die die aktuelle Zeit anzeigt
+        const currentTimeIndicator = $('<div>', {
+            class: 'current-time-indicator position-absolute bg-danger',
+            css: {
+                boxSizing: 'border-box',
+                height: '1px',
+                width: '100%',
+                zIndex: 10,
+                top: calculateSlotPosition(now).top,
+            }
+        }).appendTo($container);
+
+        $('<small class="position-absolute top-0 start-0 translate-middle badge bg-danger js-current-time">' + getMinutesAndSeconds($wrapper, now) + '</small>').appendTo(currentTimeIndicator);
+        $('<div class="position-absolute top-50 start-100 translate-middle rounded-circle bg-danger" style="width: 10px; height: 10px"></div>').appendTo(currentTimeIndicator);
+
+        // Funktion, die die Position basierend auf der aktuellen Zeit berechnet
+
+
+        // Aktualisierte Position werden alle Minute berechnet
+        const intervalId = setInterval(() => {
+            if ($wrapper.find('.current-time-indicator').length === 0) {
+                // Wenn das Element nicht mehr existiert, lösche das Intervall
+                clearInterval(intervalId);
+                return;
+            }
+            const now = new Date();
+            currentTimeIndicator.css('top', calculateSlotPosition(now).top);
+            currentTimeIndicator.find('.js-current-time').text(getMinutesAndSeconds($wrapper, now));
+        }, 60 * 1000);
+
+        // Setze initial die Position direkt
+        currentTimeIndicator.css('top', calculateSlotPosition(now).top);
+    }
+
+    function calculateSlotPosition(startDate, endDate) {
+        const startHours = startDate.getHours();
+        const startMinutes = startDate.getMinutes();
+
+        // Berechnung der Top-Position basierend auf der Startzeit
+        const top = startHours * hourSlotHeight + (startMinutes / 60) * hourSlotHeight + 4;
+
+        let height = 0; // Standardwert, falls endDate nicht übergeben wird
+
+        if (endDate) {
+            const endHours = endDate.getHours();
+            const endMinutes = endDate.getMinutes();
+
+            // Berechnung der Gesamtdauer zwischen Start- und Endzeit in Minuten
+            const durationMinutes = (endHours * 60 + endMinutes) - (startHours * 60 + startMinutes);
+
+            // Berechnung der Höhe basierend auf der Dauer in Minuten
+            height = (durationMinutes / 60) * hourSlotHeight;
+        }
+
+        return {top: top - 4, height: height};
+    }
+
+    function getMinutesAndSeconds($wrapper, date) {
+        const settings = getSettings($wrapper);
+        return date.toLocaleTimeString(settings.locale, {hour: '2-digit', minute: '2-digit'});
     }
 
     /**
