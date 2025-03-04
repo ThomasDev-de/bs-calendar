@@ -633,13 +633,7 @@
 
             while (tempDate <= end) {
                 // Datum zum Array hinzufügen (ohne Zeitzonenfehler, Lokale Zeit)
-                displayDates.push(
-                    `${tempDate.getFullYear()}-${(tempDate.getMonth() + 1)
-                        .toString()
-                        .padStart(2, '0')}-${tempDate.getDate()
-                        .toString()
-                        .padStart(2, '0')}`
-                );
+                displayDates.push(formatDateToDateString(tempDate));
 
                 // TempDate auf den nächsten Tag erhöhen
                 tempDate.setDate(tempDate.getDate() + 1);
@@ -1644,30 +1638,29 @@
         const containerHeight = $container.height();
 
         const appointmentWidthPercent = ((containerWidth - marginLeft) / columns.length - gap) / containerWidth * 100;
-
+        console.log('columsn', columns);
         // go through each column and position the appointments
         columns.forEach((column, columnIndex) => {
             column.forEach((appointment) => {
-                appointment.displayDates.forEach((startString) => {
-                    const startDay = new Date(startString);
-                    if (appointment.allDay) {
-                        const allDayWrapper = $wrapper.find('[data-all-day="' + startDay.getDay() + '"]');
-                        allDayWrapper.addClass('pb-3');
-                        const appointmentElement = $('<div>', {
-                            'data-appointment': true,
-                            html: appointment.title,
-                            class: `badge mx-1 mb-1 flex-fill`,
-                            css: {
-                                backgroundColor: appointment.color || settings.defaultColor
-                            }
-                        }).appendTo(allDayWrapper);
-                        appointmentElement.data('appointment', appointment);
-                        setColorByBackgroundColor(appointmentElement, settings.defaultColor);
-                        setPopoverForAppointment($wrapper, appointmentElement)
-                        return;
-                    }
+                // appointment.displayDates.forEach((startString) => {
+                const start = new Date(appointment.start);
+                if (appointment.allDay) {
+                    const allDayWrapper = $wrapper.find('[data-all-day="' + start.getDay() + '"]');
+                    allDayWrapper.addClass('pb-3');
+                    const appointmentElement = $('<div>', {
+                        'data-appointment': true,
+                        html: appointment.title,
+                        class: `badge mx-1 mb-1 flex-fill`,
+                        css: {
+                            backgroundColor: appointment.color || settings.defaultColor
+                        }
+                    }).appendTo(allDayWrapper);
+                    appointmentElement.data('appointment', appointment);
+                    setColorByBackgroundColor(appointmentElement, settings.defaultColor);
+                    setPopoverForAppointment($wrapper, appointmentElement)
+                } else {
                     // const fakeStart = new Date(startString);
-                    const start = new Date(startString + ' ' + appointment.startTime);
+                    // const start = new Date(appointment.startDate + ' ' + appointment.startTime);
                     const end = new Date(appointment.end);
 
                     const position = calculateSlotPosition(start, end)
@@ -1700,7 +1693,8 @@
                     appointmentElement.data('appointment', appointment);
                     setColorByBackgroundColor(appointmentElement, settings.defaultColor);
                     setPopoverForAppointment($wrapper, appointmentElement);
-                });
+                }
+                // });
             });
         });
     }
