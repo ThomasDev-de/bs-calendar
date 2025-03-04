@@ -629,11 +629,11 @@
         }).appendTo($wrapper);
 
         const topNav = $('<div>', {
-            class: `d-flex sticky-top align-items-center px-0 justify-content-end mb-3 ${topNavClass} bg-body-tertiary rounded-${settings.rounded}`
+            class: `d-flex sticky-top align-items-center px-0 justify-content-end mb-3 ${topNavClass} bg-body rounded-${settings.rounded}`
         }).appendTo(innerWrapper);
 
         const topSearchNav = $('<div>', {
-            class: `d-none sticky-top align-items-center px-0 justify-content-center mb-3 ${topSearchClass} bg-body-tertiary rounded-${settings.rounded}`
+            class: `d-none sticky-top align-items-center px-0 justify-content-center mb-3 ${topSearchClass} bg-body rounded-${settings.rounded}`
         });
 
         $('<button>', {
@@ -2596,13 +2596,21 @@
         }
     }
 
-    function buildHeaderForDay($wrapper, date) {
+    function buildHeaderForDay($wrapper, date, forWeekView = false) {
         const settings = getSettings($wrapper);
         const day = date.toLocaleDateString(settings.locale, {day: 'numeric'})
         const shortMonth = date.toLocaleDateString(settings.locale, {month: 'short'})
         const longMonth = date.toLocaleDateString(settings.locale, {month: 'long'});
         const shortWeekday = date.toLocaleDateString(settings.locale, {weekday: 'short'});
         const longWeekday = date.toLocaleDateString(settings.locale, {weekday: 'long'});
+        const justify = forWeekView ? 'center' : 'start';
+
+            return [
+                `<div class="d-flex flex-column justify-content-center p-2 align-items-${justify}">`,
+                `<small>${shortWeekday}</small>`,
+                `<span class="h2">${day}</span>`,
+                `</div>`
+                ].join('')
         return [
             `<div class="p-2">`,
             `<div class="d-none d-xl-flex flex-wrap justify-content-center align-items-center">`,
@@ -2651,7 +2659,7 @@
 
         const headline = $('<div>', {
             class: 'wc-day-header mb-2',
-            html: buildHeaderForDay($wrapper, date)
+            html: buildHeaderForDay($wrapper, date, forWeekView)
         }).appendTo($container);
 
         if (isToday) {
