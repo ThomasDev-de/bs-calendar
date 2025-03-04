@@ -380,7 +380,7 @@
         const startFormatted = start.toLocaleString('de-DE', {dateStyle: 'short', timeStyle: 'short'});
         const endFormatted = end.toLocaleString('de-DE', {dateStyle: 'short', timeStyle: 'short'});
         const isAllDay = appointment.hasOwnProperty('allDay') && appointment.allDay;
-        const duration = isAllDay ? '' : $.bsCalendar.getDefaults().formatDuration(appointment.duration);
+        const duration = isAllDay ? '' : $.bsCalendar.getDefaults().formatDuration(appointment.extras.duration);
         const startEnd = [
             `<span>Start: ${startFormatted}</span>`,
             `<span>End: ${endFormatted}</span>`,
@@ -517,35 +517,17 @@
     async function setAppointments($wrapper, appointments) {
         return new Promise((resolve, reject) => {
             if (appointments && Array.isArray(appointments) && appointments.length > 0) {
-                // Preliminary processing: Add start time and endtime
-                appointments = appointments.map(appointment => {
-                    // check whether the appointment is a full-day date
-                    if (appointment.allDay) {
-                        // Set times for all-day appointments to zero
-                        appointment.startTime = null;
-                        appointment.endTime = null;
-                    } else {
-                        // check whether `start` and` end` have a time share
-                        const startDateTime = new Date(appointment.start);
-                        const endDateTime = new Date(appointment.end);
-
-                        // If there is time content, extract, otherwise `zero`
-                        appointment.startTime = getTimeFromDatetime(startDateTime);
-                        appointment.endTime = getTimeFromDatetime(endDateTime);
-                    }
-
-                    return appointment;
-                });
+               
 
                 // Weiterverarbeitung (Suche, Sortierung etc.)
                 const inSearchMode = getSearchMode($wrapper);
                 sortAppointmentByStart(appointments, !inSearchMode)
                     .then(sortedAppointments => {
                         // Multiday-Termine verarbeiten
-                        appointments = splitMultiDayAppointments(sortedAppointments);
+                        // appointments = splitMultiDayAppointments(sortedAppointments);
 
                         // Dauer der Termine berechnen
-                        calculateAppointmentDurations($wrapper, appointments);
+                        setAppointmentExtras($wrapper, appointments);
 
                         // Appointments setzen
                         $wrapper.data('appointments', appointments);
@@ -609,42 +591,6 @@
      */
     function getAppointments($wrapper) {
         return $wrapper.data('appointments');
-    }
-
-    /**
-     * Splits multi-day appointments into individual days, assigning additional metadata to each appointment.
-     * Each appointment will include a list of all dates it spans and a flag indicating if it is a single-day appointment.
-     *
-     * @param {Array} appointments - An array of appointment objects. Each appointment object must have `start` and `end` properties in ISO date format.
-     * @return {Array} - The modified array of appointment objects with the added `isSingleDay` boolean and `displayDates` array properties.
-     */
-    function splitMultiDayAppointments(appointments) {
-        appointments.forEach(appointment => {
-            const start = new Date(appointment.start);
-            const end = new Date(appointment.end);
-
-            // Array, das alle Tage zwischen Start und Ende enthält
-            const displayDates = [];
-            let tempDate = new Date(start); // Basis (Startdatum)
-
-            // Sorge dafür, dass tempDate nur den Datumsteil berücksichtigt (ohne Uhrzeit)
-            tempDate.setHours(0, 0, 0, 0);
-            end.setHours(0, 0, 0, 0);
-
-            while (tempDate <= end) {
-                // Datum zum Array hinzufügen (ohne Zeitzonenfehler, Lokale Zeit)
-                displayDates.push(formatDateToDateString(tempDate));
-
-                // TempDate auf den nächsten Tag erhöhen
-                tempDate.setDate(tempDate.getDate() + 1);
-            }
-
-            // Zusätzliche Daten zuweisen
-            appointment.isSingleDay = displayDates.length === 1;
-            appointment.displayDates = displayDates;
-        });
-
-        return appointments; // Das Array der erweiterten Termine zurückgeben
     }
 
     /**
@@ -1601,7 +1547,7 @@
 
         // Sortiere die Termine nach dem Wochentag
         appointments.forEach(appointment => {
-            appointment.displayDates.forEach(startString => {
+            appointment.extras.displayDates.forEach(startString => {
                 const appointmentDate = new Date(startString);
                 const weekday = appointmentDate.getDay(); // Liefert den Wochentag (0 = Sonntag, 6 = Samstag)
                 appointmentsByWeekday[weekday].push(appointment);
@@ -1659,8 +1605,6 @@
                     setColorByBackgroundColor(appointmentElement, settings.defaultColor);
                     setPopoverForAppointment($wrapper, appointmentElement)
                 } else {
-                    // const fakeStart = new Date(startString);
-                    // const start = new Date(appointment.startDate + ' ' + appointment.startTime);
                     const end = new Date(appointment.end);
 
                     const position = calculateSlotPosition(start, end)
@@ -1671,7 +1615,7 @@
 
                     let durationString = end.toTimeString().slice(0, 5);
                     if (typeof settings.formatDuration === "function") {
-                        durationString += " (" + settings.formatDuration(appointment.duration) + ")";
+                        durationString += " (" + settings.formatDuration(appointment.extras.duration) + ")";
                     }
 
                     const backgroundColor = appointment.color || settings.defaultColor;
@@ -1923,8 +1867,8 @@
         }
 
         appointments.forEach(appointment => {
-            const multipleStartDates = appointment.displayDates.length > 1;
-            appointment.displayDates.forEach(startString => {
+            const multipleStartDates = appointment.extras.displayDates.length > 1;
+            appointment.extras.displayDates.forEach(startString => {
                 const fakeStart = new Date(startString);
                 const start = new Date(appointment.start);
                 const sameDate = isSameDate(fakeStart, start);
@@ -2041,12 +1985,47 @@
      * and `allDay` properties. Each object will be updated with a `duration` property.
      * @return {void} - This function does not return a value; it modifies the appointment array in place.
      */
-    function calculateAppointmentDurations($wrapper, appointments) {
+    function setAppointmentExtras($wrapper, appointments) {
         const settings = getSettings($wrapper);
 
         appointments.forEach(appointment => {
+
             const start = new Date(appointment.start);
             const end = new Date(appointment.end);
+
+            // Preliminary processing: Add start time and endtime
+
+            const extras = {
+                start: {time: null, date: formatDateToDateString(appointment.start)},
+                end: {time: null, date: formatDateToDateString(appointment.end)},
+                duration: {},
+                displayDates: [],
+                inADay: false,
+            };
+
+            let tempDate = new Date(start); // Basis (Startdatum)
+            let tempEnd = new Date(end);
+            // Sorge dafür, dass tempDate nur den Datumsteil berücksichtigt (ohne Uhrzeit)
+            tempDate.setHours(0, 0, 0, 0);
+            tempEnd.setHours(0, 0, 0, 0);
+
+            while (tempDate <= tempEnd) {
+                // Datum zum Array hinzufügen (ohne Zeitzonenfehler, Lokale Zeit)
+                extras.displayDates.push(formatDateToDateString(tempDate));
+
+                // TempDate auf den nächsten Tag erhöhen
+                tempDate.setDate(tempDate.getDate() + 1);
+            }
+
+            // Zusätzliche Daten zuweisen
+            extras.inADay = extras.displayDates.length === 1;
+
+            // check whether the appointment is a full-day date
+            if (!appointment.allDay) {
+                extras.start.time = getTimeFromDatetime(appointment.start);
+                extras.end.time = getTimeFromDatetime(appointment.end);
+            }
+
 
             const diffMillis = end - start; // Zeitdifferenz in Millisekunden
 
@@ -2054,7 +2033,7 @@
                 // Ganztägiger Termin: Ganze Tage berechnen
                 const days = Math.ceil(diffMillis / (1000 * 60 * 60 * 24)); // Millisekunden -> Tage
 
-                appointment.duration = {
+                extras.duration = {
                     days: days,
                     hours: 0,
                     minutes: 0,
@@ -2069,13 +2048,14 @@
                 const minutes = Math.floor((totalSeconds % 3600) / 60); // Restliche Minuten
                 const seconds = totalSeconds % 60; // Restliche Sekunden
 
-                appointment.duration = {
+                extras.duration = {
                     days: days,
                     hours: hours,
                     minutes: minutes,
                     seconds: seconds
                 };
             }
+            appointment.extras = extras;
         });
 
         if (settings.debug) {
