@@ -1601,7 +1601,7 @@
 
                 // Initialisiere für den Wochentag, wenn noch nicht vorhanden
                 if (!weekdayData[weekday]) {
-                    weekdayData[weekday] = { grouped: [], maxColumns: 0 };
+                    weekdayData[weekday] = {grouped: [], maxColumns: 0};
                 }
 
                 const slotData = weekdayData[weekday];
@@ -1658,7 +1658,7 @@
 
                 // Initialisiere Tagesstruktur, falls noch nicht vorhanden
                 if (!groupedByWeekdays[weekday]) {
-                    groupedByWeekdays[weekday] = { appointments: [], columns: [], fullWidth: [] };
+                    groupedByWeekdays[weekday] = {appointments: [], columns: [], fullWidth: []};
                 }
 
                 groupedByWeekdays[weekday].appointments.push({
@@ -1671,7 +1671,7 @@
 
         // 2. Spalten und FullWidth erstellen
         Object.keys(groupedByWeekdays).forEach((day) => {
-            const { appointments, columns, fullWidth } = groupedByWeekdays[day];
+            const {appointments, columns, fullWidth} = groupedByWeekdays[day];
 
             // Sortiere die Termine nach Startzeit
             appointments.sort((a, b) => a.start - b.start);
@@ -1719,6 +1719,7 @@
         }
         return true; // Keine Überschneidung
     }
+
     /**
      * Builds and displays a set of appointments for the specified day within a container.
      *
@@ -1760,11 +1761,17 @@
 
         const columnGap = 2; // Abstand zwischen den Spalten in Pixeln
 
-        Object.entries(groupedAppointments).forEach(([weekday, { columns, fullWidth }]) => {
+        Object.entries(groupedAppointments).forEach(([weekday, {columns, fullWidth}]) => {
             const $weekDayContainer = $viewContainer.find(`[data-week-day="${weekday}"]`);
 
             /** 1. Rendern der gruppierten Termine in Spalten **/
             const totalColumns = columns.length; // Anzahl der Spalten berechnen
+
+            if (settings.debug) {
+                console.log(`Wochentag: ${weekday}, Spalten: ${columns.length}, FullWidth: ${fullWidth.length}`);
+                console.log(`Termine pro Spalte für Wochentag ${weekday}:`, columns);
+            }
+
 
             columns.forEach((column, columnIndex) => {
                 column.forEach((slotData) => {
@@ -1860,7 +1867,7 @@
                 setPopoverForAppointment($wrapper, appointmentElement);
             });
         });
-     }
+    }
 
     /**
      * Sets the text color of an element based on its background color to ensure proper contrast.
@@ -3052,7 +3059,7 @@
             // Add heading about the daily view
             const height = isLast ? 0 : hourSlotHeight;
             const marginBottom = isLast ? hourSlotHeight : 0;
-            const css = isLast ? {} :  {
+            const css = isLast ? {} : {
                 boxSizing: 'border-box',
                 height: height + 'px',
                 cursor: 'copy',
