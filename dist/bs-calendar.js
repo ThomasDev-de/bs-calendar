@@ -913,7 +913,6 @@
     }
 
     function setSearchPagination($wrapper, object) {
-        console.log('***** setSearchPagination', object);
         const pagination = isValueEmpty(object) ? null : object;
         $wrapper.data('searchPagination', pagination);
     }
@@ -948,8 +947,6 @@
         $(window).on('resize', function () {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function () {
-                // Aktionen ausführen, wenn Resizing abgeschlossen ist
-                console.log('Resizing beendet!');
                 onResize($wrapper); // Deine Funktion hier aufrufen
             }, 100); // Verzögerung von 200 Millisekunden
         });
@@ -1166,7 +1163,6 @@
 
     function setLastView($wrapper, view) {
         $wrapper.data('lastView', view);
-        console.log('------------------- last view: ' + view);
     }
 
     /**
@@ -1531,118 +1527,6 @@
     }
 
 
-    /**
-     * Checks if the given appointment can fit in the specified column
-     * without overlapping with any other appointments already in the column.
-     *
-     * @param {Array} column - An array of existing appointments in the column.
-     * @param {Object} appointment - The appointment to check for potential overlap.
-     * @return {boolean} Returns true if the appointment fits in the column without overlap, otherwise false.
-     */
-    function fitsColumn(column, currentAppointment) {
-        for (let slot of column) {
-            // Überprüfen, ob der Termin sich absoluten Grenzen nach überschneidet
-            if (!(currentAppointment.start >= slot.end || currentAppointment.end <= slot.start)) {
-                return false; // Überschneidung gefunden, Termin passt nicht!
-            }
-        }
-        return true; // Keine Überschneidung, Termin passt in diese Spalte
-    }
-
-
-    /**
-     * Constructs and organizes appointments for each day of the week based on the provided appointments' data.
-     *
-     * @param {jQuery} $wrapper - The wrapper element containing the week view DOM structure.
-     * @param {Array<Object>} appointments - An array of appointment objects, each containing relevant scheduling details such as start times and display dates.
-     * @return {void} This method does not return a value. It modifies the DOM structure to display appointments organized by weekdays.
-     */
-    function drawAppointmentsForWeek($wrapper, appointments) {
-        const container = getViewContainer($wrapper);
-        const settings = getSettings($wrapper);
-
-        const appointmentsByWeekday = [[], [], [], [], [], [], []]; // Array für jeden Wochentag (Sonntag bis Samstag)
-
-        // Sortiere die Termine nach dem Wochentag
-        appointments.forEach(appointment => {
-            const appointmentDate = new Date(appointment.extras.start.date);
-            const weekday = appointmentDate.getDay(); // Liefert den Wochentag (0 = Sonntag, 6 = Samstag)
-            appointmentsByWeekday[weekday].push(appointment);
-        });
-
-        // console.log(appointmentsByWeekday);
-
-        for (let weekday = 0; weekday < 7; weekday++) {
-            const dates = appointmentsByWeekday[weekday] || [];
-            const $dayWrapper = container.find('[data-week-day="' + weekday + '"] .wc-day-view-time-slots');
-            const margin = settings.startWeekOnSunday && weekday === 0 || !settings.startWeekOnSunday && weekday === 1;
-            drawAppointmentsForDay($wrapper, $dayWrapper, dates, margin ? 1 : 1);
-        }
-    }
-
-    /**
-     * Gruppiert Termine basierend auf Überschneidungen (Overlapping), organisiert nach Wochentagen.
-     * Termine ohne Überschneidungen werden nicht in Spalten aufgeteilt!
-     *
-     * @param {Array} appointments - Liste aller Termine.
-     * @return {Object} - Objekt mit Terminen nach Wochentagen, einschließlich Spaltenberechnung.
-     */
-    function _old_groupOverlappingAppointments(appointments) {
-        const weekdayData = {};
-
-        appointments.forEach(appointment => {
-            appointment.extras.displayDates.forEach(obj => {
-                const fakeStart = new Date(obj.date);
-                const weekday = fakeStart.getDay(); // Wochentag-Index
-
-                // Begrenze Start- und Endzeit basierend auf dem Slot von `extras.displayDates`
-                const slotStart = new Date(obj.date + ' ' + obj.times.start); // Startzeit im aktuellen Slot
-                const slotEnd = new Date(obj.date + ' ' + obj.times.end);     // Endzeit im aktuellen Slot
-
-                // Initialisiere für den Wochentag, wenn noch nicht vorhanden
-                if (!weekdayData[weekday]) {
-                    weekdayData[weekday] = {grouped: [], maxColumns: 0};
-                }
-
-                const slotData = weekdayData[weekday];
-                let addedToGroup = false;
-
-                // Prüfe nur bestehende Gruppen des gleichen Slots (innerhalb des Wochentags)
-                for (const group of slotData.grouped) {
-                    if (group.some(other => {
-                        const otherStart = new Date(other.start); // Start eines Termins in der Gruppe
-                        const otherEnd = new Date(other.end);    // Ende eines Termins in der Gruppe
-
-                        // Kollisionsprüfung NUR innerhalb des Slots, nicht global
-                        return slotStart < otherEnd && slotEnd > otherStart;
-                    })) {
-                        group.push({
-                            start: slotStart,
-                            end: slotEnd,
-                            appointment
-                        });
-                        addedToGroup = true;
-                        break;
-                    }
-                }
-
-                // Keine Kollision → neue Gruppe im aktuellen Slot erstellen
-                if (!addedToGroup) {
-                    slotData.grouped.push([{
-                        start: slotStart,
-                        end: slotEnd,
-                        appointment
-                    }]);
-                }
-
-                // Aktualisiere maximale Spaltenzahl, wenn Kollisionen vorliegen
-                slotData.maxColumns = Math.max(slotData.maxColumns, slotData.grouped.length);
-            });
-        });
-
-        return weekdayData;
-    }
-
     function groupOverlappingAppointments(appointments) {
         const groupedByWeekdays = {};
 
@@ -1726,10 +1610,9 @@
      * @param {jQuery} $wrapper - The wrapper element containing the calendar.
      * @param {jQuery} $container - The container element where appointments should be rendered.
      * @param {Array} appointments - An array of appointment objects, each containing details such as start, end, title, and color.
-     * @param {number} [marginLeft=1] - The left margin offset in pixels.
      * @return {void} This function does not return a value. It renders appointments into the provided container.
      */
-    function drawAppointmentsForDay($wrapper, $container, appointments, marginLeft = 1) {
+    function drawAppointmentsForDayOrWeek($wrapper, $container, appointments) {
         const settings = getSettings($wrapper);
         const $viewContainer = getViewContainer($wrapper);
         const allDays = appointments.filter(appointment => appointment.allDay === true);
@@ -1766,12 +1649,6 @@
 
             /** 1. Rendern der gruppierten Termine in Spalten **/
             const totalColumns = columns.length; // Anzahl der Spalten berechnen
-
-            if (settings.debug) {
-                console.log(`Wochentag: ${weekday}, Spalten: ${columns.length}, FullWidth: ${fullWidth.length}`);
-                console.log(`Termine pro Spalte für Wochentag ${weekday}:`, columns);
-            }
-
 
             columns.forEach((column, columnIndex) => {
                 column.forEach((slotData) => {
@@ -2101,9 +1978,7 @@
                 const sameDate = isSameDate(fakeStart, start);
                 const isNotStartOnThisDay = multipleStartDates && !sameDate;
                 const isStartOnThisDay = multipleStartDates && sameDate;
-                // if (!isNotStartOnThisDay) {
-                //     console.warn('Appointment start date does not match the start date of the appointment:', startDate, startString);
-                // }
+
                 const startTime = start.toLocaleTimeString(settings.locale, {hour: '2-digit', minute: '2-digit'});
                 const dayContainer = $container.find(`[data-month-date="${startString}"]`);
                 let iconClass = settings.icons.appointment;
@@ -2252,6 +2127,7 @@
 
                 const dateDetails = {
                     date: formatDateToDateString(tempDate),
+                    day: tempDate.getDay(),
                     times: {
                         start: null,
                         end: null
@@ -2300,7 +2176,7 @@
             extras.duration.seconds = totalSeconds % 60;
 
             if (settings.debug) {
-                log('Calculated extras:', extras, 'appointment:', appointment);
+                log('Calculated extras:', extras);
             }
 
             // Zusätzliche Daten an den Termin anhängen
@@ -2336,10 +2212,10 @@
             switch (view) {
                 case 'day':
                     const overContainer = container.find('.wc-day-view-time-slots');
-                    drawAppointmentsForDay($wrapper, overContainer, appointments);
+                    drawAppointmentsForDayOrWeek($wrapper, overContainer, appointments);
                     break;
                 case 'week':
-                    drawAppointmentsForWeek($wrapper, appointments);
+                    drawAppointmentsForDayOrWeek($wrapper, container, appointments);
                     break;
                 case 'month':
                     drawAppointmentsForMonth($wrapper, appointments);
