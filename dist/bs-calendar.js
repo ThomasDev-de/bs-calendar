@@ -87,6 +87,7 @@
             },
             url: null,
             queryParams: null,
+            topbarAddons: null,
             sidebarAddons: null,
             debug: false,
             formatInfoWindow: formatInfoWindow,
@@ -266,6 +267,7 @@
         $wrapper.removeData('appointments');
         $wrapper.removeData('searchMode');
         $wrapper.removeData('searchPagination');
+        $wrapper.removeData('currentRequest');
         $wrapper.empty();
     }
 
@@ -304,7 +306,6 @@
         const settings = getSettings($wrapper);
         // Flag to track if settings need to be updated.
         let changeSettings = false;
-        let rebuildView = false;
         // Check if 'params' is an object.
         if (typeof object === 'object') {
             // If 'params' contains 'url', update the 'url' in settings.
@@ -316,8 +317,6 @@
 
             if (object.hasOwnProperty('view') && settings.views.includes(object.view)) {
                 setView($wrapper, object.view);
-
-                rebuildView = true;
                 changeSettings = true;
             }
 
@@ -332,11 +331,8 @@
             // Save the updated settings if any changes were made.
             setSettings($wrapper, settings);
         }
-        // if (rebuildView) {
+
         buildByView($wrapper);
-        // }
-        // Trigger the process to fetch updated appointment data.
-        // fetchAppointments($wrapper);
     }
 
     /**
@@ -507,43 +503,56 @@
     }
 
     /**
-     * Sets the appointments after sorting and calculating their durations,
-     * then stores them in the given wrapper element.
+     * Processes and sets the given appointments within the wrapper element. This involves validating,
+     * sorting, adding extra details, and storing the processed appointments in the wrapper's data attribute.
      *
-     * @param {jQuery} $wrapper - A jQuery wrapper element where the appointment data will be stored.
-     * @param {Array<Object>} appointments - An array of appointment objects to be processed and stored.
-     * @return {void} Does not return a value.
+     * @param {jQuery} $wrapper - The wrapper element where the appointments will be set.
+     * @param {Array} appointments - An array of appointment objects to be processed and stored.
+     *                                Each object should minimally contain appointment-specific details.
+     * @return {Promise<Array>} A Promise that resolves with the processed list of appointments if successful,
+     *                          or rejects with an error if an issue occurs during the sorting or processing.
      */
     async function setAppointments($wrapper, appointments) {
+        const settings = getSettings($wrapper);
+        // Return a Promise to manage asynchronous operations
         return new Promise((resolve, reject) => {
+            // Check if the appointments array is valid, contains appointments, and is not empty
             if (appointments && Array.isArray(appointments) && appointments.length > 0) {
-               
 
-                // Weiterverarbeitung (Suche, Sortierung etc.)
+                // Determine if the system is in search mode to adjust sorting behavior
                 const inSearchMode = getSearchMode($wrapper);
+
+                // Sort the appointments based on their start time
+                // If not in search mode, use ascending order
                 sortAppointmentByStart(appointments, !inSearchMode)
                     .then(sortedAppointments => {
-                        // Multiday-Termine verarbeiten
-                        // appointments = splitMultiDayAppointments(sortedAppointments);
-
-                        // Dauer der Termine berechnen
+                        // Calculate additional details for appointments (e.g., duration, custom flags)
                         setAppointmentExtras($wrapper, appointments);
 
-                        // Appointments setzen
+                        // Store the processed appointments inside the wrapper's data attribute
                         $wrapper.data('appointments', appointments);
 
-                        // Promise erfolgreich auflösen
+                        // Resolve the Promise successfully with the processed appointments
                         resolve(appointments);
                     })
                     .catch(error => {
-                        console.error("Fehler bei der Verarbeitung der Termine:", error);
-                        reject(error); // Promise ablehnen, wenn ein Fehler auftritt
+                        if (settings.debug) {
+                            // Log errors during the sorting or processing of appointments
+                            console.error("Error processing appointments:", error);
+                        }
+
+                        // Reject the Promise if an error occurs
+                        reject(error);
                     });
             } else {
-                // Keine Termine vorhanden
+                // If no valid appointments are provided, initialize an empty appointments array
                 appointments = [];
+
+                // Store the empty appointments list in the wrapper's data attribute
                 $wrapper.data('appointments', appointments);
-                resolve(appointments); // Leere Liste zurückgeben
+
+                // Resolve the Promise with an empty list of appointments
+                resolve(appointments);
             }
         });
     }
@@ -614,6 +623,10 @@
         const topNav = $('<div>', {
             class: `d-flex sticky-top align-items-center px-0 justify-content-end mb-3 ${topNavClass} bg-body rounded-${settings.rounded}`
         }).appendTo(innerWrapper);
+
+        if (settings.topbarAddons && $(settings.topbarAddons).length > 0) {
+            $(settings.topbarAddons).insertAfter(topNav);
+        }
 
         const topSearchNav = $('<div>', {
             class: `d-none sticky-top align-items-center px-0 justify-content-center mb-3 ${topSearchClass} bg-body rounded-${settings.rounded}`
@@ -715,7 +728,7 @@
             class: 'd-flex flex-fill wc-calendar-container'
         }).appendTo(innerWrapper);
 
-        const leftBar = $('<div>', {
+        const sidebar = $('<div>', {
             class: 'wc-calendar-left-nav d-xl-flex d-none flex-column me-4 mr-4',
             html: [
                 '<div class="pb-3">',
@@ -731,12 +744,12 @@
             ].join('')
         }).appendTo(container);
 
-        if (settings.sidebarAddons) {
-            $(settings.sidebarAddons).appendTo(leftBar);
+        if (settings.sidebarAddons && $(settings.sidebarAddons).length > 0) {
+            $(settings.sidebarAddons).appendTo(sidebar);
         }
 
         $('<div>', {
-            class: `container-fluid ${viewContainerClass} border-1 rounded-${settings.rounded} flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`
+            class: `container-fluid ${viewContainerClass} pb-5 border-1 rounded-${settings.rounded} flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`
         }).appendTo(container);
 
     }
@@ -1305,137 +1318,170 @@
      * @return {void} - This function does not return a value. It updates the DOM of the provided wrapper with the fetched appointments.
      */
     function fetchAppointments($wrapper) {
+        // Clear previous data or states related to the wrapper
         methodClear($wrapper);
 
+        // Retrieve settings specific to this wrapper
         const settings = getSettings($wrapper);
         let skipLoading = false;
 
+        // Log debug information if debugging is enabled in settings
         if (settings.debug) {
             log('Call fetchAppointments');
         }
 
-
+        // Declare variable for request data
         let requestData;
+        // Determine whether the function is in search mode
         const inSearchMode = getSearchMode($wrapper);
-        // Daten für den Ajax-Request zusammenstellen
+
+        // Prepare data for the AJAX request
         if (!inSearchMode) {
-            // Get the latest date and view
+            // Retrieve the current view type (e.g., day, week, month, year)
             const view = getView($wrapper);
-            // calculate the start and end date based on the view
+            // Calculate the start and end date range based on the view
             const period = getStartAndEndDateByView($wrapper);
             if (view === 'year') {
+                // If the view is yearly, prepare request data specific to the year
                 requestData = {
                     year: new Date(period.date).getFullYear(),
-                    view: view, // 'year'
+                    view: view // 'year'
                 };
             } else {
+                // For daily, weekly, or monthly views, use the start and end dates
                 requestData = {
-                    fromDate: period.start, // Startdatum im ISO-Format
-                    toDate: period.end,    // Enddatum im ISO-Format
+                    fromDate: period.start, // Start date in ISO format
+                    toDate: period.end,    // End date in ISO format
                     view: view, // 'day', 'week', 'month'
                 };
             }
         } else {
+            // In search mode, retrieve the search element and its value
             const searchElement = getSearchElement($wrapper);
             const search = searchElement?.val() ?? null;
+            // Check if the search value is empty to decide if loading should be skipped
             skipLoading = isValueEmpty(search);
             requestData = {
-                ...getSearchPagination($wrapper),
-                search: search // ?string
+                ...getSearchPagination($wrapper), // Include pagination data
+                search: search // The search string, if provided
             };
         }
 
+        // If queryParams is a function in settings, enrich the request data dynamically
         if (typeof settings.queryParams === 'function') {
             const queryParams = settings.queryParams(requestData);
             for (const key in queryParams) {
+                // Add or overwrite requestData fields with queryParams
                 requestData[key] = queryParams[key];
             }
         }
 
+        // If there is nothing to search (skipLoading is true), handle this case
         if (skipLoading) {
             if (settings.debug) {
                 log('Skip loading appointments because search is empty');
             }
-
+            // Update the appointments list with an empty array and re-build the default view
             setAppointments($wrapper, []).then(cleanedAppointments => {
-                renderAppointments($wrapper);
+                buildAppointmentsForView($wrapper);
             });
-            return;
+            return; // Exit the function
         }
 
+        // Trigger a custom "beforeLoad" event before loading appointments
         trigger($wrapper, 'beforeLoad', [requestData]);
+
+        // Display the loading indicator for the wrapper
         showLoader($wrapper);
 
+        // Check if the URL for fetching appointments is a function
         if (typeof settings.url === 'function') {
+            if (settings.debug) {
+                log('Call appointments by function with query:', requestData);
+            }
+            // Call the function-based URL and handle the result as a promise
             settings.url(requestData)
                 .then(appointments => {
+                    // Log the fetched result if debugging is enabled
                     if (settings.debug) {
-                        log('Call appointments by function:', appointments);
+                        log('result:', appointments);
                     }
                     if (inSearchMode) {
+                        // In search mode, process the rows and build the search-related views
                         setAppointments($wrapper, appointments.rows).then(cleanedAppointments => {
                             buildAppointmentsForSearch($wrapper, cleanedAppointments, appointments.total);
                         });
-
                     } else {
+                        // In normal mode, process appointments and build the main view
                         setAppointments($wrapper, appointments).then(cleanedAppointments => {
-                            renderAppointments($wrapper);
+                            buildAppointmentsForView($wrapper);
                         });
                     }
-                    hideLoader($wrapper);
                 })
                 .catch(error => {
+                    // Hide the loader and log the error if debugging is enabled
                     hideLoader($wrapper);
-                    // Fehler behandeln und ggf. Debug-Informationen ausgeben
                     if (settings.debug) {
                         log('Error fetching appointments:', error);
                     }
+                })
+                .finally(() => {
+                    // Always hide the loader, regardless of success or error
+                    hideLoader($wrapper);
                 });
+
         } else if (typeof settings.url === 'string') {
-            // Check whether there is already a current request and cancel it if necessary
+            // If the URL is a string, manage the current request
+
+            // Check if there's an ongoing request associated with the wrapper, and abort it
             const existingRequest = $wrapper.data('currentRequest');
+
             if (existingRequest) {
-                existingRequest.abort();
+                existingRequest.abort(); // Cancel the previous AJAX request
+                $wrapper.data('currentRequest', null)
             }
 
+            // Log the URL being called for debugging
             if (settings.debug) {
                 log('Call appointments by URL:', settings.url);
             }
 
-            // Start new request and save it in the wrapper
+            // Send a new AJAX GET request with the prepared request data
             const newRequest = $.ajax({
                 url: settings.url,
                 method: 'GET',
-                contentType: 'application/json',
-                data: JSON.stringify(requestData),
+                contentType: 'application/json', // Specify JSON content type
+                data: JSON.stringify(requestData), // Convert request data to JSON string
                 success: function (response) {
                     if (inSearchMode) {
+                        // In search mode, handle the response rows and build the search views
                         setAppointments($wrapper, response.rows).then(cleanedAppointments => {
                             buildAppointmentsForSearch($wrapper, cleanedAppointments, response.total);
                         });
-
                     } else {
+                        // In normal mode, handle the response and build the default view
                         setAppointments($wrapper, response).then(cleanedAppointments => {
-                            renderAppointments($wrapper);
+                            buildAppointmentsForView($wrapper);
                         });
-
                     }
-                    hideLoader($wrapper);
                 },
                 error: function (xhr, status, error) {
+                    // Handle errors unless they were caused by request cancellation (abort)
                     if (status !== 'abort') {
                         if (settings.debug) {
                             log('Error when retrieving the dates:', status, error);
                         }
-                        hideLoader($wrapper);
                     }
                 },
                 complete: function () {
+                    // Always remove the current request and hide the loader after the request ends
                     $wrapper.removeData('currentRequest');
+                    hideLoader($wrapper);
                 }
             });
 
-            $wrapper.data('currentRequest', newRequest); // Save Request
+            // Save the newly initiated request in the wrapper's data for management
+            $wrapper.data('currentRequest', newRequest);
         }
     }
 
@@ -1484,41 +1530,6 @@
         );
     }
 
-    /**
-     * Assigns appointments to columns ensuring no overlapping appointments exist in the same column.
-     *
-     * @param {Array} appointments - An array of appointment objects to be assigned to columns.
-     * @return {Array} - An array of columns where each column is an array of appointments that do not overlap.
-     */
-    function assignColumnsToAppointments(appointments) {
-        // Array, in dem jede Spalte mit Terminen gespeichert wird
-        const columns = [];
-
-        // Iteriere durch alle Termine
-        appointments.forEach(appointment => {
-            let placedInColumn = false;
-
-            // Gehe jede Spalte durch und prüfe, ob der Termin dort hinzugefügt werden kann
-            for (let i = 0; i < columns.length; i++) {
-                const column = columns[i];
-
-                // Verwende eine separate Funktion, um die Logik zur Überprüfung auszulagern
-                if (fitsColumn(column, appointment)) {
-                    column.push(appointment); // Termin zu dieser Spalte hinzufügen
-                    placedInColumn = true;
-                    break;
-                }
-            }
-
-            // Falls der Termin in keine Spalte passt, erstelle eine neue Spalte
-            if (!placedInColumn) {
-                columns.push([appointment]);
-            }
-        });
-
-        return columns;
-    }
-
 
     /**
      * Checks if the given appointment can fit in the specified column
@@ -1528,9 +1539,16 @@
      * @param {Object} appointment - The appointment to check for potential overlap.
      * @return {boolean} Returns true if the appointment fits in the column without overlap, otherwise false.
      */
-    function fitsColumn(column, appointment) {
-        return column.every(colAppointment => !checkAppointmentOverlap(appointment, colAppointment));
+    function fitsColumn(column, currentAppointment) {
+        for (let slot of column) {
+            // Überprüfen, ob der Termin sich absoluten Grenzen nach überschneidet
+            if (!(currentAppointment.start >= slot.end || currentAppointment.end <= slot.start)) {
+                return false; // Überschneidung gefunden, Termin passt nicht!
+            }
+        }
+        return true; // Keine Überschneidung, Termin passt in diese Spalte
     }
+
 
     /**
      * Constructs and organizes appointments for each day of the week based on the provided appointments' data.
@@ -1547,11 +1565,9 @@
 
         // Sortiere die Termine nach dem Wochentag
         appointments.forEach(appointment => {
-            appointment.extras.displayDates.forEach(startString => {
-                const appointmentDate = new Date(startString);
-                const weekday = appointmentDate.getDay(); // Liefert den Wochentag (0 = Sonntag, 6 = Samstag)
-                appointmentsByWeekday[weekday].push(appointment);
-            })
+            const appointmentDate = new Date(appointment.extras.start.date);
+            const weekday = appointmentDate.getDay(); // Liefert den Wochentag (0 = Sonntag, 6 = Samstag)
+            appointmentsByWeekday[weekday].push(appointment);
         });
 
         // console.log(appointmentsByWeekday);
@@ -1565,6 +1581,145 @@
     }
 
     /**
+     * Gruppiert Termine basierend auf Überschneidungen (Overlapping), organisiert nach Wochentagen.
+     * Termine ohne Überschneidungen werden nicht in Spalten aufgeteilt!
+     *
+     * @param {Array} appointments - Liste aller Termine.
+     * @return {Object} - Objekt mit Terminen nach Wochentagen, einschließlich Spaltenberechnung.
+     */
+    function _old_groupOverlappingAppointments(appointments) {
+        const weekdayData = {};
+
+        appointments.forEach(appointment => {
+            appointment.extras.displayDates.forEach(obj => {
+                const fakeStart = new Date(obj.date);
+                const weekday = fakeStart.getDay(); // Wochentag-Index
+
+                // Begrenze Start- und Endzeit basierend auf dem Slot von `extras.displayDates`
+                const slotStart = new Date(obj.date + ' ' + obj.times.start); // Startzeit im aktuellen Slot
+                const slotEnd = new Date(obj.date + ' ' + obj.times.end);     // Endzeit im aktuellen Slot
+
+                // Initialisiere für den Wochentag, wenn noch nicht vorhanden
+                if (!weekdayData[weekday]) {
+                    weekdayData[weekday] = { grouped: [], maxColumns: 0 };
+                }
+
+                const slotData = weekdayData[weekday];
+                let addedToGroup = false;
+
+                // Prüfe nur bestehende Gruppen des gleichen Slots (innerhalb des Wochentags)
+                for (const group of slotData.grouped) {
+                    if (group.some(other => {
+                        const otherStart = new Date(other.start); // Start eines Termins in der Gruppe
+                        const otherEnd = new Date(other.end);    // Ende eines Termins in der Gruppe
+
+                        // Kollisionsprüfung NUR innerhalb des Slots, nicht global
+                        return slotStart < otherEnd && slotEnd > otherStart;
+                    })) {
+                        group.push({
+                            start: slotStart,
+                            end: slotEnd,
+                            appointment
+                        });
+                        addedToGroup = true;
+                        break;
+                    }
+                }
+
+                // Keine Kollision → neue Gruppe im aktuellen Slot erstellen
+                if (!addedToGroup) {
+                    slotData.grouped.push([{
+                        start: slotStart,
+                        end: slotEnd,
+                        appointment
+                    }]);
+                }
+
+                // Aktualisiere maximale Spaltenzahl, wenn Kollisionen vorliegen
+                slotData.maxColumns = Math.max(slotData.maxColumns, slotData.grouped.length);
+            });
+        });
+
+        return weekdayData;
+    }
+
+    function groupOverlappingAppointments(appointments) {
+        const groupedByWeekdays = {};
+
+        // 1. Termine nach Wochentag gruppieren
+        appointments.forEach((appointment) => {
+            appointment.extras.displayDates.forEach((obj) => {
+                // Benutze explizite Konstruktion von Datum und Zeit:
+                const slotStart = new Date(`${obj.date}T${obj.times.start}`);
+                const slotEnd = new Date(`${obj.date}T${obj.times.end}`);
+
+                // Wochentag korrekt berechnen
+                const weekday = slotStart.getDay();
+
+                // Initialisiere Tagesstruktur, falls noch nicht vorhanden
+                if (!groupedByWeekdays[weekday]) {
+                    groupedByWeekdays[weekday] = { appointments: [], columns: [], fullWidth: [] };
+                }
+
+                groupedByWeekdays[weekday].appointments.push({
+                    start: slotStart,
+                    end: slotEnd,
+                    appointment
+                });
+            });
+        });
+
+        // 2. Spalten und FullWidth erstellen
+        Object.keys(groupedByWeekdays).forEach((day) => {
+            const { appointments, columns, fullWidth } = groupedByWeekdays[day];
+
+            // Sortiere die Termine nach Startzeit
+            appointments.sort((a, b) => a.start - b.start);
+
+            appointments.forEach((appointment) => {
+                let placedInColumn = false;
+
+                // Versuche, den Termin in vorhandene Spalten einzusortieren
+                for (let column of columns) {
+                    if (doesNotOverlap(column, appointment)) {
+                        column.push(appointment);
+                        placedInColumn = true;
+                        break;
+                    }
+                }
+
+                // Falls keine passende Spalte gefunden wurde, prüfe FullWidth
+                if (!placedInColumn) {
+                    const hasOverlap = appointments.some((otherAppointment) =>
+                        otherAppointment !== appointment &&
+                        !(appointment.start >= otherAppointment.end || appointment.end <= otherAppointment.start)
+                    );
+
+                    // `fullWidth`: Nur wenn kein Überschneiden und keine Spalten notwendig sind
+                    if (!hasOverlap && columns.length === 0) {
+                        fullWidth.push(appointment);
+                    } else {
+                        // Andernfalls neue Spalte anlegen
+                        columns.push([appointment]);
+                    }
+                }
+            });
+        });
+
+        return groupedByWeekdays;
+    }
+
+
+// Hilfsfunktion: Prüfen, ob ein Termin in eine Spalte passt
+    function doesNotOverlap(column, newAppointment) {
+        for (const appointment of column) {
+            if (!(newAppointment.start >= appointment.end || newAppointment.end <= appointment.start)) {
+                return false; // Überschneidung
+            }
+        }
+        return true; // Keine Überschneidung
+    }
+    /**
      * Builds and displays a set of appointments for the specified day within a container.
      *
      * @param {jQuery} $wrapper - The wrapper element containing the calendar.
@@ -1575,23 +1730,16 @@
      */
     function drawAppointmentsForDay($wrapper, $container, appointments, marginLeft = 1) {
         const settings = getSettings($wrapper);
-        const columns = assignColumnsToAppointments(appointments);
+        const $viewContainer = getViewContainer($wrapper);
+        const allDays = appointments.filter(appointment => appointment.allDay === true);
+        const notAllDays = appointments.filter(appointment => appointment.allDay !== true);
 
-        const gap = 1; // distance between the appointments in pixels
-
-        // Calculate width including consideration of the space (relatively in %)
-        const containerWidth = $container.width();
-        const containerHeight = $container.height();
-
-        const appointmentWidthPercent = ((containerWidth - marginLeft) / columns.length - gap) / containerWidth * 100;
-        console.log('columsn', columns);
-        // go through each column and position the appointments
-        columns.forEach((column, columnIndex) => {
-            column.forEach((appointment) => {
-                // appointment.displayDates.forEach((startString) => {
-                const start = new Date(appointment.start);
-                if (appointment.allDay) {
-                    const allDayWrapper = $wrapper.find('[data-all-day="' + start.getDay() + '"]');
+        // go through each allDays
+        allDays.forEach(appointment => {
+            appointment.extras.displayDates.forEach((obj) => {
+                const fakeStart = new Date(obj.date);
+                const allDayWrapper = $viewContainer.find('[data-all-day="' + fakeStart.getDay() + '"]');
+                if (allDayWrapper.length) {
                     allDayWrapper.addClass('pb-3');
                     const appointmentElement = $('<div>', {
                         'data-appointment': true,
@@ -1604,26 +1752,63 @@
                     appointmentElement.data('appointment', appointment);
                     setColorByBackgroundColor(appointmentElement, settings.defaultColor);
                     setPopoverForAppointment($wrapper, appointmentElement)
-                } else {
-                    const end = new Date(appointment.end);
+                }
+            });
+        });
 
-                    const position = calculateSlotPosition(start, end)
+        const groupedAppointments = groupOverlappingAppointments(notAllDays);
 
-                    // Calculate the `Left` position relatively in % including the space
-                    const appointmentLeftInPixels = marginLeft + (columnIndex * (appointmentWidthPercent * containerWidth / 100 + gap));
-                    const appointmentLeftPercent = (appointmentLeftInPixels / containerWidth) * 100;
+        const columnGap = 2; // Abstand zwischen den Spalten in Pixeln
 
-                    let durationString = end.toTimeString().slice(0, 5);
-                    if (typeof settings.formatDuration === "function") {
-                        durationString += " (" + settings.formatDuration(appointment.extras.duration) + ")";
-                    }
+        Object.entries(groupedAppointments).forEach(([weekday, { columns, fullWidth }]) => {
+            const $weekDayContainer = $viewContainer.find(`[data-week-day="${weekday}"]`);
 
+            /** 1. Rendern der gruppierten Termine in Spalten **/
+            const totalColumns = columns.length; // Anzahl der Spalten berechnen
+
+            columns.forEach((column, columnIndex) => {
+                column.forEach((slotData) => {
+                    const appointment = slotData.appointment;
                     const backgroundColor = appointment.color || settings.defaultColor;
 
-                    // Set the appointment elements
+                    // Prüfen, ob der Termin keine Überschneidungen mit späteren Columns hat
+                    const noOverlapWithNextColumns = columns
+                        .slice(columnIndex + 1) // Nimm alle späteren Columns
+                        .every(nextColumn =>
+                            nextColumn.every(slot =>
+                                slotData.end <= slot.start || slotData.start >= slot.end // Kein Überschneiden
+                            )
+                        );
+
+                    // Breitenberechnung unter Berücksichtigung der Margins (Gaps)
+                    const totalGap = (totalColumns - 1) * columnGap; // Gesamtbreite der Gaps
+                    let appointmentWidthPercent;
+
+                    if (noOverlapWithNextColumns) {
+                        // Falls keine Überschneidungen mit späteren Columns → bis zum rechten Rand strecken
+                        const remainingColumns = totalColumns - columnIndex; // Verbleibende Columns
+                        const remainingGap = (remainingColumns - 1) * columnGap; // Margins für verbleibende Columns
+                        appointmentWidthPercent = 100 - ((columnIndex * (100 / totalColumns)) + (remainingGap * 100 / $weekDayContainer.width()));
+                    } else {
+                        // Normale Berechnung für Spaltenbreite
+                        appointmentWidthPercent = totalColumns > 1
+                            ? (100 - (totalGap * 100 / $weekDayContainer.width())) / totalColumns
+                            : 100;
+                    }
+
+                    const appointmentLeftPercent = totalColumns > 1
+                        ? (columnIndex * (100 / totalColumns)) // Standardberechnung basierend auf der Column
+                        : 0;
+
+                    const position = calculateSlotPosition(
+                        slotData.start.toISOString(),
+                        slotData.end.toISOString()
+                    );
+
+                    // Rendern des Termins in der Spalte
                     const appointmentElement = $('<small>', {
                         'data-appointment': true,
-                        class: 'position-absolute text-nowrap text-truncate shadow px-2 btn-sm overflow-hidden',
+                        class: 'position-absolute text-nowrap text-truncate px-2 btn-sm overflow-hidden',
                         css: {
                             backgroundColor: backgroundColor,
                             top: `${position.top}px`,
@@ -1631,17 +1816,51 @@
                             left: `${appointmentLeftPercent}%`,
                             width: `${appointmentWidthPercent}%`,
                         },
-                        html: `<div class="">${start.toTimeString().slice(0, 5)} ${durationString} - ${appointment.title || 'Ohne Titel'}</div>`,
-                    }).appendTo($container);
+                        text: `${appointment.title}`,
+                    }).appendTo($weekDayContainer);
 
+                    // Meta-Daten und Styling hinzufügen
                     appointmentElement.data('appointment', appointment);
                     setColorByBackgroundColor(appointmentElement, settings.defaultColor);
                     setPopoverForAppointment($wrapper, appointmentElement);
-                }
-                // });
+                });
+            });
+
+            /** 2. Rendern der isolierten Full-Width-Termine **/
+            fullWidth.forEach((slotData) => {
+                const appointment = slotData.appointment;
+                const backgroundColor = appointment.color || settings.defaultColor;
+
+                // Termine, die die ganze Breite einnehmen
+                const appointmentWidthPercent = 100; // Volle Breite
+                const appointmentLeftPercent = 0; // Kein Abstand von links
+
+                const position = calculateSlotPosition(
+                    slotData.start.toISOString(),
+                    slotData.end.toISOString()
+                );
+
+                // Rendern des Full-Width-Termins
+                const appointmentElement = $('<small>', {
+                    'data-appointment': true,
+                    class: 'position-absolute text-nowrap text-truncate px-2 btn-sm overflow-hidden',
+                    css: {
+                        backgroundColor: backgroundColor,
+                        top: `${position.top}px`,
+                        height: `${position.height}px`,
+                        left: `${appointmentLeftPercent}%`,
+                        width: `${appointmentWidthPercent}%`,
+                    },
+                    text: `${appointment.title}`,
+                }).appendTo($weekDayContainer);
+
+                // Meta-Daten und Styling hinzufügen
+                appointmentElement.data('appointment', appointment);
+                setColorByBackgroundColor(appointmentElement, settings.defaultColor);
+                setPopoverForAppointment($wrapper, appointmentElement);
             });
         });
-    }
+     }
 
     /**
      * Sets the text color of an element based on its background color to ensure proper contrast.
@@ -1868,7 +2087,8 @@
 
         appointments.forEach(appointment => {
             const multipleStartDates = appointment.extras.displayDates.length > 1;
-            appointment.extras.displayDates.forEach(startString => {
+            appointment.extras.displayDates.forEach(obj => {
+                const startString = obj.date
                 const fakeStart = new Date(startString);
                 const start = new Date(appointment.start);
                 const sameDate = isSameDate(fakeStart, start);
@@ -1989,78 +2209,96 @@
         const settings = getSettings($wrapper);
 
         appointments.forEach(appointment => {
-
             const start = new Date(appointment.start);
             const end = new Date(appointment.end);
 
-            // Preliminary processing: Add start time and endtime
-
+            // Struktur für zusätzliche Informationen
             const extras = {
-                start: {time: null, date: formatDateToDateString(appointment.start)},
-                end: {time: null, date: formatDateToDateString(appointment.end)},
-                duration: {},
-                displayDates: [],
+                start: {
+                    date: formatDateToDateString(appointment.start),
+                    time: getTimeFromDatetime(appointment.start)
+                },
+                end: {
+                    date: formatDateToDateString(appointment.end),
+                    time: getTimeFromDatetime(appointment.end)
+                },
+                duration: {
+                    days: 0,
+                    hours: 0,
+                    minutes: 0,
+                    seconds: 0
+                },
+                displayDates: [], // Angepasst, um datumsweise Details zu verwalten
                 inADay: false,
             };
 
-            let tempDate = new Date(start); // Basis (Startdatum)
+            // Kopiere Anfangs- und Enddatum, nur Datum ohne Zeitanteile
+            let tempDate = new Date(start);
             let tempEnd = new Date(end);
-            // Sorge dafür, dass tempDate nur den Datumsteil berücksichtigt (ohne Uhrzeit)
             tempDate.setHours(0, 0, 0, 0);
             tempEnd.setHours(0, 0, 0, 0);
 
             while (tempDate <= tempEnd) {
-                // Datum zum Array hinzufügen (ohne Zeitzonenfehler, Lokale Zeit)
-                extras.displayDates.push(formatDateToDateString(tempDate));
+                // Temporäres Datum: berechne spezifische Start- und Endzeiten
+                const dateIsStart = isSameDate(tempDate, start);
+                const dateIsEnd = isSameDate(tempDate, end);
+
+                const dateDetails = {
+                    date: formatDateToDateString(tempDate),
+                    times: {
+                        start: null,
+                        end: null
+                    }
+                };
+
+                if (appointment.allDay) {
+                    // Ganztägiger Termin -> Keine spezifischen Zeiten
+                    dateDetails.times.start = null;
+                    dateDetails.times.end = null;
+                } else {
+                    if (dateIsStart) {
+                        // Erster Tag: Tatsächliche Startzeit und Tagesende, falls nötig
+                        dateDetails.times.start = getTimeFromDatetime(start);
+                        dateDetails.times.end = end > new Date(tempDate).setHours(23, 59, 59, 999)
+                            ? '23:59'
+                            : getTimeFromDatetime(end);
+                    } else if (dateIsEnd) {
+                        // Letzter Tag: Tagesbeginn bis tatsächliches Ende
+                        dateDetails.times.start = '00:00';
+                        dateDetails.times.end = getTimeFromDatetime(end);
+                    } else {
+                        // Mittlere Tage: Ganztägige Zeit (00:00 bis 23:59)
+                        dateDetails.times.start = '00:00';
+                        dateDetails.times.end = '23:59';
+                    }
+                }
+
+                // Füge Elemente zu den Display Dates hinzu
+                extras.displayDates.push(dateDetails);
 
                 // TempDate auf den nächsten Tag erhöhen
                 tempDate.setDate(tempDate.getDate() + 1);
             }
 
-            // Zusätzliche Daten zuweisen
+            // Prüfe, ob der Termin vollständig an einem Tag bleibt
             extras.inADay = extras.displayDates.length === 1;
 
-            // check whether the appointment is a full-day date
-            if (!appointment.allDay) {
-                extras.start.time = getTimeFromDatetime(appointment.start);
-                extras.end.time = getTimeFromDatetime(appointment.end);
+            // Berechnung der Gesamtdauer des Termins
+            const diffMillis = end - start;
+            const totalSeconds = Math.floor(diffMillis / 1000);
+
+            extras.duration.days = Math.floor(totalSeconds / (24 * 3600));
+            extras.duration.hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
+            extras.duration.minutes = Math.floor((totalSeconds % 3600) / 60);
+            extras.duration.seconds = totalSeconds % 60;
+
+            if (settings.debug) {
+                log('Calculated extras:', extras, 'appointment:', appointment);
             }
 
-
-            const diffMillis = end - start; // Zeitdifferenz in Millisekunden
-
-            if (appointment.allDay) {
-                // Ganztägiger Termin: Ganze Tage berechnen
-                const days = Math.ceil(diffMillis / (1000 * 60 * 60 * 24)); // Millisekunden -> Tage
-
-                extras.duration = {
-                    days: days,
-                    hours: 0,
-                    minutes: 0,
-                    seconds: 0
-                };
-            } else {
-                // Rechnen der genauen Zeitdifferenz
-                const totalSeconds = Math.floor(diffMillis / 1000);
-
-                const days = Math.floor(totalSeconds / (24 * 3600)); // Ganze Tage
-                const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600); // Ganze Stunden
-                const minutes = Math.floor((totalSeconds % 3600) / 60); // Restliche Minuten
-                const seconds = totalSeconds % 60; // Restliche Sekunden
-
-                extras.duration = {
-                    days: days,
-                    hours: hours,
-                    minutes: minutes,
-                    seconds: seconds
-                };
-            }
+            // Zusätzliche Daten an den Termin anhängen
             appointment.extras = extras;
         });
-
-        if (settings.debug) {
-            log('Calculated durations:', appointments);
-        }
     }
 
     /**
@@ -2116,15 +2354,6 @@
         })
     }
 
-    /**
-     * Renders the appointments by building the view and hiding the loader.
-     *
-     * @param {jQuery} $wrapper - The wrapper element where the appointments will be rendered.
-     * @return {void} This method does not return a value.
-     */
-    function renderAppointments($wrapper) {
-        buildAppointmentsForView($wrapper);
-    }
 
     /**
      * Displays a loading spinner inside a given wrapper element.
@@ -2696,9 +2925,9 @@
 
         for (let day = 0; day < 7; day++) {
             const col = $('<div>', {
-                class: 'flex-grow-1 d-flex flex-column jusify-content-center align-items-center flex-fill border-end position-relative overflow-hidden',
+                class: 'flex-grow-1 d-flex flex-column jusify-content-center align-items-center flex-fill position-relative overflow-hidden',
                 css: {
-                    width: '14.28%' // Fixe Breite für 7 Spalten
+                    width: (100 / 7) + '%' // Fixe Breite für 7 Spalten
                 }
 
             }).appendTo(wrappAllDay);
@@ -2732,6 +2961,9 @@
             const dayContainer = $('<div>', {
                 'data-week-day': currentDate.getDay(),
                 class: 'wc-day-week-view flex-grow-1 flex-fill border-end position-relative',
+                css: {
+                    width: (100 / 7) + '%' // Fixe Breite für 7 Spalten
+                }
             }).appendTo(weekContainer);
 
 
@@ -2809,20 +3041,25 @@
 
         // Container for time slots
         const timeSlots = $('<div>', {
+            "data-week-day": date.getDay(),
             class: 'wc-day-view-time-slots d-flex flex-column position-relative'
         }).appendTo($container);
 
         // present hours (from 0 to 23) with a horizontal line
         for (let hour = 0; hour <= 24; hour++) {
+            const isLast = hour === 24;
             // line container for the hour
             // Add heading about the daily view
+            const height = isLast ? 0 : hourSlotHeight;
+            const marginBottom = isLast ? hourSlotHeight : 0;
+            const css = isLast ? {} :  {
+                boxSizing: 'border-box',
+                height: height + 'px',
+                cursor: 'copy',
+            };
             const row = $('<div>', {
                 'data-day-hour': hour,
-                css: {
-                    boxSizing: 'border-box',
-                    height: hourSlotHeight + 'px',
-                    cursor: 'copy',
-                },
+                css: css,
                 class: 'd-flex align-items-center border-top position-relative'
             }).appendTo(timeSlots);
             row.on('click', function () {
@@ -2869,7 +3106,7 @@
         const now = new Date();
         // Erstelle eine Linie, die die aktuelle Zeit anzeigt
         const currentTimeIndicator = $('<div>', {
-            class: 'current-time-indicator position-absolute bg-danger',
+            class: 'current-time-indicator position-absolute bg-danger-subtle',
             css: {
                 boxSizing: 'border-box',
                 height: '1px',
@@ -2879,8 +3116,8 @@
             }
         }).appendTo($container);
 
-        $('<small class="position-absolute top-0 start-0 translate-middle badge bg-danger js-current-time">' + getMinutesAndSeconds($wrapper, now) + '</small>').appendTo(currentTimeIndicator);
-        $('<div class="position-absolute top-50 start-100 translate-middle rounded-circle bg-danger" style="width: 10px; height: 10px"></div>').appendTo(currentTimeIndicator);
+        $('<small class="position-absolute top-0 start-0 translate-middle badge bg-danger-subtle js-current-time">' + getMinutesAndSeconds($wrapper, now) + '</small>').appendTo(currentTimeIndicator);
+        $('<div class="position-absolute top-50 start-100 translate-middle rounded-circle bg-danger-subtle" style="width: 10px; height: 10px"></div>').appendTo(currentTimeIndicator);
 
         // Funktion, die die Position basierend auf der aktuellen Zeit berechnet
 
@@ -2901,7 +3138,22 @@
         currentTimeIndicator.css('top', calculateSlotPosition(now).top);
     }
 
+    /**
+     * Calculates the position and height of a time slot based on the provided start and end times.
+     *
+     * @param {Date|string} startDate - The start date and time of the slot. Can be a Date object or a string representation of a date.
+     * @param {Date|string} [endDate] - The optional end date and time of the slot. Can be a Date object or a string representation of a date.
+     * @return {Object} An object containing the calculated top position and height of the time slot.
+     * @return {number} return.top - The top position calculated based on the start time.
+     * @return {number} return.height - The height of the slot calculated based on duration. Defaults to 0 if endDate is not provided.
+     */
     function calculateSlotPosition(startDate, endDate) {
+        if (typeof startDate === 'string') {
+            startDate = new Date(startDate);
+        }
+        if (typeof endDate === 'string') {
+            endDate = new Date(endDate);
+        }
         const startHours = startDate.getHours();
         const startMinutes = startDate.getMinutes();
 

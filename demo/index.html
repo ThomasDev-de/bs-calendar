@@ -15,7 +15,7 @@
 </head>
 <body class="p-5">
 <div class="d-flex justify-content-between align-items-center border-bottom border-5 mb-5 px-5">
-    <h1>$.fn.bsCalendar</h1>
+    <h1>bsCalendar Example</h1>
     <div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckTheme">
         <label class="form-check-label" for="flexSwitchCheckTheme">light / dark</label>
@@ -23,34 +23,36 @@
 </div>
 
 
-    <div id="calendar" data-sidebar-addons="#sidebarAddons" >
+    <div id="calendar"  data-sidebar-addons="#sidebarAddons" data-topbar-addons="#topbarAddons">
 
     </div>
 
 
-<div id="sidebarAddons" class="mt-4 card">
-    <div class="card-header">
-        <h6 class="text-uppercase text-center mb-0">sidebar addons</h6>
-    </div>
-    <div class="card-body d-flex flex-column">
-        <div class="text-uppercase text-center mb-3"><small>plugin methods</small></div>
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setDate">setDate(1970-01-01, 'day')
-        </button>
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday">setToday('week')</button>
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="clear">Clear</button>
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="destroy">Destroy</button>
-        <div class="text-uppercase text-center mb-3"><small>query params</small></div>
+<div id="topbarAddons" class="mb-3 border p-1">
+    <div class="d-flex justify-content-end align-items-center">
+        <h6 class="text-uppercase text-center mb-0 me-2">topbar addons:</h6>
         <div class="form-group">
-            <select class="form-select" id="selectUser">
-                <option selected>All users</option>
+            <select class="rounded-1 btn btn-warning" id="selectUser">
+                <option selected value="all">All users</option>
                 <option value="1">John Doe 1</option>
                 <option value="2">John Doe 2</option>
                 <option value="3">John Doe 3</option>
             </select>
         </div>
     </div>
-
+</div>
+<div id="sidebarAddons" class="mt-4 card">
+    <div class="card-header">
+        <h6 class="text-uppercase text-center mb-0">sidebar addons</h6>
+    </div>
+    <div class="card-body p-1 d-flex flex-column">
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setDate">setDate(1970-01-01, 'day')
+        </button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday">setToday('week')</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="clear">Clear</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="destroy">Destroy</button>
+    </div>
 </div>
 
 <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
@@ -149,7 +151,21 @@
         });
         const modal = $('#exampleModal');
         const calendarElement = $('#calendar');
-        calendarElement.bsCalendar()
+        calendarElement.bsCalendar();
+        calendarElement
+            .on('change', '#selectUser', function (event, data) {
+                const val = $(this).val();
+                calendarElement.bsCalendar('refresh', {
+                    view:'week',
+                    queryParams(p){
+                        if (val === 'all')
+                            p.userId = null;
+                       else
+                           p.userId = val;
+                       return p;
+                    }
+                });
+            })
             .on('add.bs.calendar', function (event, data) {
                 console.log(data);
                 modal.find('input[name="title"]').val(null);
@@ -175,11 +191,14 @@
                 const color = appointment.color;
                 const link = appointment.link;
 
+                const fromTime = isAllDay ? null : appointment.extras.start.time.substring(0, 5);
+                const toTime = isAllDay ? null : appointment.extras.end.time.substring(0, 5);
+
                 modal.find('input[name="title"]').val(title);
-                modal.find('input[name="from_date"]').val(start.split(' ')[0]);   // Datum aus 'YYYY-MM-DD HH:mm:ss'
-                modal.find('input[name="to_date"]').val(end.split(' ')[0]);       // Datum aus 'YYYY-MM-DD HH:mm:ss'
-                modal.find('input[name="from_time"]').val(start.split(' ')[1]);   // Uhrzeit aus 'YYYY-MM-DD HH:mm:ss'
-                modal.find('input[name="to_time"]').val(end.split(' ')[1]);       // Uhrzeit aus 'YYYY-MM-DD HH:mm:ss'
+                modal.find('input[name="from_date"]').val(appointment.extras.start.date);   // Datum aus 'YYYY-MM-DD HH:mm:ss'
+                modal.find('input[name="to_date"]').val(appointment.extras.end.date);       // Datum aus 'YYYY-MM-DD HH:mm:ss'
+                modal.find('input[name="from_time"]').val(fromTime);   // Uhrzeit aus 'YYYY-MM-DD HH:mm:ss'
+                modal.find('input[name="to_time"]').val(toTime);       // Uhrzeit aus 'YYYY-MM-DD HH:mm:ss'
                 modal.find('input[name="allDay"]').prop('checked', isAllDay).trigger('change');
                 modal.find('textarea[name="description"]').val(description);
                 modal.find('input[name="color"]').val(color);
@@ -241,7 +260,7 @@
 
         async function url(query) {
             console.log('index url',query);
-            await sleep( Math.floor(Math.random() * 1000)); // Wartet synchron für 2 Sekunden
+            await sleep( Math.floor(Math.random() * 1)); // Wartet synchron für 2 Sekunden
 
             return new Promise((resolve, reject) => {
                 try {
@@ -384,7 +403,7 @@
                 count = Math.floor(Math.random() * 61);
             }
             if (view === 'week') {
-                count = Math.floor(Math.random() * 21);
+                count = Math.floor(Math.random() * 61);
             }
             if (view === 'day') {
                 count = Math.floor(Math.random() * 61);
