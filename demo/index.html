@@ -16,6 +16,10 @@
 <body class="p-5">
 <div class="d-flex justify-content-between align-items-center border-bottom border-5 mb-5 px-5">
     <h1>bsCalendar Example</h1>
+    <div class="bg-primary-subtle bg-opacity-75 bg-gradient">
+        ROFL
+    </div>
+
     <div class="form-check form-switch">
         <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckTheme">
         <label class="form-check-label" for="flexSwitchCheckTheme">light / dark</label>
@@ -135,7 +139,7 @@
             locale: 'de',
             startWeekOnSunday: false,
             rounded: 5,
-            defaultColor: 'var(--bs-danger)',
+            defaultColor: 'info',
             translations: {
                 day: 'Tag',
                 week: 'Woche',
@@ -382,72 +386,80 @@
 
         function generateRandomAppointments(start, end, view = null) {
             const colors = [
-                '#007bff',
-                '#6c757d',
-                '#28a745',
-                '#ffc107',
-                '#dc3545',
-                '#17a2b8',
-                '#343a40',
-                '#6f42c1',
-                '#0dcaf0',
+                // 'rgba(13,100,25,.5)', '#6c757d', '#28a745', '#ffc107',
+                'primary opacity-75 gradient', 'danger opacity-75 gradient', 'info gradient  opacity-75', 'warning gradient  opacity-75',
+                // '#17a2b8', '#343a40', '#6f42c1', '#0dcaf0'
             ];
+
             const appointments = [];
             const startDate = new Date(start);
             const endDate = new Date(end);
+
+            // Validierung: Sicherstellen, dass Start- und Enddatum gültig sind
+            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                throw new Error("Ungültiges Start- oder Enddatum übergeben.");
+            }
+
+            // Validierung: Sicherstellen, dass das Enddatum nach dem Startdatum liegt
+            if (endDate <= startDate) {
+                throw new Error("Das Enddatum muss nach dem Startdatum liegen.");
+            }
+
+            // Bestimmen der Anzahl von Terminen basierend auf der Ansicht (view)
             let count = 0;
-            if (view === null) {
-                count = Math.floor(Math.random() * 120);
-            }
-            if (view === 'month') {
-                count = Math.floor(Math.random() * 61);
-            }
-            if (view === 'week') {
-                count = Math.floor(Math.random() * 61);
-            }
-            if (view === 'day') {
-                count = Math.floor(Math.random() * 61);
-            }
-            if (view === 'year') {
-                count = Math.floor(Math.random() * 200);
+            switch (view) {
+                case 'month':
+                case 'week':
+                case 'day':
+                    count = Math.floor(Math.random() * 61);
+                    break;
+                case 'year':
+                    count = Math.floor(Math.random() * 200);
+                    break;
+                default: // Standardanzahl, wenn keine Ansicht definiert wurde
+                    count = Math.floor(Math.random() * 120);
             }
 
             for (let i = 0; i < count; i++) {
-                // set minute to 0, 30 or 45
+                // Zufälligen Startzeitpunkt generieren
                 const startMinutesOptions = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
-                const randomTimeStart = new Date(
+                const randomStartTime = new Date(
                     startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime())
                 );
 
-                randomTimeStart.setMinutes(startMinutesOptions[Math.floor(Math.random() * startMinutesOptions.length)]);
-                randomTimeStart.setSeconds(0); // Set seconds to 0
-                randomTimeStart.setMilliseconds(0); // set milliseconds to 0
+                randomStartTime.setMinutes(
+                    startMinutesOptions[Math.floor(Math.random() * startMinutesOptions.length)]
+                );
+                randomStartTime.setSeconds(0);
+                randomStartTime.setMilliseconds(0);
 
+                // Dauer des Termins zufällig bestimmen
                 const durationOptions = [45, 60, 90, 120, 240, 500];
                 const randomDuration = durationOptions[Math.floor(Math.random() * durationOptions.length)];
 
-                // calculate the end time based in the duration
-                const randomTimeEnd = new Date(randomTimeStart.getTime() + randomDuration * 60000); // Endzeit berechnen
-                // ensure that the end date is not outside the area
-                if (randomTimeEnd > endDate) {
-                    randomTimeEnd.setTime(endDate.getTime());
+                // Endzeitpunkt des Termins berechnen
+                const randomEndTime = new Date(randomStartTime.getTime() + randomDuration * 60000);
+
+                // Sicherstellen, dass die Endzeit innerhalb der erlaubten Grenzen liegt
+                if (randomEndTime > endDate) {
+                    continue; // Skip Termin, wenn der Endzeitpunkt außerhalb der Grenzen liegt
                 }
 
                 const description = `This is a randomly generated appointment description. The appointment is meant to provide useful information about the scheduled event. Details such as the purpose of the appointment, participants, or special instructions can typically be included here. Appointment #${i + 1} is designed to showcase how descriptions enhance context.`;
                 const color = colors[Math.floor(Math.random() * colors.length)];
                 const link = 'https://github.com/ThomasDev-de/bs-calendar';
 
-                // Termin erstellen
+                // Den Termin erstellen
                 const appointment = {
                     id: i + 1,
                     title: `Appointment ${i + 1}`,
                     description: description,
-                    start: randomTimeStart.toISOString().replace('T', ' ').substring(0, 19),
-                    end: randomTimeEnd.toISOString().replace('T', ' ').substring(0, 19),
+                    start: randomStartTime.toISOString().replace('T', ' ').substring(0, 19),
+                    end: randomEndTime.toISOString().replace('T', ' ').substring(0, 19),
                     allDay: i % 21 === 0,
                     color: color,
                     link: link
-                }
+                };
 
                 appointments.push(appointment);
             }

@@ -494,12 +494,25 @@
             date = new Date(date);
         }
 
-        if (date.getHours() === 0 && date.getMinutes() === 0 && date.getSeconds() === 0) {
-            return null; // Kein Zeitanteil vorhanden
+        // Prüfen, ob das Datum ungültig ist
+        if (isNaN(date)) {
+            console.error("Ungültiges Datum in getTimeFromDatetime:", date);
+            return null; // Ungültiges Datum
         }
 
-        // Zeitformat HH:mm:ss zurückgeben (Mit Padding für Minuten/Sekunden)
-        return `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}:${date.getSeconds().toString().padStart(2, '0')}`;
+        // Immer Zeitanteile zurückgeben, unabhängig von Werten (z. B. 00:00:00)
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const seconds = date.getSeconds().toString().padStart(2, '0');
+
+        return `${hours}:${minutes}:${seconds}`;
+    }
+
+    function normalizeDateTime(dateTime) {
+        if (typeof dateTime === "string") {
+            return dateTime.replace(" ", "T");
+        }
+        return dateTime; // Falls der Wert kein String ist, gib ihn direkt zurück.
     }
 
     /**
@@ -514,37 +527,12 @@
      */
     async function setAppointments($wrapper, appointments) {
         const settings = getSettings($wrapper);
+
         // Return a Promise to manage asynchronous operations
         return new Promise((resolve, reject) => {
             // Check if the appointments array is valid, contains appointments, and is not empty
-            if (appointments && Array.isArray(appointments) && appointments.length > 0) {
-
-                // Determine if the system is in search mode to adjust sorting behavior
-                const inSearchMode = getSearchMode($wrapper);
-
-                // Sort the appointments based on their start time
-                // If not in search mode, use ascending order
-                sortAppointmentByStart(appointments, !inSearchMode)
-                    .then(sortedAppointments => {
-                        // Calculate additional details for appointments (e.g., duration, custom flags)
-                        setAppointmentExtras($wrapper, appointments);
-
-                        // Store the processed appointments inside the wrapper's data attribute
-                        $wrapper.data('appointments', appointments);
-
-                        // Resolve the Promise successfully with the processed appointments
-                        resolve(appointments);
-                    })
-                    .catch(error => {
-                        if (settings.debug) {
-                            // Log errors during the sorting or processing of appointments
-                            console.error("Error processing appointments:", error);
-                        }
-
-                        // Reject the Promise if an error occurs
-                        reject(error);
-                    });
-            } else {
+            const hasAppointmentsAsArray = appointments && Array.isArray(appointments) && appointments.length > 0;
+            if (!hasAppointmentsAsArray) {
                 // If no valid appointments are provided, initialize an empty appointments array
                 appointments = [];
 
@@ -553,6 +541,231 @@
 
                 // Resolve the Promise with an empty list of appointments
                 resolve(appointments);
+                return resolve([]);
+            }
+            const view = getView($wrapper);
+            if (view === 'year') {
+                const processedAppointments = appointments
+                    .filter(appointment => {
+                        // Prüfen, ob `date` vorhanden ist und gültig ist
+                        const isValidDate = appointment.hasOwnProperty('date') && !isNaN(Date.parse(appointment.date));
+                        // Prüfen, ob `total` vorhanden ist und größer als 0 ist
+                        const isValidTotal = appointment.hasOwnProperty('total') && parseInt(appointment.total) > 0;
+                        // Nur dann übernehmen, wenn beide Prüfungen erfolgreich sind
+                        return isValidDate && isValidTotal;
+                    })
+                    .map(appointment => {
+                        // Den Wert von `total` auf Integer setzen (falls erforderlich)
+                        appointment.total = parseInt(appointment.total);
+                        return appointment;
+                    });
+                setAppointmentExtras($wrapper, processedAppointments);
+                $wrapper.data('appointments', processedAppointments);
+                return resolve(processedAppointments);
+            }
+
+            // Check if the appointments array is valid, contains appointments, and is not empty
+            cleanAppointments($wrapper, appointments);
+
+            // Determine if the system is in search mode to adjust sorting behavior
+            const inSearchMode = getSearchMode($wrapper);
+
+            // Sort the appointments based on their start time
+            // If not in search mode, use ascending order
+            sortAppointmentByStart(appointments, !inSearchMode)
+                .then(sortedAppointments => {
+                    // Calculate additional details for appointments (e.g., duration, custom flags)
+                    setAppointmentExtras($wrapper, appointments);
+
+                    // Store the processed appointments inside the wrapper's data attribute
+                    $wrapper.data('appointments', appointments);
+
+                    // Resolve the Promise successfully with the processed appointments
+                    resolve(appointments);
+                })
+                .catch(error => {
+                    if (settings.debug) {
+                        // Log errors during the sorting or processing of appointments
+                        console.error("Error processing appointments:", error);
+                    }
+
+                    // Reject the Promise if an error occurs
+                    reject(error);
+                });
+
+        });
+    }
+
+    /**
+     * Get colors (background and text) based on a given color or fallback color, built with jQuery.
+     *
+     * @param {string} color - The primary color as a direct HEX, RGB, RGBA value or a CSS class.
+     * @param {string} fallbackColor - The fallback color or class if the primary color is invalid.
+     * @returns {object} - An object containing the colors: backgroundColor, backgroundImage, and text color.
+     */
+    function getColors(color, fallbackColor) {
+        function isDirectColorValid(inputColor) {
+            if (!inputColor || typeof inputColor !== "string") return false;
+
+            const hexPattern = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+            const rgbPattern = /^rgba?\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})(?:,\s*(0|0?\.\d+|1))?\s*\)$/;
+
+            return hexPattern.test(inputColor) || rgbPattern.test(inputColor);
+        }
+
+        function getComputedStyles(inputClassNames) {
+            // Prüfen und Klassen entsprechend anpassen
+            const classList = inputClassNames.split(" ").map(className => {
+                if (className.includes("opacity") || className.includes("gradient")) {
+                    // Falls opacity oder gradient enthalten ist
+                    return className.startsWith("bg-") ? className : `bg-${className}`;
+                } else {
+                    // Für andere Klassen
+                    return className.startsWith("bg-")
+                        ? className.replace("bg-", "text-bg-") // bg- zu text-bg- ändern
+                        : `text-bg-${className}`; // text-bg- hinzufügen
+                }
+            });
+
+            // console.log("Verarbeitete Klassenliste:", classList);
+
+            // Temporäres Element erstellen
+            const tempElement = document.createElement("div");
+            tempElement.style.display = "none";
+            tempElement.style.position = "absolute";
+            document.body.appendChild(tempElement);
+
+            // Iteration über die Klassen und Zuweisung an das Element
+            classList.forEach(className => {
+                tempElement.classList.add(className);
+            });
+
+            // Mithilfe von getComputedStyle berechnete Stile abrufen
+            const computedStyles = window.getComputedStyle(tempElement);
+
+            // Hintergrundfarbe verarbeiten
+            const backgroundColor = computedStyles.backgroundColor || "rgba(0, 0, 0, 0)";
+            // Hintergrundbild (z. B. für Gradient)
+            const backgroundImage = computedStyles.backgroundImage || "none";
+            // Textfarbe (z. B. abhängig von der Hintergrundfarbe)
+            const color = computedStyles.color || "#000000";
+            // Deckkraft (falls relevant)
+            const opacity = computedStyles.opacity || "1";
+
+            // document.body.removeChild(tempElement); // Temporäres Element entfernen
+
+            // Hintergrundfarbe anpassen, falls Deckkraft vorhanden ist
+            let adjustedBackgroundColor = backgroundColor;
+            if (backgroundColor.startsWith("rgb") && parseFloat(opacity) < 1) {
+                const matchRgb = backgroundColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+                if (matchRgb) {
+                    const [_, r, g, b] = matchRgb;
+                    adjustedBackgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                }
+            }
+
+            // Ergebnis zurückgeben
+            const result = {
+                backgroundColor: adjustedBackgroundColor,
+                backgroundImage: backgroundImage,
+                color: color,
+                classList: classList,
+                origin: inputClassNames,
+            };
+
+            // console.log("Finales Ergebnis:", result);
+            return result;
+        }
+
+        function isDarkColor(color) {
+            let r, g, b;
+
+            if (color.startsWith('#')) {
+                // Hex-color code
+                r = parseInt(color.slice(1, 3), 16);
+                g = parseInt(color.slice(3, 5), 16);
+                b = parseInt(color.slice(5, 7), 16);
+            } else if (color.startsWith('rgb')) {
+                // RGB or RGBA color codes
+                const rgbValues = color.match(/\d+/g); // extract numbers from the character chain
+                r = parseInt(rgbValues[0]);
+                g = parseInt(rgbValues[1]);
+                b = parseInt(rgbValues[2]);
+            } else {
+                throw new Error('Unsupported color format');
+            }
+
+            // YiQ calculation for determination whether the color is dark
+            const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+            return yiq > 128; // return true when the color is dark
+        }
+
+        function computeColor(inputColor) {
+            if (isDirectColorValid(inputColor)) {
+                const isDark = isDarkColor(inputColor);
+                return {
+                    backgroundColor: inputColor, // Direkte Hintergrundfarbe
+                    backgroundImage: "none", // Standardmäßig kein Bild
+                    color: isDark ? "#FFFFFF" : "#000000", // Textfarbe basierend auf Hintergrund
+                };
+            } else if (inputColor) {
+                return getComputedStyles(inputColor); // Klassen berücksichtigen
+            }
+
+            return null; // Ungültiger Input
+        }
+
+        const primaryResult = computeColor(color); // Berechne Primärfarbe
+        const fallbackResult = primaryResult || computeColor(fallbackColor); // Fallback berücksichtigen
+
+        const defaultValues = {
+            backgroundColor: "#000000", // Schwarzer Hintergrund, falls nichts passt
+            backgroundImage: "none", // Kein Hintergrundbild standardmäßig
+            color: "#FFFFFF", // Standard-Textfarbe bei dunklem Hintergrund
+        };
+
+        const result = {...defaultValues, ...fallbackResult};
+
+        return {
+            origin: color, // Eingabe für Debug-Zwecke
+            ...result,
+        };
+    }
+
+    /**
+     * Cleans and normalizes a list of appointments by applying validation and formatting based on the provided wrapper settings.
+     *
+     * @param {Object} $wrapper - The wrapper object containing configuration and settings used for cleaning appointments.
+     * @param {Array} appointments - A list of appointment objects to be cleaned and normalized.
+     * @return {void} - This method does not return a value but modifies the appointments array in place.
+     */
+    function cleanAppointments($wrapper, appointments) {
+        const settings = getSettings($wrapper); // get settings from the wrapper
+        appointments.forEach(appointment => {
+
+            // Ensure start and end times are properly normalized
+            appointment.start = normalizeDateTime(appointment.start.trim());
+            appointment.end = normalizeDateTime(appointment.end.trim());
+
+            if (appointment.allDay) {
+                // Clean up start and end times when the appointment is all-day
+                const startDate = new Date(appointment.start);
+                const endDate = new Date(appointment.end);
+
+                // Set the beginning and end of the whole day
+                appointment.start = new Date(
+                    startDate.getFullYear(),
+                    startDate.getMonth(),
+                    startDate.getDate(),
+                    0, 0, 0 // midnight
+                ).toISOString();
+
+                appointment.end = new Date(
+                    endDate.getFullYear(),
+                    endDate.getMonth(),
+                    endDate.getDate(),
+                    23, 59, 59 // end of the day
+                ).toISOString();
             }
         });
     }
@@ -1482,37 +1695,6 @@
     }
 
     /**
-     * Determines if the given background color is dark based on its RGB or hexadecimal value.
-     * Uses the YiQ calculation formula to determine brightness and darkness thresholds.
-     *
-     * @param {string} color A string representing the background color in either hex format (e.g., "#RRGGBB") or RGB(A) format (e.g., "rgb(255, 255, 255)").
-     * @return {boolean} Returns true if the background color is considered dark, otherwise returns false.
-     * @throws {Error} Throws an error if the color format is not supported.
-     */
-    function isDarkBackgroundColor(color) {
-        let r, g, b;
-
-        if (color.startsWith('#')) {
-            // Hex-color code
-            r = parseInt(color.slice(1, 3), 16);
-            g = parseInt(color.slice(3, 5), 16);
-            b = parseInt(color.slice(5, 7), 16);
-        } else if (color.startsWith('rgb')) {
-            // RGB or RGBA color codes
-            const rgbValues = color.match(/\d+/g); // extract numbers from the character chain
-            r = parseInt(rgbValues[0]);
-            g = parseInt(rgbValues[1]);
-            b = parseInt(rgbValues[2]);
-        } else {
-            throw new Error('Unsupported color format');
-        }
-
-        // YiQ calculation for determination whether the color is dark
-        const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-        return yiq > 128; // return true when the color is dark
-    }
-
-    /**
      * Checks if two appointments overlap based on their start and end times.
      *
      * @param {Object} appointment1 The first appointment object with `start` and `end` properties as date strings.
@@ -1629,12 +1811,9 @@
                         'data-appointment': true,
                         html: appointment.title,
                         class: `badge mx-1 mb-1 flex-fill`,
-                        css: {
-                            backgroundColor: appointment.color || settings.defaultColor
-                        }
                     }).appendTo(allDayWrapper);
                     appointmentElement.data('appointment', appointment);
-                    setColorByBackgroundColor(appointmentElement, settings.defaultColor);
+                    setAppointmentStyles(appointmentElement, appointment.extras.colors);
                     setPopoverForAppointment($wrapper, appointmentElement)
                 }
             });
@@ -1653,48 +1832,52 @@
             columns.forEach((column, columnIndex) => {
                 column.forEach((slotData) => {
                     const appointment = slotData.appointment;
-                    const backgroundColor = appointment.color || settings.defaultColor;
 
-                    // Prüfen, ob der Termin keine Überschneidungen mit späteren Columns hat
+                    // Prüfen ob slotData.start und slotData.end gültige Daten sind
+                    const startDate = new Date(slotData.start);
+                    const endDate = new Date(slotData.end);
+
+                    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                        console.warn(`Ungültiges Datum in Appointment: ${appointment?.title || 'unknown'}`);
+                        return; // Überspringe das fehlerhafte Datum
+                    }
+
+
                     const noOverlapWithNextColumns = columns
-                        .slice(columnIndex + 1) // Nimm alle späteren Columns
+                        .slice(columnIndex + 1)
                         .every(nextColumn =>
                             nextColumn.every(slot =>
-                                slotData.end <= slot.start || slotData.start >= slot.end // Kein Überschneiden
+                                endDate <= new Date(slot.start) || startDate >= new Date(slot.end)
                             )
                         );
 
-                    // Breitenberechnung unter Berücksichtigung der Margins (Gaps)
-                    const totalGap = (totalColumns - 1) * columnGap; // Gesamtbreite der Gaps
+                    const totalGap = (totalColumns - 1) * columnGap;
                     let appointmentWidthPercent;
 
                     if (noOverlapWithNextColumns) {
-                        // Falls keine Überschneidungen mit späteren Columns → bis zum rechten Rand strecken
-                        const remainingColumns = totalColumns - columnIndex; // Verbleibende Columns
-                        const remainingGap = (remainingColumns - 1) * columnGap; // Margins für verbleibende Columns
+                        const remainingColumns = totalColumns - columnIndex;
+                        const remainingGap = (remainingColumns - 1) * columnGap;
                         appointmentWidthPercent = 100 - ((columnIndex * (100 / totalColumns)) + (remainingGap * 100 / $weekDayContainer.width()));
                     } else {
-                        // Normale Berechnung für Spaltenbreite
                         appointmentWidthPercent = totalColumns > 1
                             ? (100 - (totalGap * 100 / $weekDayContainer.width())) / totalColumns
                             : 100;
                     }
 
                     const appointmentLeftPercent = totalColumns > 1
-                        ? (columnIndex * (100 / totalColumns)) // Standardberechnung basierend auf der Column
+                        ? (columnIndex * (100 / totalColumns))
                         : 0;
 
                     const position = calculateSlotPosition(
-                        slotData.start.toISOString(),
-                        slotData.end.toISOString()
+                        startDate.toISOString(),
+                        endDate.toISOString()
                     );
 
-                    // Rendern des Termins in der Spalte
-                    const appointmentElement = $('<small>', {
+                    // Rendern des Termins
+                    const appointmentElement = $('<div>', {
                         'data-appointment': true,
                         class: 'position-absolute text-nowrap text-truncate px-2 btn-sm overflow-hidden',
                         css: {
-                            backgroundColor: backgroundColor,
                             top: `${position.top}px`,
                             height: `${position.height}px`,
                             left: `${appointmentLeftPercent}%`,
@@ -1703,9 +1886,9 @@
                         text: `${appointment.title}`,
                     }).appendTo($weekDayContainer);
 
-                    // Meta-Daten und Styling hinzufügen
                     appointmentElement.data('appointment', appointment);
-                    setColorByBackgroundColor(appointmentElement, settings.defaultColor);
+                    // console.log('set colors for day or week', appointment.extras.colors, appointment);
+                    setAppointmentStyles(appointmentElement, appointment.extras.colors);
                     setPopoverForAppointment($wrapper, appointmentElement);
                 });
             });
@@ -1713,23 +1896,37 @@
             /** 2. Rendern der isolierten Full-Width-Termine **/
             fullWidth.forEach((slotData) => {
                 const appointment = slotData.appointment;
-                const backgroundColor = appointment.color || settings.defaultColor;
 
                 // Termine, die die ganze Breite einnehmen
                 const appointmentWidthPercent = 100; // Volle Breite
                 const appointmentLeftPercent = 0; // Kein Abstand von links
 
-                const position = calculateSlotPosition(
-                    slotData.start.toISOString(),
-                    slotData.end.toISOString()
-                );
+                // Standardwert für position
+                let position = {
+                    top: 0,
+                    height: 0
+                };
+
+                // Gültigkeitsprüfung für die Daten
+                if (
+                    slotData.start instanceof Date &&
+                    !isNaN(slotData.start) &&
+                    slotData.end instanceof Date &&
+                    !isNaN(slotData.end)
+                ) {
+                    position = calculateSlotPosition(
+                        slotData.start.toISOString(),
+                        slotData.end.toISOString()
+                    );
+                } else {
+                    console.error("Invalid date detected:", slotData.start, slotData.end, appointment);
+                }
 
                 // Rendern des Full-Width-Termins
                 const appointmentElement = $('<small>', {
                     'data-appointment': true,
                     class: 'position-absolute text-nowrap text-truncate px-2 btn-sm overflow-hidden',
                     css: {
-                        backgroundColor: backgroundColor,
                         top: `${position.top}px`,
                         height: `${position.height}px`,
                         left: `${appointmentLeftPercent}%`,
@@ -1740,7 +1937,7 @@
 
                 // Meta-Daten und Styling hinzufügen
                 appointmentElement.data('appointment', appointment);
-                setColorByBackgroundColor(appointmentElement, settings.defaultColor);
+                setAppointmentStyles(appointmentElement, appointment.extras.colors);
                 setPopoverForAppointment($wrapper, appointmentElement);
             });
         });
@@ -1752,12 +1949,16 @@
      * If the background color is light, the text color is set to black (#000000).
      *
      * @param {jQuery} $el - The jQuery element whose text color is to be adjusted.
-     * @param {string} defaultColor - The default background color to use if the element does not have a defined background color.
+     * @param {object} colors - The default background color to use if the element does not have a defined background color.
      * @return {void} No return value, the method modifies the element's style directly.
      */
-    function setColorByBackgroundColor($el, defaultColor) {
-        const backgroundColor = $el.css('background-color') || defaultColor;
-        $el.css('color', !isDarkBackgroundColor(backgroundColor) ? '#ffffff' : '#000000');
+    function setAppointmentStyles($el, colors) {
+
+        $el.css({
+            backgroundColor: colors.backgroundColor,
+            color: colors.color,
+            backgroundImage: colors.backgroundImage,
+        });
     }
 
     /**
@@ -1992,10 +2193,10 @@
                         fontSize: '12px',
                         lineHeight: '16px'
                     },
-                    class: 'px-1 w-100 overflow-hidden',
+                    class: 'px-1 w-100 overflow-hidden mb-1',
                     html: [
                         `<div class=" d-flex align-items-center flex-nowrap">`,
-                        `<i class="${iconClass} me-1 mr-1" style="color: ${appointment.color || settings.defaultColor}; font-size: 12px"></i>`,
+                        `<i class="${iconClass} me-1 mr-1" style="font-size: 12px"></i>`,
                         timeToShow,
                         `<strong class="text-nowrap">${appointment.title}</strong>`,
                         `</div>`
@@ -2003,6 +2204,7 @@
                 }).appendTo(dayContainer);
 
                 appointmentElement.data('appointment', appointment);
+                setAppointmentStyles(appointmentElement, appointment.extras.colors);
                 setPopoverForAppointment($wrapper, appointmentElement);
             })
         })
@@ -2089,99 +2291,112 @@
      */
     function setAppointmentExtras($wrapper, appointments) {
         const settings = getSettings($wrapper);
+        const view = getView($wrapper);
+        if (view === 'year') {
+            appointments.forEach(appointment => {
+                const extras = {
+                    colors: getColors(appointment.color || settings.defaultColor, settings.defaultColor)
+                };
+                appointment.extras = extras;
+            })
+            return;
+        } else {
+            appointments.forEach(appointment => {
 
-        appointments.forEach(appointment => {
-            const start = new Date(appointment.start);
-            const end = new Date(appointment.end);
+                const start = new Date(appointment.start);
+                const end = new Date(appointment.end);
+                const isAllDay = appointment.allDay;
 
-            // Struktur für zusätzliche Informationen
-            const extras = {
-                start: {
-                    date: formatDateToDateString(appointment.start),
-                    time: getTimeFromDatetime(appointment.start)
-                },
-                end: {
-                    date: formatDateToDateString(appointment.end),
-                    time: getTimeFromDatetime(appointment.end)
-                },
-                duration: {
-                    days: 0,
-                    hours: 0,
-                    minutes: 0,
-                    seconds: 0
-                },
-                displayDates: [], // Angepasst, um datumsweise Details zu verwalten
-                inADay: false,
-            };
-
-            // Kopiere Anfangs- und Enddatum, nur Datum ohne Zeitanteile
-            let tempDate = new Date(start);
-            let tempEnd = new Date(end);
-            tempDate.setHours(0, 0, 0, 0);
-            tempEnd.setHours(0, 0, 0, 0);
-
-            while (tempDate <= tempEnd) {
-                // Temporäres Datum: berechne spezifische Start- und Endzeiten
-                const dateIsStart = isSameDate(tempDate, start);
-                const dateIsEnd = isSameDate(tempDate, end);
-
-                const dateDetails = {
-                    date: formatDateToDateString(tempDate),
-                    day: tempDate.getDay(),
-                    times: {
-                        start: null,
-                        end: null
-                    }
+                // Struktur für zusätzliche Informationen
+                const extras = {
+                    colors: getColors(appointment.color, settings.defaultColor),
+                    start: {
+                        date: formatDateToDateString(appointment.start),
+                        time: isAllDay ? '00:00:00' : getTimeFromDatetime(appointment.start)
+                    },
+                    end: {
+                        date: formatDateToDateString(appointment.end),
+                        time: isAllDay ? '23:59:59' : getTimeFromDatetime(appointment.end)
+                    },
+                    duration: {
+                        days: 0,
+                        hours: 0,
+                        minutes: 0,
+                        seconds: 0
+                    },
+                    displayDates: [], // Angepasst, um datumsweise Details zu verwalten
+                    inADay: false,
                 };
 
-                if (appointment.allDay) {
-                    // Ganztägiger Termin -> Keine spezifischen Zeiten
-                    dateDetails.times.start = null;
-                    dateDetails.times.end = null;
-                } else {
-                    if (dateIsStart) {
-                        // Erster Tag: Tatsächliche Startzeit und Tagesende, falls nötig
-                        dateDetails.times.start = getTimeFromDatetime(start);
-                        dateDetails.times.end = end > new Date(tempDate).setHours(23, 59, 59, 999)
-                            ? '23:59'
-                            : getTimeFromDatetime(end);
-                    } else if (dateIsEnd) {
-                        // Letzter Tag: Tagesbeginn bis tatsächliches Ende
-                        dateDetails.times.start = '00:00';
-                        dateDetails.times.end = getTimeFromDatetime(end);
+                // Kopiere Anfangs- und Enddatum, nur Datum ohne Zeitanteile
+                let tempDate = new Date(start);
+                let tempEnd = new Date(end);
+                tempDate.setHours(0, 0, 0, 0);
+                tempEnd.setHours(0, 0, 0, 0);
+
+                while (tempDate <= tempEnd) {
+                    // Temporäres Datum: berechne spezifische Start- und Endzeiten
+                    const dateIsStart = isSameDate(tempDate, start);
+                    const dateIsEnd = isSameDate(tempDate, end);
+
+                    const dateDetails = {
+                        date: formatDateToDateString(tempDate),
+                        day: tempDate.getDay(),
+                        times: {
+                            start: null,
+                            end: null
+                        }
+                    };
+
+                    if (isAllDay) {
+                        // Ganztägiger Termin -> Keine spezifischen Zeiten
+                        dateDetails.times.start = null;
+                        dateDetails.times.end = null;
                     } else {
-                        // Mittlere Tage: Ganztägige Zeit (00:00 bis 23:59)
-                        dateDetails.times.start = '00:00';
-                        dateDetails.times.end = '23:59';
+                        if (dateIsStart) {
+                            // Erster Tag: Tatsächliche Startzeit und Tagesende, falls nötig
+                            dateDetails.times.start = getTimeFromDatetime(start);
+                            dateDetails.times.end = end > new Date(tempDate).setHours(23, 59, 59, 999)
+                                ? '23:59'
+                                : getTimeFromDatetime(end);
+                        } else if (dateIsEnd) {
+                            // Letzter Tag: Tagesbeginn bis tatsächliches Ende
+                            dateDetails.times.start = '00:00';
+                            dateDetails.times.end = getTimeFromDatetime(end);
+                        } else {
+                            // Mittlere Tage: Ganztägige Zeit (00:00 bis 23:59)
+                            dateDetails.times.start = '00:00';
+                            dateDetails.times.end = '23:59';
+                        }
                     }
+
+                    // Füge Elemente zu den Display Dates hinzu
+                    extras.displayDates.push(dateDetails);
+
+                    // TempDate auf den nächsten Tag erhöhen
+                    tempDate.setDate(tempDate.getDate() + 1);
                 }
 
-                // Füge Elemente zu den Display Dates hinzu
-                extras.displayDates.push(dateDetails);
+                // Prüfe, ob der Termin vollständig an einem Tag bleibt
+                extras.inADay = extras.displayDates.length === 1;
 
-                // TempDate auf den nächsten Tag erhöhen
-                tempDate.setDate(tempDate.getDate() + 1);
-            }
+                // Berechnung der Gesamtdauer des Termins
+                const diffMillis = end - start;
+                const totalSeconds = Math.floor(diffMillis / 1000);
 
-            // Prüfe, ob der Termin vollständig an einem Tag bleibt
-            extras.inADay = extras.displayDates.length === 1;
+                extras.duration.days = Math.floor(totalSeconds / (24 * 3600));
+                extras.duration.hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
+                extras.duration.minutes = Math.floor((totalSeconds % 3600) / 60);
+                extras.duration.seconds = totalSeconds % 60;
 
-            // Berechnung der Gesamtdauer des Termins
-            const diffMillis = end - start;
-            const totalSeconds = Math.floor(diffMillis / 1000);
+                if (settings.debug) {
+                    log('Calculated extras:', extras);
+                }
 
-            extras.duration.days = Math.floor(totalSeconds / (24 * 3600));
-            extras.duration.hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
-            extras.duration.minutes = Math.floor((totalSeconds % 3600) / 60);
-            extras.duration.seconds = totalSeconds % 60;
-
-            if (settings.debug) {
-                log('Calculated extras:', extras);
-            }
-
-            // Zusätzliche Daten an den Termin anhängen
-            appointment.extras = extras;
-        });
+                // Zusätzliche Daten an den Termin anhängen
+                appointment.extras = extras;
+            });
+        }
     }
 
     /**
@@ -2231,9 +2446,9 @@
     function drawAppointmentsForYear($wrapper, appointments) {
         const $container = getViewContainer($wrapper);
         appointments.forEach(appointment => {
-            if (appointment.hasOwnProperty('date') && appointment.hasOwnProperty('total') && parseInt(appointment.total) > 0) {
-                $container.find(`[data-date="${appointment.date}"] .badge`).text(appointment.total);
-            }
+                const badge = $container.find(`[data-date="${appointment.date}"] .js-badge`);
+                setAppointmentStyles(badge, appointment.extras.colors);
+                badge.text(appointment.total);
         })
     }
 
@@ -2685,7 +2900,7 @@
 
                 let badge = '';
                 if (forYearView) {
-                    badge = `<span class="badge rounded-pill bg-warning position-absolute top-100 start-50 translate-middle"></span>`;
+                    badge = `<span class="js-badge badge rounded-pill position-absolute top-100 start-50 translate-middle"></span>`;
                 }
 
                 const tdContent = [`<div class="${dayClass} w-100 h-100 d-flex justify-content-center flex-column align-items-center">`,
