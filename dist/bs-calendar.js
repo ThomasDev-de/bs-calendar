@@ -1183,6 +1183,7 @@
             })
             .on('keyup', '[data-search-input]', function (e) {
                 e.preventDefault();
+
                 const input = $(e.currentTarget);
                 const isEmpty = isValueEmpty(input.val()); // Check if the input is empty
                 let inSearchMode = getSearchMode($wrapper);
@@ -1253,7 +1254,8 @@
 
                 const settings = getSettings($wrapper);
                 const appointment = element.data('appointment');
-                trigger($wrapper, 'edit', [appointment, element]);
+                // trigger($wrapper, 'edit', [appointment, element]);
+                showInfoWindow(element);
             })
             .on('click', '[data-date]', function (e) {
                 e.preventDefault();
@@ -2218,7 +2220,7 @@
      * @return {void} This method does not return any value.
      */
     function setPopoverForAppointment($wrapper, $appointmentElement) {
-        // return;
+        return;
         const settings = getSettings($wrapper);
         if (typeof settings.formatInfoWindow === "function") {
             $appointmentElement.css('cursor', 'pointer');
@@ -2446,9 +2448,9 @@
     function drawAppointmentsForYear($wrapper, appointments) {
         const $container = getViewContainer($wrapper);
         appointments.forEach(appointment => {
-                const badge = $container.find(`[data-date="${appointment.date}"] .js-badge`);
-                setAppointmentStyles(badge, appointment.extras.colors);
-                badge.text(appointment.total);
+            const badge = $container.find(`[data-date="${appointment.date}"] .js-badge`);
+            setAppointmentStyles(badge, appointment.extras.colors);
+            badge.text(appointment.total);
         })
     }
 
@@ -3334,5 +3336,158 @@
             const tempDate = new Date(year, month, 1); // start date of the current month
             buildMonthSmallView($wrapper, tempDate, monthContainer, true);
         }
+    }
+
+    function showInfoWindow(targetElement) {
+        const appointment = targetElement.data('appointment');
+        // Prüfen, ob das Modal existiert
+        let $modal = $('#dynamicModal');
+
+        const html = `
+        <h3>${appointment.title}</h3>
+          <p>${appointment.description || "Keine Beschreibung verfügbar."}</p>
+        <p><strong>Von:</strong> ${appointment.start}</p>
+        <p><strong>Bis:</strong> ${appointment.end}</p>
+    `;
+
+        const modalExists = $modal.length > 0;
+        if (!modalExists) {
+            const modalHtml = `
+            <div class="modal fade" id="dynamicModal" tabindex="-1" data-bs-backdrop="false" style="pointer-events: none;">
+                <div class="modal-dialog position-absolute" style="pointer-events: auto; ">
+                    <div class="modal-content rounded-5  border border-1 shadow" style="">
+                        <div class="modal-body d-flex flex-column align-items-stretch" style="">
+                            <div class="d-flex justify-content-end align-items-center" data-info-appointment>
+                                  <button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i> </button>
+                                  <button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-pen"></i> </button>
+                                  <button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i> </button>
+                            </div>
+                            <div class="modal-appointment flex-fill overflow-y-auto" style="">
+                                ${html}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+            // Modal dem DOM hinzufügen
+            $('body').append(modalHtml);
+            $modal = $('#dynamicModal');
+
+            // Modal initialisieren
+            $modal.modal({
+                backdrop: false,
+                keyboard: true
+            });
+        } else {
+            $modal.find('.modal-appointment').html(html);
+        }
+
+        $modal.find('[data-info-appointment]').data('appointment', appointment);
+
+        // Berechnung der Position
+        const $modalDialog = $modal.find('.modal-dialog');
+        const $target = $(targetElement);
+        const targetOffset = $target.offset();
+        const targetWidth = $target.outerWidth();
+        const targetHeight = $target.outerHeight();
+
+        setTimeout(() => {
+            const modalWidth = $modalDialog.outerWidth();
+            const modalHeight = $modalDialog.outerHeight();
+            const minSpaceFromEdge = 60; // Abstand zum Rand des Fensters
+
+            // Bildschirmgröße und Scrollposition berücksichtigen
+            const viewportWidth = $(window).width();
+            const viewportHeight = $(window).height();
+            const scrollTop = $(window).scrollTop();
+            const scrollLeft = $(window).scrollLeft();
+
+            // Freier Platz berechnen
+            const spaceAbove = targetOffset.top - scrollTop; // Platz oberhalb
+            const spaceBelow = viewportHeight - (targetOffset.top - scrollTop + targetHeight); // Platz unterhalb
+            const spaceLeft = targetOffset.left - scrollLeft; // Platz links
+            const spaceRight = viewportWidth - (targetOffset.left - scrollLeft + targetWidth); // Platz rechts
+
+            // Standardmäßig: Modal unterhalb positionieren
+            let position = 'bottom';
+            if (spaceAbove >= Math.max(spaceBelow, spaceLeft, spaceRight)) {
+                position = 'top'; // Mehr Platz oben
+            } else if (spaceBelow >= Math.max(spaceAbove, spaceLeft, spaceRight)) {
+                position = 'bottom'; // Mehr Platz unten
+            } else if (spaceLeft >= Math.max(spaceAbove, spaceBelow, spaceRight)) {
+                position = 'left'; // Mehr Platz links
+            } else if (spaceRight >= Math.max(spaceAbove, spaceBelow, spaceLeft)) {
+                position = 'right'; // Mehr Platz rechts
+            }
+
+            // Modal-Position berechnen
+            let top = 0;
+            let left = 0;
+            switch (position) {
+                case 'top': // Oberhalb
+                    top = targetOffset.top - scrollTop - modalHeight - 10;
+                    left = targetOffset.left - scrollLeft + (targetWidth / 2) - (modalWidth / 2);
+                    break;
+                case 'bottom': // Unterhalb
+                    top = targetOffset.top - scrollTop + targetHeight + 10;
+                    left = targetOffset.left - scrollLeft + (targetWidth / 2) - (modalWidth / 2);
+                    break;
+                case 'left': // Links
+                    top = targetOffset.top - scrollTop + (targetHeight / 2) - (modalHeight / 2);
+                    left = targetOffset.left - scrollLeft - modalWidth - 10;
+                    break;
+                case 'right': // Rechts
+                    top = targetOffset.top - scrollTop + (targetHeight / 2) - (modalHeight / 2);
+                    left = targetOffset.left - scrollLeft + targetWidth + 10;
+                    break;
+            }
+
+            // Sicherstellen, dass das Modal mindestens 10px vom Rand entfernt bleibt
+            if (top < minSpaceFromEdge) {
+                top = minSpaceFromEdge;
+            }
+            if (left < minSpaceFromEdge) {
+                left = minSpaceFromEdge;
+            }
+            if (top + modalHeight > viewportHeight - minSpaceFromEdge) {
+                top = viewportHeight - modalHeight - minSpaceFromEdge;
+            }
+            if (left + modalWidth > viewportWidth - minSpaceFromEdge) {
+                left = viewportWidth - modalWidth - minSpaceFromEdge;
+            }
+
+            // Position des Modals anwenden
+            if (modalExists) {
+                $modalDialog.animate({
+                    top: `${top}px`,
+                    left: `${left}px`
+                });
+            } else {
+                $modalDialog.css({
+                    top: `${top}px`,
+                    left: `${left}px`
+                });
+            }
+        }, 0);
+
+        // Modal anzeigen
+        if (!$modal.hasClass('show')) {
+            $modal.modal('show');
+        }
+
+        // Schließen, wenn außerhalb geklickt wird
+        $('body')
+            .on('click', function (e) {
+                const isModalContent = $modalDialog.is(e.target) || $modalDialog.has(e.target).length > 0;
+                const isTargetElement = $(e.target).closest('[data-appointment]').length > 0;
+
+                if (!isModalContent && !isTargetElement) {
+                    $modal.modal('hide');
+                }
+            })
+            .on('hidden.bs.modal', function () {
+                $modal.remove(); // Nach Schließen das Modal entfernen
+            });
     }
 }(jQuery))
