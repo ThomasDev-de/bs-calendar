@@ -1876,7 +1876,7 @@
                     // Rendern des Termins
                     const appointmentElement = $('<div>', {
                         'data-appointment': true,
-                        class: 'position-absolute text-nowrap text-truncate px-2 btn-sm overflow-hidden',
+                        class: 'position-absolute text-nowrap text-truncate px-2 btn-sm overflow-hidden rounded',
                         css: {
                             top: `${position.top}px`,
                             height: `${position.height}px`,
@@ -1925,7 +1925,7 @@
                 // Rendern des Full-Width-Termins
                 const appointmentElement = $('<small>', {
                     'data-appointment': true,
-                    class: 'position-absolute text-nowrap text-truncate px-2 btn-sm overflow-hidden',
+                    class: 'position-absolute text-nowrap text-truncate px-2 btn-sm overflow-hidden rounded',
                     css: {
                         top: `${position.top}px`,
                         height: `${position.height}px`,
@@ -2193,7 +2193,7 @@
                         fontSize: '12px',
                         lineHeight: '16px'
                     },
-                    class: 'px-1 w-100 overflow-hidden mb-1',
+                    class: 'px-1 w-100 overflow-hidden mb-1 rounded',
                     html: [
                         `<div class=" d-flex align-items-center flex-nowrap">`,
                         `<i class="${iconClass} me-1 mr-1" style="font-size: 12px"></i>`,
