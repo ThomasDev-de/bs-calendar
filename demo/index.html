@@ -183,24 +183,22 @@
                 modal.find('input[name="link"]').val(null);
                 modal.modal('show');
             })
-            .on('edit.bs.calendar', function (event, appointment, $element) {
+            .on('edit.bs.calendar', function (event, appointment, extras) {
                 event.preventDefault();
                 console.log(appointment);
 
-                const start = appointment.start; // Exakt erhaltenes Datum und Uhrzeit
-                const end = appointment.end;     // Exakt erhaltenes Datum und Uhrzeit
                 const isAllDay = appointment.allDay;
                 const title = appointment.title;
                 const description = appointment.description;
                 const color = appointment.color;
                 const link = appointment.link;
 
-                const fromTime = isAllDay ? null : appointment.extras.start.time.substring(0, 5);
-                const toTime = isAllDay ? null : appointment.extras.end.time.substring(0, 5);
+                const fromTime = isAllDay ? null : extras.start.time.substring(0, 5);
+                const toTime = isAllDay ? null : extras.end.time.substring(0, 5);
 
                 modal.find('input[name="title"]').val(title);
-                modal.find('input[name="from_date"]').val(appointment.extras.start.date);   // Datum aus 'YYYY-MM-DD HH:mm:ss'
-                modal.find('input[name="to_date"]').val(appointment.extras.end.date);       // Datum aus 'YYYY-MM-DD HH:mm:ss'
+                modal.find('input[name="from_date"]').val(extras.start.date);   // Datum aus 'YYYY-MM-DD HH:mm:ss'
+                modal.find('input[name="to_date"]').val(extras.end.date);       // Datum aus 'YYYY-MM-DD HH:mm:ss'
                 modal.find('input[name="from_time"]').val(fromTime);   // Uhrzeit aus 'YYYY-MM-DD HH:mm:ss'
                 modal.find('input[name="to_time"]').val(toTime);       // Uhrzeit aus 'YYYY-MM-DD HH:mm:ss'
                 modal.find('input[name="allDay"]').prop('checked', isAllDay).trigger('change');
@@ -386,10 +384,8 @@
 
         function generateRandomAppointments(start, end, view = null) {
             const colors = [
-                // 'rgba(13,100,25,.5)', '#6c757d', '#28a745', '#ffc107',
                 'primary opacity-75 gradient', 'danger opacity-75 gradient', 'info gradient  opacity-75', 'warning gradient  opacity-75',
                 'secondary opacity-75 gradient', 'dark opacity-75 gradient', 'light gradient  opacity-75', 'success gradient  opacity-75',
-                // '#17a2b8', '#343a40', '#6f42c1', '#0dcaf0'
             ];
 
             const appointments = [];
@@ -450,6 +446,20 @@
                 const color = colors[Math.floor(Math.random() * colors.length)];
                 const link = 'https://github.com/ThomasDev-de/bs-calendar';
 
+                // Location zufällig generieren: String, Array oder null
+                let location;
+                const randomChoice = Math.floor(Math.random() * 3); // 0 = String, 1 = Array, 2 = null
+                if (randomChoice === 0) {
+                    location = `Location ${Math.floor(Math.random() * 100) + 1}`; // z. B. "Location 42"
+                } else if (randomChoice === 1) {
+                    location = [
+                        `Room ${Math.floor(Math.random() * 10) + 1}`,
+                        `Building ${Math.floor(Math.random() * 5) + 1}`
+                    ]; // z. B. ["Room 3", "Building 2"]
+                } else {
+                    location = null; // Keine Location
+                }
+
                 // Den Termin erstellen
                 const appointment = {
                     id: i + 1,
@@ -459,7 +469,8 @@
                     end: randomEndTime.toISOString().replace('T', ' ').substring(0, 19),
                     allDay: i % 21 === 0,
                     color: color,
-                    link: link
+                    link: link,
+                    location: location // Location hinzufügen
                 };
 
                 appointments.push(appointment);

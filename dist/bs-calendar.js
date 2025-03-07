@@ -262,6 +262,7 @@
      * @return {void} Does not return a value.
      */
     function destroy($wrapper) {
+        $(infoWindowModalId).modal('hide');
         $wrapper.removeData('initBsCalendar');
         $wrapper.removeData('settings');
         $wrapper.removeData('view');
@@ -270,6 +271,7 @@
         $wrapper.removeData('searchMode');
         $wrapper.removeData('searchPagination');
         $wrapper.removeData('currentRequest');
+
         $wrapper.empty();
     }
 
@@ -369,32 +371,60 @@
      * @param {Object} appointment - The appointment object containing details to format the information window.
      * @return {string} An HTML string representing the formatted information window for the appointment.
      */
-    function formatInfoWindow(appointment) {
-        const description = appointment.hasOwnProperty('description') ? '<p>' + appointment.description + '</p>' : '';
-        const color = appointment.hasOwnProperty('color') ? `<i class="bi bi-circle-fill me-2" style="color: ${appointment.color}"></i>` : '';
-        const link = appointment.hasOwnProperty('link') ? `<a href="${appointment.link}" target="_blank" class="btn btn-primary btn-sm mt-3">open</a>` : '';
-        const start = new Date(appointment.start);
-        const end = new Date(appointment.end);
-        const startFormatted = start.toLocaleString('de-DE', {dateStyle: 'short', timeStyle: 'short'});
-        const endFormatted = end.toLocaleString('de-DE', {dateStyle: 'short', timeStyle: 'short'});
-        const isAllDay = appointment.hasOwnProperty('allDay') && appointment.allDay;
-        const duration = isAllDay ? '' : $.bsCalendar.getDefaults().formatDuration(appointment.extras.duration);
-        const startEnd = [
-            `<span>Start: ${startFormatted}</span>`,
-            `<span>End: ${endFormatted}</span>`,
-            `<span>Duration: ${duration}</span>`,
-        ];
-        const period = isAllDay ?
-            `<span class="badge bg-info">all day</span>` :
-            startEnd.join('');
+    function formatInfoWindow(appointment, locale) {
+        const times = [];
+        const displayDates = appointment.extras.displayDates;
+        const startDate = formatDateByLocale(displayDates[0].date);
+        const endDate = formatDateByLocale(displayDates[displayDates.length - 1].date);
+        const isDameDate = startDate === endDate;
+        let showDate = isDameDate ? startDate : `${startDate} - ${endDate}`;
+        let showTime = showDate;
+        if (!appointment.allDay) {
+            let startTime = appointment.extras.displayDates[0].times.start.substring(0, 5);
+            let endTime = appointment.extras.displayDates[displayDates.length - 1].times.end.substring(0, 5);
+            if (isDameDate) {
+                showTime = `${startDate} ${startTime} - ${endTime}`;
+            } else {
+                showTime = `${startDate} ${startTime}<br>${endDate} ${endTime}`;
+            }
+        }
+        const link = appointment.link ? `<a class="btn btn-primary" href="${appointment.link}" target="_blank" rel="noopener noreferrer">Link</a>` : '';
+        let location = "";
+        if (appointment.location) {
+            if (Array.isArray(appointment.location)) {
+                location = appointment.location.join('<br>')
+            }
+            if (typeof appointment.location === 'string') {
+                location = appointment.location;
+            }
+            if (location !== "") {
+                location = `<p>${location}</p>`;
+            }
+        }
+
         return [
-            `<div class="d-flex flex-column">`,
-            `<h4>${color}${appointment.title}</h4>`,
-            description,
-            period,
-            link,
-            `</div>`
+            `<h3>${appointment.title}</h3>`,
+            `<p>${showTime} (${appointment.extras.duration.formatted})</p>`,
+            location,
+            `<p>${appointment.description || "Keine Beschreibung verfügbar."}</p>`,
+            link
         ].join('');
+    }
+
+    /**
+     * Formatiert ein Datum anhand einer gegebenen Locale.
+     *
+     * @param {Date} date - Das zu formatierende Datum.
+     * @param {string} locale - Die zu verwendende Locale, z.B. 'de-DE' für Deutsch oder 'en-US' für Englisch (Standard: 'en-EN').
+     * @returns {string} Das formatierte Datum.
+     */
+    function formatDateByLocale(date, locale) {
+        if (typeof date === 'string') {
+            date = new Date(date);
+        }
+        // Formatierungsoptionen
+        const options = {weekday: 'long', month: 'long', day: 'numeric'};
+        return new Intl.DateTimeFormat(locale, options).format(date);
     }
 
     function log(message, ...params) {
@@ -1166,6 +1196,30 @@
             }, 100); // Delay of 100 milliseconds
         });
         $('body')
+            .on('click', infoWindowModalId + ' [data-edit]', function (e) {
+                e.preventDefault();
+                const appointment = $(infoWindowModalId).data('appointment');
+                let extras = null;
+                if (appointment.extras) {
+                    extras = appointment.extras;
+                    delete appointment.extras;
+                }
+
+                $(infoWindowModalId).modal('hide')
+                trigger($wrapper, 'edit', [appointment, extras]);
+            })
+            .on('click', infoWindowModalId + ' [data-remove]', function () {
+                e.preventDefault();
+                const appointment = $(infoWindowModalId).data('appointment');
+                let extras = null;
+                if (appointment.extras) {
+                    extras = appointment.extras;
+                    delete appointment.extras;
+                }
+
+                $(infoWindowModalId).modal('hide')
+                trigger($wrapper, 'delete', [appointment, extras]);
+            })
             .on('click', function (e) {
                 const $target = $(e.target);
                 const isInsideModal = $target.closest(infoWindowModalId).length > 0; // checks for modal or child elements
@@ -1268,13 +1322,7 @@
 
                 e.preventDefault();
                 const element = $(e.currentTarget);
-                element.popover('hide');
-                element.removeClass('text-bg-light');
-
-                const settings = getSettings($wrapper);
-                const appointment = element.data('appointment');
-                // trigger($wrapper, 'edit', [appointment, element]);
-                showInfoWindow(element);
+                showInfoWindow($wrapper, element);
             })
             .on('click', '[data-date]', function (e) {
                 e.preventDefault();
@@ -1835,7 +1883,6 @@
                     }).appendTo(allDayWrapper);
                     appointmentElement.data('appointment', appointment);
                     setAppointmentStyles(appointmentElement, appointment.extras.colors);
-                    setPopoverForAppointment($wrapper, appointmentElement)
                 }
             });
         });
@@ -1910,7 +1957,6 @@
                     appointmentElement.data('appointment', appointment);
                     // console.log('set colors for day or week', appointment.extras.colors, appointment);
                     setAppointmentStyles(appointmentElement, appointment.extras.colors);
-                    setPopoverForAppointment($wrapper, appointmentElement);
                 });
             });
 
@@ -1959,7 +2005,6 @@
                 // Meta-Daten und Styling hinzufügen
                 appointmentElement.data('appointment', appointment);
                 setAppointmentStyles(appointmentElement, appointment.extras.colors);
-                setPopoverForAppointment($wrapper, appointmentElement);
             });
         });
     }
@@ -2090,7 +2135,6 @@
             }).appendTo($appointmentContainer);
 
             appointmentElement.data('appointment', appointment);
-            setPopoverForAppointment($wrapper, appointmentElement);
         });
 
         // Pagination unten hinzufügen
@@ -2227,79 +2271,8 @@
 
                 appointmentElement.data('appointment', appointment);
                 setAppointmentStyles(appointmentElement, appointment.extras.colors);
-                setPopoverForAppointment($wrapper, appointmentElement);
             })
         })
-    }
-
-    /**
-     * Configures a popover for a given appointment element to show additional information on hover.
-     *
-     * @param {jQuery} $wrapper - The container element within which the popover should exist.
-     * @param {jQuery} $appointmentElement - The jQuery element representing the appointment for which the popover is to be configured.
-     * @return {void} This method does not return any value.
-     */
-    function setPopoverForAppointment($wrapper, $appointmentElement) {
-        return;
-        const settings = getSettings($wrapper);
-        if (typeof settings.formatInfoWindow === "function") {
-            $appointmentElement.css('cursor', 'pointer');
-            const appointment = $appointmentElement.data('appointment');
-            const delayShow = 400;
-            const delayHide = 400;
-            const activeClass = 'text-bg-light';
-            // Initialisiere das Popover
-            $appointmentElement
-                .popover({
-                    animation: false,
-                    sanitize: false,
-                    trigger: 'manual', // Steuerung über das manuelle Öffnen und Schließen
-                    html: true,
-                    content: settings.formatInfoWindow(appointment),
-                    container: $wrapper,
-                })
-                .on('mouseenter touchstart', function () {
-                    // Close all other open popovers
-                    $('[data-appointment]')
-                        .not($(this))
-                        .popover('hide')
-                        .removeClass(activeClass);
-
-                    // Delay before displaying
-                    const _this = this;
-                    $(_this).data('timeout', setTimeout(() => {
-                        $(_this).popover('show');
-                        $(_this).addClass(activeClass);
-
-                        // Hole den Popover-Content
-                        const popover = $('.popover');
-
-                        // keep the popover open as long as the mouse is on it
-                        popover.on('mouseenter', function () {
-                            clearTimeout($(_this).data('timeout'));
-                        });
-
-                        // close popover when mouse leaves him
-                        popover.on('mouseleave touchend', function () {
-                            $(_this).data('timeout', setTimeout(() => {
-                                $(_this).popover('hide');
-                                $(_this).removeClass(activeClass);
-                            }, delayHide)); // Delay when closing
-                        });
-                    }, delayShow)); // Delay when displaying
-                })
-                .on('mouseleave touchend', function () {
-                    // remove the delay for displaying
-                    clearTimeout($(this).data('timeout'));
-
-                    // Delay before closing
-                    const _this = this;
-                    $(_this).data('timeout', setTimeout(() => {
-                        $(_this).popover('hide');
-                        $(_this).removeClass(activeClass);
-                    }, delayHide));
-                });
-        }
     }
 
     /**
@@ -2402,14 +2375,32 @@
                 // Prüfe, ob der Termin vollständig an einem Tag bleibt
                 extras.inADay = extras.displayDates.length === 1;
 
-                // Berechnung der Gesamtdauer des Termins
+// Berechnung der Gesamtdauer des Termins
                 const diffMillis = end - start;
-                const totalSeconds = Math.floor(diffMillis / 1000);
 
-                extras.duration.days = Math.floor(totalSeconds / (24 * 3600));
-                extras.duration.hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
-                extras.duration.minutes = Math.floor((totalSeconds % 3600) / 60);
-                extras.duration.seconds = totalSeconds % 60;
+// Überprüfe, ob es sich um einen ganztägigen Termin handelt
+                if (appointment.allDay) {
+                    // Nur die Kalendertage berücksichtigen, unabhängig von der Uhrzeit
+                    const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                    const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+
+                    // Differenz in Tagen berechnen
+                    const diffDaysMillis = endDate - startDate;
+                    extras.duration.days = Math.floor(diffDaysMillis / (24 * 3600 * 1000)) + 1; // +1 inkludiert den letzten Tag
+                    extras.duration.hours = 0;
+                    extras.duration.minutes = 0;
+                    extras.duration.seconds = 0;
+                } else {
+                    // Normale Berechnung für stundenbasierte Termine
+                    const totalSeconds = Math.floor(diffMillis / 1000);
+                    extras.duration.days = Math.floor(totalSeconds / (24 * 3600));
+                    extras.duration.hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
+                    extras.duration.minutes = Math.floor((totalSeconds % 3600) / 60);
+                    extras.duration.seconds = totalSeconds % 60;
+                }
+
+// Formatierte Dauer, wenn gewünscht
+                extras.duration.formatted = settings.formatDuration(extras.duration);
 
                 if (settings.debug) {
                     log('Calculated extras:', extras);
@@ -3371,7 +3362,8 @@
      * @param {jQuery} targetElement - A jQuery-wrapped DOM element that contains the `data-appointment` attribute
      *                                  with the appointment data to display in the modal.
      */
-    function showInfoWindow(targetElement) {
+    function showInfoWindow($wrapper, targetElement) {
+        const settings = getSettings($wrapper);
         // Extract the `appointment` data from the clicked target element (provided as a data attribute).
         const appointment = targetElement.data('appointment');
 
@@ -3379,12 +3371,7 @@
         let $modal = $(infoWindowModalId);
 
         // Create the HTML content for the modal body, displaying the appointment details.
-        const html = `
-        <h3>${appointment.title}</h3>
-          <p>${appointment.description || "Keine Beschreibung verfügbar."}</p>
-        <p><strong>Von:</strong> ${appointment.start}</p>
-        <p><strong>Bis:</strong> ${appointment.end}</p>
-    `;
+        const html = settings.formatInfoWindow(appointment, settings.locale);
 
         // Check if the modal already exists on the page.
         const modalExists = $modal.length > 0;
@@ -3392,12 +3379,12 @@
             // If the modal does not exist, create the modal's HTML structure and append it to the body.
             const modalHtml = `
             <div class="modal fade" id="${infoWindowModalId.substring(1)}" tabindex="-1" data-bs-backdrop="false" style="pointer-events: none;">
-                <div class="modal-dialog position-absolute" style="pointer-events: auto; ">
+                <div class="modal-dialog modal-fullscreen-sm-down position-absolute" style="pointer-events: auto; ">
                     <div class="modal-content rounded-5  border border-1 shadow" style="">
-                        <div class="modal-body d-flex flex-column align-items-stretch" style="">
-                            <div class="d-flex justify-content-end align-items-center" data-nav-appointment>
-                                  <button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i> </button>
-                                  <button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-pen"></i> </button>
+                        <div class="modal-body d-flex flex-column align-items-stretch pb-4 px-4" style="">
+                            <div class="d-flex justify-content-end align-items-center">
+                                  <button type="button" data-remove data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i> </button>
+                                  <button type="button" data-edit class="btn"><i class="bi bi-pen"></i> </button>
                                   <button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i> </button>
                             </div>
                             <div class="modal-appointment-content flex-fill overflow-y-auto" style="">
@@ -3426,7 +3413,7 @@
         }
 
         // Attach the `appointment` data to the modal for potential future usage.
-        $modal.find('[data-nav-appointment]').data('appointment', appointment);
+        $modal.data('appointment', appointment);
 
         // Get relevant dimensions and positioning of the modal and target element.
         const $modalDialog = $modal.find('.modal-dialog');
@@ -3499,6 +3486,10 @@
             }
             if (left + modalWidth > viewportWidth - minSpaceFromEdge) {
                 left = viewportWidth - modalWidth - minSpaceFromEdge;
+            }
+            if (viewportWidth <= 768) {
+                top = 0;
+                left = 0;
             }
 
             // Position the modal based on its existence:
