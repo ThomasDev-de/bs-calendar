@@ -59,7 +59,7 @@
             },
             startDate: new Date(),
             startView: 'month', // day, week, month, year
-            defaultColor: 'var(--bs-danger)',
+            defaultColor: 'primary',
             views: ['year', 'month', 'week', 'day'],
             translations: {
                 day: 'Day',
@@ -1548,6 +1548,9 @@
      */
     function setDate($wrapper, date) {
         const settings = getSettings($wrapper);
+        if (typeof date === 'string') {
+            date = new Date(date);
+        }
         if (settings.debug) {
             log('Set date to:', date);
         }

@@ -53,8 +53,149 @@ $('#calendar').bsCalendar({
 });
 ```
 
----
+## **Options**
 
+---
+### `string` **locale**
+The `locale` option defines the default language and regional settings for the calendar. By specifying a locale string (e.g., `'en-EN'`), the calendar adapts its text, labels, and formatting according to the selected language. The default value is `'en-EN'`.
+
+--- 
+### `bool` **startWeekOnSunday**
+The `startWeekOnSunday` option determines whether the calendar week begins on Sunday. By setting this option to `true`, the week starts on Sunday; otherwise, it can be set to `false` to start the week on Monday. The default value is `true`.
+
+---
+### `number` **rounded**
+The `rounded` option specifies the border radius for the calendar's elements. It accepts a numeric value between `0` and `5`, where larger values result in more rounded corners. The default value is `5`.
+
+---
+### `null|object` **search**
+The **`search`** option can either be `null` or an object.
+If an object is provided, it can include the following properties:
+- **`limit`** (`number`): Specifies the maximum number of results allowed. Default value: `10`.
+- **`offset`** (`number`): Defines the starting point for the search in the results. Default value: `0`.
+
+If set to `null`, the search functionality is disabled.
+
+---
+### `string|Date` startDate
+The **`startDate`** option can be a `string` or a `Date` object.
+- If a **`string`** is provided, it should follow a valid date format (e.g., `YYYY-MM-DD` or another expected format depending on the implementation).
+- If a **`Date`** object is provided, it directly represents the starting date.
+
+**Default:** If no value is provided, the default is `new Date()`, which represents the current date and time.
+
+---
+### `string` startView
+The **`startView`** option is a `string` that defines the initial display or view mode.
+**Default:** The default value is `"month"`, meaning the view will initially display a monthly calendar.
+**Possible values:**
+- `"day"`: Displays a daily view.
+- `"week"`: Displays a weekly view.
+- `"month"`: Displays a monthly view.
+- `"year"`: Displays a yearly view.
+
+---
+### `Array<string>` views
+The **`views`** option is an array of strings that defines the views accessible to the user.
+**Example:**
+``` javascript
+views: ['year', 'month', 'week', 'day']
+```
+**Description of values:**
+- `"year"`: Allows access to the yearly view.
+- `"month"`: Allows access to the monthly view.
+- `"week"`: Allows access to the weekly view.
+- `"day"`: Allows access to the daily view.
+
+The order specified in the array may also determine the order of the available views.
+
+---
+### `string` defaultColor
+### 
+The **`defaultColor`** option is a `string` that specifies the default color.
+**Default:** The default value is `"primary"`, which usually corresponds to the default primary color defined in your Bootstrap theme.
+**Possible values:**
+- A Bootstrap color class (e.g., `"primary"`, `"secondary"`, `"danger"`, etc.).
+- A HEX color code (e.g., `#ff5733`).
+- An RGB color value (e.g., `rgb(255, 87, 51)`).
+- An RGBA color value (e.g., `rgba(255, 87, 51, 0.5)`).
+
+---
+### `object` translations
+The **`translations`** option is an object that provides customizable text or labels for various components, supporting localization or custom text requirements.
+**Example:**
+``` javascript
+translations: {
+    day: 'Day',
+    week: 'Week',
+    month: 'Month',
+    year: 'Year',
+    today: 'Today',
+    appointment: 'Appointment',
+    search: 'Type and press Enter',
+    searchNoResult: 'No appointment found'
+}
+```
+**Description of keys:**
+- **`day`**: The label for the **Day** view.
+  Example: `'Day'`
+- **`week`**: The label for the **Week** view.
+  Example: `'Week'`
+- **`month`**: The label for the **Month** view.
+  Example: `'Month'`
+- **`year`**: The label for the **Year** view.
+  Example: `'Year'`
+- **`today`**: Text for the button or section indicating **Today**.
+  Example: `'Today'`
+- **`appointment`**: Label for an **Appointment**.
+  Example: `'Appointment'`
+- **`search`**: Placeholder text for the **Search** input field.
+  Example: `'Type and press Enter'`
+- **`searchNoResult`**: Message displayed when no search results are found for an appointment.
+  Example: `'No appointment found'`
+
+This configuration allows you to adjust the terms used in the interface for specific languages or custom needs.
+
+---
+### `object` icons
+The **`icons`** option is an object that links specific features or UI elements to corresponding icons. These icons are typically represented by CSS classes, for example, Bootstrap Icons in this case.
+**Example:**
+``` javascript
+icons: {
+    day: 'bi bi-calendar-day',
+    week: 'bi bi-calendar-week',
+    month: 'bi bi-calendar-month',
+    year: 'bi bi-calendar4',
+    add: 'bi bi-plus-lg',
+    search: 'bi bi-search',
+    prev: 'bi bi-chevron-left',
+    next: 'bi bi-chevron-right',
+    link: 'bi bi-box-arrow-up-right',
+    appointment: 'bi bi-clock',
+    appointmentAllDay: 'bi bi-brightness-high',
+    timeSlot: 'bi bi-caret-right-fill',
+},
+```
+**Description of keys:**
+- **`day`**: Icon used for the **Day** view.
+- **`week`**: Icon used for the **Week** view.
+- **`month`**: Icon used for the **Month** view.
+- **`year`**: Icon used for the **Year** view.
+- **`add`**: Icon for adding a new item (e.g., appointment, event).
+- **`search`**: Icon for the **Search** functionality.
+- **`prev`**: Icon for navigating to the **previous** period (e.g., day, week, month, year).
+- **`next`**: Icon for navigating to the **next** period (e.g., day, week, month, year).
+- **`link`**: Icon representing a **link** action or external resource.
+- **`appointment`**: Icon for an **Appointment**.
+- **`appointmentAllDay`**: Icon for an **All-Day Appointment**.
+- **`timeSlot`**: Icon representing a **Time Slot**.
+
+These settings allow you to customize the appearance by linking appropriate icons to specific features using icon libraries like Bootstrap Icons.
+
+---
+ to be continued ...
+
+---
 ### **Methods**
 
 `bsCalendar` provides an intuitive API with several useful methods for interacting with the calendar instance.
