@@ -32,11 +32,11 @@
     </div>
 
 
-<div id="topbarAddons" class="mb-3 border p-1">
+<div id="topbarAddons" class="pb-3">
     <div class="d-flex justify-content-end align-items-center">
         <h6 class="text-uppercase text-center mb-0 me-2">topbar addons:</h6>
         <div class="form-group">
-            <select class="rounded-1 btn btn-warning" id="selectUser">
+            <select class="rounded-5 btn btn-warning" id="selectUser">
                 <option selected value="all">All users</option>
                 <option value="1">John Doe 1</option>
                 <option value="2">John Doe 2</option>
@@ -150,6 +150,7 @@
                 search: 'Tippe und drücke Enter',
                 searchNoResult: 'Keine Termine gefunden',
             },
+            // url: null,
             url: url,
             debug: true
         });
@@ -460,6 +461,7 @@
                     location = null; // Keine Location
                 }
 
+                const allDay = i % 21 === 0;
                 // Den Termin erstellen
                 const appointment = {
                     id: i + 1,
@@ -467,7 +469,7 @@
                     description: description,
                     start: randomStartTime.toISOString().replace('T', ' ').substring(0, 19),
                     end: randomEndTime.toISOString().replace('T', ' ').substring(0, 19),
-                    allDay: i % 21 === 0,
+                    allDay: allDay,
                     color: color,
                     link: link,
                     location: location // Location hinzufügen

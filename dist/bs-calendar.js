@@ -82,7 +82,7 @@
                 next: 'bi bi-chevron-right',
                 link: 'bi bi-box-arrow-up-right',
                 appointment: 'bi bi-clock',
-                appointmentAllDay: 'bi bi-circle-fill',
+                appointmentAllDay: 'bi bi-brightness-high',
                 timeSlot: 'bi bi-caret-right-fill',
             },
             url: null,
@@ -90,8 +90,13 @@
             topbarAddons: null,
             sidebarAddons: null,
             debug: false,
-            formatInfoWindow: formatInfoWindow,
-            formatDuration: formatDuration,
+            formatter: {
+                day: formatterDay,
+                week: formatterDay,
+                month: formatterMonth,
+                window: formatInfoWindow,
+                duration: formatDuration,
+            }
         }
     };
 
@@ -170,6 +175,30 @@
         }
 
         return wrapper;
+    }
+
+    function formatterDay(appointment, view) {
+        return appointment.title;
+    }
+
+    function formatterMonth(appointment) {
+        const startTime = new Date(appointment.start).toLocaleTimeString(appointment.extras.locale, {
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        const timeToShow = appointment.allDay ? '' : `<small class="me-1 mr-1">${startTime}</small>`;
+        const icon = `<i class="${appointment.extras.icon} me-1 mr-1"></i>`;
+        const styles = [
+            'font-size: 12px',
+            'line-height: 18px'
+        ].join(';')
+        return [
+            `<div class=" d-flex align-items-center flex-nowrap" style="${styles}">`,
+            icon,
+            timeToShow,
+            `<span class="text-nowrap d-inline-block w-100 text-truncate">${appointment.title}</span>`,
+            `</div>`
+        ].join('')
     }
 
     /**
@@ -371,44 +400,62 @@
      * @param {Object} appointment - The appointment object containing details to format the information window.
      * @return {string} An HTML string representing the formatted information window for the appointment.
      */
-    function formatInfoWindow(appointment, locale) {
-        const times = [];
-        const displayDates = appointment.extras.displayDates;
-        const startDate = formatDateByLocale(displayDates[0].date);
-        const endDate = formatDateByLocale(displayDates[displayDates.length - 1].date);
-        const isDameDate = startDate === endDate;
-        let showDate = isDameDate ? startDate : `${startDate} - ${endDate}`;
-        let showTime = showDate;
-        if (!appointment.allDay) {
-            let startTime = appointment.extras.displayDates[0].times.start.substring(0, 5);
-            let endTime = appointment.extras.displayDates[displayDates.length - 1].times.end.substring(0, 5);
-            if (isDameDate) {
-                showTime = `${startDate} ${startTime} - ${endTime}`;
-            } else {
-                showTime = `${startDate} ${startTime}<br>${endDate} ${endTime}`;
-            }
-        }
-        const link = appointment.link ? `<a class="btn btn-primary" href="${appointment.link}" target="_blank" rel="noopener noreferrer">Link</a>` : '';
-        let location = "";
-        if (appointment.location) {
-            if (Array.isArray(appointment.location)) {
-                location = appointment.location.join('<br>')
-            }
-            if (typeof appointment.location === 'string') {
-                location = appointment.location;
-            }
-            if (location !== "") {
-                location = `<p>${location}</p>`;
-            }
-        }
+    async function formatInfoWindow(appointment, locale) {
+        return new Promise((resolve, reject) => {
+            try {
+                // Zeiten und Anzeigedaten extrahieren
+                const times = [];
+                const displayDates = appointment.extras.displayDates;
+                const startDate = formatDateByLocale(displayDates[0].date);
+                const endDate = formatDateByLocale(displayDates[displayDates.length - 1].date);
+                const isSameDate = startDate === endDate;
 
-        return [
-            `<h3>${appointment.title}</h3>`,
-            `<p>${showTime} (${appointment.extras.duration.formatted})</p>`,
-            location,
-            `<p>${appointment.description || "Keine Beschreibung verfügbar."}</p>`,
-            link
-        ].join('');
+                let showDate = isSameDate ? startDate : `${startDate} - ${endDate}`;
+                let showTime = showDate;
+
+                if (!appointment.allDay) {
+                    let startTime = appointment.extras.displayDates[0].times.start.substring(0, 5);
+                    let endTime = appointment.extras.displayDates[displayDates.length - 1].times.end.substring(0, 5);
+                    if (isSameDate) {
+                        showTime = `${startDate} ${startTime} - ${endTime}`;
+                    } else {
+                        showTime = `${startDate} ${startTime}<br>${endDate} ${endTime}`;
+                    }
+                }
+
+                // Link generieren, wenn vorhanden
+                const link = appointment.link
+                    ? `<a class="btn btn-primary rounded-5 rounded-5 px-5" href="${appointment.link}" target="_blank" rel="noopener noreferrer">Link</a>`
+                    : '';
+
+                // Standortinformationen verarbeiten
+                let location = "";
+                if (appointment.location) {
+                    if (Array.isArray(appointment.location)) {
+                        location = appointment.location.join('<br>');
+                    }
+                    if (typeof appointment.location === 'string') {
+                        location = appointment.location;
+                    }
+                    if (location !== "") {
+                        location = `<p>${location}</p>`;
+                    }
+                }
+
+                // Ergebnis zusammenbauen und Promise auflösen
+                const result = [
+                    `<h3>${appointment.title}</h3>`,
+                    `<p>${showTime} (${appointment.extras.duration.formatted})</p>`,
+                    location,
+                    `<p>${appointment.description || "Keine Beschreibung verfügbar."}</p>`,
+                    link
+                ].join('');
+
+                resolve(result);
+            } catch (error) {
+                reject(`Error in formatter.window: ${error.message}`);
+            }
+        });
     }
 
     /**
@@ -1670,10 +1717,14 @@
         trigger($wrapper, 'beforeLoad', [requestData]);
 
         // Display the loading indicator for the wrapper
-        showLoader($wrapper);
+        const callFunction = typeof settings.url === 'function';
+        const callAjax = typeof settings.url === 'string';
+        if(callFunction || callAjax ){
+            showLoader($wrapper);
+        }
 
         // Check if the URL for fetching appointments is a function
-        if (typeof settings.url === 'function') {
+        if (callFunction) {
             if (settings.debug) {
                 log('Call appointments by function with query:', requestData);
             }
@@ -1708,7 +1759,7 @@
                     hideLoader($wrapper);
                 });
 
-        } else if (typeof settings.url === 'string') {
+        } else if (callAjax) {
             // If the URL is a string, manage the current request
 
             // Check if there's an ongoing request associated with the wrapper, and abort it
@@ -1778,12 +1829,19 @@
     }
 
 
-    function groupOverlappingAppointments(appointments) {
+    function groupOverlappingAppointments($wrapper, appointments) {
         const groupedByWeekdays = {};
+        const view = getView($wrapper);
+
 
         // 1. Termine nach Wochentag gruppieren
         appointments.forEach((appointment) => {
             appointment.extras.displayDates.forEach((obj) => {
+                // Ignoriere Termine, die in der Wochenansicht nicht sichtbar sind
+                if (view === 'week' && !obj.visibleInWeek) {
+                    return;
+                }
+
                 // Benutze explizite Konstruktion von Datum und Zeit:
                 const slotStart = new Date(`${obj.date}T${obj.times.start}`);
                 const slotEnd = new Date(`${obj.date}T${obj.times.end}`);
@@ -1865,6 +1923,7 @@
      */
     function drawAppointmentsForDayOrWeek($wrapper, $container, appointments) {
         const settings = getSettings($wrapper);
+        const view = getView($wrapper);
         const $viewContainer = getViewContainer($wrapper);
         const allDays = appointments.filter(appointment => appointment.allDay === true);
         const notAllDays = appointments.filter(appointment => appointment.allDay !== true);
@@ -1887,7 +1946,7 @@
             });
         });
 
-        const groupedAppointments = groupOverlappingAppointments(notAllDays);
+        const groupedAppointments = groupOverlappingAppointments($wrapper, notAllDays);
 
         const columnGap = 2; // Abstand zwischen den Spalten in Pixeln
 
@@ -1951,7 +2010,7 @@
                             left: `${appointmentLeftPercent}%`,
                             width: `${appointmentWidthPercent}%`,
                         },
-                        text: `${appointment.title}`,
+                        html: settings.formatter.day(appointment, view),
                     }).appendTo($weekDayContainer);
 
                     appointmentElement.data('appointment', appointment);
@@ -1999,7 +2058,7 @@
                         left: `${appointmentLeftPercent}%`,
                         width: `${appointmentWidthPercent}%`,
                     },
-                    text: `${appointment.title}`,
+                    text: settings.formatter.day(appointment, view),
                 }).appendTo($weekDayContainer);
 
                 // Meta-Daten und Styling hinzufügen
@@ -2239,34 +2298,17 @@
         appointments.forEach(appointment => {
             const multipleStartDates = appointment.extras.displayDates.length > 1;
             appointment.extras.displayDates.forEach(obj => {
-                const startString = obj.date
-                const fakeStart = new Date(startString);
-                const start = new Date(appointment.start);
-                const sameDate = isSameDate(fakeStart, start);
-                const isNotStartOnThisDay = multipleStartDates && !sameDate;
-                const isStartOnThisDay = multipleStartDates && sameDate;
-
-                const startTime = start.toLocaleTimeString(settings.locale, {hour: '2-digit', minute: '2-digit'});
-                const dayContainer = $container.find(`[data-month-date="${startString}"]`);
-                let iconClass = settings.icons.appointment;
-                if (appointment.allDay) {
-                    iconClass = settings.icons.appointmentAllDay;
+                if (!obj.visibleInMonth) {
+                    return;
                 }
-                const timeToShow = appointment.allDay ? '' : `<small class="me-1 mr-1">${startTime}</small>`;
+                const startString = obj.date
+
+                const dayContainer = $container.find(`[data-month-date="${startString}"]`);
+
                 const appointmentElement = $('<small>', {
                     'data-appointment': true,
-                    css: {
-                        fontSize: '12px',
-                        lineHeight: '16px'
-                    },
                     class: 'px-1 w-100 overflow-hidden mb-1 rounded',
-                    html: [
-                        `<div class=" d-flex align-items-center flex-nowrap">`,
-                        `<i class="${iconClass} me-1 mr-1" style="font-size: 12px"></i>`,
-                        timeToShow,
-                        `<strong class="text-nowrap">${appointment.title}</strong>`,
-                        `</div>`
-                    ].join('')
+                    html: settings.formatter.month(appointment)
                 }).appendTo(dayContainer);
 
                 appointmentElement.data('appointment', appointment);
@@ -2287,23 +2329,24 @@
     function setAppointmentExtras($wrapper, appointments) {
         const settings = getSettings($wrapper);
         const view = getView($wrapper);
+
         if (view === 'year') {
             appointments.forEach(appointment => {
                 const extras = {
                     colors: getColors(appointment.color || settings.defaultColor, settings.defaultColor)
                 };
                 appointment.extras = extras;
-            })
+            });
             return;
         } else {
             appointments.forEach(appointment => {
-
                 const start = new Date(appointment.start);
                 const end = new Date(appointment.end);
                 const isAllDay = appointment.allDay;
 
-                // Struktur für zusätzliche Informationen
                 const extras = {
+                    locale: settings.locale,
+                    icon: !isAllDay ? settings.icons.appointment : settings.icons.appointmentAllDay,
                     colors: getColors(appointment.color, settings.defaultColor),
                     start: {
                         date: formatDateToDateString(appointment.start),
@@ -2319,18 +2362,28 @@
                         minutes: 0,
                         seconds: 0
                     },
-                    displayDates: [], // Angepasst, um datumsweise Details zu verwalten
+                    displayDates: [],
                     inADay: false,
                 };
 
-                // Kopiere Anfangs- und Enddatum, nur Datum ohne Zeitanteile
                 let tempDate = new Date(start);
                 let tempEnd = new Date(end);
                 tempDate.setHours(0, 0, 0, 0);
                 tempEnd.setHours(0, 0, 0, 0);
 
+                // Berechne Monatsgrenzen
+                const now = new Date(); // Falls der angezeigte Monat/vorherige/nächste Monat gebraucht wird, aktiviere Dynamik
+                const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+                const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+
+                // Erweiterung für volle Wochenanzeige im Monat
+                const firstDayOffset = settings.startWeekOnSunday ? 0 : 1; // Sonntag oder Montag
+                const monthStart = new Date(firstOfMonth);
+                monthStart.setDate(firstOfMonth.getDate() - ((firstOfMonth.getDay() - firstDayOffset + 7) % 7)); // Erster Tag der angezeigten Woche
+                const monthEnd = new Date(lastOfMonth);
+                monthEnd.setDate(lastOfMonth.getDate() + (6 - (lastOfMonth.getDay() - firstDayOffset + 7) % 7)); // Letzter Tag der letzten Woche
+
                 while (tempDate <= tempEnd) {
-                    // Temporäres Datum: berechne spezifische Start- und Endzeiten
                     const dateIsStart = isSameDate(tempDate, start);
                     const dateIsEnd = isSameDate(tempDate, end);
 
@@ -2340,45 +2393,62 @@
                         times: {
                             start: null,
                             end: null
-                        }
+                        },
+                        visibleInWeek: false,
+                        visibleInMonth: false // Neuer Wert
                     };
 
                     if (isAllDay) {
-                        // Ganztägiger Termin -> Keine spezifischen Zeiten
                         dateDetails.times.start = null;
                         dateDetails.times.end = null;
                     } else {
                         if (dateIsStart) {
-                            // Erster Tag: Tatsächliche Startzeit und Tagesende, falls nötig
                             dateDetails.times.start = getTimeFromDatetime(start);
                             dateDetails.times.end = end > new Date(tempDate).setHours(23, 59, 59, 999)
                                 ? '23:59'
                                 : getTimeFromDatetime(end);
                         } else if (dateIsEnd) {
-                            // Letzter Tag: Tagesbeginn bis tatsächliches Ende
                             dateDetails.times.start = '00:00';
                             dateDetails.times.end = getTimeFromDatetime(end);
                         } else {
-                            // Mittlere Tage: Ganztägige Zeit (00:00 bis 23:59)
                             dateDetails.times.start = '00:00';
                             dateDetails.times.end = '23:59';
                         }
                     }
 
-                    // Füge Elemente zu den Display Dates hinzu
-                    extras.displayDates.push(dateDetails);
+                    // Prüfung: Liegt tempDate innerhalb der erweiterten Monatsanzeige?
+                    if (tempDate >= monthStart && tempDate <= monthEnd) {
+                        dateDetails.visibleInMonth = true;
+                    }
 
-                    // TempDate auf den nächsten Tag erhöhen
+                    // Prüfung für Wochenanzeige ist bereits implementiert
+                    const weekRangeStart = new Date(tempDate);
+                    const weekRangeEnd = new Date(tempDate);
+
+                    if (settings.startWeekOnSunday) {
+                        weekRangeStart.setDate(weekRangeStart.getDate() - weekRangeStart.getDay());
+                    } else {
+                        const dayOffset = (weekRangeStart.getDay() === 0 ? 7 : weekRangeStart.getDay()) - 1;
+                        weekRangeStart.setDate(weekRangeStart.getDate() - dayOffset);
+                    }
+                    weekRangeStart.setHours(0, 0, 0, 0);
+                    weekRangeEnd.setTime(weekRangeStart.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
+
+                    if (tempDate >= weekRangeStart && tempDate <= weekRangeEnd) {
+                        dateDetails.visibleInWeek = true;
+                    }
+
+                    extras.displayDates.push(dateDetails);
                     tempDate.setDate(tempDate.getDate() + 1);
                 }
 
                 // Prüfe, ob der Termin vollständig an einem Tag bleibt
                 extras.inADay = extras.displayDates.length === 1;
 
-// Berechnung der Gesamtdauer des Termins
+                // Berechnung der Gesamtdauer des Termins
                 const diffMillis = end - start;
 
-// Überprüfe, ob es sich um einen ganztägigen Termin handelt
+                // Überprüfe, ob es sich um einen ganztägigen Termin handelt
                 if (appointment.allDay) {
                     // Nur die Kalendertage berücksichtigen, unabhängig von der Uhrzeit
                     const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
@@ -2399,14 +2469,11 @@
                     extras.duration.seconds = totalSeconds % 60;
                 }
 
-// Formatierte Dauer, wenn gewünscht
-                extras.duration.formatted = settings.formatDuration(extras.duration);
+                // Formatierte Dauer, wenn gewünscht
+                extras.duration.formatted = settings.formatter.duration(extras.duration);
 
-                if (settings.debug) {
-                    log('Calculated extras:', extras);
-                }
 
-                // Zusätzliche Daten an den Termin anhängen
+                extras.inADay = extras.displayDates.length === 1;
                 appointment.extras = extras;
             });
         }
@@ -2518,33 +2585,56 @@
                 break;
 
             case 'week':
-                // start date: Monday of the current week
+                // Start date: Monday of the current week
                 const dayOfWeek = startDate.getDay(); // 0 = Sunday, 1 = Monday, ...
                 const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Calculate deviation from Monday
                 startDate.setDate(startDate.getDate() + diffToMonday);
 
-                // end date: Sunday of the same week
+                // End date: Sunday of the same week
                 endDate.setDate(startDate.getDate() + 6);
                 break;
 
             case 'month':
-                // start date: 1st day of the month
+                // Start date: 1st day of the month
                 startDate.setDate(1);
 
-                // end date: last day of the month
-                endDate.setMonth(startDate.getMonth() + 1); // change to the next month
-                endDate.setDate(0); // Goes back one day: the last day of the previous month (current month)
+                // Adjust the start date to the beginning of the displayed week
+                const startDayOfWeek = startDate.getDay();
+                if (settings.startWeekOnSunday) {
+                    // Sonntag als Wochenstart
+                    startDate.setDate(startDate.getDate() - startDayOfWeek);
+                } else {
+                    // Montag als Wochenstart
+                    const offset = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
+                    startDate.setDate(startDate.getDate() - offset);
+                }
+
+                // End date: last day of the month
+                endDate.setMonth(endDate.getMonth() + 1); // Jump to the next month
+                endDate.setDate(0); // Move back one day to get the last day of the current month
+
+                // Adjust the end date to the end of the displayed week
+                const endDayOfWeek = endDate.getDay();
+                if (settings.startWeekOnSunday) {
+                    // Sonntag als Wochenstart
+                    const offset = 6 - endDayOfWeek;
+                    endDate.setDate(endDate.getDate() + offset);
+                } else {
+                    // Montag als Wochenstart
+                    const offset = endDayOfWeek === 0 ? -1 : 7 - endDayOfWeek;
+                    endDate.setDate(endDate.getDate() + offset);
+                }
                 break;
 
             case 'year':
             case 'search':
-                // start date: January 1 of the current year
+                // Start date: January 1 of the current year
                 startDate.setMonth(0); // January
-                startDate.setDate(1);  // 1 day
+                startDate.setDate(1);  // 1st day
 
-                // end date: December 31 of the current year
+                // End date: December 31 of the current year
                 endDate.setMonth(11); // December
-                endDate.setDate(31);  // last day
+                endDate.setDate(31);  // Last day
                 break;
 
             default:
@@ -3371,142 +3461,142 @@
         let $modal = $(infoWindowModalId);
 
         // Create the HTML content for the modal body, displaying the appointment details.
-        const html = settings.formatInfoWindow(appointment, settings.locale);
+        settings.formatter.window(appointment, settings.locale).then(html => {
+// Check if the modal already exists on the page.
+            const modalExists = $modal.length > 0;
+            if (!modalExists) {
+                // If the modal does not exist, create the modal's HTML structure and append it to the body.
+                const modalHtml = [
+                    `<div class="modal fade" id="${infoWindowModalId.substring(1)}" tabindex="-1" data-bs-backdrop="false" style="pointer-events: none;">`,
+                    `<div class="modal-dialog modal-fullscreen-sm-down position-absolute" style="pointer-events: auto; ">`,
+                    `<div class="modal-content rounded-5  border border-1 shadow" style="">`,
+                    `<div class="modal-body d-flex flex-column align-items-stretch pb-4 px-4" style="">`,
+                    `<div class="d-flex justify-content-end align-items-center">`,
+                    `<button type="button" data-remove data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i> </button>`,
+                    `<button type="button" data-edit class="btn"><i class="bi bi-pen"></i> </button>`,
+                    `<button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i> </button>`,
+                    `</div>`,
+                    `<div class="modal-appointment-content flex-fill overflow-y-auto" style="">`,
+                    html,
+                    `</div>`,
+                    `</div>`,
+                    `</div>`,
+                    `</div>`,
+                    `</div>`,
+                ].join('');
 
-        // Check if the modal already exists on the page.
-        const modalExists = $modal.length > 0;
-        if (!modalExists) {
-            // If the modal does not exist, create the modal's HTML structure and append it to the body.
-            const modalHtml = `
-            <div class="modal fade" id="${infoWindowModalId.substring(1)}" tabindex="-1" data-bs-backdrop="false" style="pointer-events: none;">
-                <div class="modal-dialog modal-fullscreen-sm-down position-absolute" style="pointer-events: auto; ">
-                    <div class="modal-content rounded-5  border border-1 shadow" style="">
-                        <div class="modal-body d-flex flex-column align-items-stretch pb-4 px-4" style="">
-                            <div class="d-flex justify-content-end align-items-center">
-                                  <button type="button" data-remove data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i> </button>
-                                  <button type="button" data-edit class="btn"><i class="bi bi-pen"></i> </button>
-                                  <button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i> </button>
-                            </div>
-                            <div class="modal-appointment-content flex-fill overflow-y-auto" style="">
-                                ${html}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
+                // Append the newly created modal to the body of the document.
+                $('body').append(modalHtml);
 
-            // Append the newly created modal to the body of the document.
-            $('body').append(modalHtml);
+                // Re-select the modal to get the updated reference.
+                $modal = $(infoWindowModalId);
 
-            // Re-select the modal to get the updated reference.
-            $modal = $(infoWindowModalId);
-
-            // Initialize the modal with specific settings.
-            $modal.modal({
-                backdrop: false,
-                keyboard: true
-            });
-        } else {
-            // If the modal already exists, simply update its content with the new appointment details.
-            $modal.find('.modal-appointment-content').html(html);
-        }
-
-        // Attach the `appointment` data to the modal for potential future usage.
-        $modal.data('appointment', appointment);
-
-        // Get relevant dimensions and positioning of the modal and target element.
-        const $modalDialog = $modal.find('.modal-dialog');
-        const $target = $(targetElement);
-        const targetOffset = $target.offset(); // Target element's position.
-        const targetWidth = $target.outerWidth(); // Width of the target element.
-        const targetHeight = $target.outerHeight(); // Height of the target element.
-
-        // Delay the positioning logic until the modal's dimensions are fully calculated.
-        setTimeout(() => {
-            const modalWidth = $modalDialog.outerWidth(); // Modal's width.
-            const modalHeight = $modalDialog.outerHeight(); // Modal's height.
-            const minSpaceFromEdge = 60; // Minimum allowed space from the viewport's edge.
-
-            // Get the dimensions of the viewport and the scroll offsets.
-            const viewportWidth = $(window).width();
-            const viewportHeight = $(window).height();
-            const scrollTop = $(window).scrollTop();
-            const scrollLeft = $(window).scrollLeft();
-
-            // Calculate the available space around the target element.
-            const spaceAbove = targetOffset.top - scrollTop; // Space above the target.
-            const spaceBelow = viewportHeight - (targetOffset.top - scrollTop + targetHeight); // Space below the target.
-            const spaceLeft = targetOffset.left - scrollLeft; // Space to the left of the target.
-            const spaceRight = viewportWidth - (targetOffset.left - scrollLeft + targetWidth); // Space to the right of the target.
-
-            // Determine the best positioning for the modal based on the available space.
-            let position = 'bottom';
-            if (spaceAbove >= Math.max(spaceBelow, spaceLeft, spaceRight)) {
-                position = 'top'; // More space available above.
-            } else if (spaceBelow >= Math.max(spaceAbove, spaceLeft, spaceRight)) {
-                position = 'bottom'; // More space available below.
-            } else if (spaceLeft >= Math.max(spaceAbove, spaceBelow, spaceRight)) {
-                position = 'left'; // More space available to the left.
-            } else if (spaceRight >= Math.max(spaceAbove, spaceBelow, spaceLeft)) {
-                position = 'right'; // More space available to the right.
-            }
-
-            // Initialize the top and left positions for the modal based on the determined position.
-            let top = 0;
-            let left = 0;
-            switch (position) {
-                case 'top':
-                    top = targetOffset.top - scrollTop - modalHeight - 10;
-                    left = targetOffset.left - scrollLeft + (targetWidth / 2) - (modalWidth / 2);
-                    break;
-                case 'bottom':
-                    top = targetOffset.top - scrollTop + targetHeight + 10;
-                    left = targetOffset.left - scrollLeft + (targetWidth / 2) - (modalWidth / 2);
-                    break;
-                case 'left':
-                    top = targetOffset.top - scrollTop + (targetHeight / 2) - (modalHeight / 2);
-                    left = targetOffset.left - scrollLeft - modalWidth - 10;
-                    break;
-                case 'right':
-                    top = targetOffset.top - scrollTop + (targetHeight / 2) - (modalHeight / 2);
-                    left = targetOffset.left - scrollLeft + targetWidth + 10;
-                    break;
-            }
-
-            // Ensure the modal does not exceed the visible viewport boundaries.
-            if (top < minSpaceFromEdge) {
-                top = minSpaceFromEdge;
-            }
-            if (left < minSpaceFromEdge) {
-                left = minSpaceFromEdge;
-            }
-            if (top + modalHeight > viewportHeight - minSpaceFromEdge) {
-                top = viewportHeight - modalHeight - minSpaceFromEdge;
-            }
-            if (left + modalWidth > viewportWidth - minSpaceFromEdge) {
-                left = viewportWidth - modalWidth - minSpaceFromEdge;
-            }
-            if (viewportWidth <= 768) {
-                top = 0;
-                left = 0;
-            }
-
-            // Position the modal based on its existence:
-            if (modalExists) {
-                $modalDialog.animate({
-                    top: `${top}px`,
-                    left: `${left}px`
+                // Initialize the modal with specific settings.
+                $modal.modal({
+                    backdrop: false,
+                    keyboard: true
                 });
             } else {
-                $modalDialog.css({
-                    top: `${top}px`,
-                    left: `${left}px`
-                });
+                // If the modal already exists, simply update its content with the new appointment details.
+                $modal.find('.modal-appointment-content').html(html);
             }
-        }, 0);
 
-        // Display the modal.
-        $modal.modal('show');
+            // Attach the `appointment` data to the modal for potential future usage.
+            $modal.data('appointment', appointment);
+
+            // Get relevant dimensions and positioning of the modal and target element.
+            const $modalDialog = $modal.find('.modal-dialog');
+            const $target = $(targetElement);
+            const targetOffset = $target.offset(); // Target element's position.
+            const targetWidth = $target.outerWidth(); // Width of the target element.
+            const targetHeight = $target.outerHeight(); // Height of the target element.
+
+            // Delay the positioning logic until the modal's dimensions are fully calculated.
+            setTimeout(() => {
+                const modalWidth = $modalDialog.outerWidth(); // Modal's width.
+                const modalHeight = $modalDialog.outerHeight(); // Modal's height.
+                const minSpaceFromEdge = 60; // Minimum allowed space from the viewport's edge.
+
+                // Get the dimensions of the viewport and the scroll offsets.
+                const viewportWidth = $(window).width();
+                const viewportHeight = $(window).height();
+                const scrollTop = $(window).scrollTop();
+                const scrollLeft = $(window).scrollLeft();
+
+                // Calculate the available space around the target element.
+                const spaceAbove = targetOffset.top - scrollTop; // Space above the target.
+                const spaceBelow = viewportHeight - (targetOffset.top - scrollTop + targetHeight); // Space below the target.
+                const spaceLeft = targetOffset.left - scrollLeft; // Space to the left of the target.
+                const spaceRight = viewportWidth - (targetOffset.left - scrollLeft + targetWidth); // Space to the right of the target.
+
+                // Determine the best positioning for the modal based on the available space.
+                let position = 'bottom';
+                if (spaceAbove >= Math.max(spaceBelow, spaceLeft, spaceRight)) {
+                    position = 'top'; // More space available above.
+                } else if (spaceBelow >= Math.max(spaceAbove, spaceLeft, spaceRight)) {
+                    position = 'bottom'; // More space available below.
+                } else if (spaceLeft >= Math.max(spaceAbove, spaceBelow, spaceRight)) {
+                    position = 'left'; // More space available to the left.
+                } else if (spaceRight >= Math.max(spaceAbove, spaceBelow, spaceLeft)) {
+                    position = 'right'; // More space available to the right.
+                }
+
+                // Initialize the top and left positions for the modal based on the determined position.
+                let top = 0;
+                let left = 0;
+                switch (position) {
+                    case 'top':
+                        top = targetOffset.top - scrollTop - modalHeight - 10;
+                        left = targetOffset.left - scrollLeft + (targetWidth / 2) - (modalWidth / 2);
+                        break;
+                    case 'bottom':
+                        top = targetOffset.top - scrollTop + targetHeight + 10;
+                        left = targetOffset.left - scrollLeft + (targetWidth / 2) - (modalWidth / 2);
+                        break;
+                    case 'left':
+                        top = targetOffset.top - scrollTop + (targetHeight / 2) - (modalHeight / 2);
+                        left = targetOffset.left - scrollLeft - modalWidth - 10;
+                        break;
+                    case 'right':
+                        top = targetOffset.top - scrollTop + (targetHeight / 2) - (modalHeight / 2);
+                        left = targetOffset.left - scrollLeft + targetWidth + 10;
+                        break;
+                }
+
+                // Ensure the modal does not exceed the visible viewport boundaries.
+                if (top < minSpaceFromEdge) {
+                    top = minSpaceFromEdge;
+                }
+                if (left < minSpaceFromEdge) {
+                    left = minSpaceFromEdge;
+                }
+                if (top + modalHeight > viewportHeight - minSpaceFromEdge) {
+                    top = viewportHeight - modalHeight - minSpaceFromEdge;
+                }
+                if (left + modalWidth > viewportWidth - minSpaceFromEdge) {
+                    left = viewportWidth - modalWidth - minSpaceFromEdge;
+                }
+                if (viewportWidth <= 768) {
+                    top = 0;
+                    left = 0;
+                }
+
+                // Position the modal based on its existence:
+                if (modalExists) {
+                    $modalDialog.animate({
+                        top: `${top}px`,
+                        left: `${left}px`
+                    });
+                } else {
+                    $modalDialog.css({
+                        top: `${top}px`,
+                        left: `${left}px`
+                    });
+                }
+            }, 0);
+
+            // Display the modal.
+            $modal.modal('show');
+        });
     }
 }(jQuery))
