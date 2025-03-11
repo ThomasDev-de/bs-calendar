@@ -146,7 +146,7 @@
         'top: 100%'
     ];
 
-    function getRoundedCss (number) {
+    function getBorderRadiusCss (number) {
         let rounded = '0';
         switch (number) {
             case 1:
@@ -165,7 +165,7 @@
                 rounded = '2rem';
                 break;
         }
-        return `border-radius: ${rounded}`;
+        return `border-radius: ${rounded} !important`;
     }
     /**
      /**
@@ -482,7 +482,7 @@
                 }
 
                 // Link generieren, wenn vorhanden
-                const roundedCss = getRoundedCss(5);
+                const roundedCss = getBorderRadiusCss(5);
                 const link = appointment.link
                     ? `<a class="btn btn-primary  px-5" style="${roundedCss}" href="${appointment.link}" target="_blank" rel="noopener noreferrer">Link</a>`
                     : '';
@@ -971,7 +971,7 @@
             class: 'd-flex flex-column align-items-stretch h-100 w-100'
         }).appendTo($wrapper);
 
-        const roundedCss = getRoundedCss(settings.rounded);
+        const roundedCss = getBorderRadiusCss(settings.rounded);
         const topNav = $('<div>', {
             class: `d-flex sticky-top align-items-center px-0 justify-content-end mb-3 ${topNavClass} bg-body`,
             style: roundedCss
@@ -3516,7 +3516,7 @@
             },
         }).appendTo(container);
 
-        const roundedCss = getRoundedCss(settings.rounded);
+        const roundedCss = getBorderRadiusCss(settings.rounded);
         // render a small calendar for each month
         for (let month = 0; month < 12; month++) {
             // Create a wrapper for every monthly calendar
@@ -3577,7 +3577,7 @@
 // Check if the modal already exists on the page.
             const modalExists = $modal.length > 0;
             if (!modalExists) {
-                const roundedCss = getRoundedCss(settings.rounded);
+                const roundedCss = getBorderRadiusCss(settings.rounded);
                 // If the modal does not exist, create the modal's HTML structure and append it to the body.
                 const modalHtml = [
                     `<div class="modal fade" id="${infoWindowModalId.substring(1)}" tabindex="-1" data-bs-backdrop="false" style="pointer-events: none;">`,
