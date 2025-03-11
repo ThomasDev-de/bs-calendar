@@ -2837,6 +2837,16 @@
             for (let i = 0; i < 7; i++) {
                 const isToday = currentDate.toDateString() === new Date().toDateString();
                 const isOtherMonth = currentDate.getMonth() !== month;
+                let css = [
+                    'max-height: 100%',
+                    'overflowY: auto',
+                ];
+                if (isToday) {
+                    const dayColors = getColors(settings.defaultColor);
+                    css.push(`background-color: ${dayColors.background}`);
+                    css.push(`color: ${dayColors.color}`);
+                }
+
                 const dayClass = isToday ? 'rounded-circle text-bg-primary' : '';
                 // Berechne Border-Klassen basierend auf der Position der Zelle
                 const isLastRow = currentDate.getTime() === calendarEnd.getTime(); // Prüft genau, ob wir beim letzten Datum des Kalenders sind
@@ -2857,10 +2867,7 @@
                     class: `col ${borderClasses.join(' ')} px-1 flex-fill d-flex flex-column align-items-center justify-content-start ${
                         isOtherMonth ? 'text-muted' : ''
                     } ${isToday ? '' : ''}`,
-                    css: {
-                        maxHeight: '100%',
-                        overflowY: 'auto',
-                    },
+                    style: css.join(';'),
                 }).appendTo(weekRow);
 
                 // Wochentagsnamen in der ersten Zeile hinzufügen
