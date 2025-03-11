@@ -109,6 +109,44 @@
 
     const hourSlotHeight = 30;
 
+    const translateMiddleCss = [
+        'transform: translate(-50%,-50%)'
+    ];
+
+
+    const start0Css = [
+        'left: 0'
+    ];
+    const start25Css = [
+        'left: 25%'
+    ];
+    const start50Css = [
+        'left: 50%'
+    ];
+    const start75Css = [
+        'left: 75%'
+    ];
+    const start100Css = [
+        'left: 100%'
+    ];
+
+    const top0Css = [
+        'top: 0'
+    ];
+    const top25Css = [
+        'top: 25%'
+    ];
+    const top50Css = [
+        'top: 50%'
+    ];
+    const top75Css = [
+        'top: 75%'
+    ];
+    const top100Css = [
+        'top: 100%'
+    ];
+
+
     /**
      /**
      * jQuery plugin that initializes and manages a Bootstrap-based calendar.
@@ -1722,7 +1760,7 @@
         // Display the loading indicator for the wrapper
         const callFunction = typeof settings.url === 'function';
         const callAjax = typeof settings.url === 'string';
-        if(callFunction || callAjax ){
+        if (callFunction || callAjax) {
             showLoader($wrapper);
         }
 
@@ -2547,8 +2585,15 @@
         const spinner = $wrapper.find('.wc-calendar-spinner');
         spinner.show();
 
+        const combinedCss = [
+            ...start0Css,
+            ...top0Css
+        ].join(';');
+
+
         $('<div>', {
-            class: 'wc-calendar-overlay opacity-25 position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center',
+            class: 'wc-calendar-overlay opacity-25 position-absolute w-100 h-100 d-flex justify-content-center align-items-center',
+            style: combinedCss,
             html: '<div class="spinner-grow" role="status"  style="width: 7rem; height: 7rem;"><span class="visually-hidden">Loading...</span></div>'
         }).appendTo($wrapper);
     }
@@ -3007,7 +3052,13 @@
 
                 let badge = '';
                 if (forYearView) {
-                    badge = `<span class="js-badge badge rounded-pill position-absolute top-100 start-50 translate-middle"></span>`;
+                    const combinedCss = [
+                        ...translateMiddleCss,
+                        ...start50Css,
+                        ...top100Css,
+                    ].join(';');
+
+                    badge = `<span class="js-badge badge rounded-pill position-absolute" style="${combinedCss}"></span>`;
                 }
 
                 const tdContent = [`<div class="${dayClass} w-100 h-100 d-flex justify-content-center flex-column align-items-center">`,
@@ -3290,12 +3341,16 @@
             })
 
             if (showLabels) {
+                const combinedCss = [
+                    ...translateMiddleCss,
+                    ...top0Css,
+                    'left: -34px'
+                ].join(';');
+
                 // hourly label (e.g. 08:00)
                 $('<div>', {
-                    class: 'wc-time-label ps-2 position-absolute top-0 translate-middle',
-                    css: {
-                        left: `-34px`
-                    },
+                    class: 'wc-time-label ps-2 position-absolute',
+                    style: combinedCss,
                     html: `${hour.toString().padStart(2, '0')}:00 <i class="${settings.icons.timeSlot}"></i>`
                 }).appendTo(row);
             }
@@ -3321,8 +3376,23 @@
             }
         }).appendTo($container);
 
-        $('<small class="position-absolute top-0 start-0 translate-middle badge bg-danger-subtle js-current-time">' + getMinutesAndSeconds($wrapper, now) + '</small>').appendTo(currentTimeIndicator);
-        $('<div class="position-absolute top-50 start-100 translate-middle rounded-circle bg-danger-subtle" style="width: 10px; height: 10px"></div>').appendTo(currentTimeIndicator);
+        const combinedCss = [
+            ...translateMiddleCss,
+            ...start0Css,
+            ...top0Css
+        ].join(';');
+
+        $(`<small class="position-absolute badge bg-danger-subtle js-current-time" style="${combinedCss}">` + getMinutesAndSeconds($wrapper, now) + '</small>').appendTo(currentTimeIndicator);
+
+        const combinedCss2 = [
+            ...translateMiddleCss,
+            ...start100Css,
+            ...top50Css,
+            'width: 10px',
+            'height: 10px',
+        ].join(';');
+
+        $(`<div class="position-absolute rounded-circle bg-danger-subtle" style="${combinedCss2}"></div>`).appendTo(currentTimeIndicator);
 
         // Funktion, die die Position basierend auf der aktuellen Zeit berechnet
 
