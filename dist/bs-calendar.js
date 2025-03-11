@@ -2837,17 +2837,20 @@
             for (let i = 0; i < 7; i++) {
                 const isToday = currentDate.toDateString() === new Date().toDateString();
                 const isOtherMonth = currentDate.getMonth() !== month;
-                let css = [
-                    'max-height: 100%',
-                    'overflowY: auto',
+                let dayCss = [
+                    'border-radius: 50%',
+                    'width: 24px',
+                    'height: 24px',
+                    'line-height: 24px',
+                    'font-size: 12px'
                 ];
                 if (isToday) {
                     const dayColors = getColors(settings.defaultColor);
-                    css.push(`background-color: ${dayColors.background}`);
-                    css.push(`color: ${dayColors.color}`);
+                    dayCss.push(`background-color: ${dayColors.backgroundColor}`);
+                    dayCss.push(`color: ${dayColors.color}`);
                 }
 
-                const dayClass = isToday ? 'rounded-circle text-bg-primary' : '';
+                // const dayClass = isToday ? 'rounded-circle text-bg-primary' : '';
                 // Berechne Border-Klassen basierend auf der Position der Zelle
                 const isLastRow = currentDate.getTime() === calendarEnd.getTime(); // Prüft genau, ob wir beim letzten Datum des Kalenders sind
 
@@ -2867,7 +2870,10 @@
                     class: `col ${borderClasses.join(' ')} px-1 flex-fill d-flex flex-column align-items-center justify-content-start ${
                         isOtherMonth ? 'text-muted' : ''
                     } ${isToday ? '' : ''}`,
-                    style: css.join(';'),
+                    css: {
+                        maxHeight: '100%',
+                        overflowY: 'auto',
+                    },
                 }).appendTo(weekRow);
 
                 // Wochentagsnamen in der ersten Zeile hinzufügen
@@ -2885,13 +2891,8 @@
                 // Tageszahl hinzufügen
                 $('<small>', {
                     'data-date': formatDateToDateString(currentDate),
-                    css: {
-                        width: '24px',
-                        height: '24px',
-                        lineHeight: '24px',
-                        fontSize: '12px',
-                    },
-                    class: `${dayClass} text-center my-1`,
+                    class: `text-center my-1`,
+                    style: dayCss.join(';'),
                     text: currentDate.getDate(),
                 }).appendTo(dayWrapper);
 
