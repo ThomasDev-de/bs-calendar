@@ -42,6 +42,7 @@
  */
 
 (function ($) {
+    'use strict';
     $.bsCalendar = {
         setDefaults: function (options) {
             this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
@@ -112,7 +113,6 @@
     const translateMiddleCss = [
         'transform: translate(-50%,-50%)'
     ];
-
 
     const start0Css = [
         'left: 0'
@@ -2591,7 +2591,6 @@
             }
             container.find('[data-appointment]').css('cursor', 'pointer');
         }
-
     }
 
     function drawAppointmentsForYear($wrapper, appointments) {
