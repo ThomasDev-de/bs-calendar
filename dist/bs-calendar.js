@@ -3366,7 +3366,7 @@
         const now = new Date();
         // Erstelle eine Linie, die die aktuelle Zeit anzeigt
         const currentTimeIndicator = $('<div>', {
-            class: 'current-time-indicator position-absolute bg-danger-subtle',
+            class: 'current-time-indicator position-absolute bg-danger',
             css: {
                 boxSizing: 'border-box',
                 height: '1px',
@@ -3382,7 +3382,7 @@
             ...top0Css
         ].join(';');
 
-        $(`<small class="position-absolute badge bg-danger-subtle js-current-time" style="${combinedCss}">` + getMinutesAndSeconds($wrapper, now) + '</small>').appendTo(currentTimeIndicator);
+        $(`<small class="position-absolute badge bg-danger js-current-time" style="${combinedCss}">` + getMinutesAndSeconds($wrapper, now) + '</small>').appendTo(currentTimeIndicator);
 
         const combinedCss2 = [
             ...translateMiddleCss,
@@ -3392,7 +3392,7 @@
             'height: 10px',
         ].join(';');
 
-        $(`<div class="position-absolute rounded-circle bg-danger-subtle" style="${combinedCss2}"></div>`).appendTo(currentTimeIndicator);
+        $(`<div class="position-absolute rounded-circle bg-danger" style="${combinedCss2}"></div>`).appendTo(currentTimeIndicator);
 
         // Funktion, die die Position basierend auf der aktuellen Zeit berechnet
 
