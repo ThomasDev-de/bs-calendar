@@ -774,8 +774,9 @@
                     // Falls opacity oder gradient enthalten ist
                     return className.startsWith("bg-") ? className : `bg-${className}`;
                 } else {
+                    const bsV = getBootstrapVersion();
                     // Für andere Klassen
-                    return className.startsWith("bg-") && getBootstrapVersion() === 5
+                    return className.startsWith("bg-") && bsV === 5
                         ? className.replace("bg-", "text-bg-") // bg- zu text-bg- ändern
                         : `text-bg-${className}`; // text-bg- hinzufügen
                 }
