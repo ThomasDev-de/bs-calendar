@@ -146,7 +146,7 @@
         'top: 100%'
     ];
 
-    function getBorderRadiusCss (number) {
+    function getBorderRadiusCss(number) {
         let rounded = '0';
         switch (number) {
             case 1:
@@ -167,6 +167,7 @@
         }
         return `border-radius: ${rounded} !important`;
     }
+
     /**
      /**
      * jQuery plugin that initializes and manages a Bootstrap-based calendar.
@@ -734,6 +735,21 @@
         });
     }
 
+    function getBootstrapVersion() {
+        let bootstrapVersion;
+
+        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+            if (typeof bootstrap.Modal.getOrCreateInstance === 'function') {
+                bootstrapVersion = 5; // Bootstrap 5
+            } else {
+                bootstrapVersion = 4; // Bootstrap 4
+            }
+        } else {
+            bootstrapVersion = 5; // Bootstrap nicht geladen
+        }
+        return 5;
+    }
+
     /**
      * Get colors (background and text) based on a given color or fallback color, built with jQuery.
      *
@@ -759,7 +775,7 @@
                     return className.startsWith("bg-") ? className : `bg-${className}`;
                 } else {
                     // Für andere Klassen
-                    return className.startsWith("bg-")
+                    return className.startsWith("bg-") && getBootstrapVersion() === 5
                         ? className.replace("bg-", "text-bg-") // bg- zu text-bg- ändern
                         : `text-bg-${className}`; // text-bg- hinzufügen
                 }
