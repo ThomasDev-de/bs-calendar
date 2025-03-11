@@ -3165,7 +3165,7 @@
             // Create day container
             const dayContainer = $('<div>', {
                 'data-week-day': currentDate.getDay(),
-                class: 'wc-day-week-view flex-grow-1 flex-fill border-end position-relative',
+                class: 'wc-day-week-view flex-grow-1 flex-fill border-end border-right position-relative',
                 css: {
                     width: (100 / 7) + '%' // Fixe Breite für 7 Spalten
                 }
