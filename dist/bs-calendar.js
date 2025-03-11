@@ -178,7 +178,7 @@
 
             setSettings(wrapper, settings);
             init(wrapper).then(() => {
-                // do nothing
+                onResize(wrapper);
             });
         }
 
@@ -1016,7 +1016,8 @@
 
             // add a close button
             const btnCloseSearch = $('<button>', {
-                class: `btn btn-close rounded-${settings.rounded} p-2 ms-2 js-btn-close-search`,
+                class: `btn rounded-${settings.rounded} p-2 ms-2 js-btn-close-search`,
+                html: `<i class="bi bi-x-lg mx-2"></i>`,
                 "aria-label": "Close"
             }).appendTo(topSearchNav);
 
