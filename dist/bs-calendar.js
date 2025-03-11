@@ -1790,7 +1790,7 @@
         const callFunction = typeof settings.url === 'function';
         const callAjax = typeof settings.url === 'string';
         if (callFunction || callAjax) {
-            showLoader($wrapper);
+            showBSCalendarLoader($wrapper);
         }
 
         // Check if the URL for fetching appointments is a function
@@ -1819,14 +1819,14 @@
                 })
                 .catch(error => {
                     // Hide the loader and log the error if debugging is enabled
-                    hideLoader($wrapper);
+                    hideBSCalendarLoader($wrapper);
                     if (settings.debug) {
                         log('Error fetching appointments:', error);
                     }
                 })
                 .finally(() => {
                     // Always hide the loader, regardless of success or error
-                    hideLoader($wrapper);
+                    hideBSCalendarLoader($wrapper);
                 });
 
         } else if (callAjax) {
@@ -1875,7 +1875,7 @@
                 complete: function () {
                     // Always remove the current request and hide the loader after the request ends
                     $wrapper.removeData('currentRequest');
-                    hideLoader($wrapper);
+                    hideBSCalendarLoader($wrapper);
                 }
             });
 
@@ -2610,7 +2610,7 @@
      * @param {jQuery} $wrapper - The jQuery object representing the wrapper element that contains the loading spinner.
      * @return {void} This method does not return a value.
      */
-    function showLoader($wrapper) {
+    function showBSCalendarLoader($wrapper) {
         const spinner = $wrapper.find('.wc-calendar-spinner');
         spinner.show();
 
@@ -2633,7 +2633,7 @@
      * @param {jQuery} $wrapper - The jQuery object representing the wrapper element that contains the loading spinner.
      * @return {void} This function does not return a value.
      */
-    function hideLoader($wrapper) {
+    function hideBSCalendarLoader($wrapper) {
         const spinner = $wrapper.find('.wc-calendar-spinner');
         $wrapper.find('.wc-calendar-overlay').remove();
         spinner.hide();
