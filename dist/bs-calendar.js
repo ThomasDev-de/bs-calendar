@@ -776,6 +776,18 @@
                 } else {
                     const bsV = getBootstrapVersion();
                     // Für andere Klassen
+                    switch (bsV) {
+                        case 5:
+                            return className.startsWith("bg-")
+                                ? className.replace("bg-", "text-bg-") // bg- zu text-bg- ändern
+                                : `text-bg-${className}`; // text-bg- hinzufügen
+                        case 4:
+                            if (className.startsWith("bg-")) {
+                                return className;
+                            } else {
+                                return "bg-" + className;
+                            }
+                    }
                     return className.startsWith("bg-") && bsV === 5
                         ? className.replace("bg-", "text-bg-") // bg- zu text-bg- ändern
                         : `text-bg-${className}`; // text-bg- hinzufügen
