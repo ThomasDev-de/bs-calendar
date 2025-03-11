@@ -3580,14 +3580,14 @@
                 const roundedCss = getBorderRadiusCss(settings.rounded);
                 // If the modal does not exist, create the modal's HTML structure and append it to the body.
                 const modalHtml = [
-                    `<div class="modal fade" id="${infoWindowModalId.substring(1)}" tabindex="-1" data-bs-backdrop="false" style="pointer-events: none;">`,
+                    `<div class="modal fade" id="${infoWindowModalId.substring(1)}" tabindex="-1" data-backdrop="false" data-bs-backdrop="false" style="pointer-events: none;">`,
                     `<div class="modal-dialog modal-fullscreen-sm-down position-absolute" style="pointer-events: auto; ">`,
                     `<div class="modal-content border border-1 shadow" style="${roundedCss}">`,
                     `<div class="modal-body d-flex flex-column align-items-stretch pb-4 px-4" style="">`,
                     `<div class="d-flex justify-content-end align-items-center">`,
-                    `<button type="button" data-remove data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i> </button>`,
+                    `<button type="button" data-remove data-dismiss="modal" data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i> </button>`,
                     `<button type="button" data-edit class="btn"><i class="bi bi-pen"></i> </button>`,
-                    `<button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i> </button>`,
+                    `<button type="button" data-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i> </button>`,
                     `</div>`,
                     `<div class="modal-appointment-content flex-fill overflow-y-auto" style="">`,
                     html,
