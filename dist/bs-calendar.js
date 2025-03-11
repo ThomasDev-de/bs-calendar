@@ -37,7 +37,7 @@
  * See the individual method and function documentation in this file for more details.
  *
  * @file bs-calendar.js
- * @date 2025-02-21
+ * @date 2025-03-11
  * @global jQuery
  */
 

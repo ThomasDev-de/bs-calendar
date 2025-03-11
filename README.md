@@ -1,3 +1,7 @@
+<div style="border: 1px solid red; padding: 10px; background-color: #ffe6e6;">
+  <strong>⚠️ Important note:</strong> The documentation is currently not complete
+</div>
+
 # **bsCalendar** - A jQuery Plugin for Bootstrap-Based Calendar Management
 
 `bsCalendar` is a lightweight and flexible jQuery plugin designed to enable a customizable Bootstrap-based calendar. With support for multiple views (day, week, month, and year), dynamic appointment loading, and localization, `bsCalendar` is suitable for building user-friendly and responsive calendar interfaces.
