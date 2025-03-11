@@ -146,7 +146,27 @@
         'top: 100%'
     ];
 
-
+    function getRoundedCss (number) {
+        let rounded = '0';
+        switch (number) {
+            case 1:
+                rounded = '0.25rem';
+                break;
+            case 2:
+                rounded = '0.5rem';
+                break;
+            case 3:
+                rounded = '0.75rem';
+                break;
+            case 4:
+                rounded = '1rem';
+                break;
+            case 5:
+                rounded = '2rem';
+                break;
+        }
+        return `border-radius: ${rounded}`;
+    }
     /**
      /**
      * jQuery plugin that initializes and manages a Bootstrap-based calendar.
@@ -462,8 +482,9 @@
                 }
 
                 // Link generieren, wenn vorhanden
+                const roundedCss = getRoundedCss(5);
                 const link = appointment.link
-                    ? `<a class="btn btn-primary rounded-5 rounded-5 px-5" href="${appointment.link}" target="_blank" rel="noopener noreferrer">Link</a>`
+                    ? `<a class="btn btn-primary  px-5" style="${roundedCss}" href="${appointment.link}" target="_blank" rel="noopener noreferrer">Link</a>`
                     : '';
 
                 // Standortinformationen verarbeiten
@@ -950,8 +971,10 @@
             class: 'd-flex flex-column align-items-stretch h-100 w-100'
         }).appendTo($wrapper);
 
+        const roundedCss = getRoundedCss(settings.rounded);
         const topNav = $('<div>', {
-            class: `d-flex sticky-top align-items-center px-0 justify-content-end mb-3 ${topNavClass} bg-body rounded-${settings.rounded}`
+            class: `d-flex sticky-top align-items-center px-0 justify-content-end mb-3 ${topNavClass} bg-body`,
+            style: roundedCss
         }).appendTo(innerWrapper);
 
         if (settings.topbarAddons && $(settings.topbarAddons).length > 0) {
@@ -959,12 +982,14 @@
         }
 
         const topSearchNav = $('<div>', {
-            class: `d-none sticky-top align-items-center px-0 justify-content-center mb-3 ${topSearchClass} bg-body rounded-${settings.rounded}`
+            class: `d-none sticky-top align-items-center px-0 justify-content-center mb-3 ${topSearchClass} bg-body`,
+            style: roundedCss
         });
 
         $('<button>', {
-            class: `btn rounded-${settings.rounded} border`,
+            class: `btn border`,
             html: `<i class="${settings.icons.add}"></i>`,
+            style: roundedCss,
             'data-add-appointment': true
         }).appendTo(topNav);
 
@@ -995,8 +1020,9 @@
             topSearchNav.insertAfter(topNav);
             // add a search button to topnav
             const showSearchbar = $('<button>', {
-                class: `btn rounded-${settings.rounded} border js-btn-search`,
-                html: `<i class="${settings.icons.search}"></i>`
+                class: `btn border js-btn-search`,
+                html: `<i class="${settings.icons.search}"></i>`,
+                style: roundedCss,
             }).appendTo(topNav);
             showSearchbar.on('click', function () {
                 toggleSearchBar($wrapper, true);
@@ -1004,20 +1030,20 @@
             });
 
             // add the search input to top search bar
+            const inputCss = 'max-width: 400px; ' + roundedCss;
             $('<input>', {
                 type: 'search',
-                css: {
-                    maxWidth: '400px',
-                },
-                class: 'form-control rounded-' + settings.rounded + '  border',
+                style: inputCss,
+                class: 'form-control border',
                 placeholder: settings.translations.search || 'search',
                 'data-search-input': true
             }).appendTo(topSearchNav);
 
             // add a close button
             const btnCloseSearch = $('<button>', {
-                class: `btn rounded-${settings.rounded} p-2 ms-2 js-btn-close-search`,
+                class: `btn p-2 ms-2 js-btn-close-search`,
                 html: `<i class="bi bi-x-lg mx-2"></i>`,
+                style: roundedCss,
                 "aria-label": "Close"
             }).appendTo(topSearchNav);
 
@@ -1030,8 +1056,9 @@
         }
 
         $('<button>', {
-            class: `btn rounded-${settings.rounded} ms-2 border`,
+            class: `btn ms-2 border`,
             html: settings.translations.today,
+            style: roundedCss,
             'data-today': true
         }).appendTo(topNav);
 
@@ -1040,7 +1067,7 @@
             const dropDownView = $('<div>', {
                 class: 'dropdown wc-select-calendar-view ms-2',
                 html: [
-                    `<a class="btn rounded-${settings.rounded} border dropdown-toggle" href="#" role="button" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">`,
+                    `<a class="btn border dropdown-toggle" style="${roundedCss}" href="#" role="button" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">`,
                     '</a>',
                     '<ul class="dropdown-menu">',
                     '</ul>',
@@ -1080,7 +1107,8 @@
         }
 
         $('<div>', {
-            class: `container-fluid ${viewContainerClass} pb-5 border-1 rounded-${settings.rounded} flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`
+            class: `container-fluid ${viewContainerClass} pb-5 border-1 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`,
+            style: roundedCss,
         }).appendTo(container);
 
     }
@@ -3488,15 +3516,17 @@
             },
         }).appendTo(container);
 
+        const roundedCss = getRoundedCss(settings.rounded);
         // render a small calendar for each month
         for (let month = 0; month < 12; month++) {
             // Create a wrapper for every monthly calendar
+            const css = [
+                roundedCss,
+                'margin: 5px'
+            ]
             const monthWrapper = $('<div>', {
-                class: 'd-flex p-2 flex-column rounded-' + settings.rounded + ' align-items-start wc-year-month-container', // Col-Layout für Titel und Kalender
-                css: {
-                    // width: '200px', // fixed width for every calendar
-                    margin: '5px', // distance on the edge
-                },
+                class: 'd-flex p-2 flex-column align-items-start wc-year-month-container', // Col-Layout für Titel und Kalender
+                style: css.join(';'),
             }).appendTo(grid);
 
             // monthly name and year as the title (e.g. "January 2023")
@@ -3547,11 +3577,12 @@
 // Check if the modal already exists on the page.
             const modalExists = $modal.length > 0;
             if (!modalExists) {
+                const roundedCss = getRoundedCss(settings.rounded);
                 // If the modal does not exist, create the modal's HTML structure and append it to the body.
                 const modalHtml = [
                     `<div class="modal fade" id="${infoWindowModalId.substring(1)}" tabindex="-1" data-bs-backdrop="false" style="pointer-events: none;">`,
                     `<div class="modal-dialog modal-fullscreen-sm-down position-absolute" style="pointer-events: auto; ">`,
-                    `<div class="modal-content rounded-5  border border-1 shadow" style="">`,
+                    `<div class="modal-content border border-1 shadow" style="${roundedCss}">`,
                     `<div class="modal-body d-flex flex-column align-items-stretch pb-4 px-4" style="">`,
                     `<div class="d-flex justify-content-end align-items-center">`,
                     `<button type="button" data-remove data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i> </button>`,
