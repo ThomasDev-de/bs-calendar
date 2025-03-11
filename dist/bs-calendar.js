@@ -2368,9 +2368,9 @@
         appointments.forEach(appointment => {
             const multipleStartDates = appointment.extras.displayDates.length > 1;
             appointment.extras.displayDates.forEach(obj => {
-                if (!obj.visibleInMonth) {
-                    return;
-                }
+                // if (!obj.visibleInMonth) {
+                //     return;
+                // }
                 const startString = obj.date
 
                 const dayContainer = $container.find(`[data-month-date="${startString}"]`);
