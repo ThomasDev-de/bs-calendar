@@ -1008,7 +1008,7 @@
 
 
         $('<div>', {
-            class: 'd-flex ms-2 align-items-center justify-content-center wc-nav-view-wrapper flex-nowrap text-nowrap',
+            class: 'd-flex ms-2 ml-2 align-items-center justify-content-center wc-nav-view-wrapper flex-nowrap text-nowrap',
             html: [
                 '<small class="wc-nav-view-name mr-3 me-3"></small>',
                 `<a data-prev href="#"><i class="${settings.icons.prev}"></i></a>`,
@@ -1041,7 +1041,7 @@
 
             // add a close button
             const btnCloseSearch = $('<button>', {
-                class: `btn p-2 ms-2 js-btn-close-search`,
+                class: `btn p-2 ms-2 ml-2 js-btn-close-search`,
                 html: `<i class="bi bi-x-lg mx-2"></i>`,
                 style: roundedCss,
                 "aria-label": "Close"
@@ -1056,7 +1056,7 @@
         }
 
         $('<button>', {
-            class: `btn ms-2 border`,
+            class: `btn ms-2 ml-2 border`,
             html: settings.translations.today,
             style: roundedCss,
             'data-today': true
@@ -1065,7 +1065,7 @@
         // If only one view is desired, give no selection
         if (settings.views.length > 1) {
             const dropDownView = $('<div>', {
-                class: 'dropdown wc-select-calendar-view ms-2',
+                class: 'dropdown wc-select-calendar-view ms-2 ml-2',
                 html: [
                     `<a class="btn border dropdown-toggle" style="${roundedCss}" href="#" role="button" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">`,
                     '</a>',
@@ -2286,7 +2286,7 @@
         const statusText = `${startIndexDisplay}-${endIndexDisplay} | ${total}`;
 
         $('<div>', {
-            class: 'alert alert-secondary me-4 py-2 px-4',
+            class: 'alert alert-secondary me-4 mr-4 py-2 px-4',
             text: statusText,
         }).appendTo($paginationWrapper);
 
@@ -3135,7 +3135,7 @@
         const $container = getViewContainer($wrapper).empty();
         const date = getDate($wrapper);
         const headline = $('<div>', {
-            class: 'wc-day-header mb-2 ms-5',
+            class: 'wc-day-header mb-2 ms-5 ml-5',
             css: {
                 paddingLeft: '40px'
             },
@@ -3386,7 +3386,7 @@
 
                 // hourly label (e.g. 08:00)
                 $('<div>', {
-                    class: 'wc-time-label ps-2 position-absolute',
+                    class: 'wc-time-label ps-2 pl-2 position-absolute',
                     style: combinedCss,
                     html: `${hour.toString().padStart(2, '0')}:00 <i class="${settings.icons.timeSlot}"></i>`
                 }).appendTo(row);
