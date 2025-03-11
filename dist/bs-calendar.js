@@ -1850,7 +1850,7 @@
                 url: settings.url,
                 method: 'GET',
                 contentType: 'application/json', // Specify JSON content type
-                data: JSON.stringify(requestData), // Convert request data to JSON string
+                data: requestData, // Convert request data to JSON string
                 success: function (response) {
                     if (inSearchMode) {
                         // In search mode, handle the response rows and build the search views
