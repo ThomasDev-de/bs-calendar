@@ -2796,6 +2796,7 @@
      * @return {void} This method does not return a value.
      */
     function showBSCalendarLoader($wrapper) {
+        hideBSCalendarLoader($wrapper);
         const spinner = $wrapper.find('.wc-calendar-spinner');
         spinner.show();
 
