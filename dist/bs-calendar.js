@@ -2561,6 +2561,9 @@
                 const appointmentElement = $('<small>', {
                     'data-appointment': true,
                     class: 'px-1 w-100 overflow-hidden mb-1 rounded',
+                    css: {
+                        minHeight: '18px',
+                    },
                     html: settings.formatter.month(appointment)
                 }).appendTo(dayContainer);
 
