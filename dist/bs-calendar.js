@@ -148,7 +148,7 @@
 
     const bgBodyTertiaryCss = [
         'opacity: 1',
-        'background-color: rgba(43,48,53)'
+        'background-color: #F8F9FA'
     ];
 
     const colorNameToHex = {
