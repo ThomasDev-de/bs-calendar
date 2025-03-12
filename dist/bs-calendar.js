@@ -2556,7 +2556,7 @@
                 // }
                 const startString = obj.date
 
-                const dayContainer = $container.find(`[data-month-date="${startString}"]`);
+                const dayContainer = $container.find(`[data-month-date="${startString}"] [data-role="day-wrapper"]`);
 
                 const appointmentElement = $('<small>', {
                     'data-appointment': true,
@@ -3105,6 +3105,15 @@
                     class: `text-center my-1`,
                     style: dayCss.join(';'),
                     text: currentDate.getDate(),
+                }).appendTo(dayWrapper);
+
+                // inner wrapper
+                const dayWrapperInner = $('<div>', {
+                    class: 'd-flex flex-column w-100 h-100',
+                    'data-role': 'day-wrapper',
+                    css: {
+                        overflowY: 'auto',
+                    }
                 }).appendTo(dayWrapper);
 
                 // Zum nächsten Tag wechseln
