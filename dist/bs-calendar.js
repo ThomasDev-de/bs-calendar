@@ -747,7 +747,7 @@
         } else {
             bootstrapVersion = 5; // Bootstrap nicht geladen
         }
-        return 5;
+        return bootstrapVersion;
     }
 
     /**
