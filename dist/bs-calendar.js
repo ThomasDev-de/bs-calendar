@@ -3215,7 +3215,8 @@
 
         // Empty the container and prepare a miniature calendar
         $container.empty();
-        $container.addClass('table-responsive overflow-visible');
+        $container.css('overflow', 'visible');
+        $container.addClass('table-responsive');
 
         const table = $('<table>', {
             class: 'wc-mini-calendar',
