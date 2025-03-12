@@ -152,7 +152,7 @@
     ];
 
     const roundedPillCSS = [
-        'border-radius: var(--bs-border-radius-pill, 50rem)',
+        'border-radius: var(--bs-border-radius-pill, 50rem) !important',
     ]
 
     const colorNameToHex = {
