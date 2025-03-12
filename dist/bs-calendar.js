@@ -148,8 +148,12 @@
 
     const bgBodyTertiaryCss = [
         'opacity: 1',
-        'background-color: #F8F9FA'
+        'background-color: rgba(var(--bs-tertiary-bg-rgb, 248, 249, 250), var(--bs-bg-opacity, 1))'
     ];
+
+    const roundedPillCSS = [
+        'border-radius: var(--bs-border-radius-pill, 50rem)',
+    ]
 
     const colorNameToHex = {
         aliceblue: "#f0f8ff",
@@ -3295,11 +3299,12 @@
                 if (forYearView) {
                     const combinedCss = [
                         ...translateMiddleCss,
+                        ...roundedPillCSS,
                         ...start50Css,
                         ...top100Css,
                     ].join(';');
 
-                    badge = `<span class="js-badge badge rounded-pill position-absolute" style="${combinedCss}"></span>`;
+                    badge = `<span class="js-badge badge position-absolute" style="${combinedCss}"></span>`;
                 }
 
                 const tdContent = [`<div class="${dayClass} w-100 h-100 d-flex justify-content-center flex-column align-items-center">`,
