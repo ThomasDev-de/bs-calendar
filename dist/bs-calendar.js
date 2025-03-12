@@ -768,13 +768,14 @@
         }
 
         function getComputedStyles(inputClassNames) {
+            const bsV = getBootstrapVersion();
             // Prüfen und Klassen entsprechend anpassen
             const classList = inputClassNames.split(" ").map(className => {
                 if (className.includes("opacity") || className.includes("gradient")) {
                     // Falls opacity oder gradient enthalten ist
                     return className.startsWith("bg-") ? className : `bg-${className}`;
                 } else {
-                    const bsV = getBootstrapVersion();
+
                     console.log("bsV in getComputedStyles:", bsV);
                     // Für andere Klassen
                     switch (bsV) {
@@ -816,7 +817,7 @@
             // Hintergrundbild (z. B. für Gradient)
             const backgroundImage = computedStyles.backgroundImage || "none";
             // Textfarbe (z. B. abhängig von der Hintergrundfarbe)
-            const color = computedStyles.color || "#000000";
+            const color = bsV > 4 ? computedStyles.color || "#000000" : isDarkColor(backgroundColor) ? "#ffffff" : "#000000";
             // Deckkraft (falls relevant)
             const opacity = computedStyles.opacity || "1";
 
