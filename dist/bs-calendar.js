@@ -775,6 +775,7 @@
                     return className.startsWith("bg-") ? className : `bg-${className}`;
                 } else {
                     const bsV = getBootstrapVersion();
+                    console.log("bsV in getComputedStyles:", bsV);
                     // Für andere Klassen
                     switch (bsV) {
                         case 5:
