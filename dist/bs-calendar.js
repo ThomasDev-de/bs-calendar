@@ -146,6 +146,11 @@
         'top: 100%'
     ];
 
+    const bgBodyTertiaryCss = [
+        'opacity: 1',
+        'background-color: rgba(43,48,53)'
+    ];
+
     const colorNameToHex = {
         aliceblue: "#f0f8ff",
         antiquewhite: "#faebd7",
@@ -3035,16 +3040,18 @@
             // Kalenderwoche berechnen und hinzufügen
             const calendarWeek = getCalendarWeek(currentDate);
             const paddingTop = isFirstRow ? '1.75rem' : '.75rem';
+            const weekRowCss = [
+                ...bgBodyTertiaryCss,
+                `padding-top:` + paddingTop,
+                'font-size: 12px',
+                'width: 24px',
+                'max-width: 24px',
+                'min-width: 24px'
+            ].join(';');
             weekRow.append(
                 $('<div>', {
                     class: `col px-1 d-flex align-items-start pt-${paddingTop} fw-bold justify-content-center bg-body-tertiary`,
-                    css: {
-                        paddingTop: paddingTop,
-                        fontSize: '12px',
-                        width: '24px',
-                        maxWidth: '24px',
-                        minWidth: '24px',
-                    },
+                    style: weekRowCss,
                     html: `<small>${calendarWeek}</small>`,
                 })
             );
@@ -3254,11 +3261,13 @@
 
             // calculate calendar week
             const calendarWeek = getCalendarWeek(currentDate);
+            const weekRowCss = [
+                ...bgBodyTertiaryCss,
+                `font-size: ${fontSize}px`,
+                `width: ${fontSize}px`
+            ].join(';');
             $('<td>', {
-                css: {
-                    width: `${fontSize}px`,
-                    fontSize: `${fontSize}px`
-                },
+                style: weekRowCss,
                 class: 'px-1 text-center bg-body-tertiary',
                 text: calendarWeek,
             }).appendTo(weekRow); // insert cw into the first column of the line
