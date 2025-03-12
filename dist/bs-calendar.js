@@ -866,7 +866,7 @@
 
             // YiQ calculation for determination whether the color is dark
             const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-            return yiq > 128; // return true when the color is dark
+            return yiq <= 128; // return true when the color is dark
         }
 
         function computeColor(inputColor) {
