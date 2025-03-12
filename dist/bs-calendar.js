@@ -1045,7 +1045,7 @@
             color: "#FFFFFF", // Standard-Textfarbe bei dunklem Hintergrund
         };
 
-        const result = { ...defaultValues, ...fallbackResult };
+        const result = {...defaultValues, ...fallbackResult};
 
         return {
             origin: color, // Eingabe für Debug-Zwecke
@@ -3766,10 +3766,8 @@
                     `<div class="modal-dialog modal-fullscreen-sm-down position-absolute" style="pointer-events: auto; ">`,
                     `<div class="modal-content border border-1 shadow" style="${roundedCss}">`,
                     `<div class="modal-body d-flex flex-column align-items-stretch pb-4 px-4" style="">`,
-                    `<div class="d-flex justify-content-end align-items-center">`,
-                    `<button type="button" data-remove data-dismiss="modal" data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i> </button>`,
-                    `<button type="button" data-edit class="btn"><i class="bi bi-pen"></i> </button>`,
-                    `<button type="button" data-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i> </button>`,
+                    `<div class="d-flex justify-content-end align-items-center" data-modal-options>`,
+                    `<button type="button" data-dismiss="modal" data-bs-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i> </button>`,
                     `</div>`,
                     `<div class="modal-appointment-content flex-fill overflow-y-auto" style="">`,
                     html,
@@ -3798,6 +3796,24 @@
 
             // Attach the `appointment` data to the modal for potential future usage.
             $modal.data('appointment', appointment);
+
+            const modalOptions = $modal.find('[data-modal-options]');
+            const deleteable = appointment.hasOwnProperty('deleteable') ? appointment.deleteable : true;
+            const editable = appointment.hasOwnProperty('editable') ? appointment.editable : true;
+            if (editable) {
+                if (!$modal.find('[data-edit]').length) {
+                    $(`<button type="button" data-edit class="btn"><i class="bi bi-pen"></i></button>`).prependTo(modalOptions);
+                }
+            } else {
+                $modal.find('[data-edit]').remove();
+            }
+            if (deleteable) {
+                if (!$modal.find('[data-remove]').length) {
+                    $(`<button type="button" data-remove data-dismiss="modal" data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i></button>`).prependTo(modalOptions);
+                }
+            } else {
+                $modal.find('[data-remove]').remove();
+            }
 
             // Get relevant dimensions and positioning of the modal and target element.
             const $modalDialog = $modal.find('.modal-dialog');
