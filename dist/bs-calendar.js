@@ -817,7 +817,7 @@
             // Hintergrundbild (z. B. für Gradient)
             const backgroundImage = computedStyles.backgroundImage || "none";
             // Textfarbe (z. B. abhängig von der Hintergrundfarbe)
-            const color = bsV > 4 ? computedStyles.color || "#000000" : isDarkColor(backgroundColor) ? "#ffffff" : "#000000";
+            const color = bsV > 4 ? (computedStyles.color || "#000000") : (isDarkColor(backgroundColor) ? "#ffffff" : "#000000");
             // Deckkraft (falls relevant)
             const opacity = computedStyles.opacity || "1";
 
