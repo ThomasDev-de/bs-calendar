@@ -1165,7 +1165,7 @@
 
         const roundedCss = getBorderRadiusCss(settings.rounded);
         const topNav = $('<div>', {
-            class: `d-flex sticky-top align-items-center px-0 justify-content-end mb-3 ${topNavClass} bg-body`,
+            class: `d-flex align-items-center px-0 justify-content-end mb-3 ${topNavClass} bg-body`,
             style: roundedCss
         }).appendTo(innerWrapper);
 
@@ -1174,7 +1174,7 @@
         }
 
         const topSearchNav = $('<div>', {
-            class: `d-none sticky-top align-items-center px-0 justify-content-center mb-3 ${topSearchClass} bg-body`,
+            class: `d-none align-items-center px-0 justify-content-center mb-3 ${topSearchClass} bg-body`,
             style: roundedCss
         });
 
