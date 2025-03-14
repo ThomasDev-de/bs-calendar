@@ -93,7 +93,7 @@
             debug: false,
             formatter: {
                 day: formatterDay,
-                week: formatterDay,
+                week: formatterWeek,
                 month: formatterMonth,
                 window: formatInfoWindow,
                 duration: formatDuration,
@@ -399,8 +399,11 @@
         return wrapper;
     }
 
-    function formatterDay(appointment, view) {
-        return appointment.title;
+    function formatterDay(appointment) {
+        return `<small>${appointment.title}</small>`;
+    }
+    function formatterWeek(appointment) {
+        return `<small>${appointment.title}</small>`;
     }
 
     function formatterMonth(appointment) {
@@ -2275,7 +2278,7 @@
                             left: `${appointmentLeftPercent}%`,
                             width: `${appointmentWidthPercent}%`,
                         },
-                        html: settings.formatter.day(appointment, view),
+                        html: view === 'day' ? settings.formatter.day(appointment) : settings.formatter.week(appointment),
                     }).appendTo($weekDayContainer);
 
                     appointmentElement.data('appointment', appointment);
@@ -2323,7 +2326,7 @@
                         left: `${appointmentLeftPercent}%`,
                         width: `${appointmentWidthPercent}%`,
                     },
-                    text: settings.formatter.day(appointment, view),
+                    html: view === 'day' ? settings.formatter.day(appointment) : settings.formatter.week(appointment),
                 }).appendTo($weekDayContainer);
 
                 // Meta-Daten und Styling hinzufügen
