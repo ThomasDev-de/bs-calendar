@@ -621,6 +621,46 @@
     }
 
     /**
+     * Erstellt einen HTML-Link basierend auf einem String oder einem Link-Objekt.
+     *
+     * @param {string|object|null} link - Der Link kann entweder ein String oder ein Objekt mit folgenden Attributen sein:
+     *  - href: (string) die URL des Links (erforderlich, falls Objekt)
+     *  - text: (string) der anzuzeigende Text (optional, Standard: "Link")
+     *  - target: (string) Attribut für Ziel (optional, Standard: "_blank")
+     *  - rel: (string) Sicherheitsattribute (optional, Standard: "noopener noreferrer")
+     *  - html: (string) Optionaler HTML-Content als Alternativen zu `text` (optional)
+     * @param {string} style - Zusätzliche CSS-Styles für den Link (optional)
+     * @returns {string} Generierter HTML-Link oder ein leerer String, wenn der Link ungültig ist.
+     */
+    function buildLink(link, style = "") {
+        if (!link) return ""; // Wenn kein Link angegeben ist, leer zurückgeben.
+
+        // Standardwerte vorbereiten
+        const defaultText = "Link";
+        const defaultTarget = "_blank";
+        const defaultRel = "noopener noreferrer";
+
+        if (typeof link === "string") {
+            // Behandlung als einfacher String
+            return `<a class="btn btn-primary px-5" style="${style}" href="${link}" target="${defaultTarget}" rel="${defaultRel}">${defaultText}</a>`;
+        }
+
+        if (typeof link === "object" && link.href) {
+            // Behandlung als Objekt mit Attributen
+            const text = link.text || defaultText;
+            const target = link.target || defaultTarget;
+            const rel = link.rel || defaultRel;
+
+            // Wenn HTML-Inhalt definiert ist, wird dieser verwendet
+            const content = link.html || text;
+
+            return `<a class="btn btn-primary px-5" style="${style}" href="${link.href}" target="${target}" rel="${rel}">${content}</a>`;
+        }
+
+        // Falls weder ein String noch ein korrektes Objekt vorhanden ist, leer zurückgeben.
+        return "";
+    }
+    /**
      * Formats an HTML string for an information window based on the given appointment data.
      *
      * @param {Object} appointment - The appointment object containing details to format the information window.
@@ -652,9 +692,7 @@
 
                 // Link generieren, wenn vorhanden
                 const roundedCss = getBorderRadiusCss(5);
-                const link = appointment.link
-                    ? `<a class="btn btn-primary  px-5" style="${roundedCss}" href="${appointment.link}" target="_blank" rel="noopener noreferrer">Link</a>`
-                    : '';
+                const link = buildLink(appointment.link, roundedCss);
 
                 // Standortinformationen verarbeiten
                 let location = "";
@@ -2448,9 +2486,7 @@
                 `width: 60px`,
             ].join(';');
 
-            const link = appointment.link
-                ? `<a class="btn btn-link p-0 mx-3 btn-sm " href="${appointment.link}" target="_blank"><i class="${settings.icons.link}"></i></a>`
-                : '';
+            const link = buildLink(appointment.link);
 
             const html = [
                 `<div class="day fw-bold text-center" style="${firstCollStyle}" data-date="${formatDateToDateString(new Date(appointment.start))}">`,
