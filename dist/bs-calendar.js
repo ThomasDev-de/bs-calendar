@@ -3309,6 +3309,7 @@
                         ...roundedPillCSS,
                         ...start50Css,
                         ...top100Css,
+                        'z-index: 1'
                     ].join(';');
 
                     badge = `<span class="js-badge badge position-absolute" style="${combinedCss}"></span>`;
