@@ -2330,8 +2330,8 @@
                 const returnData = getAppointmentForReturn(appointment);
 
                 const appointmentContent = view === 'day' ?
-                    settings.formatter.day(returnData.appiontment, returnData.extras) :
-                    settings.formatter.week(returnData.appiontment, returnData.extras);
+                    settings.formatter.day(returnData.appointment, returnData.extras) :
+                    settings.formatter.week(returnData.appointment, returnData.extras);
 
                 // Rendern des Full-Width-Termins
                 const appointmentElement = $('<div>', {
@@ -2618,7 +2618,7 @@
         const appointment = copyAppointment(origin);
         const extras = appointment.extras;
         delete appointment.extras;
-        return {appointment, extras}
+        return {appointment:appointment, extras: extras}
     }
 
     /**
