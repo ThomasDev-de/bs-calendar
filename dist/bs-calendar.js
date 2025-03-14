@@ -74,7 +74,7 @@
             },
             icons: {
                 day: 'bi bi-calendar-day',
-                week: 'bi bi-calendar-week',
+                week: 'bi bi-kanban',
                 month: 'bi bi-calendar-month',
                 year: 'bi bi-calendar4',
                 add: 'bi bi-plus-lg',
@@ -1257,9 +1257,9 @@
         // If only one view is desired, give no selection
         if (settings.views.length > 1) {
             const dropDownView = $('<div>', {
-                class: 'dropdown wc-select-calendar-view ms-2 ml-2',
+                class: 'dropdown wc-select-calendar-view ms-2 ml-2 dropstart dropleft',
                 html: [
-                    `<a class="btn border dropdown-toggle" style="${roundedCss}" href="#" role="button" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">`,
+                    `<a class="btn border" data-dropdown-text style="${roundedCss}" href="#" role="button" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">`,
                     '</a>',
                     '<ul class="dropdown-menu">',
                     '</ul>',
@@ -1731,7 +1731,7 @@
         dropdown.find(`[data-view="${view}"]`).addClass('active');
         const activeItem = dropdown.find(`[data-view="${view}"]`);
 
-        dropdown.find('.dropdown-toggle').html(activeItem.html());
+        dropdown.find('[data-dropdown-text]').html(activeItem.html());
     }
 
 
@@ -3623,13 +3623,18 @@
             }
         }).appendTo($container);
 
+        const badgeColor = getColors('danger');
         const combinedCss = [
             ...translateMiddleCss,
             ...start0Css,
-            ...top0Css
+            ...top0Css,
+            'background-color: ' + badgeColor.backgroundColor,
+            'color: ' + badgeColor.color,
         ].join(';');
 
-        $(`<small class="position-absolute badge bg-danger js-current-time" style="${combinedCss}">` + getMinutesAndSeconds($wrapper, now) + '</small>').appendTo(currentTimeIndicator);
+
+
+        $(`<small class="position-absolute badge js-current-time" style="${combinedCss}">` + getMinutesAndSeconds($wrapper, now) + '</small>').appendTo(currentTimeIndicator);
 
         const combinedCss2 = [
             ...translateMiddleCss,
