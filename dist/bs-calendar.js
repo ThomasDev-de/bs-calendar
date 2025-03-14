@@ -154,6 +154,9 @@
     const roundedPillCSS = [
         'border-radius: var(--bs-border-radius-pill, 50rem) !important',
     ]
+    const roundedCircleCSS = [
+        'border-radius: 50% !important',
+    ]
 
     const colorNameToHex = {
         aliceblue: "#f0f8ff",
@@ -3071,12 +3074,11 @@
                     'font-size: 12px'
                 ];
                 if (isToday) {
-                    const dayColors = getColors(settings.defaultColor);
+                    const dayColors = getColors('primary');
                     dayCss.push(`background-color: ${dayColors.backgroundColor}`);
                     dayCss.push(`color: ${dayColors.color}`);
                 }
 
-                // const dayClass = isToday ? 'rounded-circle text-bg-primary' : '';
                 // Berechne Border-Klassen basierend auf der Position der Zelle
                 const isLastRow = currentDate.getTime() === calendarEnd.getTime(); // Prüft genau, ob wir beim letzten Datum des Kalenders sind
 
@@ -3256,7 +3258,8 @@
         // create the content of the calendar
         const tbody = $('<tbody>').appendTo(table);
         let currentDate = new Date(calendarStart);
-
+        const defaultColor = 'primary';
+        const defaultColors = getColors(defaultColor);
         while (currentDate <= calendarEnd) {
             const weekRow = $('<tr>', {
                 css: {
@@ -3277,15 +3280,18 @@
                 text: calendarWeek,
             }).appendTo(weekRow); // insert cw into the first column of the line
 
+
             // days of the week (Mon-Sun) add
             for (let i = 0; i < 7; i++) {
                 const isToday = currentDate.toDateString() === new Date().toDateString();
                 const isOtherMonth = currentDate.getMonth() !== month;
                 const isSelected = currentDate.toDateString() === activeDate.toDateString();
-
-                let dayClass = 'rounded-circle';
+                const dayStyleArray = [];
+                let dayClass = '';
+                dayStyleArray.push(...roundedCircleCSS);
                 if (isToday) {
-                    dayClass += '  text-bg-primary ';
+                    dayStyleArray.push('background-color: ' + defaultColors.backgroundColor);
+                    dayStyleArray.push('color: ' + defaultColors.color);
                 }
 
                 if (isOtherMonth) {
@@ -3308,7 +3314,7 @@
                     badge = `<span class="js-badge badge position-absolute" style="${combinedCss}"></span>`;
                 }
 
-                const tdContent = [`<div class="${dayClass} w-100 h-100 d-flex justify-content-center flex-column align-items-center">`,
+                const tdContent = [`<div style="${dayStyleArray.join(';')}" class="${dayClass} w-100 h-100 d-flex justify-content-center flex-column align-items-center">`,
                     `<span>${currentDate.getDate()}</span>`,
                     badge,
                     `</div>`
@@ -3487,17 +3493,21 @@
         const justify = forWeekView ? 'center' : 'start';
         const isToday = date.toDateString() === new Date().toDateString();
         const todayColor = isToday ? 'text-primary' : '';
-        const todayClass = isToday ? 'text-bg-primary rounded-circle' : '';
+        const colors = getColors('primary');
         const circleCss = [
             'width: 44px',
             'height: 44px',
             'line-height: 44px',
-        ].join(';');
-
+        ];
+        if (isToday) {
+            circleCss.push(...roundedCircleCSS);
+            circleCss.push(`background-color: ${colors.backgroundColor}`);
+            circleCss.push(`color: ${colors.color}`);
+        }
         return [
             `<div class="d-flex flex-column justify-content-center  w-100 p-2 align-items-${justify} ${todayColor}">`,
             `<div class="d-flex justify-content-center" style="width: 44px"><small>${shortWeekday}</small></div>`,
-            `<span style="${circleCss}" class="h4 m-0 text-center ${todayClass}">${day}</span>`,
+            `<span style="${circleCss.join(';')}" class="h4 m-0 text-center">${day}</span>`,
             `</div>`
         ].join('')
 
@@ -3640,11 +3650,12 @@
             ...translateMiddleCss,
             ...start100Css,
             ...top50Css,
+            ...roundedCircleCSS,
             'width: 10px',
             'height: 10px',
         ].join(';');
 
-        $(`<div class="position-absolute rounded-circle bg-danger" style="${combinedCss2}"></div>`).appendTo(currentTimeIndicator);
+        $(`<div class="position-absolute bg-danger" style="${combinedCss2}"></div>`).appendTo(currentTimeIndicator);
 
         // Funktion, die die Position basierend auf der aktuellen Zeit berechnet
 
