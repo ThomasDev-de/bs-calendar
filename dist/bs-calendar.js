@@ -2276,7 +2276,7 @@
 
                     const appointmentContent = view === 'day' ?
                         settings.formatter.day(returnData.appointment, returnData.extras) :
-                        settings.formatter.week(returnData);
+                        settings.formatter.week(returnData.appointment, returnData.extras);
 
                     // Rendern des Termins
                     const appointmentElement = $('<div>', {
