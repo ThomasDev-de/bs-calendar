@@ -399,20 +399,21 @@
         return wrapper;
     }
 
-    function formatterDay(appointment) {
+    function formatterDay(appointment, extras) {
         return `<small class="px-2">${appointment.title}</small>`;
     }
-    function formatterWeek(appointment) {
+
+    function formatterWeek(appointment, extras) {
         return `<small class="px-2" style="font-size: 10px">${appointment.title}</small>`;
     }
 
-    function formatterMonth(appointment) {
-        const startTime = new Date(appointment.start).toLocaleTimeString(appointment.extras.locale, {
+    function formatterMonth(appointment, extras) {
+        const startTime = new Date(appointment.start).toLocaleTimeString(extras.locale, {
             hour: '2-digit',
             minute: '2-digit'
         });
         const timeToShow = appointment.allDay ? '' : `<small class="me-1 mr-1">${startTime}</small>`;
-        const icon = `<i class="${appointment.extras.icon} me-1 mr-1"></i>`;
+        const icon = `<i class="${extras.icon} me-1 mr-1"></i>`;
         const styles = [
             'font-size: 12px',
             'line-height: 18px'
@@ -625,12 +626,13 @@
      * @param {Object} appointment - The appointment object containing details to format the information window.
      * @return {string} An HTML string representing the formatted information window for the appointment.
      */
-    async function formatInfoWindow(appointment, locale) {
+    async function formatInfoWindow(appointment, extras) {
+        const locale = extras.locale;
         return new Promise((resolve, reject) => {
             try {
                 // Zeiten und Anzeigedaten extrahieren
                 const times = [];
-                const displayDates = appointment.extras.displayDates;
+                const displayDates = extras.displayDates;
                 const startDate = formatDateByLocale(displayDates[0].date);
                 const endDate = formatDateByLocale(displayDates[displayDates.length - 1].date);
                 const isSameDate = startDate === endDate;
@@ -639,8 +641,8 @@
                 let showTime = showDate;
 
                 if (!appointment.allDay) {
-                    let startTime = appointment.extras.displayDates[0].times.start.substring(0, 5);
-                    let endTime = appointment.extras.displayDates[displayDates.length - 1].times.end.substring(0, 5);
+                    let startTime = extras.displayDates[0].times.start.substring(0, 5);
+                    let endTime = extras.displayDates[displayDates.length - 1].times.end.substring(0, 5);
                     if (isSameDate) {
                         showTime = `${startDate} ${startTime} - ${endTime}`;
                     } else {
@@ -671,7 +673,7 @@
                 // Ergebnis zusammenbauen und Promise auflösen
                 const result = [
                     `<h3>${appointment.title}</h3>`,
-                    `<p>${showTime} (${appointment.extras.duration.formatted})</p>`,
+                    `<p>${showTime} (${extras.duration.formatted})</p>`,
                     location,
                     `<p>${appointment.description || "Keine Beschreibung verfügbar."}</p>`,
                     link
@@ -2268,6 +2270,14 @@
                         endDate.toISOString()
                     );
 
+
+                    // Copy the original and return the clean appointment with the calculated extras
+                    const returnData = getAppointmentForReturn(appointment);
+
+                    const appointmentContent = view === 'day' ?
+                        settings.formatter.day(returnData.appointment, returnData.extras) :
+                        settings.formatter.week(returnData);
+
                     // Rendern des Termins
                     const appointmentElement = $('<div>', {
                         'data-appointment': true,
@@ -2278,7 +2288,7 @@
                             left: `${appointmentLeftPercent}%`,
                             width: `${appointmentWidthPercent}%`,
                         },
-                        html: view === 'day' ? settings.formatter.day(appointment) : settings.formatter.week(appointment),
+                        html: appointmentContent,
                     }).appendTo($weekDayContainer);
 
                     appointmentElement.data('appointment', appointment);
@@ -2316,6 +2326,13 @@
                     console.error("Invalid date detected:", slotData.start, slotData.end, appointment);
                 }
 
+                // Copy the original and return the clean appointment with the calculated extras
+                const returnData = getAppointmentForReturn(appointment);
+
+                const appointmentContent = view === 'day' ?
+                    settings.formatter.day(returnData.appiontment, returnData.extras) :
+                    settings.formatter.week(returnData.appiontment, returnData.extras);
+
                 // Rendern des Full-Width-Termins
                 const appointmentElement = $('<div>', {
                     'data-appointment': true,
@@ -2326,7 +2343,7 @@
                         left: `${appointmentLeftPercent}%`,
                         width: `${appointmentWidthPercent}%`,
                     },
-                    html: view === 'day' ? settings.formatter.day(appointment) : settings.formatter.week(appointment),
+                    html: appointmentContent,
                 }).appendTo($weekDayContainer);
 
                 // Meta-Daten und Styling hinzufügen
@@ -2573,19 +2590,35 @@
 
                 const dayContainer = $container.find(`[data-month-date="${startString}"] [data-role="day-wrapper"]`);
 
+                // Copy the original and return the clean appointment with the calculated extras
+                const returnData = getAppointmentForReturn(appointment);
+
+                const appointmentContent = settings.formatter.month(returnData.appointment, returnData.extras)
+
                 const appointmentElement = $('<small>', {
                     'data-appointment': true,
                     class: 'px-1 w-100 overflow-hidden mb-1 rounded',
                     css: {
                         minHeight: '18px',
                     },
-                    html: settings.formatter.month(appointment)
+                    html: appointmentContent
                 }).appendTo(dayContainer);
 
                 appointmentElement.data('appointment', appointment);
                 setAppointmentStyles(appointmentElement, appointment.extras.colors);
             })
         })
+    }
+
+    function copyAppointment(appointment) {
+       return $.extend(true, {}, appointment);
+    }
+
+    function getAppointmentForReturn(origin) {
+        const appointment = copyAppointment(origin);
+        const extras = appointment.extras;
+        delete appointment.extras;
+        return {appointment, extras}
     }
 
     /**
@@ -2600,11 +2633,15 @@
     function setAppointmentExtras($wrapper, appointments) {
         const settings = getSettings($wrapper);
         const view = getView($wrapper);
+        const now = new Date();
 
         if (view === 'year') {
             appointments.forEach(appointment => {
+                const date = new Date(appointment.date);
                 const extras = {
-                    colors: getColors(appointment.color || settings.defaultColor, settings.defaultColor)
+                    colors: getColors(appointment.color || settings.defaultColor, settings.defaultColor),
+                    isToday: date.toDateString() === now.toDateString(),
+                    isNow: date.getFullYear() === now.getFullYear()
                 };
                 appointment.extras = extras;
             });
@@ -2635,6 +2672,8 @@
                     },
                     displayDates: [],
                     inADay: false,
+                    isToday: start.toDateString() === now.toDateString(),
+                    isNow: (start <= now && end >= now),
                 };
 
                 let tempDate = new Date(start);
@@ -2643,7 +2682,7 @@
                 tempEnd.setHours(0, 0, 0, 0);
 
                 // Berechne Monatsgrenzen
-                const now = new Date(); // Falls der angezeigte Monat/vorherige/nächste Monat gebraucht wird, aktiviere Dynamik
+
                 const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
                 const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
@@ -3647,7 +3686,6 @@
         ].join(';');
 
 
-
         $(`<small class="position-absolute badge js-current-time" style="${combinedCss}">` + getMinutesAndSeconds($wrapper, now) + '</small>').appendTo(currentTimeIndicator);
 
         const combinedCss2 = [
@@ -3802,9 +3840,10 @@
         // Set a reference to the modal element using its ID.
         let $modal = $(infoWindowModalId);
 
+        const returnData = getAppointmentForReturn(appointment);
         // Create the HTML content for the modal body, displaying the appointment details.
-        settings.formatter.window(appointment, settings.locale).then(html => {
-// Check if the modal already exists on the page.
+        settings.formatter.window(returnData.appointment, returnData.extras).then(html => {
+            // Check if the modal already exists on the page.
             const modalExists = $modal.length > 0;
             if (!modalExists) {
                 const roundedCss = getBorderRadiusCss(settings.rounded);
