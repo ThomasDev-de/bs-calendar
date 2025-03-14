@@ -400,10 +400,10 @@
     }
 
     function formatterDay(appointment) {
-        return `<small>${appointment.title}</small>`;
+        return `<small class="px-2">${appointment.title}</small>`;
     }
     function formatterWeek(appointment) {
-        return `<small>${appointment.title}</small>`;
+        return `<small class="px-2" style="font-size: 10px">${appointment.title}</small>`;
     }
 
     function formatterMonth(appointment) {
@@ -2271,7 +2271,7 @@
                     // Rendern des Termins
                     const appointmentElement = $('<div>', {
                         'data-appointment': true,
-                        class: 'position-absolute text-nowrap text-truncate px-2 btn-sm overflow-hidden rounded',
+                        class: 'position-absolute overflow-hidden rounded',
                         css: {
                             top: `${position.top}px`,
                             height: `${position.height}px`,
@@ -2317,9 +2317,9 @@
                 }
 
                 // Rendern des Full-Width-Termins
-                const appointmentElement = $('<small>', {
+                const appointmentElement = $('<div>', {
                     'data-appointment': true,
-                    class: 'position-absolute text-nowrap text-truncate px-2 btn-sm overflow-hidden rounded',
+                    class: 'position-absolute overflow-hidden rounded',
                     css: {
                         top: `${position.top}px`,
                         height: `${position.height}px`,
