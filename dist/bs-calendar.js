@@ -3271,8 +3271,9 @@
         const date = forDate; // Aktuelles Datum
         const activeDate = getDate($wrapper);
 
-        const cellSize = forYearView ? 36 : 24;
+        const cellSize = forYearView ? 36 : 28;
         const fontSize = forYearView ? 12 : 10;
+        const weekRowWidth = 20;
         // calculation of the monthly data
         const year = date.getFullYear();
         const month = date.getMonth();
@@ -3301,13 +3302,14 @@
         const table = $('<table>', {
             class: 'wc-mini-calendar',
             css: {
-                fontSize: '10px',
+                width: `${cellSize * 7 +20}px`,
+                fontSize: fontSize+'px',
                 borderSpacing: '0',
                 borderCollapse: 'collapse',
                 tableLayout: 'fixed',
                 textAlign: 'center',
                 verticalAlign: 'middle',
-                lineHeight: '1.5',
+                lineHeight: cellSize+'px',
                 padding: '0',
                 margin: '0',
                 backgroundColor: 'transparent',
@@ -3325,12 +3327,12 @@
         }).appendTo(thead);
 
         // First column (CW)
-        $('<th>', {class: '', css: {width: '15px'}, text: ''}).appendTo(weekdaysRow);
+        $('<th>', {class: '', css: {width: weekRowWidth+'px', height: cellSize+'px'}, text: ''}).appendTo(weekdaysRow);
 
         // Add weekly days (Mon, Tue, Wed, ...)
         const weekDays = getShortWeekDayNames(settings.locale, settings.startWeekOnSunday);
         weekDays.forEach(day => {
-            $('<th>', {class: '', text: day, css: {width: `${cellSize}px`}}).appendTo(weekdaysRow);
+            $('<th>', {class: '', text: day, css: {width: `${cellSize}px`, height: cellSize+'px'}}).appendTo(weekdaysRow);
         });
 
         // create the content of the calendar
@@ -3350,7 +3352,8 @@
             const weekRowCss = [
                 ...bgBodyTertiaryCss,
                 `font-size: ${fontSize}px`,
-                `width: ${fontSize}px`
+                `width: ${weekRowWidth}px`,
+                `height: ${cellSize}px`,
             ].join(';');
             $('<td>', {
                 style: weekRowCss,
