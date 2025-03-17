@@ -2688,9 +2688,13 @@
                 const end = new Date(appointment.end);
                 const isAllDay = appointment.allDay;
 
+                let iconClass = !isAllDay ? settings.icons.appointment : settings.icons.appointmentAllDay;
+                if (appointment.hasOwnProperty('icon')) {
+                    iconClass = appointment.icon;
+                }
                 const extras = {
                     locale: settings.locale,
-                    icon: !isAllDay ? settings.icons.appointment : settings.icons.appointmentAllDay,
+                    icon: iconClass,
                     colors: getColors(appointment.color, settings.defaultColor),
                     start: {
                         date: formatDateToDateString(appointment.start),
