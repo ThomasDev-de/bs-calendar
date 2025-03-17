@@ -2689,7 +2689,7 @@
                 const isAllDay = appointment.allDay;
 
                 let iconClass = !isAllDay ? settings.icons.appointment : settings.icons.appointmentAllDay;
-                if (appointment.hasOwnProperty('icon')) {
+                if (appointment.hasOwnProperty('icon') && appointment.icon) {
                     iconClass = appointment.icon;
                 }
                 const extras = {
