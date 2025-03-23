@@ -2899,17 +2899,17 @@
         const spinner = $wrapper.find('.wc-calendar-spinner');
         spinner.show();
 
-        const combinedCss = [
-            ...start0Css,
-            ...top0Css
-        ].join(';');
-
-
-        $('<div>', {
-            class: 'wc-calendar-overlay opacity-25 position-absolute w-100 h-100 d-flex justify-content-center align-items-center',
-            style: combinedCss,
-            html: '<div class="spinner-grow" role="status"  style="width: 7rem; height: 7rem;"><span class="visually-hidden">Loading...</span></div>'
-        }).appendTo($wrapper);
+        // const combinedCss = [
+        //     ...start0Css,
+        //     ...top0Css
+        // ].join(';');
+        //
+        //
+        // $('<div>', {
+        //     class: 'wc-calendar-overlay opacity-25 position-absolute w-100 h-100 d-flex justify-content-center align-items-center',
+        //     style: combinedCss,
+        //     html: '<div class="spinner-grow" role="status"  style="width: 7rem; height: 7rem;"><span class="visually-hidden">Loading...</span></div>'
+        // }).appendTo($wrapper);
     }
 
     /**
@@ -2920,7 +2920,7 @@
      */
     function hideBSCalendarLoader($wrapper) {
         const spinner = $wrapper.find('.wc-calendar-spinner');
-        $wrapper.find('.wc-calendar-overlay').remove();
+        // $wrapper.find('.wc-calendar-overlay').remove();
         spinner.hide();
     }
 
