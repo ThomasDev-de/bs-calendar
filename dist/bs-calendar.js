@@ -1237,7 +1237,7 @@
                 display: 'none'
             },
             role: 'status',
-            html: '<span class="visually-hidden">Loading...</span>'
+            html: '<span class="visually-hidden"></span>'
         }).appendTo(topNav);
 
         $('<div>', {
