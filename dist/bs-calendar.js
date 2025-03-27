@@ -102,12 +102,9 @@
     };
 
     const viewContainerClass = 'wc-calendar-view-container';
-
     const infoWindowModalId = '#wcCalendarInfoWindowModal';
-
     const topNavClass = 'wc-calendar-top-nav';
     const topSearchClass = 'wc-calendar-top-search-nav';
-
     const hourSlotHeight = 30;
 
     const bs4migration = {
@@ -309,7 +306,6 @@
 
 
     /**
-     /**
      * jQuery plugin that initializes and manages a Bootstrap-based calendar.
      * Provides functionality for creating, updating, and interacting with a dynamic calendar widget.
      *
@@ -1255,7 +1251,7 @@
                 display: 'none'
             },
             role: 'status',
-            html: '<span class="visually-hidden">Loading...</span>'
+            html: '<span class="visually-hidden sr-only">Loading...</span>'
         }).appendTo(topNav);
 
         $('<div>', {
@@ -1405,7 +1401,6 @@
                 break;
         }
         elSmall.text(monthName + ' ' + yearName);
-
     }
 
     /**
@@ -1688,22 +1683,27 @@
             })
             .on('click', '[data-add-appointment]', function (e) {
                 e.preventDefault();
-                const inSearchMode = getSearchMode($wrapper);
-                if (inSearchMode) {
+
+                if (getSearchMode($wrapper)) {
                     e.stopPropagation();
-                } else {
-                    const view = getView($wrapper);
-                    const period = getStartAndEndDateByView($wrapper);
-                    const data = {
-                        date: period.date,
-                        view: {
-                            type: view,
-                            start: period.start,
-                            end: period.end
-                        }
-                    };
-                    trigger($wrapper, 'add', [data]);
+                    return; // Wenn im Suchmodus, direkt abbrechen
                 }
+
+                const period = getStartAndEndDateByView($wrapper);
+
+                const data = {
+                    start: {
+                        date: formatDateToDateString(period.start),
+                        time: null
+                    },
+                    end: {
+                        date: formatDateToDateString(period.end),
+                        time: null
+                    },
+                    view: getView($wrapper) // Ansicht, z. B. 'day', 'week'
+                };
+
+                trigger($wrapper, 'add', [data]);
             })
             .on('click', '[data-today]', function (e) {
                 e.preventDefault();
@@ -2949,17 +2949,17 @@
         const spinner = $wrapper.find('.wc-calendar-spinner');
         spinner.show();
 
-        const combinedCss = [
-            ...bs4migration.start0Css,
-            ...bs4migration.top0Css
-        ].join(';');
-
-
-        $('<div>', {
-            class: 'wc-calendar-overlay opacity-25 position-absolute w-100 h-100 d-flex justify-content-center align-items-center',
-            style: combinedCss,
-            html: '<div class="spinner-grow" role="status"  style="width: 7rem; height: 7rem;"><span class="visually-hidden">Loading...</span></div>'
-        }).appendTo($wrapper);
+        // const combinedCss = [
+        //     ...bs4migration.start0Css,
+        //     ...bs4migration.top0Css
+        // ].join(';');
+        //
+        //
+        // $('<div>', {
+        //     class: 'wc-calendar-overlay opacity-25 position-absolute w-100 h-100 d-flex justify-content-center align-items-center',
+        //     style: combinedCss,
+        //     html: '<div class="spinner-grow" role="status"  style="width: 7rem; height: 7rem;"><span class="visually-hidden">Loading...</span></div>'
+        // }).appendTo($wrapper);
     }
 
     /**
@@ -2970,7 +2970,7 @@
      */
     function hideBSCalendarLoader($wrapper) {
         const spinner = $wrapper.find('.wc-calendar-spinner');
-        $wrapper.find('.wc-calendar-overlay').remove();
+        // $wrapper.find('.wc-calendar-overlay').remove();
         spinner.hide();
     }
 
@@ -3254,12 +3254,14 @@
                 }
 
                 // Tageszahl hinzufügen
-                $('<small>', {
+               const row = $('<small>', {
                     'data-date': formatDateToDateString(currentDate),
                     class: `text-center my-1`,
                     style: dayCss.join(';'),
                     text: currentDate.getDate(),
                 }).appendTo(dayWrapper);
+
+
 
                 // inner wrapper
                 const dayWrapperInner = $('<div>', {
@@ -3719,26 +3721,24 @@
                 class: 'd-flex align-items-center border-top position-relative'
             }).appendTo(timeSlots);
             row.on('click', function () {
-                const formatted = formatDateToDateString(date) + ' ' +
-                    String(hour).padStart(2, '0') + ':' +
-                    '00' + ':' +
-                    '00';
+                const start = new Date(`${formatDateToDateString(date)} ${String(hour).padStart(2, '0')}:00:00`);
+                const end = new Date(start);
+                end.setMinutes(end.getMinutes() + 30);
 
-                const newDate = new Date(formatted);
-                const untilDate = new Date(newDate);
-                untilDate.setMinutes(untilDate.getMinutes() + 30);
-
-                const period = getStartAndEndDateByView($wrapper);
                 const data = {
-                    date: formatDateToDateString(newDate),
-                    view: {
-                        type: getView($wrapper),
-                        start: formatDateToDateString(newDate),
-                        end: formatDateToDateString(untilDate)
-                    }
+                    start: {
+                        date: formatDateToDateString(start),
+                        time: start.toTimeString().slice(0, 5) // Nur "HH:mm"
+                    },
+                    end: {
+                        date: formatDateToDateString(end),
+                        time: end.toTimeString().slice(0, 5) // Nur "HH:mm"
+                    },
+                    view: getView($wrapper) // Aktuelle Ansicht z. B. 'day', 'week', etc.
                 };
+
                 trigger($wrapper, 'add', [data]);
-            })
+            });
 
             if (showLabels) {
                 const combinedCss = [
