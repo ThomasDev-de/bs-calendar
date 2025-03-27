@@ -110,53 +110,51 @@
 
     const hourSlotHeight = 30;
 
-    const translateMiddleCss = [
-        'transform: translate(-50%,-50%)'
-    ];
-
-    const start0Css = [
-        'left: 0'
-    ];
-    const start25Css = [
-        'left: 25%'
-    ];
-    const start50Css = [
-        'left: 50%'
-    ];
-    const start75Css = [
-        'left: 75%'
-    ];
-    const start100Css = [
-        'left: 100%'
-    ];
-
-    const top0Css = [
-        'top: 0'
-    ];
-    const top25Css = [
-        'top: 25%'
-    ];
-    const top50Css = [
-        'top: 50%'
-    ];
-    const top75Css = [
-        'top: 75%'
-    ];
-    const top100Css = [
-        'top: 100%'
-    ];
-
-    const bgBodyTertiaryCss = [
-        'opacity: 1',
-        'background-color: rgba(var(--bs-tertiary-bg-rgb, 248, 249, 250), var(--bs-bg-opacity, 1))'
-    ];
-
-    const roundedPillCSS = [
-        'border-radius: var(--bs-border-radius-pill, 50rem) !important',
-    ]
-    const roundedCircleCSS = [
-        'border-radius: 50% !important',
-    ]
+    const bs4migration = {
+        translateMiddleCss : [
+            'transform: translate(-50%,-50%)'
+        ],
+        start0Css : [
+            'left: 0'
+        ],
+        start25Css : [
+            'left: 25%'
+        ],
+        start50Css : [
+            'left: 50%'
+        ],
+        start75Css : [
+            'left: 75%'
+        ],
+        start100Css : [
+            'left: 100%'
+        ],
+        top0Css : [
+            'top: 0'
+        ],
+        top25Css : [
+            'top: 25%'
+        ],
+        top50Css : [
+            'top: 50%'
+        ],
+        top75Css : [
+            'top: 75%'
+        ],
+        top100Css : [
+            'top: 100%'
+        ],
+        bgBodyTertiaryCss : [
+            'opacity: 1',
+            'background-color: rgba(var(--bs-tertiary-bg-rgb, 248, 249, 250), var(--bs-bg-opacity, 1))'
+        ],
+        roundedPillCSS : [
+            'border-radius: var(--bs-border-radius-pill, 50rem) !important',
+        ],
+        roundedCircleCSS : [
+            'border-radius: 50% !important',
+        ]
+    };
 
     const colorNameToHex = {
         aliceblue: "#f0f8ff",
@@ -309,27 +307,6 @@
         yellowgreen: "#9acd32"
     };
 
-    function getBorderRadiusCss(number) {
-        let rounded = '0';
-        switch (number) {
-            case 1:
-                rounded = '0.25rem';
-                break;
-            case 2:
-                rounded = '0.5rem';
-                break;
-            case 3:
-                rounded = '0.75rem';
-                break;
-            case 4:
-                rounded = '1rem';
-                break;
-            case 5:
-                rounded = '2rem';
-                break;
-        }
-        return `border-radius: ${rounded} !important`;
-    }
 
     /**
      /**
@@ -399,6 +376,40 @@
         return wrapper;
     }
 
+
+    /**
+     * Generates CSS for the border-radius property based on the input number.
+     *
+     * @param {number} number - A number that corresponds to a predefined border-radius value.
+     *                          Supported values:
+     *                          1 -> '0.25rem'
+     *                          2 -> '0.5rem'
+     *                          3 -> '0.75rem'
+     *                          4 -> '1rem'
+     *                          5 -> '2rem'
+     * @return {string} The CSS string for the border-radius property with the specified value.
+     */
+    function getBorderRadiusCss(number) {
+        let rounded = '0';
+        switch (number) {
+            case 1:
+                rounded = '0.25rem';
+                break;
+            case 2:
+                rounded = '0.5rem';
+                break;
+            case 3:
+                rounded = '0.75rem';
+                break;
+            case 4:
+                rounded = '1rem';
+                break;
+            case 5:
+                rounded = '2rem';
+                break;
+        }
+        return `border-radius: ${rounded} !important`;
+    }
     function formatterDay(appointment, extras) {
         return `<small class="px-2">${appointment.title}</small>`;
     }
@@ -1225,11 +1236,18 @@
         });
 
         $('<button>', {
-            class: `btn border`,
-            html: `<i class="${settings.icons.add}"></i>`,
-            style: roundedCss,
+            class: `btn py-0`,
+            html: `<i class="bi bi-list fs-3"></i>`,
+            'data-bs-toggle': 'sidebar'
+        }).appendTo(topNav);
+
+        $('<button>', {
+            class: `btn py-0`,
+            html: `<i class="${settings.icons.add} fs-3"></i>`,
             'data-add-appointment': true
         }).appendTo(topNav);
+
+
 
         $('<div>', {
             class: 'spinner-border me-auto mr-auto mx-3 text-secondary wc-calendar-spinner',
@@ -1325,7 +1343,10 @@
         }).appendTo(innerWrapper);
 
         const sidebar = $('<div>', {
-            class: 'wc-calendar-left-nav d-xl-flex d-none flex-column me-4 mr-4',
+            css: {
+                position:'relative',
+            },
+            class: 'wc-calendar-left-nav me-4 mr-4',
             html: [
                 '<div class="pb-3">',
                 '<div class="d-flex justify-content-between">',
@@ -1339,6 +1360,7 @@
                 '<div class="wc-calendar-month-small"></div>'
             ].join('')
         }).appendTo(container);
+        sidebar.data('visible', true);
 
         if (settings.sidebarAddons && $(settings.sidebarAddons).length > 0) {
             $(settings.sidebarAddons).appendTo(sidebar);
@@ -1531,6 +1553,33 @@
         return $wrapper.data('searchMode') || false;
     }
 
+    function handleSidebarVisibility($wrapper, forceClose = false, forceOpen = false) {
+        var $sidebar = $wrapper.find('.wc-calendar-left-nav');
+        var isVisible = $sidebar.data('visible'); // Aktueller Status der Sidebar
+
+        // Zielstatus berechnen
+        var shouldBeVisible = forceOpen || (!forceClose && !isVisible);
+
+        // Position VOR der Animation setzen (nur wenn geöffnet wird)
+        if (shouldBeVisible) {
+            $sidebar.css({ position: 'relative' });
+        }
+
+        // Animation ausführen (abhängig von shouldBeVisible)
+        $sidebar.animate({ left: shouldBeVisible ? '0px' : '-300px' }, 300, function () {
+            // Bei Schließen Position NACH der Animation setzen
+            if (!shouldBeVisible) {
+                $sidebar.css({ position: 'absolute' });
+            }
+
+            if(getView($wrapper) === 'month') {
+                onResize($wrapper);
+            }
+
+            // Status aktualisieren
+            $sidebar.data('visible', shouldBeVisible);
+        });
+    }
     /**
      * Attaches event listeners to a given wrapper element to handle user interactions with the calendar interface.
      *
@@ -1548,6 +1597,7 @@
             }, 100); // Delay of 100 milliseconds
         });
         $('body')
+
             .on('click', infoWindowModalId + ' [data-edit]', function (e) {
                 e.preventDefault();
                 const appointment = $(infoWindowModalId).data('appointment');
@@ -1589,7 +1639,12 @@
                 }
             });
 
+
+
         $wrapper
+            .on('click', '[data-bs-toggle="sidebar"]', function(){
+                handleSidebarVisibility($wrapper);
+            })
             .on('click', '.wc-search-pagination [data-page]', function (e) {
                 // A page in the search navigation was clicked
                 e.preventDefault();
@@ -2895,8 +2950,8 @@
         spinner.show();
 
         const combinedCss = [
-            ...start0Css,
-            ...top0Css
+            ...bs4migration.start0Css,
+            ...bs4migration.top0Css
         ].join(';');
 
 
@@ -3130,7 +3185,7 @@
             const calendarWeek = getCalendarWeek(currentDate);
             const paddingTop = isFirstRow ? '1.75rem' : '.75rem';
             const weekRowCss = [
-                ...bgBodyTertiaryCss,
+                ...bs4migration.bgBodyTertiaryCss,
                 `padding-top:` + paddingTop,
                 'font-size: 12px',
                 'width: 24px',
@@ -3237,6 +3292,8 @@
     function onResize($wrapper) {
         const view = getView($wrapper);
         const calendarContainer = getViewContainer($wrapper);
+
+
         if (view === 'month') {
 
             const dayElements = calendarContainer.find('[data-month-date]');
@@ -3354,7 +3411,7 @@
             // calculate calendar week
             const calendarWeek = getCalendarWeek(currentDate);
             const weekRowCss = [
-                ...bgBodyTertiaryCss,
+                ...bs4migration.bgBodyTertiaryCss,
                 `font-size: ${fontSize}px`,
                 `width: ${weekRowWidth}px`,
                 `height: ${cellSize}px`,
@@ -3373,7 +3430,7 @@
                 const isSelected = currentDate.toDateString() === activeDate.toDateString();
                 const dayStyleArray = [];
                 let dayClass = '';
-                dayStyleArray.push(...roundedCircleCSS);
+                dayStyleArray.push(...bs4migration.roundedCircleCSS);
                 if (isToday) {
                     dayStyleArray.push('background-color: ' + defaultColors.backgroundColor);
                     dayStyleArray.push('color: ' + defaultColors.color);
@@ -3390,10 +3447,10 @@
                 let badge = '';
                 if (forYearView) {
                     const combinedCss = [
-                        ...translateMiddleCss,
-                        ...roundedPillCSS,
-                        ...start50Css,
-                        ...top100Css,
+                        ...bs4migration.translateMiddleCss,
+                        ...bs4migration.roundedPillCSS,
+                        ...bs4migration.start50Css,
+                        ...bs4migration.top100Css,
                         'z-index: 1'
                     ].join(';');
 
@@ -3586,7 +3643,7 @@
             'line-height: 44px',
         ];
         if (isToday) {
-            circleCss.push(...roundedCircleCSS);
+            circleCss.push(...bs4migration.roundedCircleCSS);
             circleCss.push(`background-color: ${colors.backgroundColor}`);
             circleCss.push(`color: ${colors.color}`);
         }
@@ -3685,8 +3742,8 @@
 
             if (showLabels) {
                 const combinedCss = [
-                    ...translateMiddleCss,
-                    ...top0Css,
+                    ...bs4migration.translateMiddleCss,
+                    ...bs4migration.top0Css,
                     'left: -34px'
                 ].join(';');
 
@@ -3721,9 +3778,9 @@
 
         const badgeColor = getColors('danger');
         const combinedCss = [
-            ...translateMiddleCss,
-            ...start0Css,
-            ...top0Css,
+            ...bs4migration.translateMiddleCss,
+            ...bs4migration.start0Css,
+            ...bs4migration.top0Css,
             'background-color: ' + badgeColor.backgroundColor,
             'color: ' + badgeColor.color,
         ].join(';');
@@ -3732,10 +3789,10 @@
         $(`<small class="position-absolute badge js-current-time" style="${combinedCss}">` + getMinutesAndSeconds($wrapper, now) + '</small>').appendTo(currentTimeIndicator);
 
         const combinedCss2 = [
-            ...translateMiddleCss,
-            ...start100Css,
-            ...top50Css,
-            ...roundedCircleCSS,
+            ...bs4migration.translateMiddleCss,
+            ...bs4migration.start100Css,
+            ...bs4migration.top50Css,
+            ...bs4migration.roundedCircleCSS,
             'width: 10px',
             'height: 10px',
         ].join(';');
