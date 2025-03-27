@@ -1248,9 +1248,9 @@
         }).appendTo(topNav);
 
         // title
-        $('<h4>', {
+        $('<div>', {
             html: settings.title,
-            class: 'mb-0 ms-2 ml-2'
+            class: 'mb-0 ms-2 ml-2 h4'
         }).appendTo(topNav);
 
 
