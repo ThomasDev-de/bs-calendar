@@ -52,6 +52,7 @@
         },
         DEFAULTS: {
             locale: 'en-EN',
+            title: 'Calendar',
             startWeekOnSunday: true,
             rounded: 5, // 1-5
             search: {
@@ -104,6 +105,7 @@
     const viewContainerClass = 'wc-calendar-view-container';
     const infoWindowModalId = '#wcCalendarInfoWindowModal';
     const topNavClass = 'wc-calendar-top-nav';
+    const sideNavClass = 'wc-calendar-left-nav';
     const topSearchClass = 'wc-calendar-top-search-nav';
     const hourSlotHeight = 30;
 
@@ -1231,18 +1233,25 @@
             style: roundedCss
         });
 
+        // add menu bar
         $('<button>', {
             class: `btn py-0`,
             html: `<i class="bi bi-list fs-3"></i>`,
             'data-bs-toggle': 'sidebar'
         }).appendTo(topNav);
 
+        // add button
         $('<button>', {
             class: `btn py-0`,
             html: `<i class="${settings.icons.add} fs-3"></i>`,
             'data-add-appointment': true
         }).appendTo(topNav);
 
+        // title
+        $('<h4>', {
+            html: settings.title,
+            class: 'mb-0 ms-2 ml-2'
+        }).appendTo(topNav);
 
 
         $('<div>', {
@@ -1342,7 +1351,7 @@
             css: {
                 position:'relative',
             },
-            class: 'wc-calendar-left-nav me-4 mr-4',
+            class: 'me-4 mr-4 ' + sideNavClass,
             html: [
                 '<div class="pb-3">',
                 '<div class="d-flex justify-content-between">',
@@ -1549,7 +1558,7 @@
     }
 
     function handleSidebarVisibility($wrapper, forceClose = false, forceOpen = false) {
-        var $sidebar = $wrapper.find('.wc-calendar-left-nav');
+        var $sidebar = $wrapper.find('.' + sideNavClass);
         var isVisible = $sidebar.data('visible'); // Aktueller Status der Sidebar
 
         // Zielstatus berechnen
