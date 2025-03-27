@@ -1232,6 +1232,11 @@
             class: `d-none align-items-center px-0 justify-content-center mb-3 ${topSearchClass} bg-body`,
             style: roundedCss
         });
+        // title
+        $('<div>', {
+            html: settings.title,
+            class: 'mb-0 me-2 mr-2'
+        }).appendTo(topNav);
 
         // add menu bar
         $('<button>', {
@@ -1247,11 +1252,7 @@
             'data-add-appointment': true
         }).appendTo(topNav);
 
-        // title
-        $('<div>', {
-            html: settings.title,
-            class: 'mb-0 ms-2 ml-2 h4'
-        }).appendTo(topNav);
+
 
 
         $('<div>', {
