@@ -3751,7 +3751,7 @@
                 $('<div>', {
                     class: 'wc-time-label ps-2 pl-2 position-absolute',
                     style: combinedCss,
-                    html: `${hour.toString().padStart(2, '0')}:00 <i class="${settings.icons.timeSlot}"></i>`
+                    html: `${hour.toString().padStart(2, '0')}:00`
                 }).appendTo(row);
             }
         }
