@@ -2291,8 +2291,18 @@
         const allDays = appointments.filter(appointment => appointment.allDay === true);
         const notAllDays = appointments.filter(appointment => appointment.allDay !== true);
 
+        if(settings.debug) {
+            log('Call drawAppointmentsForDayOrWeek with view:', view);
+            log("All-Day Appointments:", allDays);
+            log("Not-All-Day Appointments:", notAllDays);
+            log("All Appointments:", appointments);
+        }
+
         // go through each allDays
         allDays.forEach(appointment => {
+            if(settings.debug) {
+                log("All-Day Appointment displayDates:", appointment.displayDates);
+            }
             appointment.extras.displayDates.forEach((obj) => {
                 const fakeStart = new Date(obj.date);
                 const allDayWrapper = $viewContainer.find('[data-all-day="' + fakeStart.getDay() + '"]');
