@@ -1623,7 +1623,6 @@
                     extras = appointment.extras;
                     delete appointment.extras;
                 }
-
                 $(infoWindowModalId).modal('hide')
                 trigger($wrapper, 'delete', [appointment, extras]);
             })
