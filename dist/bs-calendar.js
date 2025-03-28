@@ -1606,25 +1606,16 @@
             .on('click', infoWindowModalId + ' [data-edit]', function (e) {
                 e.preventDefault();
                 const appointment = $(infoWindowModalId).data('appointment');
-                let extras = null;
-                if (appointment.extras) {
-                    extras = appointment.extras;
-                    delete appointment.extras;
-                }
-
+                const returnData = getAppointmentForReturn(appointment);
                 $(infoWindowModalId).modal('hide')
-                trigger($wrapper, 'edit', [appointment, extras]);
+                trigger($wrapper, 'edit', [returnData.appointment, returnData.extras]);
             })
             .on('click', infoWindowModalId + ' [data-remove]', function (e) {
                 e.preventDefault();
                 const appointment = $(infoWindowModalId).data('appointment');
-                let extras = null;
-                if (appointment.extras) {
-                    extras = appointment.extras;
-                    delete appointment.extras;
-                }
+                const returnData = getAppointmentForReturn(appointment);
                 $(infoWindowModalId).modal('hide')
-                trigger($wrapper, 'delete', [appointment, extras]);
+                trigger($wrapper, 'delete', [returnData.appointment, returnData.extras]);
             })
             .on('click', function (e) {
                 const $target = $(e.target);
