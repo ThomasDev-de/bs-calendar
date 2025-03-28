@@ -3954,7 +3954,7 @@
                     `<div class="modal-content border border-1 shadow" style="${roundedCss}">`,
                     `<div class="modal-body d-flex flex-column align-items-stretch pb-4" style="">`,
                     `<div class="d-flex justify-content-end align-items-center" data-modal-options>`,
-                    `<button type="button" data-dismiss="modal" data-bs-dismiss="modal" class="btn p-0"><i class="bi bi-x-lg"></i></button>`,
+                    `<button type="button" data-dismiss="modal" data-bs-dismiss="modal" class="btn py-0 pe-0 pr-0"><i class="bi bi-x-lg"></i></button>`,
                     `</div>`,
                     `<div class="modal-appointment-content flex-fill overflow-y-auto" style="">`,
                     html,
