@@ -1615,7 +1615,7 @@
                 $(infoWindowModalId).modal('hide')
                 trigger($wrapper, 'edit', [appointment, extras]);
             })
-            .on('click', infoWindowModalId + ' [data-remove]', function () {
+            .on('click', infoWindowModalId + ' [data-remove]', function (e) {
                 e.preventDefault();
                 const appointment = $(infoWindowModalId).data('appointment');
                 let extras = null;

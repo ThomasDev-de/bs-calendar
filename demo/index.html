@@ -17,10 +17,7 @@
 <div class="d-flex justify-content-between align-items-center border-bottom border-5 mb-5 px-5">
     <h1>bsCalendar Example</h1>
 
-    <div class="form-check form-switch">
-        <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckTheme">
-        <label class="form-check-label" for="flexSwitchCheckTheme">light / dark</label>
-    </div>
+
 </div>
 
 
@@ -47,6 +44,10 @@
         <h6 class="text-uppercase text-center mb-0">sidebar addons</h6>
     </div>
     <div class="card-body p-1 d-flex flex-column">
+        <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckTheme">
+            <label class="form-check-label" for="flexSwitchCheckTheme">light / dark</label>
+        </div>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setDate">setDate(1970-01-01, 'day')
         </button>
@@ -133,6 +134,7 @@
 <script>
     $(function () {
         $.bsCalendar.setDefaults({
+            title: '<span class="h4 text-uppercase mb-0">Calendar</span>',
             locale: 'de',
             startWeekOnSunday: false,
             rounded: 5,
