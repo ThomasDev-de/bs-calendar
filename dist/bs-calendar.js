@@ -2305,7 +2305,7 @@
             }
             appointment.extras.displayDates.forEach((obj) => {
                 const fakeStart = new Date(obj.date);
-                const allDayWrapper = $viewContainer.find('[data-all-day="' + fakeStart.getDay() + '"]');
+                const allDayWrapper = $viewContainer.find('[data-all-day="' + fakeStart.getDay() + '"][data-date="' + formatDateToDateString(fakeStart) +'"]');
                 if (allDayWrapper.length) {
                     allDayWrapper.addClass('pb-3');
                     const appointmentElement = $('<div>', {
@@ -3515,6 +3515,7 @@
         headline.attr('data-date', formatDateToDateString(date)).css('cursor', 'pointer');
         const allDayContainer = $('<div>', {
             'data-all-day': date.getDay(),
+            'data-date': formatDateToDateString(date),
             class: 'mx-5',
             css: {
                 paddingLeft: '40px'
@@ -3604,6 +3605,7 @@
             headline.attr('data-date', formatDateToDateString(currentDate)).css('cursor', 'pointer');
             const allDayContainer = $('<div>', {
                 'data-all-day': currentDate.getDay(),
+                'data-date': formatDateToDateString(currentDate),
                 class: 'd-flex flex-column align-items-stretch flex-fill w-100',
             }).appendTo(col);
         }
@@ -3624,6 +3626,7 @@
             // Create day container
             const dayContainer = $('<div>', {
                 'data-week-day': currentDate.getDay(),
+                'data-date': formatDateToDateString(currentDate),
                 class: 'wc-day-week-view flex-grow-1 flex-fill border-end border-right position-relative',
                 css: {
                     width: (100 / 7) + '%' // Fixe Breite für 7 Spalten
@@ -3703,13 +3706,14 @@
         });
 
         $('<div>', {
-            'data-all-day': true,
+            // 'data-all-day': true,
             class: 'd-flex flex-column flex-fill',
         }).appendTo($container);
 
         // Container for time slots
         const timeSlots = $('<div>', {
             "data-week-day": date.getDay(),
+            "data-date": formatDateToDateString(date),
             class: 'wc-day-view-time-slots d-flex flex-column position-relative'
         }).appendTo($container);
 
