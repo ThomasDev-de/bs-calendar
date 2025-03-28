@@ -2301,7 +2301,7 @@
         // go through each allDays
         allDays.forEach(appointment => {
             if(settings.debug) {
-                log("All-Day Appointment displayDates:", appointment.displayDates);
+                log(">>>> All-Day Appointment displayDates:", appointment.extras.displayDates);
             }
             appointment.extras.displayDates.forEach((obj) => {
                 const fakeStart = new Date(obj.date);
