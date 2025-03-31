@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.0.0
+ * @version 1.0.1
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -37,12 +37,28 @@
  * See the individual method and function documentation in this file for more details.
  *
  * @file bs-calendar.js
- * @date 2025-03-11
+ * @date 2025-03-31
  * @global jQuery
  */
 
 (function ($) {
     'use strict';
+    /**
+     * bsCalendar is a jQuery plugin that provides functionality to create,
+     * customize, and manage a calendar user interface. This plugin can be used
+     * to select dates, navigate across months, and perform other calendar-related
+     * tasks seamlessly.
+     *
+     * Key features may include:
+     * - Support for custom date ranges and formats.
+     * - Navigation for months and years.
+     * - Event handling for user interactions like date selection.
+     * - Flexible customization options for styling and behavior.
+     *
+     * Methods and properties of the plugin allow developers to interact with
+     * the calendar dynamically and tailor it based on specific application
+     * requirements.
+     */
     $.bsCalendar = {
         setDefaults: function (options) {
             this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
@@ -109,6 +125,27 @@
     const topSearchClass = 'wc-calendar-top-search-nav';
     const hourSlotHeight = 30;
 
+    /**
+     * The `bs4migration` object provides CSS rule mappings for migrating or aligning styles
+     * to a consistent format during a transition period, specifically for Bootstrap 4-related styles.
+     * It includes predefined style rules for positioning, background, and bordered elements.
+     *
+     * Properties:
+     * - `translateMiddleCss`: Contains CSS rules for centering elements using translation on both axes.
+     * - `start0Css`: Contains CSS rules for aligning an element to the leftmost (0%) position.
+     * - `start25Css`: Contains CSS rules for aligning an element to the 25% left position.
+     * - `start50Css`: Contains CSS rules for aligning an element to the 50% left position.
+     * - `start75Css`: Contains CSS rules for aligning an element to the 75% left position.
+     * - `start100Css`: Contains CSS rules for aligning an element to the rightmost (100%) position.
+     * - `top0Css`: Contains CSS rules for aligning an element to the topmost (0%) vertical position.
+     * - `top25Css`: Contains CSS rules for aligning an element to the top 25% vertical position.
+     * - `top50Css`: Contains CSS rules for aligning an element to the vertical center (50%) position.
+     * - `top75Css`: Contains CSS rules for aligning an element to the top 75% vertical position.
+     * - `top100Css`: Contains CSS rules for aligning an element to the bottommost (100%) vertical position.
+     * - `bgBodyTertiaryCss`: Contains CSS rules for setting body background color with tertiary background and customizable opacity.
+     * - `roundedPillCSS`: Contains CSS rules for applying a pill-shaped border radius.
+     * - `roundedCircleCSS`: Contains CSS rules for applying a perfect circular border radius.
+     */
     const bs4migration = {
         translateMiddleCss: [
             'transform: translate(-50%,-50%)'
@@ -155,6 +192,19 @@
         ]
     };
 
+    /**
+     * An object that maps CSS color names to their corresponding hexadecimal color codes.
+     *
+     * The keys in this object are the standard CSS color names (case-insensitive), and the values
+     * are their respective hexadecimal color codes. Some color names include both American and
+     * British English synonyms, providing equivalent hexadecimal values for those variants.
+     *
+     * This object can be used for converting color names to hex codes, validating color names, or
+     * referencing standard colors in styling and graphical applications.
+     *
+     * Note: Both American and British English synonyms (e.g., "gray" and "grey") are included
+     * where applicable, and they map to identical hexadecimal values.
+     */
     const colorNameToHex = {
         aliceblue: "#f0f8ff",
         antiquewhite: "#faebd7",
@@ -409,14 +459,35 @@
         return `border-radius: ${rounded} !important`;
     }
 
+    /**
+     * Formats the day of the appointment by including its title wrapped in specific HTML structure.
+     *
+     * @param {Object} appointment - An object representing the appointment.
+     * @param {Object} extras - Additional data or configuration for formatting, not currently used in this method.
+     * @return {string} A formatted string representing the appointment's title enclosed in a styled HTML structure.
+     */
     function formatterDay(appointment, extras) {
         return `<small class="px-2">${appointment.title}</small>`;
     }
 
+    /**
+     * Formats the given appointment as a small HTML string, potentially including additional extras.
+     *
+     * @param {Object} appointment - The appointment object containing information to be formatted.
+     * @param {Object} extras - An object containing additional parameters for formatting, if applicable.
+     * @return {string} A formatted string representing the appointment, styled as a small HTML element.
+     */
     function formatterWeek(appointment, extras) {
         return `<small class="px-2" style="font-size: 10px">${appointment.title}</small>`;
     }
 
+    /**
+     * Formats the given appointment into a styled HTML string for monthly calendar display.
+     *
+     * @param {Object} appointment - The appointment to format. Should include `start`, `title`, and `allDay` properties.
+     * @param {Object} extras - Additional configuration options such as `locale` for time formatting and `icon` for styling.
+     * @return {string} A formatted HTML string representing the appointment.
+     */
     function formatterMonth(appointment, extras) {
         const startTime = new Date(appointment.start).toLocaleTimeString(extras.locale, {
             hour: '2-digit',
@@ -494,7 +565,6 @@
                 }
             }
         }
-
 
         if (date) {
             setDate($wrapper, date);
@@ -751,6 +821,13 @@
         return new Intl.DateTimeFormat(locale, options).format(date);
     }
 
+    /**
+     * Logs a message to the browser's console with a custom prefix.
+     *
+     * @param {string} message - The main message to log.
+     * @param {...any} params - Additional optional parameters to include in the log output.
+     * @return {void}
+     */
     function log(message, ...params) {
         if (window.console && window.console.log) {
             window.console.log('bsCalendar LOG: ' + message, ...params);
@@ -864,6 +941,16 @@
         return `${hours}:${minutes}:${seconds}`;
     }
 
+    /**
+     * Converts a date-time string with a space separator into ISO 8601 format
+     * by replacing the space character with 'T'. If the input is not a string,
+     * it is returned as-is.
+     *
+     * @param {string|*} dateTime - The date-time value to normalize. If it's a string,
+     *                              it replaces the space with 'T'. For other types,
+     *                              the original value is returned.
+     * @return {string|*} - The normalized date-time string or the input if it is not a string.
+     */
     function normalizeDateTime(dateTime) {
         if (typeof dateTime === "string") {
             return dateTime.replace(" ", "T");
@@ -952,6 +1039,11 @@
         });
     }
 
+    /**
+     * Determines the version of Bootstrap being used.
+     *
+     * @return {number} The Bootstrap version, either 4 or 5.
+     */
     function getBootstrapVersion() {
         let bootstrapVersion;
 
@@ -975,6 +1067,9 @@
      * @returns {object} - An object containing the colors: backgroundColor, backgroundImage, and text color.
      */
     function getColors(color, fallbackColor) {
+        /**
+         * Validates if the provided color input is a valid direct color representation.
+         * The method checks if the input is in valid HEX format, RGB(A) format*/
         function isDirectColorValid(inputColor) {
             if (!inputColor || typeof inputColor !== "string") return false;
 
@@ -985,6 +1080,13 @@
             return hexPattern.test(inputColor) || rgbPattern.test(inputColor) || inputColor.toLowerCase() in colorNameToHex;
         }
 
+        /**
+         * Resolves the input color by converting color names to their hexadecimal representation
+         * if applicable. If the input is not a recognized color name, it returns the input as is.
+         *
+         * @param {string} inputColor - The color input, which can be a recognized color name or a direct color value.
+         * @return {string} The resolved color in hexadecimal format if the input is a recognized color name, otherwise the input color itself.
+         */
         function resolveColor(inputColor) {
             // Prüfen, ob es ein Farbnamen ist, der in Hex umgerechnet werden muss
             if (inputColor.toLowerCase() in colorNameToHex) {
@@ -993,6 +1095,13 @@
             return inputColor; // Falls kein Farbnamen, den Input direkt zurückgeben
         }
 
+        /**
+         * Determines whether the given color is considered dark based on its luminance.
+         *
+         * @param {string} color - The color to evaluate. This can be a hex color code (e.g., "#000", "#000000"),
+         * RGB(A) format (e.g., "rgb(0, 0, 0)" or "rgba(0, 0, 0, 1)"), or a valid color name that can be resolved.
+         * @return {boolean} Returns true if the color is dark, false otherwise.
+         */
         function isDarkColor(color) {
             // Hex-Farbe auflösen, falls es ein Farbnamen ist
             color = resolveColor(color);
@@ -1024,6 +1133,19 @@
             return yiq <= 128; // return true when the color is dark
         }
 
+        /**
+         * Computes and returns the styles (background color, background image, text color, etc.)
+         * for a series of class names by temporarily applying them to a DOM element and extracting
+         * their computed styles.
+         *
+         * @param {string} inputClassNames - A space-separated string of class names to compute styles for.
+         * @return {Object} An object containing the computed styles:
+         * - `backgroundColor` {string}: The computed background color with respect to opacity adjustments.
+         * - `backgroundImage` {string}: The computed background image property.
+         * - `color` {string}: The computed text color.
+         * - `classList` {string[]} An array of class names applied to the computation.
+         * - `origin` {string}: The original input class names string.
+         */
         function getComputedStyles(inputClassNames) {
             const bsV = getBootstrapVersion();
             const classList = inputClassNames.split(" ").map(className => {
@@ -1085,6 +1207,16 @@
             };
         }
 
+        /**
+         * Computes the color properties based on the input color.
+         *
+         * @param {string} inputColor - The input color, which can be in various formats (e.g., named color, hex, or invalid string).
+         * @return {Object|null} Returns an object with computed background and text color properties if the input is valid, or null if the input is invalid.
+         *                       The returned object contains:
+         *                       - `backgroundColor`: The resolved background color in a valid format (e.g., Hex).
+         *                       - `backgroundImage`: Set to "none" by default.
+         *                       - `color`: The computed text color depending on the background color (black or white).
+         */
         function computeColor(inputColor) {
             if (isDirectColorValid(inputColor)) {
                 // Die Farbe in ein gültiges Format (z. B. Hex) auflösen
@@ -1506,6 +1638,14 @@
         }
     }
 
+    /**
+     * Toggles the search mode for a given wrapper element and updates the view accordingly.
+     *
+     * @param {Element} $wrapper - The wrapper element for which the search mode should be toggled.
+     * @param {boolean} status - The desired status of search mode, where `true` enables it and `false` disables it.
+     * @param {boolean} [rebuildView=true] - Specifies whether the view should be rebuilt when toggling search mode off.
+     * @return {void} This method does not return a value.
+     */
     function toggleSearchMode($wrapper, status, rebuildView = true) {
         const settings = getSettings($wrapper);
         // toggleSearchBar($wrapper, status);
@@ -1528,34 +1668,81 @@
         }
     }
 
+    /**
+     * Resets the search pagination settings to their default values based on the provided wrapper's configuration.
+     *
+     * @param {HTMLElement} $wrapper - The wrapper element containing the settings for search pagination.
+     * @return {void} This function does not return a value.
+     */
     function resetSearchPagination($wrapper) {
         const settings = getSettings($wrapper);
         const search = {limit: settings.search.limit, offset: settings.search.offset};
         setSearchPagination($wrapper, search);
     }
 
+    /**
+     * Sets the search pagination data on the given wrapper element.
+     *
+     * @param {jQuery} $wrapper - A jQuery element where the pagination data will be stored.
+     * @param {Object|null} object - The pagination data to be set. If the object is empty, it will set null.
+     * @return {void}
+     */
     function setSearchPagination($wrapper, object) {
         const pagination = isValueEmpty(object) ? null : object;
         $wrapper.data('searchPagination', pagination);
     }
 
+    /**
+     * Retrieves the search pagination data from the given wrapper element.
+     *
+     * @param {Object} $wrapper - The jQuery-wrapped DOM element containing the search pagination data.
+     * @return {Object|undefined} The search pagination data associated with the wrapper element, or undefined if none is found.
+     */
     function getSearchPagination($wrapper) {
         return $wrapper.data('searchPagination');
     }
 
+    /**
+     * Sets the search mode status on the specified wrapper element.
+     *
+     * @param {jQuery} $wrapper - The jQuery object representing the wrapper element.
+     * @param {boolean} status - The status indicating whether search mode should be enabled (true) or disabled (false).
+     * @return {void}
+     */
     function setSearchMode($wrapper, status) {
         $wrapper.data('searchMode', status);
     }
 
+    /**
+     * Retrieves the search mode from the provided wrapper element.
+     *
+     * @param {Object} $wrapper - A jQuery object representing the wrapper element containing the search mode data.
+     * @return {string} The search mode value stored in the data attribute of the wrapper element.
+     */
     function getSearchMode($wrapper) {
 
         return $wrapper.data('searchMode');
     }
 
+    /**
+     * Checks if a given wrapper element is in search mode.
+     *
+     * @param {jQuery} $wrapper - The jQuery-wrapped DOM element to check for search mode.
+     * @return {boolean} Returns true if the wrapper is in search mode; otherwise, returns false.
+     */
     function inSearchMode($wrapper) {
         return $wrapper.data('searchMode') || false;
     }
 
+    /**
+     * Toggles the visibility of a sidebar within a specified wrapper element,
+     * with optional forced open/close behaviors.
+     *
+     * @param {jQuery} $wrapper - The jQuery object representing the wrapper element containing the sidebar.
+     * @param {boolean} [forceClose=false] - If true, forcibly closes the sidebar regardless of its current state.
+     * @param {boolean} [forceOpen=false] - If true, forcibly opens the sidebar regardless of its current state.
+     * @return {void} This function does not return a value.
+     */
     function handleSidebarVisibility($wrapper, forceClose = false, forceOpen = false) {
         var $sidebar = $wrapper.find('.' + sideNavClass);
         var isVisible = $sidebar.data('visible'); // Aktueller Status der Sidebar
@@ -1801,6 +1988,13 @@
     }
 
     // Benutzerdefinierte Suchfunktion (z. B. API-Aufruf oder Filter anwenden)
+    /**
+     * Triggers the search functionality within the given wrapper element. This includes fetching settings,
+     * resetting pagination, and updating the view.
+     *
+     * @param {Object} $wrapper - The wrapper element containing the search context.
+     * @return {void} - No return value.
+     */
     function triggerSearch($wrapper) {
         const settings = getSettings($wrapper); // Einstellungen holen
         resetSearchPagination($wrapper);
@@ -1808,18 +2002,42 @@
     }
 
 
+    /**
+     * Retrieves the select view element from the given wrapper.
+     *
+     * @param {jQuery} $wrapper - The jQuery object representing the wrapper element.
+     * @return {jQuery} The jQuery object representing the select view element within the wrapper.
+     */
     function getSelectViewElement($wrapper) {
         return $wrapper.find('.wc-select-calendar-view');
     }
 
+    /**
+     * Retrieves the DOM element representing the "Today" button within a specified wrapper element.
+     *
+     * @param {jQuery} $wrapper - The jQuery object representing the wrapper element to search within.
+     * @return {jQuery} The jQuery object containing the "Today" button element.
+     */
     function getTodayButtonElement($wrapper) {
         return $wrapper.find('[data-today]');
     }
 
+    /**
+     * Retrieves the element representing the "Add" button for appointments within the given wrapper element.
+     *
+     * @param {jQuery} $wrapper - A jQuery object representing the wrapper element that contains the "Add" button.
+     * @return {jQuery} - A jQuery object representing the "Add" button element.
+     */
     function getAddButtonElement($wrapper) {
         return $wrapper.find('[data-add-appointment]');
     }
 
+    /**
+     * Checks whether a given value is considered empty.
+     *
+     * @param {any} value - The value to check for emptiness. It can be of any type such as null, undefined, array, or string.
+     * @return {boolean} Returns true if the value is empty (null, undefined, empty array, or string with only spaces). Returns false otherwise.
+     */
     function isValueEmpty(value) {
         if (value === null || value === undefined) {
             return true; // Null or undefined
@@ -1861,10 +2079,23 @@
         return $wrapper.data('view');
     }
 
+    /**
+     * Retrieves the last view data stored in the specified wrapper element.
+     *
+     * @param {Object} $wrapper - The wrapper element containing view data.
+     * @return {*} The value of the last view data associated with the wrapper element.
+     */
     function getLastView($wrapper) {
         return $wrapper.data('lastView');
     }
 
+    /**
+     * Sets the last view data attribute on the provided wrapper element.
+     *
+     * @param {jQuery} $wrapper - The jQuery object representing the DOM element to set the last view for.
+     * @param {string} view - The name of the last view to set.
+     * @return {void} This method does not return a value.
+     */
     function setLastView($wrapper, view) {
         $wrapper.data('lastView', view);
     }
@@ -2207,6 +2438,16 @@
     }
 
 
+    /**
+     * Groups overlapping appointments by weekdays, organizing them into columns or marking them as full-width,
+     * based on their overlapping properties and visibility conditions for different views.
+     *
+     * @param {object} $wrapper - The wrapper DOM element or container associated with the view.
+     * @param {Array} appointments - An array of appointment objects. Each appointment is expected to include
+     *                               scheduling and visibility details, such as date, time, and display properties.
+     * @return {object} - An object where each key is a weekday (0-6, corresponding to Sunday-Saturday), and the value
+     *                    is an object containing grouped appointments, their assigned columns, and full-width appointments.
+     */
     function groupOverlappingAppointments($wrapper, appointments) {
         const groupedByWeekdays = {};
         const view = getView($wrapper);
@@ -2600,6 +2841,17 @@
         buildSearchPagination($container, page, totalPages, itemsPerPage, total);
     }
 
+    /**
+     * Builds a search pagination component within a specified container, allowing navigation
+     * through multiple pages of search results.
+     *
+     * @param {jQuery} $container - The jQuery object representing the container where the pagination should be inserted.
+     * @param {number} currentPage - The currently active page number.
+     * @param {number} totalPages - The total number of pages available.
+     * @param {number} itemsPerPage - The number of items displayed per page.
+     * @param {number} total - The total number of search results.
+     * @return {void} This function does not return a value, it modifies the DOM to append the pagination.
+     */
     function buildSearchPagination($container, currentPage, totalPages, itemsPerPage, total) {
 
         if (totalPages <= 1) {
@@ -2725,10 +2977,24 @@
         })
     }
 
+    /**
+     * Creates a deep copy of the given appointment object.
+     *
+     * @param {Object} appointment - The appointment object to be copied.
+     * @return {Object} A deep copy of the given appointment object.
+     */
     function copyAppointment(appointment) {
         return $.extend(true, {}, appointment);
     }
 
+    /**
+     * Processes an appointment object to separate its main content and extras.
+     *
+     * @param {Object} origin - The original appointment object containing the details and extras.
+     * @return {Object} An object with two properties:
+     * `appointment` which contains the main appointment details, and
+     * `extras` which contains the extra details separated from the original object.
+     */
     function getAppointmentForReturn(origin) {
         const appointment = copyAppointment(origin);
         const extras = appointment.extras;
@@ -2949,6 +3215,13 @@
         }
     }
 
+    /**
+     * Renders and displays appointments for an entire year by updating the DOM with appointment details.
+     *
+     * @param {jQuery} $wrapper - A jQuery wrapper object representing the main container where appointments will be drawn.
+     * @param {Array<Object>} appointments - An array of appointment objects, where each object contains details like date, total, and extra styling information.
+     * @return {void} This function does not return any value.
+     */
     function drawAppointmentsForYear($wrapper, appointments) {
         const $container = getViewContainer($wrapper);
         appointments.forEach(appointment => {
@@ -3659,6 +3932,14 @@
         }
     }
 
+    /**
+     * Builds an HTML header representation for a specific day.
+     *
+     * @param {HTMLElement} $wrapper - The HTML element container for settings and configuration.
+     * @param {Date} date - The date object representing the specific day to build the header for.
+     * @param {boolean} [forWeekView=false] - Whether the header is being built for a week view context (default is false).
+     * @return {string} The constructed HTML string representing the day's header.
+     */
     function buildHeaderForDay($wrapper, date, forWeekView = false) {
         const settings = getSettings($wrapper);
         const day = date.toLocaleDateString(settings.locale, {day: 'numeric'})
@@ -3723,12 +4004,7 @@
             month: 'short'
         });
 
-        $('<div>', {
-            'data-all-day': true,
-            class: 'd-flex flex-column flex-fill',
-        }).appendTo($container);
-
-        // Container for time slots
+        // Container for time slots. Here we need a match for the day of the week and the date
         const timeSlots = $('<div>', {
             "data-week-day": date.getDay(),
             "data-date-local": formatDateToDateString(date),
@@ -3760,13 +4036,13 @@
                 const data = {
                     start: {
                         date: formatDateToDateString(start),
-                        time: start.toTimeString().slice(0, 5) // Nur "HH:mm"
+                        time: start.toTimeString().slice(0, 5) // only "HH:mm"
                     },
                     end: {
                         date: formatDateToDateString(end),
-                        time: end.toTimeString().slice(0, 5) // Nur "HH:mm"
+                        time: end.toTimeString().slice(0, 5) // only "HH:mm"
                     },
-                    view: getView($wrapper) // Aktuelle Ansicht z. B. 'day', 'week', etc.
+                    view: getView($wrapper)
                 };
 
                 trigger($wrapper, 'add', [data]);
@@ -3794,6 +4070,13 @@
 
     }
 
+    /**
+     * Adds a current time indicator to the provided container, displaying the current time and updating its position every minute.
+     *
+     * @param {jQuery} $wrapper - The wrapper element containing the container where the time indicator will be added.
+     * @param {jQuery} $container - The container element where the current time indicator will be appended.
+     * @return {void} - No return value.
+     */
     function addCurrentTimeIndicator($wrapper, $container) {
         const now = new Date();
         // Erstelle eine Linie, die die aktuelle Zeit anzeigt
@@ -3888,6 +4171,13 @@
         return {top: top - 4, height: height};
     }
 
+    /**
+     * Converts the given date into a localized time string showing only hours and minutes.
+     *
+     * @param {Object} $wrapper - The wrapper object containing settings for localization.
+     * @param {Date} date - The date object to format into a time string.
+     * @return {string} A formatted time string showing hours and minutes based on the provided locale settings.
+     */
     function getMinutesAndSeconds($wrapper, date) {
         const settings = getSettings($wrapper);
         return date.toLocaleTimeString(settings.locale, {hour: '2-digit', minute: '2-digit'});
