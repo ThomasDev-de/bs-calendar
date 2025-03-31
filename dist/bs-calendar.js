@@ -70,6 +70,7 @@
             locale: 'en-EN',
             title: 'Calendar',
             startWeekOnSunday: true,
+            navigateOnWheel: true,
             rounded: 5, // 1-5
             search: {
                 limit: 10,
@@ -118,11 +119,14 @@
         }
     };
 
-    const viewContainerClass = 'wc-calendar-view-container';
-    const infoWindowModalId = '#wcCalendarInfoWindowModal';
-    const topNavClass = 'wc-calendar-top-nav';
-    const sideNavClass = 'wc-calendar-left-nav';
-    const topSearchClass = 'wc-calendar-top-search-nav';
+    const calendarElements = {
+        containerView: 'wc-calendar-view-container',
+        infoModal: '#wcCalendarInfoWindowModal',
+        topNav: 'wc-calendar-top-nav',
+        sideNav: 'wc-calendar-left-nav',
+        topSearchNav: 'wc-calendar-top-search-nav',
+    };
+    
     const hourSlotHeight = 30;
 
     /**
@@ -597,7 +601,7 @@
      * @return {void} Does not return a value.
      */
     function destroy($wrapper) {
-        $(infoWindowModalId).modal('hide');
+        $(calendarElements.infoModal).modal('hide');
         $wrapper.removeData('initBsCalendar');
         $wrapper.removeData('settings');
         $wrapper.removeData('view');
@@ -1354,7 +1358,7 @@
 
         const roundedCss = getBorderRadiusCss(settings.rounded);
         const topNav = $('<div>', {
-            class: `d-flex align-items-center px-0 justify-content-end mb-3 ${topNavClass} bg-body`,
+            class: `d-flex align-items-center px-0 justify-content-end mb-3 ${calendarElements.topNav} bg-body`,
             style: roundedCss
         }).appendTo(innerWrapper);
 
@@ -1363,7 +1367,7 @@
         }
 
         const topSearchNav = $('<div>', {
-            class: `d-none align-items-center px-0 justify-content-center mb-3 ${topSearchClass} bg-body`,
+            class: `d-none align-items-center px-0 justify-content-center mb-3 ${calendarElements.topSearchNav} bg-body`,
             style: roundedCss
         });
         // add menu bar
@@ -1483,7 +1487,7 @@
             css: {
                 position: 'relative',
             },
-            class: 'me-4 mr-4 ' + sideNavClass,
+            class: 'me-4 mr-4 ' + calendarElements.sideNav,
             html: [
                 '<div class="pb-3">',
                 '<div class="d-flex justify-content-between">',
@@ -1504,7 +1508,7 @@
         }
 
         $('<div>', {
-            class: `container-fluid ${viewContainerClass} pb-5 border-1 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`,
+            class: `container-fluid ${calendarElements.containerView} pb-5 border-1 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`,
             style: roundedCss,
         }).appendTo(container);
 
@@ -1626,8 +1630,8 @@
      */
     function toggleSearchBar($wrapper, status) {
         const input = getSearchElement($wrapper);
-        const topNav = $wrapper.find('.' + topNavClass);
-        const topSearchNav = $wrapper.find('.' + topSearchClass);
+        const topNav = $wrapper.find('.' + calendarElements.topNav);
+        const topSearchNav = $wrapper.find('.' + calendarElements.topSearchNav);
         if (status) {
             topNav.removeClass('d-flex').addClass('d-none');
             topSearchNav.removeClass('d-none').addClass('d-flex');
@@ -1745,7 +1749,7 @@
      * @return {void} This function does not return a value.
      */
     function handleSidebarVisibility($wrapper, forceClose = false, forceOpen = false) {
-        var $sidebar = $wrapper.find('.' + sideNavClass);
+        var $sidebar = $wrapper.find('.' + calendarElements.sideNav);
         var isVisible = $sidebar.data('visible'); // Aktueller Status der Sidebar
 
         // Zielstatus berechnen
@@ -1790,44 +1794,45 @@
         });
         $('body')
 
-            .on('click', infoWindowModalId + ' [data-edit]', function (e) {
+            .on('click', calendarElements.infoModal + ' [data-edit]', function (e) {
                 e.preventDefault();
-                const appointment = $(infoWindowModalId).data('appointment');
+                const appointment = $(calendarElements.infoModal).data('appointment');
                 const returnData = getAppointmentForReturn(appointment);
-                $(infoWindowModalId).modal('hide')
+                $(calendarElements.infoModal).modal('hide')
                 trigger($wrapper, 'edit', [returnData.appointment, returnData.extras]);
             })
-            .on('click', infoWindowModalId + ' [data-remove]', function (e) {
+            .on('click', calendarElements.infoModal + ' [data-remove]', function (e) {
                 e.preventDefault();
-                const appointment = $(infoWindowModalId).data('appointment');
+                const appointment = $(calendarElements.infoModal).data('appointment');
                 const returnData = getAppointmentForReturn(appointment);
-                $(infoWindowModalId).modal('hide')
+                $(calendarElements.infoModal).modal('hide')
                 trigger($wrapper, 'delete', [returnData.appointment, returnData.extras]);
             })
             .on('click', function (e) {
                 const $target = $(e.target);
-                const isInsideModal = $target.closest(infoWindowModalId).length > 0; // checks for modal or child elements
+                const isInsideModal = $target.closest(calendarElements.infoModal).length > 0; // checks for modal or child elements
                 const isTargetElement = $target.closest('[data-appointment]').length > 0; // checks for the target element with appointment data
 
                 // the modal only closes if the click was neither in the modal nor a target element
-                if (!isInsideModal && !isTargetElement && $(infoWindowModalId).length) {
-                    $(infoWindowModalId).modal('hide');
+                if (!isInsideModal && !isTargetElement && $(calendarElements.infoModal).length) {
+                    $(calendarElements.infoModal).modal('hide');
                 }
             })
-            .on('hidden.bs.modal', infoWindowModalId, function () {
+            .on('hidden.bs.modal', calendarElements.infoModal, function () {
                 // removes the modal completely after it has been closed
-                if ($(infoWindowModalId).length) {
-                    $(infoWindowModalId).remove();
+                if ($(calendarElements.infoModal).length) {
+                    $(calendarElements.infoModal).remove();
                 }
             });
 
 
         $wrapper
             .on('wheel', '.wc-calendar-view-container', function (e) {
+                const settings = getSettings($wrapper);
                 const isModalOpen = $('body').hasClass('modal-open');
                 const inViewCOntainer = $(e.target).closest('.wc-calendar-container').length
 
-                if (!inViewCOntainer || isModalOpen) {
+                if (!settings.navigateOnWheel || !inViewCOntainer || isModalOpen) {
                     return; // Nichts tun, wenn der Nutzer nicht im Container ist
                 }
 
@@ -2196,7 +2201,7 @@
      * @return {jQuery} A jQuery object representing the view container element.
      */
     function getViewContainer($wrapper) {
-        return $wrapper.find('.' + viewContainerClass);
+        return $wrapper.find('.' + calendarElements.containerView);
     }
 
     /**
@@ -4261,7 +4266,7 @@
         const appointment = targetElement.data('appointment');
 
         // Set a reference to the modal element using its ID.
-        let $modal = $(infoWindowModalId);
+        let $modal = $(calendarElements.infoModal);
 
         const returnData = getAppointmentForReturn(appointment);
         // Create the HTML content for the modal body, displaying the appointment details.
@@ -4272,7 +4277,7 @@
                 const roundedCss = getBorderRadiusCss(settings.rounded);
                 // If the modal does not exist, create the modal's HTML structure and append it to the body.
                 const modalHtml = [
-                    `<div class="modal fade" id="${infoWindowModalId.substring(1)}" tabindex="-1" data-backdrop="false" data-bs-backdrop="false" style="pointer-events: none;">`,
+                    `<div class="modal fade" id="${calendarElements.infoModal.substring(1)}" tabindex="-1" data-backdrop="false" data-bs-backdrop="false" style="pointer-events: none;">`,
                     `<div class="modal-dialog modal-fullscreen-sm-down position-absolute" style="pointer-events: auto; ">`,
                     `<div class="modal-content border border-1 shadow" style="${roundedCss}">`,
                     `<div class="modal-body d-flex flex-column align-items-stretch pb-4" style="">`,
@@ -4292,7 +4297,7 @@
                 $('body').append(modalHtml);
 
                 // Re-select the modal to get the updated reference.
-                $modal = $(infoWindowModalId);
+                $modal = $(calendarElements.infoModal);
 
                 // Initialize the modal with specific settings.
                 $modal.modal({
