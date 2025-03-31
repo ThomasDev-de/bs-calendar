@@ -110,47 +110,47 @@
     const hourSlotHeight = 30;
 
     const bs4migration = {
-        translateMiddleCss : [
+        translateMiddleCss: [
             'transform: translate(-50%,-50%)'
         ],
-        start0Css : [
+        start0Css: [
             'left: 0'
         ],
-        start25Css : [
+        start25Css: [
             'left: 25%'
         ],
-        start50Css : [
+        start50Css: [
             'left: 50%'
         ],
-        start75Css : [
+        start75Css: [
             'left: 75%'
         ],
-        start100Css : [
+        start100Css: [
             'left: 100%'
         ],
-        top0Css : [
+        top0Css: [
             'top: 0'
         ],
-        top25Css : [
+        top25Css: [
             'top: 25%'
         ],
-        top50Css : [
+        top50Css: [
             'top: 50%'
         ],
-        top75Css : [
+        top75Css: [
             'top: 75%'
         ],
-        top100Css : [
+        top100Css: [
             'top: 100%'
         ],
-        bgBodyTertiaryCss : [
+        bgBodyTertiaryCss: [
             'opacity: 1',
             'background-color: rgba(var(--bs-tertiary-bg-rgb, 248, 249, 250), var(--bs-bg-opacity, 1))'
         ],
-        roundedPillCSS : [
+        roundedPillCSS: [
             'border-radius: var(--bs-border-radius-pill, 50rem) !important',
         ],
-        roundedCircleCSS : [
+        roundedCircleCSS: [
             'border-radius: 50% !important',
         ]
     };
@@ -408,6 +408,7 @@
         }
         return `border-radius: ${rounded} !important`;
     }
+
     function formatterDay(appointment, extras) {
         return `<small class="px-2">${appointment.title}</small>`;
     }
@@ -669,6 +670,7 @@
         // Falls weder ein String noch ein korrektes Objekt vorhanden ist, leer zurückgeben.
         return "";
     }
+
     /**
      * Formats an HTML string for an information window based on the given appointment data.
      *
@@ -1252,9 +1254,6 @@
             'data-add-appointment': true
         }).appendTo(topNav);
 
-
-
-
         $('<div>', {
             class: 'spinner-border me-auto mr-auto mx-3 text-secondary wc-calendar-spinner',
             css: {
@@ -1267,7 +1266,6 @@
         $('<div>', {
             class: 'me-auto mr-auto',
         }).appendTo(topNav);
-
 
         $('<div>', {
             class: 'd-flex ms-2 ml-2 align-items-center justify-content-center wc-nav-view-wrapper flex-nowrap text-nowrap',
@@ -1350,7 +1348,7 @@
 
         const sidebar = $('<div>', {
             css: {
-                position:'relative',
+                position: 'relative',
             },
             class: 'me-4 mr-4 ' + sideNavClass,
             html: [
@@ -1567,17 +1565,17 @@
 
         // Position VOR der Animation setzen (nur wenn geöffnet wird)
         if (shouldBeVisible) {
-            $sidebar.css({ position: 'relative' });
+            $sidebar.css({position: 'relative'});
         }
 
         // Animation ausführen (abhängig von shouldBeVisible)
-        $sidebar.animate({ left: shouldBeVisible ? '0px' : '-300px' }, 300, function () {
+        $sidebar.animate({left: shouldBeVisible ? '0px' : '-300px'}, 300, function () {
             // Bei Schließen Position NACH der Animation setzen
             if (!shouldBeVisible) {
-                $sidebar.css({ position: 'absolute' });
+                $sidebar.css({position: 'absolute'});
             }
 
-            if(getView($wrapper) === 'month') {
+            if (getView($wrapper) === 'month') {
                 onResize($wrapper);
             }
 
@@ -1585,6 +1583,7 @@
             $sidebar.data('visible', shouldBeVisible);
         });
     }
+
     /**
      * Attaches event listeners to a given wrapper element to handle user interactions with the calendar interface.
      *
@@ -1635,9 +1634,23 @@
             });
 
 
-
         $wrapper
-            .on('click', '[data-bs-toggle="sidebar"]', function(){
+            .on('wheel', '.wc-calendar-view-container', function (e) {
+                // Prüfen, ob das Event innerhalb des Containers stattgefunden hat
+                if (!$(e.target).closest('.wc-calendar-container').length) {
+                    return; // Nichts tun, wenn der Nutzer nicht im Container ist
+                }
+
+                e.preventDefault(); // Standard-Scroll verhindern
+                e.stopPropagation(); // Event-Bubbling verhindern
+
+                if (e.originalEvent.deltaY > 0) {
+                    navigateForward($wrapper); // Nach unten gescrollt
+                } else {
+                    navigateBack($wrapper); // Nach oben gescrollt
+                }
+            })
+            .on('click', '[data-bs-toggle="sidebar"]', function () {
                 handleSidebarVisibility($wrapper);
             })
             .on('click', '.wc-search-pagination [data-page]', function (e) {
@@ -2291,7 +2304,7 @@
         const allDays = appointments.filter(appointment => appointment.allDay === true);
         const notAllDays = appointments.filter(appointment => appointment.allDay !== true);
 
-        if(settings.debug) {
+        if (settings.debug) {
             log('Call drawAppointmentsForDayOrWeek with view:', view);
             log("All-Day AppointmWWents:", allDays);
             log("Not-All-Day Appointments:", notAllDays);
@@ -2300,12 +2313,12 @@
 
         // go through each allDays
         allDays.forEach(appointment => {
-            if(settings.debug) {
+            if (settings.debug) {
                 log(">>>> All-Day Appointment displayDates:", appointment.extras.displayDates);
             }
             appointment.extras.displayDates.forEach((obj) => {
                 const fakeStart = new Date(obj.date);
-                const allDayWrapper = $viewContainer.find('[data-all-day="' + fakeStart.getDay() + '"][data-date-local="' + formatDateToDateString(fakeStart) +'"]');
+                const allDayWrapper = $viewContainer.find('[data-all-day="' + fakeStart.getDay() + '"][data-date-local="' + formatDateToDateString(fakeStart) + '"]');
                 if (allDayWrapper.length) {
                     allDayWrapper.addClass('pb-3');
                     const appointmentElement = $('<div>', {
@@ -2712,14 +2725,14 @@
     }
 
     function copyAppointment(appointment) {
-       return $.extend(true, {}, appointment);
+        return $.extend(true, {}, appointment);
     }
 
     function getAppointmentForReturn(origin) {
         const appointment = copyAppointment(origin);
         const extras = appointment.extras;
         delete appointment.extras;
-        return {appointment:appointment, extras: extras}
+        return {appointment: appointment, extras: extras}
     }
 
     /**
@@ -3264,13 +3277,12 @@
                 }
 
                 // Tageszahl hinzufügen
-               const row = $('<small>', {
+                const row = $('<small>', {
                     'data-date': formatDateToDateString(currentDate),
                     class: `text-center my-1`,
                     style: dayCss.join(';'),
                     text: currentDate.getDate(),
                 }).appendTo(dayWrapper);
-
 
 
                 // inner wrapper
@@ -3375,14 +3387,14 @@
         const table = $('<table>', {
             class: 'wc-mini-calendar',
             css: {
-                width: `${cellSize * 7 +20}px`,
-                fontSize: fontSize+'px',
+                width: `${cellSize * 7 + 20}px`,
+                fontSize: fontSize + 'px',
                 borderSpacing: '0',
                 borderCollapse: 'collapse',
                 tableLayout: 'fixed',
                 textAlign: 'center',
                 verticalAlign: 'middle',
-                lineHeight: cellSize+'px',
+                lineHeight: cellSize + 'px',
                 padding: '0',
                 margin: '0',
                 backgroundColor: 'transparent',
@@ -3400,12 +3412,20 @@
         }).appendTo(thead);
 
         // First column (CW)
-        $('<th>', {class: '', css: {width: weekRowWidth+'px', height: cellSize+'px'}, text: ''}).appendTo(weekdaysRow);
+        $('<th>', {
+            class: '',
+            css: {width: weekRowWidth + 'px', height: cellSize + 'px'},
+            text: ''
+        }).appendTo(weekdaysRow);
 
         // Add weekly days (Mon, Tue, Wed, ...)
         const weekDays = getShortWeekDayNames(settings.locale, settings.startWeekOnSunday);
         weekDays.forEach(day => {
-            $('<th>', {class: '', text: day, css: {width: `${cellSize}px`, height: cellSize+'px'}}).appendTo(weekdaysRow);
+            $('<th>', {
+                class: '',
+                text: day,
+                css: {width: `${cellSize}px`, height: cellSize + 'px'}
+            }).appendTo(weekdaysRow);
         });
 
         // create the content of the calendar
