@@ -95,14 +95,14 @@
                 week: 'bi bi-kanban',
                 month: 'bi bi-calendar-month',
                 year: 'bi bi-calendar4',
-                add: 'bi bi-plus-lg',
+                add: 'bi bi-plus-lg fs-3',
+                menu: 'bi bi-list fs-3',
                 search: 'bi bi-search',
                 prev: 'bi bi-chevron-left',
                 next: 'bi bi-chevron-right',
                 link: 'bi bi-box-arrow-up-right',
                 appointment: 'bi bi-clock',
-                appointmentAllDay: 'bi bi-brightness-high',
-                timeSlot: 'bi bi-caret-right-fill',
+                appointmentAllDay: 'bi bi-brightness-high'
             },
             url: null,
             queryParams: null,
@@ -126,7 +126,7 @@
         sideNav: 'wc-calendar-left-nav',
         topSearchNav: 'wc-calendar-top-search-nav',
     };
-    
+
     const hourSlotHeight = 30;
 
     /**
@@ -1373,7 +1373,7 @@
         // add menu bar
         $('<button>', {
             class: `btn py-0`,
-            html: `<i class="bi bi-list fs-3"></i>`,
+            html: `<i class="${settings.icons.menu}"></i>`,
             'data-bs-toggle': 'sidebar'
         }).appendTo(topNav);
         // title
@@ -1387,7 +1387,7 @@
         // add button
         $('<button>', {
             class: `btn py-0`,
-            html: `<i class="${settings.icons.add} fs-3"></i>`,
+            html: `<i class="${settings.icons.add}"></i>`,
             'data-add-appointment': true
         }).appendTo(topNav);
 
