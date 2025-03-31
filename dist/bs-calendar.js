@@ -1636,8 +1636,10 @@
 
         $wrapper
             .on('wheel', '.wc-calendar-view-container', function (e) {
-                // Prüfen, ob das Event innerhalb des Containers stattgefunden hat
-                if (!$(e.target).closest('.wc-calendar-container').length) {
+                const isModalOpen = $('body').hasClass('modal-open');
+                const inViewCOntainer = $(e.target).closest('.wc-calendar-container').length
+
+                if (!inViewCOntainer || isModalOpen) {
                     return; // Nichts tun, wenn der Nutzer nicht im Container ist
                 }
 
