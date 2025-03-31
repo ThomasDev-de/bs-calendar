@@ -2295,11 +2295,10 @@
      * Builds and displays a set of appointments for the specified day within a container.
      *
      * @param {jQuery} $wrapper - The wrapper element containing the calendar.
-     * @param {jQuery} $container - The container element where appointments should be rendered.
      * @param {Array} appointments - An array of appointment objects, each containing details such as start, end, title, and color.
      * @return {void} This function does not return a value. It renders appointments into the provided container.
      */
-    function drawAppointmentsForDayOrWeek($wrapper, $container, appointments) {
+    function drawAppointmentsForDayOrWeek($wrapper, appointments) {
         const settings = getSettings($wrapper);
         const view = getView($wrapper);
         const $viewContainer = getViewContainer($wrapper);
@@ -2936,11 +2935,8 @@
 
             switch (view) {
                 case 'day':
-                    const overContainer = container.find('.wc-day-view-time-slots');
-                    drawAppointmentsForDayOrWeek($wrapper, overContainer, appointments);
-                    break;
                 case 'week':
-                    drawAppointmentsForDayOrWeek($wrapper, container, appointments);
+                    drawAppointmentsForDayOrWeek($wrapper, appointments);
                     break;
                 case 'month':
                     drawAppointmentsForMonth($wrapper, appointments);
@@ -3537,7 +3533,7 @@
         headline.attr('data-date', formatDateToDateString(date)).css('cursor', 'pointer');
         const allDayContainer = $('<div>', {
             'data-all-day': date.getDay(),
-            'data-date': formatDateToDateString(date),
+            'data-date-local': formatDateToDateString(date),
             class: 'mx-5',
             css: {
                 paddingLeft: '40px'
