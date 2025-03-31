@@ -1359,7 +1359,7 @@
         }).appendTo(innerWrapper);
 
         if (settings.topbarAddons && $(settings.topbarAddons).length > 0) {
-            $(settings.topbarAddons).insertBefore(topNav);
+            $(settings.topbarAddons).insertAfter(topNav);
         }
 
         const topSearchNav = $('<div>', {
