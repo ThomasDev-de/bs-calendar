@@ -1366,18 +1366,19 @@
             class: `d-none align-items-center px-0 justify-content-center mb-3 ${topSearchClass} bg-body`,
             style: roundedCss
         });
-        // title
-        $('<div>', {
-            html: settings.title,
-            class: 'mb-0 me-2 mr-2'
-        }).appendTo(topNav);
-
         // add menu bar
         $('<button>', {
             class: `btn py-0`,
             html: `<i class="bi bi-list fs-3"></i>`,
             'data-bs-toggle': 'sidebar'
         }).appendTo(topNav);
+        // title
+        $('<div>', {
+            html: settings.title,
+            class: 'mb-0 me-2 mr-2'
+        }).appendTo(topNav);
+
+
 
         // add button
         $('<button>', {
