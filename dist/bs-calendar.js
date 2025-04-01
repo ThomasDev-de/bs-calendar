@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.0.1
+ * @version 1.1.0
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -37,7 +37,7 @@
  * See the individual method and function documentation in this file for more details.
  *
  * @file bs-calendar.js
- * @date 2025-03-31
+ * @date 2025-04-01
  * @global jQuery
  */
 
@@ -80,6 +80,7 @@
             startView: 'month', // day, week, month, year
             defaultColor: 'primary',
             views: ['year', 'month', 'week', 'day'],
+            holidays: 'nager.date',
             translations: {
                 day: 'Day',
                 week: 'Week',
@@ -126,6 +127,9 @@
         sideNav: 'wc-calendar-left-nav',
         topSearchNav: 'wc-calendar-top-search-nav',
     };
+
+    // Cache für Feiertage
+    const holidayCache = new Map();
 
     const hourSlotHeight = 30;
 
@@ -428,6 +432,96 @@
         return wrapper;
     }
 
+    /**
+     * Convert a given local format (e.g. "de-DE") into a required format (e.g. "DE").
+     *
+     * @param {string} locale - The Locale in full format (e.g. "de-DE").
+     * @returns {string} - The formatted local (e.g. "DE").
+     */
+    function formatLocale(locale) {
+        // only get the country code in capital letters
+        return locale.split('-')[1]?.toUpperCase() || locale.toUpperCase();
+    }
+
+    /**
+     * Fetches public holidays for a specified locale within a given date range.
+     *
+     * @param {string} locale - The locale for which public holidays should be retrieved (e.g., "US", "DE").
+     * @param {string} from - The start date of the range in ISO 8601 format (YYYY-MM-DD).
+     * @param {string} to - The end date of the range in ISO 8601 format (YYYY-MM-DD).
+     * @return {Promise<Array>} A promise that resolves to an array of public holidays within the specified date range, or an empty array if no holidays are found or an error occurs.
+     */
+    async function getPublicHolidaysFromNagerDate($wrapper) {
+        try {
+            const settings = getSettings($wrapper);
+            const period = getStartAndEndDateByView($wrapper);
+            const formattedLocale = formatLocale(settings.locale);
+
+            // Start- und Endjahr aus der Ansicht ermitteln
+            const startYear = new Date(period.start).getFullYear();
+            const endYear = new Date(period.end).getFullYear();
+
+            let holidays = [];
+
+            for (let year = startYear; year <= endYear; year++) {
+                const cacheKey = `${formattedLocale}-${year}`; // Kombinierter Key für Cache
+
+                if (holidayCache.has(cacheKey)) {
+                    // Feiertage aus dem Cache abrufen
+                    holidays = holidays.concat(holidayCache.get(cacheKey));
+                    if (settings.debug) {
+                        log(`Cache hit for year ${year} and locale ${formattedLocale}`);
+                    }
+                } else {
+                    if (settings.debug) {
+                        log(`No cache hit for year ${year} and locale ${formattedLocale}`);
+                        log(`Fetching holidays for year ${year} and locale ${formattedLocale} from nager.date`);
+                    }
+                    // Feiertage von der API abrufen
+                    const apiUrl = `https://date.nager.at/api/v3/publicholidays/${year}/${formattedLocale}`;
+                    const response = await fetch(apiUrl);
+
+                    if (response.status === 404) {
+                        if (settings.debug) {
+                            log(`No data for ${year} and ${formattedLocale} (404)`);
+                        }
+                        continue; // Jahr überspringen
+                    }
+
+                    if (!response.ok && settings.debug) {
+                        throw new Error(`Errors when receiving the holidays: ${response.statusText}`);
+                    }
+
+                    // JSON-Daten in Cache und holidays-Array einfügen
+                    const yearHolidays = await response.json();
+                    holidayCache.set(cacheKey, yearHolidays);
+                    holidays = holidays.concat(yearHolidays);
+
+                    if (settings.debug) {
+                        log(`Fetched holidays for year ${year} and locale ${formattedLocale}`, yearHolidays);
+                    }
+                }
+            }
+
+            // Feiertage nach Zeitraum filtern
+            const filteredHolidays = holidays.filter(holiday => {
+                const holidayDate = new Date(holiday.date);
+                return holidayDate >= new Date(period.start) && holidayDate <= new Date(period.end);
+            });
+
+            if (settings.debug) {
+                log(`Filtered holidays for year ${startYear} to ${endYear} and locale ${formattedLocale}`, filteredHolidays);
+            }
+
+
+            return filteredHolidays; // Rückgabe der reduzierten Feiertage
+        } catch (error) {
+            if (settings.debug) {
+                log(`Error when fetching the holidays: ${error.message}`);
+            }
+            return [];
+        }
+    }
 
     /**
      * Generates CSS for the border-radius property based on the input number.
@@ -1383,7 +1477,6 @@
         }).appendTo(topNav);
 
 
-
         // add button
         $('<button>', {
             class: `btn py-0`,
@@ -1722,11 +1815,10 @@
      * Retrieves the search mode from the provided wrapper element.
      *
      * @param {Object} $wrapper - A jQuery object representing the wrapper element containing the search mode data.
-     * @return {string} The search mode value stored in the data attribute of the wrapper element.
+     * @return {bool} The search mode value stored in the data attribute of the wrapper element.
      */
     function getSearchMode($wrapper) {
-
-        return $wrapper.data('searchMode');
+        return $wrapper.data('searchMode') ?? false;
     }
 
     /**
@@ -1792,8 +1884,8 @@
                 onResize($wrapper); // call up your function here
             }, 100); // Delay of 100 milliseconds
         });
-        $('body')
 
+        $('body')
             .on('click', calendarElements.infoModal + ' [data-edit]', function (e) {
                 e.preventDefault();
                 const appointment = $(calendarElements.infoModal).data('appointment');
@@ -2599,7 +2691,7 @@
                     const endDate = new Date(slotData.end);
 
                     if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                        console.warn(`Ungültiges Datum in Appointment: ${appointment?.title || 'unknown'}`);
+                        console.warn(`Invalid date in Appointment: ${appointment?.title || 'unknown'}`);
                         return; // Überspringe das fehlerhafte Datum
                     }
 
@@ -3193,32 +3285,75 @@
         const appointments = getAppointments($wrapper);
         const isSearchMode = getSearchMode($wrapper);
 
-        if (false && isSearchMode) {
-            if (settings.debug) {
-                log('Call renderData in search mode');
-            }
-            buildAppointmentsForSearch($wrapper, appointments.rows, appointments.total);
-        } else {
-            const view = getView($wrapper);
-            const container = getViewContainer($wrapper);
-            if (settings.debug) {
-                log('Call renderData with view:', view);
+        const view = getView($wrapper);
+        const container = getViewContainer($wrapper);
+        if (settings.debug) {
+            log('Call renderData with view:', view);
+        }
+
+        switch (view) {
+            case 'day':
+            case 'week':
+                drawAppointmentsForDayOrWeek($wrapper, appointments);
+                break;
+            case 'month':
+                drawAppointmentsForMonth($wrapper, appointments);
+                break;
+            case 'year':
+                drawAppointmentsForYear($wrapper, appointments);
+                break;
+        }
+
+        if (!isSearchMode && typeof settings.holidays === 'string') {
+            switch (settings.holidays) {
+                case 'nager.date':
+                    getPublicHolidaysFromNagerDate($wrapper)
+                        .then(holidays => {
+                            drawHolidaysWithNagerDate($wrapper, holidays);
+                        });
+                    break;
             }
 
-            switch (view) {
-                case 'day':
-                case 'week':
-                    drawAppointmentsForDayOrWeek($wrapper, appointments);
-                    break;
-                case 'month':
-                    drawAppointmentsForMonth($wrapper, appointments);
-                    break;
-                case 'year':
-                    drawAppointmentsForYear($wrapper, appointments);
-                    break;
-            }
-            container.find('[data-appointment]').css('cursor', 'pointer');
         }
+        container.find('[data-appointment]').css('cursor', 'pointer');
+
+    }
+
+    function drawHolidaysWithNagerDate($wrapper, holidays) {
+        // return;
+        const view = getView($wrapper);
+        const $viewContainer = getViewContainer($wrapper);
+        switch (view) {
+            case 'day':
+            case 'week':
+                holidays.forEach(holiday => {
+                    const date = new Date(holiday.date);
+                    const allDayWrapper = $viewContainer.find('[data-all-day="' + date.getDay() + '"][data-date-local="' + holiday.date + '"]');
+                    if (allDayWrapper.length) {
+                        getHolidayElement().html(holiday.localName).appendTo(allDayWrapper);
+                    }
+                })
+                break;
+            case 'month':
+                holidays.forEach(holiday => {
+                    const dayContainer = $viewContainer.find(`[data-month-date="${holiday.date}"] [data-role="day-wrapper"]`);
+                    if(dayContainer.length) {
+                        getHolidayElement().html(holiday.localName).appendTo(dayContainer);
+                    }
+                })
+                break;
+        }
+    }
+
+    function getHolidayElement() {
+        return $('<small>', {
+            'data-holiday': true,
+            class: 'px-1 w-100 overflow-hidden mb-1 rounded rounded border text-center',
+            css: {
+                fontSize: '12px',
+                minHeight: '18px',
+            },
+        })
     }
 
     /**
