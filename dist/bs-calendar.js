@@ -2680,13 +2680,16 @@
         const columnGap = 2; // Abstand zwischen den Spalten in Pixeln
 
         Object.entries(groupedAppointments).forEach(([weekday, {columns, fullWidth}]) => {
-            const $weekDayContainer = $viewContainer.find(`[data-week-day="${weekday}"]`);
+
+
+            // const $weekDayContainer = $viewContainer.find(`[data-week-day="${weekday}"]`);
 
             /** 1. Rendern der gruppierten Termine in Spalten **/
             const totalColumns = columns.length; // Anzahl der Spalten berechnen
 
             columns.forEach((column, columnIndex) => {
                 column.forEach((slotData) => {
+
                     const appointment = slotData.appointment;
 
                     // Prüfen ob slotData.start und slotData.end gültige Daten sind
@@ -2697,6 +2700,22 @@
                         console.warn(`Invalid date in Appointment: ${appointment?.title || 'unknown'}`);
                         return; // Überspringe das fehlerhafte Datum
                     }
+
+// Formatierung des Startdatums für den richtigen Container
+                    const targetDateLocal = formatDateToDateString(startDate);
+
+                    // Suche des Containers anhand Wochentag und Datum
+                    const $weekDayContainer = $viewContainer.find(
+                        `[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`
+                    );
+
+                    if (!$weekDayContainer.length) {
+                        console.warn(
+                            `Container für Weekday ${weekday} mit Datum ${targetDateLocal} nicht gefunden.`
+                        );
+                        return; // Überspringen, wenn kein passender Container gefunden wird
+                    }
+
 
 
                     const noOverlapWithNextColumns = columns
@@ -2760,6 +2779,9 @@
             fullWidth.forEach((slotData) => {
                 const appointment = slotData.appointment;
 
+                const startDate = new Date(slotData.start);
+                const endDate = new Date(slotData.end);
+
                 // Termine, die die ganze Breite einnehmen
                 const appointmentWidthPercent = 100; // Volle Breite
                 const appointmentLeftPercent = 0; // Kein Abstand von links
@@ -2784,6 +2806,21 @@
                 } else {
                     console.error("Invalid date detected:", slotData.start, slotData.end, appointment);
                 }
+
+                // Formatierung des Startdatums für den Container
+                const targetDateLocal = formatDateToDateString(startDate);
+
+                // Suche des Containers anhand von Datum und Weekday
+                const $weekDayContainer = $viewContainer.find(
+                    `[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`
+                );
+                if (!$weekDayContainer.length) {
+                    console.warn(
+                        `Full-Width-Container für Weekday ${weekday} mit Datum ${targetDateLocal} nicht gefunden.`
+                    );
+                    return; // Überspringen, wenn der Container fehlt
+                }
+
 
                 // Copy the original and return the clean appointment with the calculated extras
                 const returnData = getAppointmentForReturn(appointment);
