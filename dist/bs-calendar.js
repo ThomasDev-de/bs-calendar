@@ -39,6 +39,9 @@
  * @file bs-calendar.js
  * @date 2025-04-01
  * @global jQuery
+ *
+ * @note This plugin makes use of the nager.date API for holiday-related functionalities.
+ *       For more information about the API and its usage, please refer to the MIT license provided by nager.date.
  */
 
 (function ($) {
@@ -80,7 +83,7 @@
             startView: 'month', // day, week, month, year
             defaultColor: 'primary',
             views: ['year', 'month', 'week', 'day'],
-            holidays: 'nager.date',
+            holidays: null, // 'nager.date'
             translations: {
                 day: 'Day',
                 week: 'Week',
