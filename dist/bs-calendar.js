@@ -4063,7 +4063,7 @@
         $viewContainer.empty();
 
         const $container = $('<div>', {
-            class: 'position-relative px-5'
+            class: 'position-relative px-1 px-lg-5'
         }).appendTo($viewContainer);
 
         // Get the latest date for the view
@@ -4198,7 +4198,7 @@
 
         if (!forWeekView) {
             $container = $('<div>', {
-                class: 'position-relative px-5',
+                class: 'position-relative px-1 px-lg-5',
             }).appendTo($container);
 
             $container = $('<div>', {
