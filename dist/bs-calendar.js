@@ -3333,7 +3333,7 @@
                     const date = new Date(holiday.date);
                     const allDayWrapper = $viewContainer.find('[data-all-day="' + date.getDay() + '"][data-date-local="' + holiday.date + '"]');
                     if (allDayWrapper.length) {
-                        getHolidayElement().html(holiday.localName).appendTo(allDayWrapper);
+                        getHolidayElement().html(holiday.localName).prependTo(allDayWrapper);
                     }
                 })
                 break;
@@ -3341,7 +3341,7 @@
                 holidays.forEach(holiday => {
                     const dayContainer = $viewContainer.find(`[data-month-date="${holiday.date}"] [data-role="day-wrapper"]`);
                     if(dayContainer.length) {
-                        getHolidayElement().html(holiday.localName).appendTo(dayContainer);
+                        getHolidayElement().html(holiday.localName).prependTo(dayContainer);
                     }
                 })
                 break;
