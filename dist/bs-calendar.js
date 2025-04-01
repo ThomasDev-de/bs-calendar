@@ -1604,7 +1604,7 @@
             html: [
                 '<div class="pb-3">',
                 '<div class="d-flex justify-content-between align-items-center">',
-                '<small class="wc-nav-view-small-name me-3 mr-3"></small>',
+                '<span class="wc-nav-view-small-name me-3 mr-3"></span>',
                 '<div>',
                 `<a data-prev href="#"><i class="${settings.icons.prev}"></i></a>`,
                 `<a class="ml-2 ms-2" data-next href="#"><i class="${settings.icons.next}"></i></a>`,
