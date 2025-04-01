@@ -3322,6 +3322,14 @@
 
     }
 
+    /**
+     * Renders holidays provided by Nager.Date API into the given container, adjusting the display
+     * based on the current view (day, week, or month).
+     *
+     * @param {Object} $wrapper - The wrapper DOM element where the view container is located.
+     * @param {Array} holidays - An array of holiday objects, each containing properties such as `date` and `localName`.
+     * @return {void} Does not return a value.
+     */
     function drawHolidaysWithNagerDate($wrapper, holidays) {
         // return;
         const view = getView($wrapper);
@@ -3348,6 +3356,11 @@
         }
     }
 
+    /**
+     * Creates and returns a jQuery element representing a holiday element with specific styles and attributes.
+     *
+     * @return {Object} A jQuery object containing the holiday element with predefined attributes, classes, and styles.
+     */
     function getHolidayElement() {
         return $('<small>', {
             'data-holiday': true,
