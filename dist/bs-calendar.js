@@ -99,8 +99,8 @@
                 week: 'bi bi-kanban',
                 month: 'bi bi-calendar-month',
                 year: 'bi bi-calendar4',
-                add: 'bi bi-plus-lg fs-3',
-                menu: 'bi bi-list fs-3',
+                add: 'bi bi-plus-lg',
+                menu: 'bi bi-list',
                 search: 'bi bi-search',
                 prev: 'bi bi-chevron-left',
                 next: 'bi bi-chevron-right',
@@ -398,7 +398,7 @@
 
             setSettings(wrapper, settings);
             init(wrapper).then(() => {
-                onResize(wrapper);
+                onResize(wrapper, true);
             });
         }
 
@@ -1444,79 +1444,56 @@
      * @return {void} Does not return a value; modifies the provided wrapper element directly.
      */
     function buildFramework($wrapper) {
-
+        // get the settings
         const settings = getSettings($wrapper);
         // Clear the wrapper first
         $wrapper.empty();
 
+        // initial wrapper and put it at a 100% height and width
         const innerWrapper = $('<div>', {
             class: 'd-flex flex-column align-items-stretch h-100 w-100'
         }).appendTo($wrapper);
 
         const roundedCss = getBorderRadiusCss(settings.rounded);
+
+        // Create the wrapper for the upper navigation
         const topNav = $('<div>', {
-            class: `d-flex align-items-center px-0 justify-content-end mb-3 ${calendarElements.topNav} bg-body`,
+            class: `row align-items-center px-0 justify-content-between mb-3 ${calendarElements.topNav} bg-body`,
             style: roundedCss
         }).appendTo(innerWrapper);
 
+        // When an element has been set after the upper navigation, add it after navigation
         if (settings.topbarAddons && $(settings.topbarAddons).length > 0) {
             $(settings.topbarAddons).insertAfter(topNav);
         }
 
-        const topSearchNav = $('<div>', {
-            class: `d-none align-items-center px-0 justify-content-center mb-3 ${calendarElements.topSearchNav} bg-body`,
-            style: roundedCss
-        });
-        // add menu bar
+        const leftCol = $('<div>', {class: 'col-auto col-lg-3 d-flex py-2 py-lg-0 flex-nowrap align-items-center flex-fill'}).appendTo(topNav);
+        const middleCol = $('<div>', {class: 'col-auto col-lg-3 d-flex py-2 py-lg-0 justify-content-end justify-content-lg-center flex-fill flex-nowrap align-items-center'}).appendTo(topNav);
+        const rightCol = $('<div>', {class: 'col-auto col-lg-3 d-flex py-2 py-lg-0 justify-content-end flex-nowrap flex-fill align-items-center'}).appendTo(topNav);
+
+        // Add button to switch on and off the sidebar.
         $('<button>', {
-            class: `btn py-0`,
+            class: `btn border me-2 mr-2`,
+            style: roundedCss,
             html: `<i class="${settings.icons.menu}"></i>`,
             'data-bs-toggle': 'sidebar'
-        }).appendTo(topNav);
-        // title
-        $('<div>', {
-            html: settings.title,
-            class: 'mb-0 me-2 mr-2'
-        }).appendTo(topNav);
+        }).appendTo(leftCol);
 
-
-        // add button
-        $('<button>', {
-            class: `btn py-0`,
-            html: `<i class="${settings.icons.add}"></i>`,
-            'data-add-appointment': true
-        }).appendTo(topNav);
-
-        $('<div>', {
-            class: 'spinner-border me-auto mr-auto mx-3 text-secondary wc-calendar-spinner',
-            css: {
-                display: 'none'
-            },
-            role: 'status',
-            html: '<span class="visually-hidden sr-only">Loading...</span>'
-        }).appendTo(topNav);
-
-        $('<div>', {
-            class: 'me-auto mr-auto',
-        }).appendTo(topNav);
-
-        $('<div>', {
-            class: 'd-flex ms-2 ml-2 align-items-center justify-content-center wc-nav-view-wrapper flex-nowrap text-nowrap',
-            html: [
-                '<small class="wc-nav-view-name mr-3 me-3"></small>',
-                `<a data-prev href="#"><i class="${settings.icons.prev}"></i></a>`,
-                `<a class="mx-2" data-next href="#"><i class="${settings.icons.next}"></i></a>`,
-            ].join('')
-        }).appendTo(topNav);
-
+        // If search is activated, add a search container
         if (settings.search) {
-            topSearchNav.insertAfter(topNav);
+            const topSearchNav = $('<div>', {
+                class: `d-none align-items-center px-0 justify-content-center mb-3 ${calendarElements.topSearchNav} bg-body`,
+                style: roundedCss
+            }).insertAfter(topNav);
+
             // add a search button to topnav
             const showSearchbar = $('<button>', {
-                class: `btn border js-btn-search`,
+                class: `btn border js-btn-search me-2 mr-2`,
                 html: `<i class="${settings.icons.search}"></i>`,
                 style: roundedCss,
-            }).appendTo(topNav);
+            }).appendTo(leftCol);
+
+            // Add click event to start search mode
             showSearchbar.on('click', function () {
                 toggleSearchBar($wrapper, true);
                 // toggleSearchMode($wrapper, true);
@@ -1540,6 +1517,7 @@
                 "aria-label": "Close"
             }).appendTo(topSearchNav);
 
+            // When the close button is clicked, end the search mode
             btnCloseSearch.on('click', function () {
                 toggleSearchBar($wrapper, false);
                 if (getSearchMode($wrapper)) {
@@ -1548,25 +1526,62 @@
             })
         }
 
+        // add a button to create appointments
+        $('<button>', {
+            class: `btn border mr-2 me-2`,
+            style: roundedCss,
+            html: `<i class="${settings.icons.add}"></i>`,
+            'data-add-appointment': true
+        }).appendTo(leftCol);
+
+        // add the title when known
+        if (settings.title) {
+            $('<div>', {
+                html: settings.title,
+                class: 'mb-0 me-2 mr-2'
+            }).appendTo(middleCol);
+        }
+
+        // visual notification that appointments are loaded
+        $('<div>', {
+            class: 'spinner-border me-auto mr-auto me-2 mr-2 text-secondary wc-calendar-spinner',
+            css: {
+                display: 'none'
+            },
+            role: 'status',
+            html: '<span class="visually-hidden sr-only">Loading...</span>'
+        }).appendTo(leftCol);
+
+        // navigation through the calendar depending on the view
+        $('<div>', {
+            class: 'd-flex ms-2 ml-2 align-items-center justify-content-center wc-nav-view-wrapper flex-nowrap text-nowrap',
+            html: [
+                '<strong class="wc-nav-view-name mr-3 me-3"></strong>',
+                `<a data-prev href="#"><i class="${settings.icons.prev}"></i></a>`,
+                `<a class="mx-2" data-next href="#"><i class="${settings.icons.next}"></i></a>`,
+            ].join('')
+        }).appendTo(rightCol);
+
+
+        // Add a button today to activate the current date in the calendar
         $('<button>', {
             class: `btn ms-2 ml-2 border`,
             html: settings.translations.today,
             style: roundedCss,
             'data-today': true
-        }).appendTo(topNav);
+        }).appendTo(rightCol);
 
         // If only one view is desired, give no selection
         if (settings.views.length > 1) {
             const dropDownView = $('<div>', {
-                class: 'dropdown wc-select-calendar-view ms-2 ml-2 dropstart dropleft',
+                class: 'dropdown dropdown-center wc-select-calendar-view ms-2 ml-2',
                 html: [
-                    `<a class="btn border" data-dropdown-text style="${roundedCss}" href="#" role="button" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">`,
+                    `<a class="btn dropdown-toggle border" data-dropdown-text style="${roundedCss}" href="#" role="button" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">`,
                     '</a>',
                     '<ul class="dropdown-menu">',
                     '</ul>',
                 ].join('')
-            }).appendTo(topNav);
-
+            }).appendTo(rightCol);
 
             settings.views.forEach(view => {
                 $('<li>', {
@@ -1575,10 +1590,12 @@
             });
         }
 
+        // The head was completed, creates a container for Sidebar and the view
         const container = $('<div>', {
             class: 'd-flex flex-fill wc-calendar-container'
         }).appendTo(innerWrapper);
 
+        // add the sidebar
         const sidebar = $('<div>', {
             css: {
                 position: 'relative',
@@ -1586,7 +1603,7 @@
             class: 'me-4 mr-4 ' + calendarElements.sideNav,
             html: [
                 '<div class="pb-3">',
-                '<div class="d-flex justify-content-between">',
+                '<div class="d-flex justify-content-between align-items-center">',
                 '<small class="wc-nav-view-small-name me-3 mr-3"></small>',
                 '<div>',
                 `<a data-prev href="#"><i class="${settings.icons.prev}"></i></a>`,
@@ -1599,15 +1616,18 @@
         }).appendTo(container);
         sidebar.data('visible', true);
 
+        // If more addons are to be invited, add them to the sidebar
         if (settings.sidebarAddons && $(settings.sidebarAddons).length > 0) {
             $(settings.sidebarAddons).appendTo(sidebar);
         }
 
+        // add the viewer
         $('<div>', {
             class: `container-fluid ${calendarElements.containerView} pb-5 border-1 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`,
             style: roundedCss,
         }).appendTo(container);
 
+        // done
     }
 
     /**
@@ -1863,7 +1883,7 @@
             }
 
             if (getView($wrapper) === 'month') {
-                onResize($wrapper);
+                onResize($wrapper, false);
             }
 
             // Status aktualisieren
@@ -1884,7 +1904,7 @@
         $(window).on('resize', function () {
             clearTimeout(resizeTimer);
             resizeTimer = setTimeout(function () {
-                onResize($wrapper); // call up your function here
+                onResize($wrapper, true); // call up your function here
             }, 100); // Delay of 100 milliseconds
         });
 
@@ -2677,15 +2697,12 @@
 
         const groupedAppointments = groupOverlappingAppointments($wrapper, notAllDays);
 
-        const columnGap = 2; // Abstand zwischen den Spalten in Pixeln
+        const columnGap = 2; // distance between the columns in pixels
 
         Object.entries(groupedAppointments).forEach(([weekday, {columns, fullWidth}]) => {
 
-
-            // const $weekDayContainer = $viewContainer.find(`[data-week-day="${weekday}"]`);
-
-            /** 1. Rendern der gruppierten Termine in Spalten **/
-            const totalColumns = columns.length; // Anzahl der Spalten berechnen
+            /** 1. Renders of the grouped dates in columns **/
+            const totalColumns = columns.length; // calculate the number of columns
 
             columns.forEach((column, columnIndex) => {
                 column.forEach((slotData) => {
@@ -2715,7 +2732,6 @@
                         );
                         return; // Überspringen, wenn kein passender Container gefunden wird
                     }
-
 
 
                     const noOverlapWithNextColumns = columns
@@ -2775,24 +2791,24 @@
                 });
             });
 
-            /** 2. Rendern der isolierten Full-Width-Termine **/
+            /** 2. Renders of the isolated full width dates **/
             fullWidth.forEach((slotData) => {
                 const appointment = slotData.appointment;
 
                 const startDate = new Date(slotData.start);
                 const endDate = new Date(slotData.end);
 
-                // Termine, die die ganze Breite einnehmen
-                const appointmentWidthPercent = 100; // Volle Breite
-                const appointmentLeftPercent = 0; // Kein Abstand von links
+                // appointments that take the whole width
+                const appointmentWidthPercent = 100; // full width
+                const appointmentLeftPercent = 0; // no distance from left
 
-                // Standardwert für position
+                // default value for position
                 let position = {
                     top: 0,
                     height: 0
                 };
 
-                // Gültigkeitsprüfung für die Daten
+                // validity check for the data
                 if (
                     slotData.start instanceof Date &&
                     !isNaN(slotData.start) &&
@@ -2807,10 +2823,10 @@
                     console.error("Invalid date detected:", slotData.start, slotData.end, appointment);
                 }
 
-                // Formatierung des Startdatums für den Container
+                // formatting of the start date for the container
                 const targetDateLocal = formatDateToDateString(startDate);
 
-                // Suche des Containers anhand von Datum und Weekday
+                // Search of the container based on the date and Weekday
                 const $weekDayContainer = $viewContainer.find(
                     `[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`
                 );
@@ -2818,9 +2834,8 @@
                     console.warn(
                         `Full-Width-Container für Weekday ${weekday} mit Datum ${targetDateLocal} nicht gefunden.`
                     );
-                    return; // Überspringen, wenn der Container fehlt
+                    return; // skip when the container is missing
                 }
-
 
                 // Copy the original and return the clean appointment with the calculated extras
                 const returnData = getAppointmentForReturn(appointment);
@@ -2829,7 +2844,7 @@
                     settings.formatter.day(returnData.appointment, returnData.extras) :
                     settings.formatter.week(returnData.appointment, returnData.extras);
 
-                // Rendern des Full-Width-Termins
+                // rendering the full-width date
                 const appointmentElement = $('<div>', {
                     'data-appointment': true,
                     class: 'position-absolute overflow-hidden rounded',
@@ -2842,7 +2857,7 @@
                     html: appointmentContent,
                 }).appendTo($weekDayContainer);
 
-                // Meta-Daten und Styling hinzufügen
+                // add meta data and styling
                 appointmentElement.data('appointment', appointment);
                 setAppointmentStyles(appointmentElement, appointment.extras.colors);
             });
@@ -3385,7 +3400,7 @@
             case 'month':
                 holidays.forEach(holiday => {
                     const dayContainer = $viewContainer.find(`[data-month-date="${holiday.date}"] [data-role="day-wrapper"]`);
-                    if(dayContainer.length) {
+                    if (dayContainer.length) {
                         getHolidayElement().html(holiday.localName).prependTo(dayContainer);
                     }
                 })
@@ -3770,17 +3785,20 @@
     }
 
     /**
-     * Adjusts the height of calendar day elements to maintain a square aspect ratio
-     * within a container, dynamically setting the container's overall height
-     * based on the number of rows required.
+     * Handles the resizing logic for a calendar or UI container, adjusting element heights and visibility as needed.
      *
-     * @param {jQuery} $wrapper - A jQuery-wrapped element that acts as the wrapper
-     *                            for the calendar view, used to determine the view context.
-     * @return {void} This function does not return anything.
+     * @param {jQuery} $wrapper - The jQuery-wrapped DOM element that serves as the main container of the calendar or UI.
+     * @param {boolean} [handleSidebar=false] - Flag indicating whether to handle sidebar visibility during resize.
+     * @return {void} This function does not return any value.
      */
-    function onResize($wrapper) {
+    function onResize($wrapper, handleSidebar = false) {
         const view = getView($wrapper);
+        const windowWidth = $(window).width();
+        const lgBreakPoint = 992;
         const calendarContainer = getViewContainer($wrapper);
+
+        if (handleSidebar)
+            handleSidebarVisibility($wrapper, windowWidth < lgBreakPoint, windowWidth >= lgBreakPoint);
 
 
         if (view === 'month') {
