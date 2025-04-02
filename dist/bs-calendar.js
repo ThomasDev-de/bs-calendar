@@ -42,6 +42,7 @@
  *
  * @note This plugin makes use of the nager.date API for holiday-related functionalities.
  *       For more information about the API and its usage, please refer to the MIT license provided by nager.date.
+ * @todo AUslagern von Feiertagen (Schulferien)
  */
 
 (function ($) {
@@ -505,12 +506,15 @@
                     }
                 }
             }
-// todo hier gibts doppelungen beim jahreswechsel
-            // Feiertage nach Zeitraum filtern
+            /**
+             * @todo hier gibts doppelungen beim jahreswechsel
+             */
+
+                // Feiertage nach Zeitraum filtern
             const filteredHolidays = holidays.filter(holiday => {
-                const holidayDate = new Date(holiday.date);
-                return holidayDate >= new Date(period.start) && holidayDate <= new Date(period.end);
-            });
+                    const holidayDate = new Date(holiday.date);
+                    return holidayDate >= new Date(period.start) && holidayDate <= new Date(period.end);
+                });
 
             if (settings.debug) {
                 log(`Filtered holidays for year ${startYear} to ${endYear} and locale ${formattedLocale}`, filteredHolidays);
@@ -722,17 +726,19 @@
         if (typeof options === 'object') {
             const settingsBefore = getSettings($wrapper);
             let tmpDiv = null;
-            // todo in destroy auslagern
+            /**
+             * @todo in destroy auslagern
+             */
             if (settingsBefore.topbarAddons || settingsBefore.topbarAddons) {
                 tmpDiv = $('<div>', {
                     css: {
                         visibility: 'hidden'
                     }
                 }).insertAfter($wrapper);
-                if(settingsBefore.topbarAddons) {
+                if (settingsBefore.topbarAddons) {
                     $wrapper.find(settingsBefore.topbarAddons).appendTo(tmpDiv);
                 }
-                if(settingsBefore.sidebarAddons) {
+                if (settingsBefore.sidebarAddons) {
                     $wrapper.find(settingsBefore.sidebarAddons).appendTo(tmpDiv);
                 }
             }
@@ -740,7 +746,7 @@
             destroy($wrapper);
             setSettings($wrapper, newSettings);
             init($wrapper).then(() => {
-                if(tmpDiv) {
+                if (tmpDiv) {
                     tmpDiv.remove();
                 }
             });
