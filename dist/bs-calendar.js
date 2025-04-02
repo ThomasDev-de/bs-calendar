@@ -70,7 +70,7 @@
             return this.DEFAULTS;
         },
         DEFAULTS: {
-            locale: 'en-EN',
+            locale: 'en-GB',
             title: 'Calendar',
             startWeekOnSunday: true,
             navigateOnWheel: true,
@@ -441,7 +441,7 @@
      * @param {string} locale - The Locale in full format (e.g. "de-DE").
      * @returns {string} - The formatted local (e.g. "DE").
      */
-    function formatLocale(locale) {
+    function getCountryFromLocale(locale) {
         // only get the country code in capital letters
         return locale.split('-')[1]?.toUpperCase() || locale.toUpperCase();
     }
@@ -457,8 +457,8 @@
     async function getPublicHolidaysFromNagerDate($wrapper) {
         try {
             const settings = getSettings($wrapper);
+            const formattedLocale = getCountryFromLocale(settings.locale);
             const period = getStartAndEndDateByView($wrapper);
-            const formattedLocale = formatLocale(settings.locale);
 
             // Start- und Endjahr aus der Ansicht ermitteln
             const startYear = new Date(period.start).getFullYear();
@@ -505,7 +505,7 @@
                     }
                 }
             }
-
+// todo hier gibts doppelungen beim jahreswechsel
             // Feiertage nach Zeitraum filtern
             const filteredHolidays = holidays.filter(holiday => {
                 const holidayDate = new Date(holiday.date);
@@ -683,7 +683,7 @@
      */
     function methodClear($wrapper, removeAppointments = true) {
         $wrapper.find('[data-appointment]').remove();
-        $wrapper.find('.popover').remove();
+        $wrapper.find('[data-holiday]').remove();
         if (removeAppointments) {
             setAppointments($wrapper, []).then(cleanedAppointments => {
                 // empty
@@ -721,11 +721,28 @@
     function methodUpdateOptions($wrapper, options) {
         if (typeof options === 'object') {
             const settingsBefore = getSettings($wrapper);
+            let tmpDiv = null;
+            // todo in destroy auslagern
+            if (settingsBefore.topbarAddons || settingsBefore.topbarAddons) {
+                tmpDiv = $('<div>', {
+                    css: {
+                        visibility: 'hidden'
+                    }
+                }).insertAfter($wrapper);
+                if(settingsBefore.topbarAddons) {
+                    $wrapper.find(settingsBefore.topbarAddons).appendTo(tmpDiv);
+                }
+                if(settingsBefore.sidebarAddons) {
+                    $wrapper.find(settingsBefore.sidebarAddons).appendTo(tmpDiv);
+                }
+            }
             const newSettings = $.extend(true, {}, $.bsCalendar.getDefaults(), $wrapper.data(), settingsBefore, options || {});
             destroy($wrapper);
             setSettings($wrapper, newSettings);
             init($wrapper).then(() => {
-                // do nothing
+                if(tmpDiv) {
+                    tmpDiv.remove();
+                }
             });
         }
     }
@@ -2359,7 +2376,6 @@
             trigger($wrapper, 'view', [view]);
         }
 
-        $wrapper.find('.popover').remove();
         fetchAppointments($wrapper);
     }
 
@@ -3473,7 +3489,6 @@
      */
     function hideBSCalendarLoader($wrapper) {
         const spinner = $wrapper.find('.wc-calendar-spinner');
-        // $wrapper.find('.wc-calendar-overlay').remove();
         spinner.hide();
     }
 
