@@ -42,7 +42,7 @@
  *
  * @note This plugin makes use of the nager.date API for holiday-related functionalities.
  *       For more information about the API and its usage, please refer to the MIT license provided by nager.date.
- * @todo AUslagern von Feiertagen (Schulferien)
+ * @todo Auslagern von Feiertagen (Schulferien)
  */
 
 (function ($) {
@@ -506,22 +506,31 @@
                     }
                 }
             }
-            /**
-             * @todo hier gibts doppelungen beim jahreswechsel
-             */
 
-                // Feiertage nach Zeitraum filtern
+            // Feiertage nach Zeitraum filtern
             const filteredHolidays = holidays.filter(holiday => {
-                    const holidayDate = new Date(holiday.date);
-                    return holidayDate >= new Date(period.start) && holidayDate <= new Date(period.end);
-                });
+                const holidayDate = new Date(holiday.date);
+                return holidayDate >= new Date(period.start) && holidayDate <= new Date(period.end);
+            });
+
+            const returnHolidays = [];
+
+            filteredHolidays.forEach(holiday => {
+                returnHolidays.push({
+                    startDate: holiday.date,
+                    endDate: holiday.date,
+                    title: holiday.localName,
+                    global: holiday.global,
+                    fixed: holiday.fixed
+                })
+            })
 
             if (settings.debug) {
-                log(`Filtered holidays for year ${startYear} to ${endYear} and locale ${formattedLocale}`, filteredHolidays);
+                log(`Filtered holidays for year ${startYear} to ${endYear} and locale ${formattedLocale}`, returnHolidays);
             }
 
 
-            return filteredHolidays; // Rückgabe der reduzierten Feiertage
+            return returnHolidays; // Rückgabe der reduzierten Feiertage
         } catch (error) {
             if (settings.debug) {
                 log(`Error when fetching the holidays: ${error.message}`);
@@ -725,27 +734,34 @@
     function methodUpdateOptions($wrapper, options) {
         if (typeof options === 'object') {
             const settingsBefore = getSettings($wrapper);
+            // If addons are assigned to the calendar, they must be outsourced at short notice,
+            // so that they can be restored after the destroy
             let tmpDiv = null;
-            /**
-             * @todo in destroy auslagern
-             */
-            if (settingsBefore.topbarAddons || settingsBefore.topbarAddons) {
+            const addonsSet = settingsBefore.topbarAddons || settingsBefore.topbarAddons;
+            if (addonsSet) {
+                const topAddons = settingsBefore.topbarAddons && $wrapper.find(settingsBefore.topbarAddons).length > 0;
+                const sidebarAddons = settingsBefore.sidebarAddons && $wrapper.find(settingsBefore.sidebarAddons).length > 0;
                 tmpDiv = $('<div>', {
                     css: {
                         visibility: 'hidden'
                     }
                 }).insertAfter($wrapper);
-                if (settingsBefore.topbarAddons) {
+                if (topAddons) {
                     $wrapper.find(settingsBefore.topbarAddons).appendTo(tmpDiv);
                 }
-                if (settingsBefore.sidebarAddons) {
+                if (sidebarAddons) {
                     $wrapper.find(settingsBefore.sidebarAddons).appendTo(tmpDiv);
                 }
             }
-            const newSettings = $.extend(true, {}, $.bsCalendar.getDefaults(), $wrapper.data(), settingsBefore, options || {});
+            // Then destroy the calendar
             destroy($wrapper);
+            // Merge the old ones with the new settings
+            const newSettings = $.extend(true, {}, $.bsCalendar.getDefaults(), $wrapper.data(), settingsBefore, options || {});
             setSettings($wrapper, newSettings);
-            init($wrapper).then(() => {
+            // insitialize the calendar from scratch to new
+            init($wrapper, false).then(() => {
+                // A temporary container was created for the addons,
+                // this is how we delete it again
                 if (tmpDiv) {
                     tmpDiv.remove();
                 }
@@ -995,7 +1011,7 @@
      * @param {jQuery} $wrapper - The wrapper element to initialize.
      * @return {Promise<Object>} A promise that resolves with the initialized wrapper or rejects with an error.
      */
-    function init($wrapper) {
+    function init($wrapper, initEvents = true) {
         return new Promise((resolve, reject) => {
             try {
                 const settings = getSettings($wrapper);
@@ -1021,7 +1037,9 @@
                     {limit: settings.search.limit, offset: settings.search.offset} : null;
                 setSearchPagination($wrapper, searchObject);
                 buildFramework($wrapper);
-                handleEvents($wrapper);
+                if (initEvents) {
+                    handleEvents($wrapper, initEvents);
+                }
 
                 buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
                 buildByView($wrapper);
@@ -3380,54 +3398,81 @@
                 drawAppointmentsForYear($wrapper, appointments);
                 break;
         }
+        if (!isSearchMode) {
+            if (typeof settings.holidays === 'string') {
+                switch (settings.holidays) {
+                    case 'nager.date':
+                        getPublicHolidaysFromNagerDate($wrapper)
+                            .then(holidays => {
+                                drawHolidays($wrapper, holidays);
+                            });
+                        break;
+                }
 
-        if (!isSearchMode && typeof settings.holidays === 'string') {
-            switch (settings.holidays) {
-                case 'nager.date':
-                    getPublicHolidaysFromNagerDate($wrapper)
-                        .then(holidays => {
-                            drawHolidaysWithNagerDate($wrapper, holidays);
-                        });
-                    break;
+            } else if (typeof settings.holidays === 'function') {
+                const period = getStartAndEndDateByView($wrapper);
+                settings.holidays(period).then(holidays => {
+                    drawHolidays($wrapper, holidays);
+                });;
             }
-
         }
         container.find('[data-appointment]').css('cursor', 'pointer');
 
     }
 
     /**
-     * Renders holidays provided by Nager.Date API into the given container, adjusting the display
-     * based on the current view (day, week, or month).
+     * Draw holidays on the calendar based on the current view and a list of holiday objects.
      *
-     * @param {Object} $wrapper - The wrapper DOM element where the view container is located.
-     * @param {Array} holidays - An array of holiday objects, each containing properties such as `date` and `localName`.
-     * @return {void} Does not return a value.
+     * @param {jQuery} $wrapper - The main wrapper element for the calendar.
+     * @param {Array} holidays - Array of holiday objects with the following structure:
+     *                          {
+     *                              startDate: string (ISO date format, e.g., "2023-11-25"),
+     *                              endDate: string (ISO date format, e.g., "2023-11-27"),
+     *                              title: string (e.g., "Christmas"),
+     *                              global: boolean (indicates if the holiday is global),
+     *                              fixed: boolean (indicates if the holiday is fixed every year)
+     *                          }
      */
-    function drawHolidaysWithNagerDate($wrapper, holidays) {
-        // return;
+    function drawHolidays($wrapper, holidays) {
+        // Get the current view of the calendar (e.g., "day", "week", "month")
         const view = getView($wrapper);
+
+        // Get the container element for the current calendar view
         const $viewContainer = getViewContainer($wrapper);
-        switch (view) {
-            case 'day':
-            case 'week':
-                holidays.forEach(holiday => {
-                    const date = new Date(holiday.date);
-                    const allDayWrapper = $viewContainer.find('[data-all-day="' + date.getDay() + '"][data-date-local="' + holiday.date + '"]');
-                    if (allDayWrapper.length) {
-                        getHolidayElement().html(holiday.localName).prependTo(allDayWrapper);
-                    }
-                })
-                break;
-            case 'month':
-                holidays.forEach(holiday => {
-                    const dayContainer = $viewContainer.find(`[data-month-date="${holiday.date}"] [data-role="day-wrapper"]`);
-                    if (dayContainer.length) {
-                        getHolidayElement().html(holiday.localName).prependTo(dayContainer);
-                    }
-                })
-                break;
-        }
+
+        // Iterate through each holiday object
+        holidays.forEach(holiday => {
+            // Parse the start and end dates of the holiday
+            const startDate = new Date(holiday.startDate);
+            const endDate = new Date(holiday.endDate);
+
+            // Loop through each date from startDate to endDate
+            for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
+                // Format the current date as "YYYY-MM-DD" (ISO string without time part)
+                const formattedDate = date.toISOString().split('T')[0];
+                let container;
+
+                // Select the appropriate container depending on the current calendar view
+                if (view === 'day' || view === 'week') {
+                    // For "day" and "week" views, match elements by weekday and date
+                    container = $viewContainer.find(
+                        `[data-all-day="${date.getDay()}"][data-date-local="${formattedDate}"]`
+                    );
+                } else if (view === 'month') {
+                    // For the "month" view, match elements by date
+                    container = $viewContainer.find(
+                        `[data-month-date="${formattedDate}"] [data-role="day-wrapper"]`
+                    );
+                }
+
+                // Add the holiday element to the container if it exists
+                if (container?.length) {
+                    getHolidayElement()
+                        .html(holiday.title)
+                        .prependTo(container);
+                }
+            }
+        });
     }
 
     /**

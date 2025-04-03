@@ -8,7 +8,7 @@
     <link href="../vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 <body class="p-1 p-lg-5">
-<div id="calendar"  data-sidebar-addons="#sidebarAddons" data-topbar-addons="#topbarAddons">
+<div id="calendar" data-sidebar-addons="#sidebarAddons" data-topbar-addons="#topbarAddons">
 
 </div>
 
@@ -39,7 +39,9 @@
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setDate">setDate(1970-01-01, 'day')
         </button>
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="updateOptions">updateOptions {locale: en-GB}</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="updateOptions">updateOptions {locale:
+            en-GB}
+        </button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday">setToday('week')</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="clear">Clear</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="destroy">Destroy</button>
@@ -122,6 +124,48 @@
 <script src="../dist/bs-calendar.js"></script>
 <script>
     $(function () {
+        /**
+         * Fetch holidays for a specific year and optionally a federal state,
+         * then transform the response into the desired format.
+         *
+         * @param {string} [bundesland=""] - The federal state's abbreviation (optional, e.g., "BE" for Berlin).
+         * @param {number} year - The year for which holidays should be fetched (e.g., 2025).
+         * @returns {Promise<Array>} - A promise that resolves to an array of transformed holiday objects.
+         */
+        async function fetchHolidays(bundesland = "", year) {
+            // Build the endpoint based on whether bundesland is provided
+            const endpoint = bundesland
+                ? `https://ferien-api.de/api/v1/holidays/${bundesland}/${year}`
+                : `https://ferien-api.de/api/v1/holidays/${year}`;
+
+            try {
+                // Fetch data from the API
+                const response = await fetch(endpoint);
+
+                // Check if the response is successful
+                if (!response.ok) {
+                    throw new Error(`Error fetching holidays: ${response.status} ${response.statusText}`);
+                }
+
+                // Parse the JSON response
+                const holidays = await response.json();
+
+                // Transform the API response into the desired format
+                return holidays.map(holiday => ({
+                    startDate: holiday.start,                  // API "start" mapped to "startDate"
+                    endDate: holiday.end,                     // API "end" mapped to "endDate"
+                    title: holiday.name,                      // API "name" mapped to "title"
+                    global: false,                            // Assume false as default
+                    fixed: false                              // Assume false as default
+                }));
+            } catch (error) {
+                // Handle errors (e.g., network or API-related)
+                console.error(error);
+                return []; // Return an empty array if an error occurs
+            }
+        }
+
+
         $.bsCalendar.setDefaults({
             title: '<span class="h4 text-uppercase mb-0">Calendar</span>',
             locale: 'de-DE',
@@ -129,7 +173,39 @@
             rounded: 5,
             defaultColor: 'info',
             navigateOnWheel: false,
-            holidays: 'nager.date',
+            // holidays: 'nager.date',
+            holidays: function (date) {
+                // Extract the start and end years from the input
+                const startYear = new Date(date.start).getFullYear();
+                const endYear = new Date(date.end).getFullYear();
+                const bundesland = "BE"; // Optional: Bundesland setzen oder dynamisch übergeben
+
+                // Array zum Speichern aller fetchHolidays()-Promises
+                const holidayPromises = [];
+                return new Promise((resolve, reject) => {
+                    try {
+                        // Für jedes Jahr ein fetchHolidays()-Promise hinzufügen
+                        for (let year = startYear; year <= endYear; year++) {
+                            holidayPromises.push(fetchHolidays(bundesland, year));
+                        }
+
+                        // Alle Promises sammeln und auflösen, sobald alle abgeschlossen sind
+                        Promise.all(holidayPromises)
+                            .then(results => {
+                                // Alle Ergebnisse zusammenführen (flat) und zurückgeben
+                                const allHolidays = results.flat(); // Flacht das Array ab (falls nötig)
+                                resolve(allHolidays);
+                            })
+                            .catch(error => {
+                                console.error(error);
+                                reject(error); // Fehler weitergeben
+                            });
+                    } catch (error) {
+                        console.error(error);
+                        reject(error); // Fehler bei der Verarbeitung des Datums
+                    }
+                });
+            },
             translations: {
                 day: 'Tag',
                 week: 'Woche',
@@ -151,13 +227,13 @@
             .on('change', '#selectUser', function () {
                 const val = $(this).val();
                 calendarElement.bsCalendar('refresh', {
-                    view:'week',
-                    queryParams(p){
+                    view: 'week',
+                    queryParams(p) {
                         if (val === 'all')
                             p.userId = null;
-                       else
-                           p.userId = val;
-                       return p;
+                        else
+                            p.userId = val;
+                        return p;
                     }
                 });
             })
@@ -220,7 +296,11 @@
                         calendarElement.bsCalendar('setToday', 'week');
                         break;
                     case 'updateOptions':
-                        calendarElement.bsCalendar('updateOptions', {locale:'en-GB', startWeekOnSunday: true, rounded:0});
+                        calendarElement.bsCalendar('updateOptions', {
+                            locale: 'en-GB',
+                            startWeekOnSunday: true,
+                            rounded: 0
+                        });
                         break;
                     default:
                         break;
@@ -255,8 +335,8 @@
         }
 
         async function url(query) {
-            console.log('index url',query);
-            await sleep( Math.floor(Math.random())); // Wartet synchron für 2 Sekunden
+            console.log('index url', query);
+            await sleep(Math.floor(Math.random())); // Wartet synchron für 2 Sekunden
 
             return new Promise((resolve, reject) => {
                 try {
@@ -310,10 +390,11 @@
                 }
             });
         }
+
         function getAppointmentsBySearch(search, limit, offset) {
             // Wenn kein Suchbegriff angegeben wurde, direkt leeres Array zurückgeben
             if (!search) {
-                return { rows: [], total: 0 };
+                return {rows: [], total: 0};
             }
 
             const appointments = generateStaticAppointmentsForSearch();
@@ -334,7 +415,7 @@
             const rows = filteredAppointments.slice(startIndex, endIndex);
 
             // Gib das Ergebnis als Objekt zurück
-            return { rows, total };
+            return {rows, total};
         }
 
         function generateStaticAppointmentsForSearch() {
