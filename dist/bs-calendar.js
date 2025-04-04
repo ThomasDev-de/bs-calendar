@@ -753,10 +753,15 @@
                     $wrapper.find(settingsBefore.sidebarAddons).appendTo(tmpDiv);
                 }
             }
+            // notice date and view
+            const startDate = getDate($wrapper);
+            const startView = getView($wrapper);
             // Then destroy the calendar
             destroy($wrapper);
             // Merge the old ones with the new settings
             const newSettings = $.extend(true, {}, $.bsCalendar.getDefaults(), $wrapper.data(), settingsBefore, options || {});
+            newSettings.startDate = startDate;
+            newSettings.startView = startView;
             setSettings($wrapper, newSettings);
             // insitialize the calendar from scratch to new
             init($wrapper, false).then(() => {
