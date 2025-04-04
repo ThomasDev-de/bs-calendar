@@ -729,45 +729,75 @@
      *
      * @param {jQuery} $wrapper - The jQuery-wrapped DOM element to which settings are applied.
      * @param {Object} options - An object containing new configuration options to update the settings.
-     * @return {void} This method does not return a value.
+     * @returns {void} This method does not return any value.
      */
     function methodUpdateOptions($wrapper, options) {
         if (typeof options === 'object') {
             const settingsBefore = getSettings($wrapper);
-            // If addons are assigned to the calendar, they must be outsourced at short notice,
-            // so that they can be restored after the destroy
+
+            // Retrieve the previous addons
+            const addonsBeforeTopbar = settingsBefore.topbarAddons;
+            const addonsBeforeSidebar = settingsBefore.sidebarAddons;
+
+            // Check the new addons
+            const addonsAfterTopbar = options.topbarAddons || null;
+            const addonsAfterSidebar = options.sidebarAddons || null;
+
+            // Create a temporary container for backup if required
             let tmpDiv = null;
-            const addonsSet = settingsBefore.topbarAddons || settingsBefore.topbarAddons;
-            if (addonsSet) {
-                const topAddons = settingsBefore.topbarAddons && $wrapper.find(settingsBefore.topbarAddons).length > 0;
-                const sidebarAddons = settingsBefore.sidebarAddons && $wrapper.find(settingsBefore.sidebarAddons).length > 0;
+
+            // Check if a backup is necessary
+            const needsBackupTopbar = addonsBeforeTopbar && !addonsAfterTopbar;
+            const needsBackupSidebar = addonsBeforeSidebar && !addonsAfterSidebar;
+
+            if (needsBackupTopbar || needsBackupSidebar) {
                 tmpDiv = $('<div>', {
                     css: {
                         visibility: 'hidden'
                     }
                 }).insertAfter($wrapper);
-                if (topAddons) {
-                    $wrapper.find(settingsBefore.topbarAddons).appendTo(tmpDiv);
+
+                // Backup `topbarAddons`
+                if (needsBackupTopbar && $wrapper.find(addonsBeforeTopbar).length > 0) {
+                    $wrapper.find(addonsBeforeTopbar).appendTo(tmpDiv);
                 }
-                if (sidebarAddons) {
-                    $wrapper.find(settingsBefore.sidebarAddons).appendTo(tmpDiv);
+
+                // Backup `sidebarAddons`
+                if (needsBackupSidebar && $wrapper.find(addonsBeforeSidebar).length > 0) {
+                    $wrapper.find(addonsBeforeSidebar).appendTo(tmpDiv);
                 }
             }
-            // notice date and view
+
+            // Store the current date and view
             const startDate = getDate($wrapper);
             const startView = getView($wrapper);
-            // Then destroy the calendar
+
+            // Destroy the current calendar
             destroy($wrapper);
-            // Merge the old ones with the new settings
+
+            // Merge the old settings with the new ones
             const newSettings = $.extend(true, {}, $.bsCalendar.getDefaults(), $wrapper.data(), settingsBefore, options || {});
-            newSettings.startDate = startDate;
-            newSettings.startView = startView;
+
+            // Retain the date and view logic
+            if (!options.hasOwnProperty('startDate')) {
+                newSettings.startDate = startDate;
+            }
+            if (!options.hasOwnProperty('startView')) {
+                newSettings.startView = startView;
+            }
+
             setSettings($wrapper, newSettings);
-            // insitialize the calendar from scratch to new
+
+            // Reinitialize the calendar
             init($wrapper, false).then(() => {
-                // A temporary container was created for the addons,
-                // this is how we delete it again
+                // If a temporary container was used, reinsert the addons
                 if (tmpDiv) {
+                    if (needsBackupTopbar) {
+                        tmpDiv.find(addonsBeforeTopbar).appendTo($wrapper);
+                    }
+                    if (needsBackupSidebar) {
+                        tmpDiv.find(addonsBeforeSidebar).appendTo($wrapper);
+                    }
                     tmpDiv.remove();
                 }
             });
@@ -3418,7 +3448,8 @@
                 const period = getStartAndEndDateByView($wrapper);
                 settings.holidays(period).then(holidays => {
                     drawHolidays($wrapper, holidays);
-                });;
+                });
+                ;
             }
         }
         container.find('[data-appointment]').css('cursor', 'pointer');
@@ -4412,7 +4443,7 @@
             ...bs4migration.start0Css,
             ...bs4migration.top0Css,
             'background-color: ' + badgeColor.backgroundColor,
-            'background-image: ' + badgeColor.backgroundImage,,
+            'background-image: ' + badgeColor.backgroundImage, ,
             'color: ' + badgeColor.color,
         ].join(';');
 
