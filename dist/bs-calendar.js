@@ -3441,7 +3441,16 @@
         const isYear = view === 'year';
         // Get the container element for the current calendar view
         const $viewContainer = getViewContainer($wrapper);
-        const color = getColors('warning gradient');
+        const color = getColors('warning gradient opacity-25');
+        const holidayStyle = [
+            ...bs4migration.roundedCircleCSS,
+            ...bs4migration.top50Css,
+            ...bs4migration.start50Css,
+            ...bs4migration.translateMiddleCss,
+            `background-color: ${color.backgroundColor}`,
+            `color: ${color.color}`,
+            `backgroundImage: ${color.backgroundImage}`
+        ].join(';');
         // Iterate through each holiday object
         holidays.forEach(holiday => {
             // Parse the start and end dates of the holiday
@@ -3478,16 +3487,10 @@
                             .prependTo(container);
                     } else {
                         const holidayHint = $('<div>', {
-                            class: 'position-absolute w-50 h-50 bg-opacity-25 top-50 start-50 translate-middle rounded-circle',
+                            class: 'position-absolute w-50 h-50',
                             'data-bs-toggle': 'tooltip',
                             title: holiday.title,
-                            css: {
-                                backgroundColor: color.backgroundColor,
-                                color: color.color,
-                                backgroundImage: color.backgroundImage,
-                                height: '20px',
-                                width: '20px',
-                            }
+                            style: holidayStyle
                         }).prependTo(container);
                     }
                 }
