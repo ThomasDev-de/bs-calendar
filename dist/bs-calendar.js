@@ -2917,8 +2917,8 @@
 
         $el.css({
             backgroundColor: colors.backgroundColor,
-            color: colors.color,
             backgroundImage: colors.backgroundImage,
+            color: colors.color
         });
     }
 
@@ -3436,10 +3436,12 @@
     function drawHolidays($wrapper, holidays) {
         // Get the current view of the calendar (e.g., "day", "week", "month")
         const view = getView($wrapper);
-
+        const isDayOrWeek = view === 'day' || view === 'week';
+        const isMonth = view === 'month';
+        const isYear = view === 'year';
         // Get the container element for the current calendar view
         const $viewContainer = getViewContainer($wrapper);
-
+        const color = getColors('warning gradient');
         // Iterate through each holiday object
         holidays.forEach(holiday => {
             // Parse the start and end dates of the holiday
@@ -3452,24 +3454,42 @@
                 const formattedDate = date.toISOString().split('T')[0];
                 let container;
 
+
                 // Select the appropriate container depending on the current calendar view
-                if (view === 'day' || view === 'week') {
+                if (isDayOrWeek) {
                     // For "day" and "week" views, match elements by weekday and date
                     container = $viewContainer.find(
                         `[data-all-day="${date.getDay()}"][data-date-local="${formattedDate}"]`
                     );
-                } else if (view === 'month') {
+                } else if (isMonth) {
                     // For the "month" view, match elements by date
                     container = $viewContainer.find(
                         `[data-month-date="${formattedDate}"] [data-role="day-wrapper"]`
                     );
+                } else if (isYear) {
+                    container = $viewContainer.find(`[data-date="${formattedDate}"]`);
                 }
 
                 // Add the holiday element to the container if it exists
                 if (container?.length) {
-                    getHolidayElement()
-                        .html(holiday.title)
-                        .prependTo(container);
+                    if (!isYear) {
+                        getNewHolidayElement(color)
+                            .html(holiday.title)
+                            .prependTo(container);
+                    } else {
+                        const holidayHint = $('<div>', {
+                            class: 'position-absolute w-50 h-50 bg-opacity-25 top-50 start-50 translate-middle rounded-circle',
+                            'data-bs-toggle': 'tooltip',
+                            title: holiday.title,
+                            css: {
+                                backgroundColor: color.backgroundColor,
+                                color: color.color,
+                                backgroundImage: color.backgroundImage,
+                                height: '20px',
+                                width: '20px',
+                            }
+                        }).prependTo(container);
+                    }
                 }
             }
         });
@@ -3480,11 +3500,16 @@
      *
      * @return {Object} A jQuery object containing the holiday element with predefined attributes, classes, and styles.
      */
-    function getHolidayElement() {
+    function getNewHolidayElement(color) {
+
+        console.log(color)
         return $('<small>', {
             'data-holiday': true,
-            class: 'px-1 w-100 overflow-hidden mb-1 rounded rounded border text-center',
+            class: 'px-1 w-100 overflow-hidden mb-1 text-truncate text-nowrap text-center rounded',
             css: {
+                backgroundColor: color.backgroundColor,
+                backgroundImage: color.backgroundImage,
+                color: color.color,
                 fontSize: '12px',
                 minHeight: '18px',
             },
@@ -3780,8 +3805,9 @@
                     'font-size: 12px'
                 ];
                 if (isToday) {
-                    const dayColors = getColors('primary');
+                    const dayColors = getColors('primary gradient');
                     dayCss.push(`background-color: ${dayColors.backgroundColor}`);
+                    dayCss.push(`background-image: ${dayColors.backgroundImage}`);
                     dayCss.push(`color: ${dayColors.color}`);
                 }
 
@@ -3980,7 +4006,7 @@
         // create the content of the calendar
         const tbody = $('<tbody>').appendTo(table);
         let currentDate = new Date(calendarStart);
-        const defaultColor = 'primary';
+        const defaultColor = 'primary gradient';
         const defaultColors = getColors(defaultColor);
         while (currentDate <= calendarEnd) {
             const weekRow = $('<tr>', {
@@ -4014,6 +4040,7 @@
                 dayStyleArray.push(...bs4migration.roundedCircleCSS);
                 if (isToday) {
                     dayStyleArray.push('background-color: ' + defaultColors.backgroundColor);
+                    dayStyleArray.push('background-image: ' + defaultColors.backgroundImage);
                     dayStyleArray.push('color: ' + defaultColors.color);
                 }
 
@@ -4228,7 +4255,7 @@
         const justify = forWeekView ? 'center' : 'start';
         const isToday = date.toDateString() === new Date().toDateString();
         const todayColor = isToday ? 'text-primary' : '';
-        const colors = getColors('primary');
+        const colors = getColors('primary gradient');
         const circleCss = [
             'width: 44px',
             'height: 44px',
@@ -4237,6 +4264,7 @@
         if (isToday) {
             circleCss.push(...bs4migration.roundedCircleCSS);
             circleCss.push(`background-color: ${colors.backgroundColor}`);
+            circleCss.push(`background-image: ${colors.backgroundImage}`);
             circleCss.push(`color: ${colors.color}`);
         }
         return [
@@ -4369,12 +4397,13 @@
             }
         }).appendTo($container);
 
-        const badgeColor = getColors('danger');
+        const badgeColor = getColors('danger gradient');
         const combinedCss = [
             ...bs4migration.translateMiddleCss,
             ...bs4migration.start0Css,
             ...bs4migration.top0Css,
             'background-color: ' + badgeColor.backgroundColor,
+            'background-image: ' + badgeColor.backgroundImage,,
             'color: ' + badgeColor.color,
         ].join(';');
 
