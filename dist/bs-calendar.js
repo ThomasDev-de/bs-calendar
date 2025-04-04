@@ -3441,13 +3441,14 @@
         const isYear = view === 'year';
         // Get the container element for the current calendar view
         const $viewContainer = getViewContainer($wrapper);
-        const color = getColors('warning gradient opacity-25');
+        const color = getColors('warning gradient');
         const holidayStyle = [
             ...bs4migration.roundedCircleCSS,
             ...bs4migration.top50Css,
             ...bs4migration.start50Css,
             ...bs4migration.translateMiddleCss,
             `background-color: ${color.backgroundColor}`,
+            'opacity: 0.25',
             `color: ${color.color}`,
             `backgroundImage: ${color.backgroundImage}`
         ].join(';');
