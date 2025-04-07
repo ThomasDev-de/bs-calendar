@@ -121,49 +121,17 @@
 <script src="../vendor/components/jquery/jquery.min.js"></script>
 
 <script src="../vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="openHolidays.min.js"></script>
 <script src="../dist/bs-calendar.js"></script>
 <script>
     $(function () {
-        /**
-         * Fetch holidays for a specific year and optionally a federal state,
-         * then transform the response into the desired format.
-         *
-         * @param {string} [bundesland=""] - The federal state's abbreviation (optional, e.g., "BE" for Berlin).
-         * @param {number} year - The year for which holidays should be fetched (e.g., 2025).
-         * @returns {Promise<Array>} - A promise that resolves to an array of transformed holiday objects.
-         */
-        async function fetchHolidays(bundesland = "", year) {
-            // Build the endpoint based on whether bundesland is provided
-            const endpoint = bundesland
-                ? `https://ferien-api.de/api/v1/holidays/${bundesland}/${year}`
-                : `https://ferien-api.de/api/v1/holidays/${year}`;
-
-            try {
-                // Fetch data from the API
-                const response = await fetch(endpoint);
-
-                // Check if the response is successful
-                if (!response.ok) {
-                    throw new Error(`Error fetching holidays: ${response.status} ${response.statusText}`);
-                }
-
-                // Parse the JSON response
-                const holidays = await response.json();
-
-                // Transform the API response into the desired format
-                return holidays.map(holiday => ({
-                    startDate: holiday.start,                  // API "start" mapped to "startDate"
-                    endDate: holiday.end,                     // API "end" mapped to "endDate"
-                    title: holiday.name,                      // API "name" mapped to "title"
-                    global: false,                            // Assume false as default
-                    fixed: false                              // Assume false as default
-                }));
-            } catch (error) {
-                // Handle errors (e.g., network or API-related)
-                console.error(error);
-                return []; // Return an empty array if an error occurs
-            }
+        function getLanguageAndCountry(locale) {
+            const parts = locale.split('-'); // Den String anhand des Bindestrichs trennen
+            let language = parts[0].toUpperCase(); // Der erste Teil ist die Sprache, immer vorhanden
+            let country = parts[1] ? parts[1].toUpperCase() : language; // Der zweite Teil ist das Land, falls vorhanden; sonst Sprache als Fallback
+            return { language: language, country: country }; // Rückgabe als Objekt (Sprache und Land)
         }
+
 
 
         $.bsCalendar.setDefaults({
@@ -174,38 +142,32 @@
             defaultColor: 'info',
             navigateOnWheel: false,
             // holidays: 'nager.date',
-            holidays: function (date) {
-                // Extract the start and end years from the input
-                const startYear = new Date(date.start).getFullYear();
-                const endYear = new Date(date.end).getFullYear();
-                const bundesland = "BE"; // Optional: Bundesland setzen oder dynamisch übergeben
-
-                // Array zum Speichern aller fetchHolidays()-Promises
-                const holidayPromises = [];
-                return new Promise((resolve, reject) => {
-                    try {
-                        // Für jedes Jahr ein fetchHolidays()-Promise hinzufügen
-                        for (let year = startYear; year <= endYear; year++) {
-                            holidayPromises.push(fetchHolidays(bundesland, year));
-                        }
-
-                        // Alle Promises sammeln und auflösen, sobald alle abgeschlossen sind
-                        Promise.all(holidayPromises)
-                            .then(results => {
-                                // Alle Ergebnisse zusammenführen (flat) und zurückgeben
-                                const allHolidays = results.flat(); // Flacht das Array ab (falls nötig)
-                                resolve(allHolidays);
-                            })
-                            .catch(error => {
-                                console.error(error);
-                                reject(error); // Fehler weitergeben
-                            });
-                    } catch (error) {
-                        console.error(error);
-                        reject(error); // Fehler bei der Verarbeitung des Datums
-                    }
-                });
-            },
+            // holidays: function (data) {
+            //     return new Promise((resolve, reject) => {
+            //         // Extract the start and end years from the input
+            //         const startYear = new Date(data.start).getFullYear();
+            //         const endYear = new Date(data.end).getFullYear();
+            //         const locale = getLanguageAndCountry(data.locale);
+            //
+            //         const openHolidays = new OpenHolidays();
+            //         openHolidays.getPublicHolidays(locale.country, startYear + '-01-01', endYear + '-12-31', locale.language)
+            //             .then(response => {
+            //                 console.log(response);
+            //                 const holidays = [];
+            //                 for (const holiday of response) {
+            //                     holidays.push({
+            //                         startDate: holiday.startDate,
+            //                         endDate: holiday.endDate,
+            //                         title: holiday.name[0].text,
+            //                     });
+            //                 }
+            //                 resolve(holidays); // Übergabe des Ergebnisses an resolve
+            //             })
+            //             .catch(error => {
+            //                 reject(error); // Übergabe des Fehlers an reject
+            //             });
+            //     });
+            // },
             translations: {
                 day: 'Tag',
                 week: 'Woche',
@@ -297,7 +259,7 @@
                         break;
                     case 'updateOptions':
                         calendarElement.bsCalendar('updateOptions', {
-                            locale: 'en-GB',
+                            locale: 'es-ES',
                             startWeekOnSunday: true,
                             rounded: 0
                         });
