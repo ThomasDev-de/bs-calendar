@@ -40,7 +40,7 @@
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setDate">setDate(1970-01-01, 'day')
         </button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="updateOptions">updateOptions {locale:
-            en-GB}
+            fr-FR}
         </button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday">setToday('week')</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="clear">Clear</button>
@@ -141,7 +141,7 @@
             rounded: 5,
             defaultColor: 'info',
             navigateOnWheel: false,
-            // holidays: 'nager.date',
+            holidays: 'openHolidayApi',
             // holidays: function (data) {
             //     return new Promise((resolve, reject) => {
             //         // Extract the start and end years from the input
@@ -259,9 +259,7 @@
                         break;
                     case 'updateOptions':
                         calendarElement.bsCalendar('updateOptions', {
-                            locale: 'es-ES',
-                            startWeekOnSunday: true,
-                            rounded: 0
+                            locale: 'fr-FR',
                         });
                         break;
                     default:

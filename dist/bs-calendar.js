@@ -132,9 +132,24 @@
         topSearchNav: 'wc-calendar-top-search-nav',
     };
 
-    // Cache für Feiertage
+     /**
+     * A map that serves as a cache for storing holiday-related data.
+     * The `holidayCache` variable is used to improve performance by reducing
+     * the need to repeatedly compute or fetch holiday information.
+     * Keys typically represent unique identifiers for holidays or dates,
+     * while values store associated data for the respective holiday.
+     *
+     * This cache is implemented as a `Map` object, providing efficient
+     * key-value storage with methods to set, retrieve, and delete entries as needed.
+     */
     const holidayCache = new Map();
 
+    /**
+     * Represents the height of an hour time slot in a scheduling or calendar system.
+     * The value is typically used to determine the vertical space allocated for one hour in pixels.
+     *
+     * @type {number}
+     */
     const hourSlotHeight = 30;
 
     /**
@@ -367,7 +382,6 @@
         yellow: "#ffff00",
         yellowgreen: "#9acd32"
     };
-
 
     /**
      * jQuery plugin that initializes and manages a Bootstrap-based calendar.
@@ -1077,7 +1091,6 @@
             $wrapper.trigger(`${event}.bs.calendar`, ...p);
         }
     }
-
 
     /**
      * Initializes the given wrapper element by setting up required data, structures, and event handlers.
@@ -2237,7 +2250,6 @@
         buildByView($wrapper); // Ansicht aktualisieren
     }
 
-
     /**
      * Retrieves the select view element from the given wrapper.
      *
@@ -2303,7 +2315,6 @@
 
         dropdown.find('[data-dropdown-text]').html(activeItem.html());
     }
-
 
     /**
      * Retrieves the 'view' data attribute from the given wrapper element.
@@ -2672,7 +2683,6 @@
         );
     }
 
-
     /**
      * Groups overlapping appointments by weekdays, organizing them into columns or marking them as full-width,
      * based on their overlapping properties and visibility conditions for different views.
@@ -2756,8 +2766,13 @@
         return groupedByWeekdays;
     }
 
-
-// Hilfsfunktion: Prüfen, ob ein Termin in eine Spalte passt
+    /**
+     * Determines whether a new appointment does not overlap with existing appointments in a column.
+     *
+     * @param {Array} column - An array of existing appointments, where each appointment has a `start` and `end` property representing its time range.
+     * @param {Object} newAppointment - The new appointment to check, containing `start` and `end` properties representing its time range.
+     * @return {boolean} Returns `true` if there is no overlap with any appointment in the column, otherwise `false`.
+     */
     function doesNotOverlap(column, newAppointment) {
         for (const appointment of column) {
             if (!(newAppointment.start >= appointment.end || newAppointment.end <= appointment.start)) {
@@ -3524,7 +3539,7 @@
         const isYear = view === 'year';
         // Get the container element for the current calendar view
         const $viewContainer = getViewContainer($wrapper);
-        const color = getColors('secondary gradient');
+        const color = getColors('bg-dark opacity-50 gradient');
         const holidayStyle = [
             ...bs4migration.roundedCircleCSS,
             ...bs4migration.top50Css,
@@ -3619,7 +3634,6 @@
             badge.text(appointment.total);
         })
     }
-
 
     /**
      * Displays a loading spinner inside a given wrapper element.
@@ -4229,7 +4243,6 @@
         // Calculate number weeks between the first Thursday and the current Thursday
         return Math.floor(1 + (target - new Date(Date.UTC(target.getUTCFullYear(), 0, firstDayOfWeek))) / (7 * 24 * 60 * 60 * 1000));
     }
-
 
     /**
      * Constructs and appends a week view into the specified wrapper element.
