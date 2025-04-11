@@ -137,6 +137,7 @@
         $.bsCalendar.setDefaults({
             title: '<span class="h4 text-uppercase mb-0">Calendar</span>',
             locale: 'de-DE',
+            federalState: 'DE-BE',
             startWeekOnSunday: false,
             rounded: 5,
             defaultColor: 'info',
@@ -443,7 +444,7 @@
                 case 'month':
                 case 'week':
                 case 'day':
-                    count = Math.floor(Math.random() * 61);
+                    count = Math.floor(Math.random() * 21);
                     break;
                 case 'year':
                     count = Math.floor(Math.random() * 200);

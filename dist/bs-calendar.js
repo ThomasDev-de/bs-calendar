@@ -72,6 +72,7 @@
         },
         DEFAULTS: {
             locale: 'en-GB',
+            federalState: null,
             title: 'Calendar',
             startWeekOnSunday: true,
             navigateOnWheel: true,
@@ -84,7 +85,7 @@
             startView: 'month', // day, week, month, year
             defaultColor: 'primary',
             views: ['year', 'month', 'week', 'day'],
-            holidays: 'openHolidayApi', // 'nager.date'
+            holidays: 'openHolidayApi',
             translations: {
                 day: 'Day',
                 week: 'Week',
@@ -118,6 +119,7 @@
                 day: formatterDay,
                 week: formatterWeek,
                 month: formatterMonth,
+                holiday: formatterHoliday,
                 window: formatInfoWindow,
                 duration: formatDuration,
             }
@@ -132,7 +134,7 @@
         topSearchNav: 'wc-calendar-top-search-nav',
     };
 
-     /**
+    /**
      * A map that serves as a cache for storing holiday-related data.
      * The `holidayCache` variable is used to improve performance by reducing
      * the need to repeatedly compute or fetch holiday information.
@@ -499,98 +501,39 @@
         }
         return holidays;
     }
+    async function getSchoolHolidaysFromOpenHolidays(country, federalState, validFrom, validTo) {
+        // Sprache und Land sicherstellen (immer in Großbuchstaben)
+        const countryIsoCode = country.toUpperCase();
+        const subdivisionCode = federalState.toUpperCase();
+        // const subdivisionCode = 'DE-BE';
 
-    /**
-     * Fetches public holidays for a specified locale within a given date range.
-     *
-     * @param {string} locale - The locale for which public holidays should be retrieved (e.g., "US", "DE").
-     * @param {string} from - The start date of the range in ISO 8601 format (YYYY-MM-DD).
-     * @param {string} to - The end date of the range in ISO 8601 format (YYYY-MM-DD).
-     * @return {Promise<Array>} A promise that resolves to an array of public holidays within the specified date range, or an empty array if no holidays are found or an error occurs.
-     */
-    async function getPublicHolidaysFromNagerDate($wrapper) {
-        try {
-            const settings = getSettings($wrapper);
-            const formattedLocale = getCountryFromLocale(settings.locale);
-            const period = getStartAndEndDateByView($wrapper);
+        // URL aufbauen
+        const url = `https://openholidaysapi.org/SchoolHolidays?countryIsoCode=${countryIsoCode}&subdivisionCode=${subdivisionCode}&validFrom=${validFrom}&validTo=${validTo}`;
 
-            // Start- und Endjahr aus der Ansicht ermitteln
-            const startYear = new Date(period.start).getFullYear();
-            const endYear = new Date(period.end).getFullYear();
+        // API-Anfrage durchführen
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+            },
+        });
 
-            let holidays = [];
-
-            for (let year = startYear; year <= endYear; year++) {
-                const cacheKey = `${formattedLocale}-${year}`; // Kombinierter Key für Cache
-
-                if (holidayCache.has(cacheKey)) {
-                    // Feiertage aus dem Cache abrufen
-                    holidays = holidays.concat(holidayCache.get(cacheKey));
-                    if (settings.debug) {
-                        log(`Cache hit for year ${year} and locale ${formattedLocale}`);
-                    }
-                } else {
-                    if (settings.debug) {
-                        log(`No cache hit for year ${year} and locale ${formattedLocale}`);
-                        log(`Fetching holidays for year ${year} and locale ${formattedLocale} from nager.date`);
-                    }
-                    // Feiertage von der API abrufen
-                    const apiUrl = `https://date.nager.at/api/v3/publicholidays/${year}/${formattedLocale}`;
-                    const response = await fetch(apiUrl);
-
-                    if (response.status === 404) {
-                        if (settings.debug) {
-                            log(`No data for ${year} and ${formattedLocale} (404)`);
-                        }
-                        continue; // Jahr überspringen
-                    }
-
-                    if (!response.ok && settings.debug) {
-                        throw new Error(`Errors when receiving the holidays: ${response.statusText}`);
-                    }
-
-                    // JSON-Daten in Cache und holidays-Array einfügen
-                    const yearHolidays = await response.json();
-                    holidayCache.set(cacheKey, yearHolidays);
-                    holidays = holidays.concat(yearHolidays);
-
-                    if (settings.debug) {
-                        log(`Fetched holidays for year ${year} and locale ${formattedLocale}`, yearHolidays);
-                    }
-                }
-            }
-
-            // Feiertage nach Zeitraum filtern
-            const filteredHolidays = holidays.filter(holiday => {
-                const holidayDate = new Date(holiday.date);
-                return holidayDate >= new Date(period.start) && holidayDate <= new Date(period.end);
-            });
-
-            const returnHolidays = [];
-
-            filteredHolidays.forEach(holiday => {
-                returnHolidays.push({
-                    startDate: holiday.date,
-                    endDate: holiday.date,
-                    title: holiday.localName,
-                    global: holiday.global,
-                    fixed: holiday.fixed
-                })
-            })
-
-            if (settings.debug) {
-                log(`Filtered holidays for year ${startYear} to ${endYear} and locale ${formattedLocale}`, returnHolidays);
-            }
-
-
-            return returnHolidays; // Rückgabe der reduzierten Feiertage
-        } catch (error) {
-            if (settings.debug) {
-                log(`Error when fetching the holidays: ${error.message}`);
-            }
-            return [];
+        // Antwort verarbeiten und zurückgeben
+        if (!response.ok) {
+            throw new Error(`Fehler beim Abrufen der Feiertage: ${response.statusText}`);
         }
+        const res = await response.json();
+        const holidays = [];
+        for (const holiday of res) {
+            holidays.push({
+                startDate: holiday.startDate,
+                endDate: holiday.endDate,
+                title: holiday.name[0].text,
+            });
+        }
+        return holidays;
     }
+
 
     /**
      * Generates CSS for the border-radius property based on the input number.
@@ -635,6 +578,29 @@
      */
     function formatterDay(appointment, extras) {
         return `<small class="px-2">${appointment.title}</small>`;
+    }
+
+    /**
+     * Formats a holiday object into a styled HTML string representation suitable for display.
+     *
+     * @param {Object} holiday - The holiday object containing relevant information.
+     * @param {string} view - The current view mode, which determines specific formatting. Possible values are 'month' or other view types.
+     * @return {string} A styled HTML string representing the holiday for display.
+     */
+    function formatterHoliday(holiday, view) {
+        // const color = getColors('lawngreen');
+        const color = getColors('rebeccapurple');
+        const css = [
+            'background-color:' + color.backgroundColor,
+            'background-image:' + color.backgroundImage,
+            'color:' + color.color,
+            'font-size: 12px',
+            'padding: 2px 4px',
+            'font-weight: 400',
+        ].join(';');
+        const px1 = view === 'month' ? '0' : '1';
+        const mx1 = view === 'month' ? '0' : '1';
+        return `<small class="badge mb-1 p-${px1} rounded mx-${mx1}" style="${css}">${holiday.title}</small>`;
     }
 
     /**
@@ -3490,12 +3456,6 @@
         if (!isSearchMode) {
             if (typeof settings.holidays === 'string') {
                 switch (settings.holidays) {
-                    case 'nager.date':
-                        getPublicHolidaysFromNagerDate($wrapper)
-                            .then(holidays => {
-                                drawHolidays($wrapper, holidays);
-                            });
-                        break;
                     case 'openHolidayApi':
                         const period = getStartAndEndDateByView($wrapper);
                         const locale = getLanguageAndCountry(settings.locale);
@@ -3504,6 +3464,13 @@
                         ).then(response => {
                             drawHolidays($wrapper, response);
                         });
+                        if(settings.federalState) {
+                            // const locale = getLanguageAndCountry(settings.federalState);
+                            getSchoolHolidaysFromOpenHolidays(locale.country, settings.federalState, period.start, period.end)
+                                .then(response => {
+                                drawHolidays($wrapper, response);
+                            });
+                        }
                         break;
                 }
             } else if (typeof settings.holidays === 'function') {
@@ -3533,6 +3500,7 @@
      */
     function drawHolidays($wrapper, holidays) {
         // Get the current view of the calendar (e.g., "day", "week", "month")
+        const settings = getSettings($wrapper);
         const view = getView($wrapper);
         const isDayOrWeek = view === 'day' || view === 'week';
         const isMonth = view === 'month';
@@ -3581,9 +3549,7 @@
                 // Add the holiday element to the container if it exists
                 if (container?.length) {
                     if (!isYear) {
-                        getNewHolidayElement(color)
-                            .html(holiday.title)
-                            .prependTo(container).fadeIn(100);
+                        $(settings.formatter.holiday(holiday, view)).prependTo(container);
                     } else {
                         const holidayHint = $('<div>', {
                             class: 'position-absolute w-50 h-50',
@@ -3595,28 +3561,6 @@
                 }
             }
         });
-    }
-
-    /**
-     * Creates and returns a jQuery element representing a holiday element with specific styles and attributes.
-     *
-     * @return {Object} A jQuery object containing the holiday element with predefined attributes, classes, and styles.
-     */
-    function getNewHolidayElement(color) {
-
-        console.log(color)
-        return $('<small>', {
-            'data-holiday': true,
-            class: 'px-1 w-100 overflow-hidden mb-1 text-truncate text-nowrap text-center rounded',
-            css: {
-                display: 'none',
-                backgroundColor: color.backgroundColor,
-                backgroundImage: color.backgroundImage,
-                color: color.color,
-                fontSize: '12px',
-                minHeight: '18px',
-            },
-        })
     }
 
     /**
