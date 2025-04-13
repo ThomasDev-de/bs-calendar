@@ -72,8 +72,7 @@
         },
         DEFAULTS: {
             locale: 'en-GB',
-            federalState: null,
-            title: 'Calendar',
+            title: null,
             startWeekOnSunday: true,
             navigateOnWheel: true,
             rounded: 5, // 1-5
@@ -85,7 +84,9 @@
             startView: 'month', // day, week, month, year
             defaultColor: 'primary',
             views: ['year', 'month', 'week', 'day'],
-            holidays: 'openHolidayApi',
+            holidays: {
+                federalState: null,
+            },
             translations: {
                 day: 'Day',
                 week: 'Week',
@@ -463,6 +464,14 @@
         return locale.split('-')[1]?.toUpperCase() || locale.toUpperCase();
     }
 
+    /**
+     * Extracts the language and country from the given locale string.
+     * The locale string is expected to be in the format "language-country".
+     * If the country part is not provided, the language is used as the default country.
+     *
+     * @param {string} locale - The locale string comprising language and optionally a country.
+     * @return {Object} An object containing the extracted language and country as uppercase strings.
+     */
     function getLanguageAndCountry(locale) {
         const parts = locale.split('-'); // Den String anhand des Bindestrichs trennen
         let language = parts[0].toUpperCase(); // Der erste Teil ist die Sprache, immer vorhanden
@@ -470,6 +479,15 @@
         return {language: language, country: country}; // Rückgabe als Objekt (Sprache und Land)
     }
 
+    /**
+     * Fetches public holidays from the OpenHolidays API for a specified country and language within a given date range.
+     *
+     * @param {string} country - The ISO code of the country for which public holidays are being requested. This will be converted to uppercase.
+     * @param {string} language - The ISO code of the language in which the holidays' data should be returned. This will be converted to uppercase.
+     * @param {string} validFrom - The start date for filtering the public holidays in the format YYYY-MM-DD.
+     * @param {string} validTo - The end date for filtering the public holidays in the format YYYY-MM-DD.
+     * @return {Promise<Array<Object>>} A promise that resolves to an array of public holiday objects, each containing `startDate`, `endDate`, and `title` properties. An error will be thrown if the API request fails.
+     */
     async function getPublicHolidaysFromOpenHolidays(country, language, validFrom, validTo) {
         // Sprache und Land sicherstellen (immer in Großbuchstaben)
         const countryIsoCode = country.toUpperCase();
@@ -501,6 +519,19 @@
         }
         return holidays;
     }
+
+    /**
+     * Retrieves school holidays for a specified country and federal state within a given date range
+     * using the Open Holidays API.
+     *
+     * @param {string} country - The ISO country code (e.g., 'DE' for Germany).
+     * @param {string} federalState - The federal state code within the country (e.g., 'DE-BE' for Berlin).
+     * @param {string} validFrom - The start date for the holidays in ISO format (YYYY-MM-DD).
+     * @param {string} validTo - The end date for the holidays in ISO format (YYYY-MM-DD).
+     * @return {Promise<Array<{startDate: string, endDate: string, title: string}>>} A promise that resolves
+     * to an array of holidays, each containing the start date, end date, and title.
+     * @throws {Error} If the API call fails or returns an error response.
+     */
     async function getSchoolHolidaysFromOpenHolidays(country, federalState, validFrom, validTo) {
         // Sprache und Land sicherstellen (immer in Großbuchstaben)
         const countryIsoCode = country.toUpperCase();
@@ -548,6 +579,7 @@
      * @return {string} The CSS string for the border-radius property with the specified value.
      */
     function getBorderRadiusCss(number) {
+        let number = Math.min(5, Math.max(0, number));
         let rounded = '0';
         switch (number) {
             case 1:
@@ -3454,35 +3486,39 @@
                 break;
         }
         if (!isSearchMode) {
-            if (typeof settings.holidays === 'string') {
-                switch (settings.holidays) {
-                    case 'openHolidayApi':
-                        const period = getStartAndEndDateByView($wrapper);
-                        const locale = getLanguageAndCountry(settings.locale);
-                        getPublicHolidaysFromOpenHolidays(
-                            locale.country, locale.language, period.start, period.end
-                        ).then(response => {
-                            drawHolidays($wrapper, response);
-                        });
-                        if(settings.federalState) {
-                            // const locale = getLanguageAndCountry(settings.federalState);
-                            getSchoolHolidaysFromOpenHolidays(locale.country, settings.federalState, period.start, period.end)
-                                .then(response => {
-                                drawHolidays($wrapper, response);
-                            });
-                        }
-                        break;
-                }
-            } else if (typeof settings.holidays === 'function') {
-                const period = getStartAndEndDateByView($wrapper);
-                period.locale = settings.locale;
-                settings.holidays(period).then(holidays => {
-                    drawHolidays($wrapper, holidays);
-                });
-            }
+            loadHolidays($wrapper);
         }
         container.find('[data-appointment]').css('cursor', 'pointer');
+    }
 
+    /**
+     * Loads and displays holidays on a given calendar wrapper element for a specific period.
+     *
+     * @param {Object} $wrapper - The calendar wrapper element where holidays should be displayed.
+     * @return {void} This function does not return a value. It fetches and renders holidays on the given wrapper element.
+     */
+    function loadHolidays($wrapper) {
+        const settings = getSettings($wrapper);
+        const period = getStartAndEndDateByView($wrapper);
+        if (typeof settings.holidays === 'object') {
+            const locale = getLanguageAndCountry(settings.locale);
+            getPublicHolidaysFromOpenHolidays(
+                locale.country, locale.language, period.start, period.end
+            ).then(response => {
+                drawHolidays($wrapper, response);
+            });
+            if (settings.holidays.hasOwnProperty('federalState') && settings.holidays.federalState) {
+                getSchoolHolidaysFromOpenHolidays(locale.country, settings.holidays.federalState, period.start, period.end)
+                    .then(response => {
+                        drawHolidays($wrapper, response);
+                    });
+            }
+        } else if (typeof settings.holidays === 'function') {
+            period.locale = settings.locale;
+            settings.holidays(period).then(holidays => {
+                drawHolidays($wrapper, holidays);
+            });
+        }
     }
 
     /**

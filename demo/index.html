@@ -125,50 +125,17 @@
 <script src="../dist/bs-calendar.js"></script>
 <script>
     $(function () {
-        function getLanguageAndCountry(locale) {
-            const parts = locale.split('-'); // Den String anhand des Bindestrichs trennen
-            let language = parts[0].toUpperCase(); // Der erste Teil ist die Sprache, immer vorhanden
-            let country = parts[1] ? parts[1].toUpperCase() : language; // Der zweite Teil ist das Land, falls vorhanden; sonst Sprache als Fallback
-            return { language: language, country: country }; // Rückgabe als Objekt (Sprache und Land)
-        }
-
-
-
         $.bsCalendar.setDefaults({
             title: '<span class="h4 text-uppercase mb-0">Calendar</span>',
             locale: 'de-DE',
-            federalState: 'DE-BE',
+
             startWeekOnSunday: false,
             rounded: 5,
             defaultColor: 'info',
             navigateOnWheel: false,
-            holidays: 'openHolidayApi',
-            // holidays: function (data) {
-            //     return new Promise((resolve, reject) => {
-            //         // Extract the start and end years from the input
-            //         const startYear = new Date(data.start).getFullYear();
-            //         const endYear = new Date(data.end).getFullYear();
-            //         const locale = getLanguageAndCountry(data.locale);
-            //
-            //         const openHolidays = new OpenHolidays();
-            //         openHolidays.getPublicHolidays(locale.country, startYear + '-01-01', endYear + '-12-31', locale.language)
-            //             .then(response => {
-            //                 console.log(response);
-            //                 const holidays = [];
-            //                 for (const holiday of response) {
-            //                     holidays.push({
-            //                         startDate: holiday.startDate,
-            //                         endDate: holiday.endDate,
-            //                         title: holiday.name[0].text,
-            //                     });
-            //                 }
-            //                 resolve(holidays); // Übergabe des Ergebnisses an resolve
-            //             })
-            //             .catch(error => {
-            //                 reject(error); // Übergabe des Fehlers an reject
-            //             });
-            //     });
-            // },
+            holidays: {
+                federalState: 'DE-BE',
+            },
             translations: {
                 day: 'Tag',
                 week: 'Woche',
