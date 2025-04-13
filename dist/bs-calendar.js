@@ -579,9 +579,9 @@
      * @return {string} The CSS string for the border-radius property with the specified value.
      */
     function getBorderRadiusCss(number) {
-        let number = Math.min(5, Math.max(0, number));
+        let checkedNumber = Math.min(5, Math.max(0, number));
         let rounded = '0';
-        switch (number) {
+        switch (checkedNumber) {
             case 1:
                 rounded = '0.25rem';
                 break;
