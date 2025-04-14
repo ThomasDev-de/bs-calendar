@@ -85,7 +85,9 @@
             defaultColor: 'primary',
             views: ['year', 'month', 'week', 'day'],
             holidays: {
-                federalState: null,
+                country: 'DE', // optional
+                language: 'de', // optional
+                federalState: null, // for school holidays
             },
             translations: {
                 day: 'Day',
@@ -134,18 +136,6 @@
         sideNav: 'wc-calendar-left-nav',
         topSearchNav: 'wc-calendar-top-search-nav',
     };
-
-    /**
-     * A map that serves as a cache for storing holiday-related data.
-     * The `holidayCache` variable is used to improve performance by reducing
-     * the need to repeatedly compute or fetch holiday information.
-     * Keys typically represent unique identifiers for holidays or dates,
-     * while values store associated data for the respective holiday.
-     *
-     * This cache is implemented as a `Map` object, providing efficient
-     * key-value storage with methods to set, retrieve, and delete entries as needed.
-     */
-    const holidayCache = new Map();
 
     /**
      * Represents the height of an hour time slot in a scheduling or calendar system.
@@ -534,8 +524,13 @@
      */
     async function getSchoolHolidaysFromOpenHolidays(country, federalState, validFrom, validTo) {
         // Sprache und Land sicherstellen (immer in Großbuchstaben)
-        const countryIsoCode = country.toUpperCase();
-        const subdivisionCode = federalState.toUpperCase();
+        let countryIsoCode = country.toUpperCase();
+        let subdivisionCode = federalState.toUpperCase();
+
+        if (subdivisionCode.length === 2) {
+            subdivisionCode = `${countryIsoCode}-${subdivisionCode}`;
+        }
+
         // const subdivisionCode = 'DE-BE';
 
         // URL aufbauen
@@ -620,19 +615,15 @@
      * @return {string} A styled HTML string representing the holiday for display.
      */
     function formatterHoliday(holiday, view) {
-        // const color = getColors('lawngreen');
-        const color = getColors('rebeccapurple');
+        const isDayOrWeek = view === 'day' || view === 'week';
         const css = [
-            'background-color:' + color.backgroundColor,
-            'background-image:' + color.backgroundImage,
-            'color:' + color.color,
             'font-size: 12px',
-            'padding: 2px 4px',
-            'font-weight: 400',
+            'line-height: 12px',
+            'width: ' + (isDayOrWeek ? '100%' : 'auto'),
+            'text-align: ' + (view === 'day' ? 'left' : 'center'),
         ].join(';');
-        const px1 = view === 'month' ? '0' : '1';
-        const mx1 = view === 'month' ? '0' : '1';
-        return `<small class="badge mb-1 p-${px1} rounded mx-${mx1}" style="${css}">${holiday.title}</small>`;
+        const badgeClass = isDayOrWeek ? 'px-2 py-1 d-inline' : '';
+        return `<div class="${badgeClass}" style="${css}">${holiday.title}</div>`;
     }
 
     /**
@@ -747,7 +738,8 @@
      */
     function methodClear($wrapper, removeAppointments = true) {
         $wrapper.find('[data-appointment]').remove();
-        $wrapper.find('[data-holiday]').remove();
+        $wrapper.find('[data-role="holiday"]').remove();
+        $wrapper.find('.tooltip').remove();
         if (removeAppointments) {
             setAppointments($wrapper, []).then(cleanedAppointments => {
                 // empty
@@ -3488,6 +3480,7 @@
         if (!isSearchMode) {
             loadHolidays($wrapper);
         }
+
         container.find('[data-appointment]').css('cursor', 'pointer');
     }
 
@@ -3500,22 +3493,65 @@
     function loadHolidays($wrapper) {
         const settings = getSettings($wrapper);
         const period = getStartAndEndDateByView($wrapper);
+        const locale = getLanguageAndCountry(settings.locale);
         if (typeof settings.holidays === 'object') {
-            const locale = getLanguageAndCountry(settings.locale);
+            let country = null;
+            let language = null;
+            let federalState = null;
+            if (settings.holidays.hasOwnProperty('country') && ! isValueEmpty(settings.holidays.country)) {
+                country = settings.holidays.country.toUpperCase();
+            } else {
+                country = locale.country;
+            }
+
+            if (settings.holidays.hasOwnProperty('language') && ! isValueEmpty(settings.holidays.language)) {
+                language = settings.holidays.language.toUpperCase();
+            } else {
+                language = locale.language;
+            }
+            if (settings.holidays.hasOwnProperty('federalState') && ! isValueEmpty(settings.holidays.federalState)) {
+                federalState = settings.holidays.federalState.toUpperCase();
+            }
+
+            if (settings.debug) {
+                log('Load public holidays with params:', {
+                    country: country,
+                    language: language,
+                    period: period
+                });
+            }
+
             getPublicHolidaysFromOpenHolidays(
-                locale.country, locale.language, period.start, period.end
+                country, language, period.start, period.end
             ).then(response => {
                 drawHolidays($wrapper, response);
             });
-            if (settings.holidays.hasOwnProperty('federalState') && settings.holidays.federalState) {
-                getSchoolHolidaysFromOpenHolidays(locale.country, settings.holidays.federalState, period.start, period.end)
+
+            if (federalState !== null) {
+                if (settings.debug) {
+                    log('Load school holidays with params:', {
+                        country: country,
+                        language: language,
+                        period: period,
+                        federalState: federalState
+                    });
+                }
+                getSchoolHolidaysFromOpenHolidays(country, federalState, period.start, period.end)
                     .then(response => {
                         drawHolidays($wrapper, response);
                     });
             }
         } else if (typeof settings.holidays === 'function') {
-            period.locale = settings.locale;
-            settings.holidays(period).then(holidays => {
+            if (settings.debug) {
+                log('Load custom function holidays with params:', {
+                    start: period.start,
+                    end: period.end,
+                    country: locale.country,
+                    language: locale.language
+                });
+                log('Make sure a promise is returned!');
+            }
+            settings.holidays(period.start, period.end, locale.country, locale.language).then(holidays => {
                 drawHolidays($wrapper, holidays);
             });
         }
@@ -3585,14 +3621,22 @@
                 // Add the holiday element to the container if it exists
                 if (container?.length) {
                     if (!isYear) {
-                        $(settings.formatter.holiday(holiday, view)).prependTo(container);
-                    } else {
-                        const holidayHint = $('<div>', {
-                            class: 'position-absolute w-50 h-50',
-                            'data-bs-toggle': 'tooltip',
-                            title: holiday.title,
-                            style: holidayStyle
+                        // build a wrapper for holiday element
+                        if (container.is(':empty') && (view === 'day' || view === 'week')) {
+                            container.addClass('pb-3');
+                        }
+                        const $holidayWrapper = $('<small>', {
+                            'data-role': 'holiday',
+                            class: 'px-1  overflow-hidden mb-1 rounded w-100',
                         }).prependTo(container);
+                        $(settings.formatter.holiday(holiday, view)).appendTo($holidayWrapper);
+                    } else {
+                        container.addClass('text-primary');
+                        container.attr('data-role', 'holiday');
+                        container.tooltip({
+                            title: holiday.title,
+                            container: $wrapper
+                        });
                     }
                 }
             }
