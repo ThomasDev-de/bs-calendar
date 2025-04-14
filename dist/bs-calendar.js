@@ -71,7 +71,7 @@
             return this.DEFAULTS;
         },
         DEFAULTS: {
-            locale: 'en-GB',
+            locale: 'en-GB', // language and country
             title: null,
             startWeekOnSunday: true,
             navigateOnWheel: true,
