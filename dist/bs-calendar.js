@@ -42,7 +42,6 @@
  *
  * @note This plugin makes use of the nager.date API for holiday-related functionalities.
  *       For more information about the API and its usage, please refer to the MIT license provided by nager.date.
- * @todo Auslagern von Feiertagen (Schulferien)
  */
 
 (function ($) {
@@ -488,9 +487,9 @@
             },
         });
 
-        // Antwort verarbeiten und zurückgeben
+        // process and return the answer
         if (!response.ok) {
-            throw new Error(`Fehler beim Abrufen der Feiertage: ${response.statusText}`);
+            throw new Error(`Errors when calling up the holidays: ${response.statusText}`);
         }
         const res = await response.json();
         const holidays = [];
@@ -1131,31 +1130,7 @@
         });
     }
 
-    /**
-     * Extracts and returns the time in HH:mm format from a given datetime object or string.
-     * If the time is midnight (00:00), it returns null.
-     *
-     * @param {Date|string} date - The datetime value, which can be a Date object or a date string.
-     * @return {string|null} The formatted time in HH:mm format or null if the time is midnight.
-     */
-    function getTimeFromDatetime(date) {
-        if (typeof date === 'string') {
-            date = new Date(date);
-        }
 
-        // Prüfen, ob das Datum ungültig ist
-        if (isNaN(date)) {
-            console.error("Ungültiges Datum in getTimeFromDatetime:", date);
-            return null; // Ungültiges Datum
-        }
-
-        // Immer Zeitanteile zurückgeben, unabhängig von Werten (z. B. 00:00:00)
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        const seconds = date.getSeconds().toString().padStart(2, '0');
-
-        return `${hours}:${minutes}:${seconds}`;
-    }
 
     /**
      * Converts a date-time string with a space separator into ISO 8601 format
@@ -3314,11 +3289,11 @@
                     colors: getColors(appointment.color, settings.defaultColor),
                     start: {
                         date: formatDateToDateString(appointment.start),
-                        time: isAllDay ? '00:00:00' : getTimeFromDatetime(appointment.start)
+                        time: isAllDay ? '00:00:00' : formatTime(appointment.start)
                     },
                     end: {
                         date: formatDateToDateString(appointment.end),
-                        time: isAllDay ? '23:59:59' : getTimeFromDatetime(appointment.end)
+                        time: isAllDay ? '23:59:59' : formatTime(appointment.end)
                     },
                     duration: {
                         days: 0,
@@ -3369,13 +3344,13 @@
                         dateDetails.times.end = null;
                     } else {
                         if (dateIsStart) {
-                            dateDetails.times.start = getTimeFromDatetime(start);
+                            dateDetails.times.start = formatTime(start);
                             dateDetails.times.end = end > new Date(tempDate).setHours(23, 59, 59, 999)
                                 ? '23:59'
-                                : getTimeFromDatetime(end);
+                                : formatTime(end);
                         } else if (dateIsEnd) {
                             dateDetails.times.start = '00:00';
-                            dateDetails.times.end = getTimeFromDatetime(end);
+                            dateDetails.times.end = formatTime(end);
                         } else {
                             dateDetails.times.start = '00:00';
                             dateDetails.times.end = '23:59';
@@ -4401,6 +4376,35 @@
     }
 
     /**
+     * Formats a given Date object or date string into a time string.
+     *
+     * @param {Date|string} date - The date object or a valid date string to format. If a string is provided, it will be parsed into a Date object.
+     * @param {boolean} [withSeconds=true] - Indicates whether the formatted string should include seconds or not.
+     * @return {string|null} The formatted time string in "HH:mm:ss" or "HH:mm" format, or null if the provided date is invalid.
+     */
+    function formatTime(date, withSeconds = true) {
+        if (typeof date === 'string') {
+            date = new Date(date);
+        }
+
+       // check whether the date is invalid
+        if (isNaN(date)) {
+            console.error("Invalid date in formatTime:", date);
+            return null; // Ungültiges Datum
+        }
+
+        const hours = date.getHours().toString().padStart(2, '0');
+        const minutes = date.getMinutes().toString().padStart(2, '0');
+        const seconds = date.getSeconds().toString().padStart(2, '0');
+
+        if (! withSeconds) {
+            return `${hours}:${minutes}`;
+        }
+
+        return `${hours}:${minutes}:${seconds}`;
+    }
+
+    /**
      * Build a daily overview with hourly labels and horizontal lines for each line.
      *
      * @param {jQuery} $wrapper - The wrapper element for the calendar.
@@ -4453,11 +4457,13 @@
                 height: height + 'px',
                 cursor: 'copy',
             };
+
             const row = $('<div>', {
                 'data-day-hour': hour,
                 css: css,
                 class: 'd-flex align-items-center border-top position-relative'
             }).appendTo(timeSlots);
+
             row.on('click', function () {
                 const start = new Date(`${formatDateToDateString(date)} ${String(hour).padStart(2, '0')}:00:00`);
                 const end = new Date(start);
@@ -4485,11 +4491,12 @@
                     'left: -34px'
                 ].join(';');
 
-                // hourly label (e.g. 08:00)
+                const hourDate = new Date(2023, 0, 1, hour); // 2023-01-01, Stunde = hour
+
                 $('<div>', {
                     class: 'wc-time-label ps-2 pl-2 position-absolute',
                     style: combinedCss,
-                    html: `${hour.toString().padStart(2, '0')}:00`
+                    html: formatTime(hourDate, false)
                 }).appendTo(row);
             }
         }
