@@ -71,6 +71,7 @@
             return this.DEFAULTS;
         },
         DEFAULTS: {
+            debug: false,
             locale: 'en-GB', // language and country
             title: null,
             startWeekOnSunday: true,
@@ -84,11 +85,7 @@
             startView: 'month', // day, week, month, year
             defaultColor: 'primary',
             views: ['year', 'month', 'week', 'day'],
-            holidays: {
-                country: 'DE', // optional
-                language: 'de', // optional
-                federalState: null, // for school holidays
-            },
+            holidays: null,
             translations: {
                 day: 'Day',
                 week: 'Week',
@@ -117,7 +114,6 @@
             queryParams: null,
             topbarAddons: null,
             sidebarAddons: null,
-            debug: false,
             formatter: {
                 day: formatterDay,
                 week: formatterWeek,
@@ -125,6 +121,11 @@
                 holiday: formatterHoliday,
                 window: formatInfoWindow,
                 duration: formatDuration,
+            },
+            hourSlots: {
+                height: 30, // one hour in px
+                start: 0, // starting hour as integer
+                end: 24 // ending hour as integer
             }
         }
     };
@@ -137,13 +138,6 @@
         topSearchNav: 'wc-calendar-top-search-nav',
     };
 
-    /**
-     * Represents the height of an hour time slot in a scheduling or calendar system.
-     * The value is typically used to determine the vertical space allocated for one hour in pixels.
-     *
-     * @type {number}
-     */
-    const hourSlotHeight = 30;
 
     /**
      * The `bs4migration` object provides CSS rule mappings for migrating or aligning styles
@@ -2882,6 +2876,7 @@
                         : 0;
 
                     const position = calculateSlotPosition(
+                        $wrapper,
                         startDate.toISOString(),
                         endDate.toISOString()
                     );
@@ -2938,6 +2933,7 @@
                     !isNaN(slotData.end)
                 ) {
                     position = calculateSlotPosition(
+                        $wrapper,
                         slotData.start.toISOString(),
                         slotData.end.toISOString()
                     );
@@ -4446,12 +4442,12 @@
         }).appendTo($container);
 
         // present hours (from 0 to 23) with a horizontal line
-        for (let hour = 0; hour <= 24; hour++) {
+        for (let hour = settings.hourSlots.start; hour <= settings.hourSlots.end; hour++) {
             const isLast = hour === 24;
             // line container for the hour
             // Add heading about the daily view
-            const height = isLast ? 0 : hourSlotHeight;
-            const marginBottom = isLast ? hourSlotHeight : 0;
+            const height = isLast ? 0 : settings.hourSlots.height;
+            const marginBottom = isLast ? settings.hourSlots.height : 0;
             const css = isLast ? {} : {
                 boxSizing: 'border-box',
                 height: height + 'px',
@@ -4521,7 +4517,7 @@
                 height: '1px',
                 width: '100%',
                 zIndex: 10,
-                top: calculateSlotPosition(now).top,
+                top: calculateSlotPosition($wrapper, now).top,
             }
         }).appendTo($container);
 
@@ -4560,12 +4556,12 @@
                 return;
             }
             const now = new Date();
-            currentTimeIndicator.css('top', calculateSlotPosition(now).top);
+            currentTimeIndicator.css('top', calculateSlotPosition($wrapper,now).top);
             currentTimeIndicator.find('.js-current-time').text(getMinutesAndSeconds($wrapper, now));
         }, 60 * 1000);
 
         // Setze initial die Position direkt
-        currentTimeIndicator.css('top', calculateSlotPosition(now).top);
+        currentTimeIndicator.css('top', calculateSlotPosition($wrapper, now).top);
     }
 
     /**
@@ -4577,33 +4573,51 @@
      * @return {number} return.top - The top position calculated based on the start time.
      * @return {number} return.height - The height of the slot calculated based on duration. Defaults to 0 if endDate is not provided.
      */
-    function calculateSlotPosition(startDate, endDate) {
+    function calculateSlotPosition($wrapper, startDate, endDate) {
+        const settings = getSettings($wrapper);
         if (typeof startDate === 'string') {
             startDate = new Date(startDate);
         }
         if (typeof endDate === 'string') {
             endDate = new Date(endDate);
         }
+
         const startHours = startDate.getHours();
         const startMinutes = startDate.getMinutes();
+        const endHours = endDate ? endDate.getHours() : null;
+        const endMinutes = endDate ? endDate.getMinutes() : null;
 
-        // Berechnung der Top-Position basierend auf der Startzeit
-        const top = startHours * hourSlotHeight + (startMinutes / 60) * hourSlotHeight + 4;
-
-        let height = 0; // Standardwert, falls endDate nicht übergeben wird
-
-        if (endDate) {
-            const endHours = endDate.getHours();
-            const endMinutes = endDate.getMinutes();
-
-            // Berechnung der Gesamtdauer zwischen Start- und Endzeit in Minuten
-            const durationMinutes = (endHours * 60 + endMinutes) - (startHours * 60 + startMinutes);
-
-            // Berechnung der Höhe basierend auf der Dauer in Minuten
-            height = (durationMinutes / 60) * hourSlotHeight;
+        // Fall 1: Termin vollständig außerhalb der Grenzen – nicht anzeigen
+        if ((startHours < settings.hourSlots.start && (!endHours || endHours <= settings.hourSlots.start)) ||
+            (startHours >= settings.hourSlots.end)) {
+            return { top: 0, height: 0 };
         }
 
-        return {top: top - 4, height: height};
+        // Begrenzung anpassen, falls erforderlich
+        let adjustedStartHours = Math.max(startHours, settings.hourSlots.start); // Termin-Start auf Slot-Start setzen, falls davor
+        let adjustedStartMinutes = startHours < settings.hourSlots.start ? 0 : startMinutes; // Minuten nur zulassen, falls nach Start
+        let adjustedEndHours = endHours !== null ? Math.min(endHours, settings.hourSlots.end) : null; // Termin-Ende auf Slot-Ende setzen
+        let adjustedEndMinutes =
+            endHours !== null && endHours >= settings.hourSlots.end ? 0 : endMinutes; // Minuten nur zulassen, falls vor Ende
+
+        // Berechnung der Top-Position (Startzeit)
+        const top =
+            ((adjustedStartHours - settings.hourSlots.start) * settings.hourSlots.height) +
+            ((adjustedStartMinutes / 60) * settings.hourSlots.height) +
+            4;
+
+        let height = 0;
+
+        if (endDate) {
+            // Berechnung der Gesamtdauer in Minuten basierend auf den angepassten Werten
+            const durationMinutes =
+                (adjustedEndHours * 60 + adjustedEndMinutes) - (adjustedStartHours * 60 + adjustedStartMinutes);
+
+            // Höhe basierend auf der Dauer
+            height = (durationMinutes / 60) * settings.hourSlots.height;
+        }
+
+        return { top: top - 4, height: height > 0 ? height : 0 };
     }
 
     /**
