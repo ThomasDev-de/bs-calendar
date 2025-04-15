@@ -1131,7 +1131,6 @@
     }
 
 
-
     /**
      * Converts a date-time string with a space separator into ISO 8601 format
      * by replacing the space character with 'T'. If the input is not a string,
@@ -3472,18 +3471,18 @@
             let country = null;
             let language = null;
             let federalState = null;
-            if (settings.holidays.hasOwnProperty('country') && ! isValueEmpty(settings.holidays.country)) {
+            if (settings.holidays.hasOwnProperty('country') && !isValueEmpty(settings.holidays.country)) {
                 country = settings.holidays.country.toUpperCase();
             } else {
                 country = locale.country;
             }
 
-            if (settings.holidays.hasOwnProperty('language') && ! isValueEmpty(settings.holidays.language)) {
+            if (settings.holidays.hasOwnProperty('language') && !isValueEmpty(settings.holidays.language)) {
                 language = settings.holidays.language.toUpperCase();
             } else {
                 language = locale.language;
             }
-            if (settings.holidays.hasOwnProperty('federalState') && ! isValueEmpty(settings.holidays.federalState)) {
+            if (settings.holidays.hasOwnProperty('federalState') && !isValueEmpty(settings.holidays.federalState)) {
                 federalState = settings.holidays.federalState.toUpperCase();
             }
 
@@ -4387,7 +4386,7 @@
             date = new Date(date);
         }
 
-       // check whether the date is invalid
+        // check whether the date is invalid
         if (isNaN(date)) {
             console.error("Invalid date in formatTime:", date);
             return null; // Ungültiges Datum
@@ -4397,7 +4396,7 @@
         const minutes = date.getMinutes().toString().padStart(2, '0');
         const seconds = date.getSeconds().toString().padStart(2, '0');
 
-        if (! withSeconds) {
+        if (!withSeconds) {
             return `${hours}:${minutes}`;
         }
 
@@ -4515,8 +4514,28 @@
      * @return {void} - No return value.
      */
     function addCurrentTimeIndicator($wrapper, $container) {
-        const now = new Date();
-        // Erstelle eine Linie, die die aktuelle Zeit anzeigt
+        const getDynamicNow = () => new Date(); // Immer die aktuelle Zeit abrufen
+        const settings = getSettings($wrapper); // Dynamische Einstellungen holen
+        const { hourSlots } = settings; // Hole Start, Ende und Höhe der Slots
+
+        // Funktion zur Berechnung der Position
+        const calculatePosition = () => {
+            const now = getDynamicNow(); // Hole die aktuelle Zeit dynamisch
+            const currentHour = now.getHours() + now.getMinutes() / 60; // Zeit in Dezimalform
+
+            if (currentHour < hourSlots.start) {
+                return { top: 0, bottom: "" }; // Vor der Startzeit
+            } else if (currentHour >= hourSlots.end) {
+                return { top: "", bottom: 0 }; // Nach der Endzeit
+            } else {
+                return { top: calculateSlotPosition($wrapper, now).top, bottom: "" }; // Innerhalb des Zeitbereichs
+            }
+        };
+
+        // Initiale Position berechnen
+        const position = calculatePosition();
+
+        // Erzeuge den aktuellen Zeit-Indikator
         const currentTimeIndicator = $('<div>', {
             class: 'current-time-indicator position-absolute bg-danger',
             css: {
@@ -4524,22 +4543,23 @@
                 height: '1px',
                 width: '100%',
                 zIndex: 10,
-                top: calculateSlotPosition($wrapper, now).top,
+                ...position, // Dynamische Position setzen
             }
         }).appendTo($container);
 
+        // Hol die Farben für das Badge
         const badgeColor = getColors('danger gradient');
         const combinedCss = [
             ...bs4migration.translateMiddleCss,
             ...bs4migration.start0Css,
             ...bs4migration.top0Css,
             'background-color: ' + badgeColor.backgroundColor,
-            'background-image: ' + badgeColor.backgroundImage, ,
+            'background-image: ' + badgeColor.backgroundImage,
             'color: ' + badgeColor.color,
         ].join(';');
 
-
-        $(`<small class="position-absolute badge js-current-time" style="${combinedCss}">` + getMinutesAndSeconds($wrapper, now) + '</small>').appendTo(currentTimeIndicator);
+        // Setze den Zeit-Badge
+        $(`<small class="position-absolute badge js-current-time" style="${combinedCss}">` + getMinutesAndSeconds($wrapper, getDynamicNow()) + '</small>').appendTo(currentTimeIndicator);
 
         const combinedCss2 = [
             ...bs4migration.translateMiddleCss,
@@ -4550,25 +4570,29 @@
             'height: 10px',
         ].join(';');
 
+        // Setze den Kreis-Indikator
         $(`<div class="position-absolute bg-danger" style="${combinedCss2}"></div>`).appendTo(currentTimeIndicator);
 
-        // Funktion, die die Position basierend auf der aktuellen Zeit berechnet
+        // Funktion zur Aktualisierung des Zeit-Indikators
+        const updateIndicator = () => {
+            const now = getDynamicNow(); // Hole dynamisch die aktuelle Zeit
+            const newPosition = calculatePosition(); // Berechne die Position
+            currentTimeIndicator.css(newPosition); // Setze neue Position
+            currentTimeIndicator.find('.js-current-time').text(getMinutesAndSeconds($wrapper, now)); // Aktualisiere den Badge-Text
+        };
 
-
-        // Aktualisierte Position werden alle Minute berechnet
+        // Jede Minute die Position und Zeit aktualisieren
         const intervalId = setInterval(() => {
             if ($wrapper.find('.current-time-indicator').length === 0) {
-                // Wenn das Element nicht mehr existiert, lösche das Intervall
+                // Falls der Indikator entfernt wurde, wird das Intervall gelöscht
                 clearInterval(intervalId);
                 return;
             }
-            const now = new Date();
-            currentTimeIndicator.css('top', calculateSlotPosition($wrapper,now).top);
-            currentTimeIndicator.find('.js-current-time').text(getMinutesAndSeconds($wrapper, now));
+            updateIndicator(); // Aktualisiere Indikator und Zeit-Badge
         }, 60 * 1000);
 
-        // Setze initial die Position direkt
-        currentTimeIndicator.css('top', calculateSlotPosition($wrapper, now).top);
+        // Position und Badge für die erste Initialisierung einmal direkt setzen
+        updateIndicator();
     }
 
     /**
@@ -4597,7 +4621,7 @@
         // Fall 1: Termin vollständig außerhalb der Grenzen – nicht anzeigen
         if ((startHours < settings.hourSlots.start && (!endHours || endHours <= settings.hourSlots.start)) ||
             (startHours >= settings.hourSlots.end)) {
-            return { top: 0, height: 0 };
+            return {top: 0, height: 0};
         }
 
         // Begrenzung anpassen, falls erforderlich
@@ -4624,7 +4648,7 @@
             height = (durationMinutes / 60) * settings.hourSlots.height;
         }
 
-        return { top: top - 4, height: height > 0 ? height : 0 };
+        return {top: top - 4, height: height > 0 ? height : 0};
     }
 
     /**
