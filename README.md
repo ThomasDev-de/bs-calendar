@@ -7,10 +7,10 @@ available options, including their types, default values, and descriptions.
 
 | **Option**        | **Type**                         | **Default Value**                  | **Description**                                                                                                                                                                                                                                 |
 |-------------------|----------------------------------|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| locale            | `string`                         | `"en-GB"`                          | Defines the localization (e.g., language).                                                                                                                                                                                                      |
-| title             | `string`                         | `"Calendar"`                       | Title of the calendar.                                                                                                                                                                                                                          |
-| startWeekOnSunday | `boolean`                        | `true`                             | Specifies whether the week should start on Sunday.                                                                                                                                                                                              |
-| navigateOnWheel   | `boolean`                        | `true`                             | Enables navigation using the mouse wheel.                                                                                                                                                                                                       |
+| locale            | `string`                         | `"en-GB"`                          | Set the language and the country. The month and days of the week are set on the basis of language.                                                                                                                                              |
+| title             | `string`                         | `null`                             | If a title is set in the form of string or HTML, it appears above in the middle of the calendar.                                                                                                                                                |
+| startWeekOnSunday | `boolean`                        | `true`                             | Determine here whether the week starts on Sunday. Is the value `false` starts the week on Monday.                                                                                                                                               |
+| navigateOnWheel   | `boolean`                        | `true`                             | If this value is `true`, you can be navigated with mouse wheel through the days, weeks, months or years.                                                                                                                                        |
 | rounded           | `number`                         | `5`                                | Rounding of elements in pixels.                                                                                                                                                                                                                 |
 | search.limit      | `number`                         | `10`                               | Maximum number of search results.                                                                                                                                                                                                               |
 | search.offset     | `number`                         | `0`                                | Offset for the search results.                                                                                                                                                                                                                  |
@@ -30,13 +30,20 @@ available options, including their types, default values, and descriptions.
 
 ### Holidays
 
-| **Key**      | **Default Value** | description           |
-|--------------|-------------------|-----------------------|
-| federalState | `null \| string`  | federal state `DE-BE` |
-| country      | `null \| string`  | the country `DE`      |
-| language     | `null \| string`  | the language `DE`     |
+If an object is handed over (see below), will be
+Holidays and school holidays brought from the [OpenHolidays API](https://www.openholidaysapi.org/en/).   
+If the country or/and the language is not set, these attributes are determined from the local.  
+Federal State is mandatory for the school holidays.
+
+| **Key**      | **Default Value** | description                                                                                                            |
+|--------------|-------------------|------------------------------------------------------------------------------------------------------------------------|
+| federalState | `null \| string`  | federal state `DE-BE`                                                                                                  |
+| country      | `null \| string`  | the country `DE` - You can find a list of all supported countries [here](https://www.openholidaysapi.org/en/sources/). |
+| language     | `null \| string`  | the language `DE`                                                                                                      |
 
 ### Translations
+
+Text editions of the calendar can be adapted to the language here.
 
 | **Key**        | **Default Value**        |
 |----------------|--------------------------|
@@ -50,6 +57,9 @@ available options, including their types, default values, and descriptions.
 | searchNoResult | `"No appointment found"` |
 
 ### Icons
+
+Icons used in the calendar can be adjusted here.  
+The icons of bootstrap-icons are defined as standard.
 
 | **Key**           | **Bootstrap Icon**           |
 |-------------------|------------------------------|
