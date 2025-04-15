@@ -622,7 +622,10 @@
             'width: ' + (isDayOrWeek ? '100%' : 'auto'),
             'text-align: ' + (view === 'day' ? 'left' : 'center'),
         ].join(';');
-        const badgeClass = isDayOrWeek ? 'px-2 py-1 d-inline' : '';
+        let badgeClass = isDayOrWeek ? 'px-2 py-1' : '';
+        if (view === 'day') {
+            badgeClass += ' d-inline';
+        }
         return `<div class="${badgeClass}" style="${css}">${holiday.title}</div>`;
     }
 
