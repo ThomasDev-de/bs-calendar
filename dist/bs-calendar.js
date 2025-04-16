@@ -117,6 +117,7 @@
                 day: formatterDay,
                 week: formatterWeek,
                 month: formatterMonth,
+                search: formatterSearch,
                 holiday: formatterHoliday,
                 window: formatInfoWindow,
                 duration: formatDuration,
@@ -456,10 +457,10 @@
      * @return {Object} An object containing the extracted language and country as uppercase strings.
      */
     function getLanguageAndCountry(locale) {
-        const parts = locale.split('-'); // Den String anhand des Bindestrichs trennen
-        let language = parts[0].toUpperCase(); // Der erste Teil ist die Sprache, immer vorhanden
-        let country = parts[1] ? parts[1].toUpperCase() : language; // Der zweite Teil ist das Land, falls vorhanden; sonst Sprache als Fallback
-        return {language: language, country: country}; // Rückgabe als Objekt (Sprache und Land)
+        const parts = locale.split('-'); // separate the string based on the bind screed
+        let language = parts[0].toUpperCase(); // The first part is the language, always present
+        let country = parts[1] ? parts[1].toUpperCase() : language; // The second part is the country, if available; Otherwise language as a fallback
+        return {language: language, country: country}; // return as an object (language and country)
     }
 
     /**
@@ -472,14 +473,14 @@
      * @return {Promise<Array<Object>>} A promise that resolves to an array of public holiday objects, each containing `startDate`, `endDate`, and `title` properties. An error will be thrown if the API request fails.
      */
     async function getPublicHolidaysFromOpenHolidays(country, language, validFrom, validTo) {
-        // Sprache und Land sicherstellen (immer in Großbuchstaben)
+        // ensure language and country (always in capital letters)
         const countryIsoCode = country.toUpperCase();
         const languageIsoCode = language.toUpperCase();
 
-        // URL aufbauen
+        // build URL
         const url = `https://openholidaysapi.org/PublicHolidays?countryIsoCode=${countryIsoCode}&languageIsoCode=${languageIsoCode}&validFrom=${validFrom}&validTo=${validTo}`;
 
-        // API-Anfrage durchführen
+        // execute the API request
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -516,7 +517,7 @@
      * @throws {Error} If the API call fails or returns an error response.
      */
     async function getSchoolHolidaysFromOpenHolidays(country, federalState, validFrom, validTo) {
-        // Sprache und Land sicherstellen (immer in Großbuchstaben)
+        // ensure language and country (always in capital letters)
         let countryIsoCode = country.toUpperCase();
         let subdivisionCode = federalState.toUpperCase();
 
@@ -524,12 +525,10 @@
             subdivisionCode = `${countryIsoCode}-${subdivisionCode}`;
         }
 
-        // const subdivisionCode = 'DE-BE';
-
-        // URL aufbauen
+        // build URL
         const url = `https://openholidaysapi.org/SchoolHolidays?countryIsoCode=${countryIsoCode}&subdivisionCode=${subdivisionCode}&validFrom=${validFrom}&validTo=${validTo}`;
 
-        // API-Anfrage durchführen
+        // execute the API request
         const response = await fetch(url, {
             method: 'GET',
             headers: {
@@ -537,7 +536,7 @@
             },
         });
 
-        // Antwort verarbeiten und zurückgeben
+        // process and return the answer
         if (!response.ok) {
             throw new Error(`Fehler beim Abrufen der Feiertage: ${response.statusText}`);
         }
@@ -658,6 +657,47 @@
             `<span class="text-nowrap d-inline-block w-100 text-truncate">${appointment.title}</span>`,
             `</div>`
         ].join('')
+    }
+
+    /**
+     * Formats an appointment object into a structured HTML string representation.
+     *
+     * @param {Object} appointment - The appointment object to format. This object should include properties such as `start`, `color`, `link`, and `title`.
+     * @param {Object} extras - Additional options to customize the output. This object may contain a `locale` property to format the date string.
+     * @return {string} - A string containing the HTML representation of the formatted appointment.
+     */
+    function formatterSearch(appointment, extras) {
+        const firstCollStyle = [
+            `border-left-color:${appointment.color}`,
+            `border-left-width:5px`,
+            `border-left-style:dotted`,
+            `cursor:pointer`,
+            `font-size:1.75rem`,
+            `width: 60px`,
+        ].join(';');
+        const roundedCss = getBorderRadiusCss(5);
+        const link = buildLink(appointment.link, roundedCss);
+        const day = new Date(appointment.start).getDate();
+        const date = new Date(appointment.start).toLocaleDateString(extras.locale, {
+            month: 'short',
+            year: 'numeric',
+            weekday: 'short'
+        })
+
+        const html = [
+            `<div class="d-flex align-items-center justify-content-start g-3 py-1">`,
+            `<div class="day fw-bold text-center" style="${firstCollStyle}" data-date="${formatDateToDateString(new Date(appointment.start))}">`,
+            `${day}`,
+            `</div>`,
+            `<div class="text-muted" style="width: 150px;">`,
+            `${date}`,
+            `</div>`,
+            `<div class="title-container flex-fill text-nowrap d-flex justify-content-between align-items-center">`,
+            `<span>${appointment.title}</span>` + link,
+            `</div>`,
+            `</div>`,
+        ].join('');
+        return html;
     }
 
     /**
@@ -927,31 +967,30 @@
      * @returns {string} Generierter HTML-Link oder ein leerer String, wenn der Link ungültig ist.
      */
     function buildLink(link, style = "") {
-        if (!link) return ""; // Wenn kein Link angegeben ist, leer zurückgeben.
+        if (!link) return ""; // If no link is specified, return empty.
 
-        // Standardwerte vorbereiten
+        // prepare default values
         const defaultText = "Link";
         const defaultTarget = "_blank";
         const defaultRel = "noopener noreferrer";
 
         if (typeof link === "string") {
-            // Behandlung als einfacher String
+            // treatment as a simple string
             return `<a class="btn btn-primary px-5" style="${style}" href="${link}" target="${defaultTarget}" rel="${defaultRel}">${defaultText}</a>`;
         }
 
         if (typeof link === "object" && link.href) {
-            // Behandlung als Objekt mit Attributen
+            // treatment as an object with attributes
             const text = link.text || defaultText;
             const target = link.target || defaultTarget;
             const rel = link.rel || defaultRel;
 
-            // Wenn HTML-Inhalt definiert ist, wird dieser verwendet
+            // When HTML content is defined, this is used
             const content = link.html || text;
-
             return `<a class="btn btn-primary px-5" style="${style}" href="${link.href}" target="${target}" rel="${rel}">${content}</a>`;
         }
 
-        // Falls weder ein String noch ein korrektes Objekt vorhanden ist, leer zurückgeben.
+        // If neither a string nor a correct object is available, return empty.
         return "";
     }
 
@@ -965,7 +1004,7 @@
         const locale = extras.locale;
         return new Promise((resolve, reject) => {
             try {
-                // Zeiten und Anzeigedaten extrahieren
+                // extract times and ads
                 const times = [];
                 const displayDates = extras.displayDates;
                 const startDate = formatDateByLocale(displayDates[0].date);
@@ -985,11 +1024,11 @@
                     }
                 }
 
-                // Link generieren, wenn vorhanden
+                // generate link if available
                 const roundedCss = getBorderRadiusCss(5);
                 const link = buildLink(appointment.link, roundedCss);
 
-                // Standortinformationen verarbeiten
+                // process location information
                 let location = "";
                 if (appointment.location) {
                     if (Array.isArray(appointment.location)) {
@@ -1003,7 +1042,7 @@
                     }
                 }
 
-                // Ergebnis zusammenbauen und Promise auflösen
+                // assemble the result and dissolve the promise
                 const result = [
                     `<h3>${appointment.title}</h3>`,
                     `<p>${showTime} (${extras.duration.formatted})</p>`,
@@ -1030,7 +1069,7 @@
         if (typeof date === 'string') {
             date = new Date(date);
         }
-        // Formatierungsoptionen
+        // formatting options
         const options = {weekday: 'long', month: 'long', day: 'numeric'};
         return new Intl.DateTimeFormat(locale, options).format(date);
     }
@@ -1070,10 +1109,10 @@
         }
 
         if (event !== 'all') {
-            // "all"-Event direkt auslösen
+            // trigger "all" event directly
             $wrapper.trigger('all.bs.calendar', event, ...p);
 
-            // Spezifisches Event direkt auslösen
+            // trigger specific event directly
             $wrapper.trigger(`${event}.bs.calendar`, ...p);
         }
     }
@@ -1145,7 +1184,7 @@
         if (typeof dateTime === "string") {
             return dateTime.replace(" ", "T");
         }
-        return dateTime; // Falls der Wert kein String ist, gib ihn direkt zurück.
+        return dateTime; // If the value is not a string, give it back directly.
     }
 
     /**
@@ -1180,15 +1219,15 @@
             if (view === 'year') {
                 const processedAppointments = appointments
                     .filter(appointment => {
-                        // Prüfen, ob `date` vorhanden ist und gültig ist
+                        // check whether `date` is available and is valid
                         const isValidDate = appointment.hasOwnProperty('date') && !isNaN(Date.parse(appointment.date));
-                        // Prüfen, ob `total` vorhanden ist und größer als 0 ist
+                        // check whether `total` is present and is larger than 0
                         const isValidTotal = appointment.hasOwnProperty('total') && parseInt(appointment.total) > 0;
-                        // Nur dann übernehmen, wenn beide Prüfungen erfolgreich sind
+                        // only take over if both exams are successful
                         return isValidDate && isValidTotal;
                     })
                     .map(appointment => {
-                        // Den Wert von `total` auf Integer setzen (falls erforderlich)
+                        // Put the value of `total` on integer (if necessary)
                         appointment.total = parseInt(appointment.total);
                         return appointment;
                     });
@@ -1244,7 +1283,7 @@
                 bootstrapVersion = 4; // Bootstrap 4
             }
         } else {
-            bootstrapVersion = 5; // Bootstrap nicht geladen
+            bootstrapVersion = 5; // boat trap not loaded
         }
         return bootstrapVersion;
     }
@@ -1266,7 +1305,7 @@
             const hexPattern = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
             const rgbPattern = /^rgba?\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})(?:,\s*(0|0?\.\d+|1))?\s*\)$/;
 
-            // Prüfen, ob Eingabe ein gültiger Hex/RGB-Wert ist oder ein definierter Farbname
+            // check whether input is a valid hex/RGB value or a defined color name
             return hexPattern.test(inputColor) || rgbPattern.test(inputColor) || inputColor.toLowerCase() in colorNameToHex;
         }
 
@@ -1278,11 +1317,11 @@
          * @return {string} The resolved color in hexadecimal format if the input is a recognized color name, otherwise the input color itself.
          */
         function resolveColor(inputColor) {
-            // Prüfen, ob es ein Farbnamen ist, der in Hex umgerechnet werden muss
+            // check whether it is a color name that has to be converted into hex
             if (inputColor.toLowerCase() in colorNameToHex) {
                 return colorNameToHex[inputColor.toLowerCase()];
             }
-            return inputColor; // Falls kein Farbnamen, den Input direkt zurückgeben
+            return inputColor; // If no color name, return the input directly
         }
 
         /**
@@ -1293,7 +1332,7 @@
          * @return {boolean} Returns true if the color is dark, false otherwise.
          */
         function isDarkColor(color) {
-            // Hex-Farbe auflösen, falls es ein Farbnamen ist
+            // dissolve hex-color if it is a color name
             color = resolveColor(color);
 
             let r, g, b;
@@ -1409,34 +1448,34 @@
          */
         function computeColor(inputColor) {
             if (isDirectColorValid(inputColor)) {
-                // Die Farbe in ein gültiges Format (z. B. Hex) auflösen
+                // dissolve the color into a valid format (e.g. hex)
                 const resolvedColor = resolveColor(inputColor);
                 const isDark = isDarkColor(resolvedColor);
                 return {
-                    backgroundColor: resolvedColor, // Hintergrundfarbe
-                    backgroundImage: "none", // Standardmäßig kein Bild
-                    color: isDark ? "#FFFFFF" : "#000000", // Textfarbe basierend auf Hintergrundfarbe
+                    backgroundColor: resolvedColor, // background color
+                    backgroundImage: "none", // By default no picture
+                    color: isDark ? "#FFFFFF" : "#000000", // text color based on background color
                 };
             } else if (inputColor) {
                 return getComputedStyles(inputColor);
             }
 
-            return null; // Ungültiger Input
+            return null; // invalid input
         }
 
         const primaryResult = computeColor(color);
         const fallbackResult = primaryResult || computeColor(fallbackColor);
 
         const defaultValues = {
-            backgroundColor: "#000000", // Schwarzer Hintergrund, falls nichts passt
-            backgroundImage: "none", // Kein Hintergrundbild standardmäßig
-            color: "#FFFFFF", // Standard-Textfarbe bei dunklem Hintergrund
+            backgroundColor: "#000000", // black background, if nothing fits
+            backgroundImage: "none", // No background image by default
+            color: "#FFFFFF", // standard text color with dark background
         };
 
         const result = {...defaultValues, ...fallbackResult};
 
         return {
-            origin: color, // Eingabe für Debug-Zwecke
+            origin: color, // input for debug purposes
             ...result,
         };
     }
@@ -1491,25 +1530,25 @@
         }
         return new Promise((resolve, reject) => {
             try {
-                // Sortiere die Termine
+                // sort the dates
                 appointments.sort((a, b) => {
                     if (sortAllDay) {
-                        // All-Day-Termine zuerst
+                        // all-day dates first
                         if (a.allDay && !b.allDay) {
-                            return -1; // a vor b
+                            return -1;
                         }
                         if (!a.allDay && b.allDay) {
-                            return 1; // b vor a
+                            return 1;
                         }
                     }
 
-                    // Innerhalb gleicher Kategorie nach Startdatum sortieren
+                    // sort within the same category by start date
                     return new Date(a.start) - new Date(b.start);
                 });
 
-                resolve(appointments); // Gib das sortierte Array zurück
+                resolve(appointments); // Give back the sorted array
             } catch (error) {
-                reject(error); // Falls ein Fehler auftritt, verwirf das Promise
+                reject(error); // If an error occurs, the promise was rejected
             }
         });
     }
@@ -1585,7 +1624,6 @@
             // Add click event to start search mode
             showSearchbar.on('click', function () {
                 toggleSearchBar($wrapper, true);
-                // toggleSearchMode($wrapper, true);
             });
 
             // add the search input to top search bar
@@ -1765,11 +1803,11 @@
         const newDate = new Date(date);
         switch (view) {
             case 'month':
-                newDate.setMonth(newDate.getMonth() - 1); // Einen Monat subtrahieren
+                newDate.setMonth(newDate.getMonth() - 1); // Subtract a month
 
-                // Überprüfen, ob der Tag im neuen Monat existiert
+                // check whether the day in the new month exists
                 if (newDate.getDate() !== date.getDate()) {
-                    // Falls nicht, auf den ersten Tag des neuen Monats setzen
+                    // If not, set on the first day of the new month
                     newDate.setDate(1);
                 }
                 break;
@@ -1801,11 +1839,11 @@
         const newDate = new Date(date);
         switch (view) {
             case 'month':
-                newDate.setMonth(newDate.getMonth() + 1); // Einen Monat subtrahieren
+                newDate.setMonth(newDate.getMonth() + 1); // add a month
 
-                // Überprüfen, ob der Tag im neuen Monat existiert
+                // check whether the day in the new month exists
                 if (newDate.getDate() !== date.getDate()) {
-                    // Falls nicht, auf den ersten Tag des neuen Monats setzen
+                    // If not, set on the first day of the new month
                     newDate.setDate(1);
                 }
                 break;
@@ -1858,7 +1896,6 @@
      */
     function toggleSearchMode($wrapper, status, rebuildView = true) {
         const settings = getSettings($wrapper);
-        // toggleSearchBar($wrapper, status);
         setSearchMode($wrapper, status);
 
         if (status) {
@@ -1954,19 +1991,19 @@
      */
     function handleSidebarVisibility($wrapper, forceClose = false, forceOpen = false) {
         var $sidebar = $wrapper.find('.' + calendarElements.sideNav);
-        var isVisible = $sidebar.data('visible'); // Aktueller Status der Sidebar
+        var isVisible = $sidebar.data('visible'); // Current status of the sidebar
 
-        // Zielstatus berechnen
+        // calculate target status
         var shouldBeVisible = forceOpen || (!forceClose && !isVisible);
 
-        // Position VOR der Animation setzen (nur wenn geöffnet wird)
+        // Set a position before the animation (only if it is opened)
         if (shouldBeVisible) {
             $sidebar.css({position: 'relative'});
         }
 
-        // Animation ausführen (abhängig von shouldBeVisible)
+        // execute the animation (depending on Shouldbevisible)
         $sidebar.animate({left: shouldBeVisible ? '0px' : '-300px'}, 300, function () {
-            // Bei Schließen Position NACH der Animation setzen
+            // Set position after the animation when closed
             if (!shouldBeVisible) {
                 $sidebar.css({position: 'absolute'});
             }
@@ -1975,7 +2012,7 @@
                 onResize($wrapper, false);
             }
 
-            // Status aktualisieren
+            // update status
             $sidebar.data('visible', shouldBeVisible);
         });
     }
@@ -2037,16 +2074,16 @@
                 const inViewCOntainer = $(e.target).closest('.wc-calendar-container').length
 
                 if (!settings.navigateOnWheel || !inViewCOntainer || isModalOpen) {
-                    return; // Nichts tun, wenn der Nutzer nicht im Container ist
+                    return; // do nothing if the user is not in the container
                 }
 
-                e.preventDefault(); // Standard-Scroll verhindern
-                e.stopPropagation(); // Event-Bubbling verhindern
+                e.preventDefault(); // prevent standard scroll
+                e.stopPropagation(); // prevent event bubbling
 
                 if (e.originalEvent.deltaY > 0) {
-                    navigateForward($wrapper); // Nach unten gescrollt
+                    navigateForward($wrapper); // scroll down
                 } else {
-                    navigateBack($wrapper); // Nach oben gescrollt
+                    navigateBack($wrapper); // scroll up
                 }
             })
             .on('click', '[data-bs-toggle="sidebar"]', function () {
@@ -2098,7 +2135,7 @@
 
                 if (getSearchMode($wrapper)) {
                     e.stopPropagation();
-                    return; // Wenn im Suchmodus, direkt abbrechen
+                    return; // If in search mode, cancel directly
                 }
 
                 const period = getStartAndEndDateByView($wrapper);
@@ -2112,7 +2149,7 @@
                         date: formatDateToDateString(period.end),
                         time: null
                     },
-                    view: getView($wrapper) // Ansicht, z. B. 'day', 'week'
+                    view: getView($wrapper)
                 };
 
                 trigger($wrapper, 'add', [data]);
@@ -2197,7 +2234,6 @@
             })
     }
 
-    // Benutzerdefinierte Suchfunktion (z. B. API-Aufruf oder Filter anwenden)
     /**
      * Triggers the search functionality within the given wrapper element. This includes fetching settings,
      * resetting pagination, and updating the view.
@@ -2206,9 +2242,9 @@
      * @return {void} - No return value.
      */
     function triggerSearch($wrapper) {
-        const settings = getSettings($wrapper); // Einstellungen holen
+        const settings = getSettings($wrapper);
         resetSearchPagination($wrapper);
-        buildByView($wrapper); // Ansicht aktualisieren
+        buildByView($wrapper);
     }
 
     /**
@@ -2659,22 +2695,22 @@
         const view = getView($wrapper);
 
 
-        // 1. Termine nach Wochentag gruppieren
+        // 1. Group appointments after weekdays
         appointments.forEach((appointment) => {
             appointment.extras.displayDates.forEach((obj) => {
-                // Ignoriere Termine, die in der Wochenansicht nicht sichtbar sind
+                // Ignore appointments that are not visible in the weekly view
                 if (view === 'week' && !obj.visibleInWeek) {
                     return;
                 }
 
-                // Benutze explizite Konstruktion von Datum und Zeit:
+                // Use explicit construction of date and time:
                 const slotStart = new Date(`${obj.date}T${obj.times.start}`);
                 const slotEnd = new Date(`${obj.date}T${obj.times.end}`);
 
-                // Wochentag korrekt berechnen
+                // calculate the weekday correctly
                 const weekday = slotStart.getDay();
 
-                // Initialisiere Tagesstruktur, falls noch nicht vorhanden
+                // initialize daily structure, if not yet available
                 if (!groupedByWeekdays[weekday]) {
                     groupedByWeekdays[weekday] = {appointments: [], columns: [], fullWidth: []};
                 }
@@ -2687,17 +2723,17 @@
             });
         });
 
-        // 2. Spalten und FullWidth erstellen
+        // 2. Create columns and Fullwidth
         Object.keys(groupedByWeekdays).forEach((day) => {
             const {appointments, columns, fullWidth} = groupedByWeekdays[day];
 
-            // Sortiere die Termine nach Startzeit
+            // sort the dates by start time
             appointments.sort((a, b) => a.start - b.start);
 
             appointments.forEach((appointment) => {
                 let placedInColumn = false;
 
-                // Versuche, den Termin in vorhandene Spalten einzusortieren
+                // Try to sort the appointment in existing columns
                 for (let column of columns) {
                     if (doesNotOverlap(column, appointment)) {
                         column.push(appointment);
@@ -2706,18 +2742,18 @@
                     }
                 }
 
-                // Falls keine passende Spalte gefunden wurde, prüfe FullWidth
+                // If no suitable column has been found, check Fullwidth
                 if (!placedInColumn) {
                     const hasOverlap = appointments.some((otherAppointment) =>
                         otherAppointment !== appointment &&
                         !(appointment.start >= otherAppointment.end || appointment.end <= otherAppointment.start)
                     );
 
-                    // `fullWidth`: Nur wenn kein Überschneiden und keine Spalten notwendig sind
+                    // `fullwidth`: only if no overlap and no columns are necessary
                     if (!hasOverlap && columns.length === 0) {
                         fullWidth.push(appointment);
                     } else {
-                        // Andernfalls neue Spalte anlegen
+                        // otherwise create a new column
                         columns.push([appointment]);
                     }
                 }
@@ -2737,10 +2773,10 @@
     function doesNotOverlap(column, newAppointment) {
         for (const appointment of column) {
             if (!(newAppointment.start >= appointment.end || newAppointment.end <= appointment.start)) {
-                return false; // Überschneidung
+                return false; // overlap
             }
         }
-        return true; // Keine Überschneidung
+        return true; // no overlap
     }
 
     /**
@@ -2808,7 +2844,7 @@
                         return; // Überspringe das fehlerhafte Datum
                     }
 
-// Formatierung des Startdatums für den richtigen Container
+                    // Formatierung des Startdatums für den richtigen Container
                     const targetDateLocal = formatDateToDateString(startDate);
 
                     // Suche des Containers anhand Wochentag und Datum
@@ -3007,7 +3043,7 @@
         const input = getSearchElement($wrapper);
         const search = input.val().trim();
 
-        // Wenn kein Suchbegriff vorhanden ist
+        // If there is no search term
         if (isValueEmpty(search)) {
             $container.html('<div class="d-flex p-5 align-items-center justify-content-center"></div>');
             input.appendTo($container.find('.d-flex'));
@@ -3015,7 +3051,7 @@
             return;
         }
 
-        // Wenn keine Suchergebnisse vorhanden sind
+        // If there are no search results
         if (!appointments.length) {
             $container.html('<div class="d-flex p-5 align-items-center justify-content-center">' + settings.translations.searchNoResult + '</div>');
             return;
@@ -3034,44 +3070,21 @@
 
         $container.empty();
 
-        // Pagination oben hinzufügen
+        // add pagination above
         buildSearchPagination($container, page, totalPages, itemsPerPage, total);
 
-        // Terminliste
+        // term list
         const $appointmentContainer = $('<div>', {class: 'list-group list-group-flush mb-3'}).appendTo($container);
 
         visibleAppointments.forEach((appointment) => {
             const borderLeftColor = appointment.color || settings.defaultColor;
-            const firstCollStyle = [
-                `border-left-color:${borderLeftColor}`,
-                `border-left-width:5px`,
-                `border-left-style:dotted`,
-                `cursor:pointer`,
-                `font-size:1.75rem`,
-                `width: 60px`,
-            ].join(';');
-
             const link = buildLink(appointment.link);
-
-            const html = [
-                `<div class="day fw-bold text-center" style="${firstCollStyle}" data-date="${formatDateToDateString(new Date(appointment.start))}">`,
-                `${new Date(appointment.start).getDate()}`,
-                `</div>`,
-                `<div class="text-muted" style="width: 150px;">`,
-                `${new Date(appointment.start).toLocaleDateString(settings.locale, {
-                    month: 'short',
-                    year: 'numeric',
-                    weekday: 'short'
-                })}`,
-                `</div>`,
-                `<div class="title-container flex-fill text-nowrap">`,
-                `${appointment.title}` + link,
-                `</div>`,
-            ].join('');
+            const copy = getAppointmentForReturn(appointment)
+            const html = settings.formatter.search(copy.appointment, copy.extras);
 
             const appointmentElement = $('<div>', {
                 'data-appointment': true,
-                class: 'list-group-item d-flex align-items-center g-3 py-1 overflow-hidden',
+                class: 'list-group-item overflow-hidden p-0',
                 html: html,
                 css: {
                     cursor: 'pointer',
@@ -3082,7 +3095,7 @@
             appointmentElement.data('appointment', appointment);
         });
 
-        // Pagination unten hinzufügen
+        // Add pagination below
         buildSearchPagination($container, page, totalPages, itemsPerPage, total);
     }
 
@@ -3107,7 +3120,7 @@
             class: 'd-flex align-items-center justify-content-between my-1 wc-search-pagination',
         }).appendTo($container);
 
-        // Anzeige der Suchergebnisse (Start - Ende | Gesamt)
+        // Display of the search results (start - end | Total)
         const startIndexDisplay = (currentPage - 1) * itemsPerPage + 1;
         const endIndexDisplay = Math.min(currentPage * itemsPerPage, total);
         const statusText = `${startIndexDisplay}-${endIndexDisplay} | ${total}`;
@@ -3120,10 +3133,10 @@
         const $pagination = $('<nav>', {'aria-label': 'Page navigation'}).appendTo($paginationWrapper);
         const $paginationList = $('<ul>', {class: 'pagination mb-0'}).appendTo($pagination);
 
-        // Maximalanzahl von Seiten links und rechts der aktuellen Seite
+        // number of maximum number of pages on the left and right of the current page
         const maxAdjacentPages = 2;
 
-        // Hilfsfunktion: Seiten hinzufügen
+        // Auxiliary function: Add sites
         const addPage = (page) => {
             const $pageItem = $('<li>', {class: 'page-item'});
             if (page === currentPage) {
@@ -3139,7 +3152,7 @@
             $pageItem.appendTo($paginationList);
         };
 
-        // Hilfsfunktion: Trunkierung (`...`)
+        // auxiliary function: drunk (`...`)
         const addEllipsis = () => {
             $('<li>', {
                 class: 'page-item disabled',
@@ -3148,33 +3161,33 @@
             ).appendTo($paginationList);
         };
 
-        // 1. Erste Seite immer anzeigen
+        // 1. Always display the first page
         if (currentPage > maxAdjacentPages + 1) {
-            addPage(1); // Erste Seite
+            addPage(1); // first page
             if (currentPage > maxAdjacentPages + 2) {
-                addEllipsis(); // Trunkierung
+                addEllipsis(); // truncate
             }
         }
 
-        // 2. Links von der aktuellen Seite
+        // 2nd left of the current page
         for (let i = Math.max(1, currentPage - maxAdjacentPages); i < currentPage; i++) {
             addPage(i);
         }
 
-        // 3. Aktuelle Seite
+        // 3rd page
         addPage(currentPage);
 
-        // 4. Rechts von der aktuellen Seite
+        // 4. right from the current side
         for (let i = currentPage + 1; i <= Math.min(totalPages, currentPage + maxAdjacentPages); i++) {
             addPage(i);
         }
 
-        // 5. Letzte Seite immer anzeigen
+        // 5. Always show the last page
         if (currentPage < totalPages - maxAdjacentPages) {
             if (currentPage < totalPages - maxAdjacentPages - 1) {
-                addEllipsis(); // Trunkierung
+                addEllipsis(); // truncate
             }
-            addPage(totalPages); // Letzte Seite
+            addPage(totalPages); // last page
         }
     }
 
@@ -3195,9 +3208,6 @@
         appointments.forEach(appointment => {
             const multipleStartDates = appointment.extras.displayDates.length > 1;
             appointment.extras.displayDates.forEach(obj => {
-                // if (!obj.visibleInMonth) {
-                //     return;
-                // }
                 const startString = obj.date
 
                 const dayContainer = $container.find(`[data-month-date="${startString}"] [data-role="day-wrapper"]`);
@@ -3311,17 +3321,17 @@
                 tempDate.setHours(0, 0, 0, 0);
                 tempEnd.setHours(0, 0, 0, 0);
 
-                // Berechne Monatsgrenzen
+                // Calculate monthly borders
 
                 const firstOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
                 const lastOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
 
-                // Erweiterung für volle Wochenanzeige im Monat
-                const firstDayOffset = settings.startWeekOnSunday ? 0 : 1; // Sonntag oder Montag
+                // Extension for full weekly display in the month
+                const firstDayOffset = settings.startWeekOnSunday ? 0 : 1; // Sunday or Monday
                 const monthStart = new Date(firstOfMonth);
-                monthStart.setDate(firstOfMonth.getDate() - ((firstOfMonth.getDay() - firstDayOffset + 7) % 7)); // Erster Tag der angezeigten Woche
+                monthStart.setDate(firstOfMonth.getDate() - ((firstOfMonth.getDay() - firstDayOffset + 7) % 7)); // first day of the week displayed
                 const monthEnd = new Date(lastOfMonth);
-                monthEnd.setDate(lastOfMonth.getDate() + (6 - (lastOfMonth.getDay() - firstDayOffset + 7) % 7)); // Letzter Tag der letzten Woche
+                monthEnd.setDate(lastOfMonth.getDate() + (6 - (lastOfMonth.getDay() - firstDayOffset + 7) % 7)); // last day of last week
 
                 while (tempDate <= tempEnd) {
                     const dateIsStart = isSameDate(tempDate, start);
@@ -3335,7 +3345,7 @@
                             end: null
                         },
                         visibleInWeek: false,
-                        visibleInMonth: false // Neuer Wert
+                        visibleInMonth: false
                     };
 
                     if (isAllDay) {
@@ -3356,12 +3366,12 @@
                         }
                     }
 
-                    // Prüfung: Liegt tempDate innerhalb der erweiterten Monatsanzeige?
+                    // Exam: Is there a temp date within the extended monthly display?
                     if (tempDate >= monthStart && tempDate <= monthEnd) {
                         dateDetails.visibleInMonth = true;
                     }
 
-                    // Prüfung für Wochenanzeige ist bereits implementiert
+                    // Exam for a weekly display is already implemented
                     const weekRangeStart = new Date(tempDate);
                     const weekRangeEnd = new Date(tempDate);
 
@@ -3382,26 +3392,26 @@
                     tempDate.setDate(tempDate.getDate() + 1);
                 }
 
-                // Prüfe, ob der Termin vollständig an einem Tag bleibt
+                // check whether the appointment remains completely in one day
                 extras.inADay = extras.displayDates.length === 1;
 
-                // Berechnung der Gesamtdauer des Termins
+                // calculation of the total duration of the appointment
                 const diffMillis = end - start;
 
-                // Überprüfe, ob es sich um einen ganztägigen Termin handelt
+                // check whether it is a full -day appointment
                 if (appointment.allDay) {
-                    // Nur die Kalendertage berücksichtigen, unabhängig von der Uhrzeit
+                    // only take into account the calendar days, regardless of the time
                     const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
                     const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
-                    // Differenz in Tagen berechnen
+                    // calculate difference in days
                     const diffDaysMillis = endDate - startDate;
                     extras.duration.days = Math.floor(diffDaysMillis / (24 * 3600 * 1000)) + 1; // +1 inkludiert den letzten Tag
                     extras.duration.hours = 0;
                     extras.duration.minutes = 0;
                     extras.duration.seconds = 0;
                 } else {
-                    // Normale Berechnung für stundenbasierte Termine
+                    // normal calculation for hourly -based appointments
                     const totalSeconds = Math.floor(diffMillis / 1000);
                     extras.duration.days = Math.floor(totalSeconds / (24 * 3600));
                     extras.duration.hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
@@ -3409,10 +3419,8 @@
                     extras.duration.seconds = totalSeconds % 60;
                 }
 
-                // Formatierte Dauer, wenn gewünscht
+                // durated duration, if desired
                 extras.duration.formatted = settings.formatter.duration(extras.duration);
-
-
                 extras.inADay = extras.displayDates.length === 1;
                 appointment.extras = extras;
             });
@@ -4516,7 +4524,7 @@
     function addCurrentTimeIndicator($wrapper, $container) {
         const getDynamicNow = () => new Date(); // Immer die aktuelle Zeit abrufen
         const settings = getSettings($wrapper); // Dynamische Einstellungen holen
-        const { hourSlots } = settings; // Hole Start, Ende und Höhe der Slots
+        const {hourSlots} = settings; // Hole Start, Ende und Höhe der Slots
 
         // Funktion zur Berechnung der Position
         const calculatePosition = () => {
@@ -4524,11 +4532,11 @@
             const currentHour = now.getHours() + now.getMinutes() / 60; // Zeit in Dezimalform
 
             if (currentHour < hourSlots.start) {
-                return { top: 0, bottom: "" }; // Vor der Startzeit
+                return {top: 0, bottom: ""}; // Vor der Startzeit
             } else if (currentHour >= hourSlots.end) {
-                return { top: "", bottom: 0 }; // Nach der Endzeit
+                return {top: "", bottom: 0}; // Nach der Endzeit
             } else {
-                return { top: calculateSlotPosition($wrapper, now).top, bottom: "" }; // Innerhalb des Zeitbereichs
+                return {top: calculateSlotPosition($wrapper, now).top, bottom: ""}; // Innerhalb des Zeitbereichs
             }
         };
 
