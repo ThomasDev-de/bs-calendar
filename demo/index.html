@@ -121,30 +121,30 @@
 <script src="../vendor/components/jquery/jquery.min.js"></script>
 
 <script src="../vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-<script src="openHolidays.min.js"></script>
 <script src="../dist/bs-calendar.js"></script>
 <script>
     $(function () {
         $.bsCalendar.setDefaults({
-            title: '<span class="h4 text-uppercase mb-0">Calendar</span>',
-            locale: 'de-DE',
+            // title: 'Example',
+            title: '<span class="h4 text-uppercase mb-0">EXAMPLE</span>',
+            locale: 'en-UK',
             startWeekOnSunday: false,
             rounded: 5,
             defaultColor: 'info',
-            navigateOnWheel: false,
+            navigateOnWheel: true,
             holidays: {
                 federalState: 'BE',
             },
-            translations: {
-                day: 'Tag',
-                week: 'Woche',
-                month: 'Monat',
-                year: 'Jahr',
-                today: 'Heute',
-                appointment: 'Termin',
-                search: 'Tippe und drücke Enter',
-                searchNoResult: 'Keine Termine gefunden',
-            },
+            // translations: {
+            //     day: 'Tag',
+            //     week: 'Woche',
+            //     month: 'Monat',
+            //     year: 'Jahr',
+            //     today: 'Heute',
+            //     appointment: 'Termin',
+            //     search: 'Tippe und drücke Enter',
+            //     searchNoResult: 'Keine Termine gefunden',
+            // },
             hourSlots: {
                 start: 8,
                 end: 16,

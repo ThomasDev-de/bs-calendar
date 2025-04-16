@@ -38,7 +38,6 @@
  *
  * @file bs-calendar.js
  * @date 2025-04-01
- * @global jQuery
  *
  * @note This plugin makes use of the nager.date API for holiday-related functionalities.
  *       For more information about the API and its usage, please refer to the MIT license provided by nager.date.
@@ -71,7 +70,7 @@
         },
         DEFAULTS: {
             debug: false,
-            locale: 'en-GB', // language and country
+            locale: 'en-UK', // language and country
             title: null,
             startWeekOnSunday: true,
             navigateOnWheel: true,
@@ -4511,7 +4510,6 @@
         if (isToday) {
             addCurrentTimeIndicator($wrapper, timeSlots)
         }
-
     }
 
     /**
