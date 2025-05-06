@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.1.0
+ * @version 1.2.0
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -37,7 +37,7 @@
  * See the individual method and function documentation in this file for more details.
  *
  * @file bs-calendar.js
- * @date 2025-04-01
+ * @date 2025-05-06
  *
  * @note This plugin makes use of the nager.date API for holiday-related functionalities.
  *       For more information about the API and its usage, please refer to the MIT license provided by nager.date.
@@ -70,7 +70,8 @@
         },
         DEFAULTS: {
             debug: false,
-            locale: 'en-UK', // language and country
+            storeState: false,
+            locale: 'en-GB', // language and country
             title: null,
             startWeekOnSunday: true,
             navigateOnWheel: true,
@@ -85,12 +86,6 @@
             views: ['year', 'month', 'week', 'day'],
             holidays: null,
             translations: {
-                day: 'Day',
-                week: 'Week',
-                month: 'Month',
-                year: 'Year',
-                today: 'Today',
-                appointment: 'Appointment',
                 search: 'Type and press Enter',
                 searchNoResult: 'No appointment found'
             },
@@ -397,7 +392,18 @@
                 settings = $.extend(true, {}, settings, wrapper.data(), optionsOrMethod || {});
             }
 
+            settings.translations = $.extend(true, {}, settings.translations, getStandardizedUnits(settings.locale) || {});
+
             setSettings(wrapper, settings);
+
+            if (settings.storeState) {
+                const view = getFromLocalStorage(wrapper, 'view');
+                if (!isValueEmpty(view)) {
+                    settings.startView = view;
+                    setSettings(wrapper, settings);
+                }
+            }
+
             init(wrapper).then(() => {
                 onResize(wrapper, true);
             });
@@ -435,6 +441,114 @@
 
         return wrapper;
     }
+
+    function getStandardizedUnits(locale) {
+        const units = ['today', 'day', 'week', 'month', 'year'];
+        const result = {};
+
+        units.forEach(unit => {
+            let localizedUnit;
+
+            // Statische Übersetzungen für fehlerhafte oder bekannte schwierige Locales
+            if (locale === 'ar') {
+                const arabicTranslations = {
+                    today: "اليوم", // heute
+                    day: "يوم",
+                    week: "أسبوع",
+                    month: "شهر",
+                    year: "سنة"
+                };
+                localizedUnit = arabicTranslations[unit];
+            } else if (locale === 'he') {
+                const hebrewTranslations = {
+                    today: "היום", // heute
+                    day: "יום",
+                    week: "שבוע",
+                    month: "חודש",
+                    year: "שנה"
+                };
+                localizedUnit = hebrewTranslations[unit];
+            } else if (locale === 'zh') {
+                const chineseTranslations = {
+                    today: "今天", // heute
+                    day: "天",
+                    week: "周",
+                    month: "月",
+                    year: "年"
+                };
+                localizedUnit = chineseTranslations[unit];
+            } else {
+                // Dynamische Verarbeitung für alle anderen Locales
+                try {
+                    if (unit === 'today') {
+                        // Feste Übersetzung für "heute"
+                        localizedUnit = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(0, 'day');
+                    } else {
+                        const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'always' });
+                        const formatted = formatter.format(1, unit);
+
+                        // Entfernt Präfixe oder unerwarteten Text
+                        localizedUnit = formatted
+                            .replace(/^\D*\d+\s?/, '') // Entfernt Präfixe/Zahlen (z.B. "in 1 ")
+                            .replace(/後|后$/, '')     // Entfernt "später" für Japanisch/Chinesisch
+                            .replace(/\s후$/, '')     // Entfernt "후" für Koreanisch
+                            .replace(/^ในอีก\s?/, '') // Entfernt "in" für Thailändisch
+                            .trim();
+                    }
+                } catch (error) {
+                    console.error(`Fehler für ${unit} mit Locale ${locale}:`, error.message);
+                    localizedUnit = unit; // Rückfall zur Einheit
+                }
+            }
+
+            // Ergebnis speichern
+            result[unit] = localizedUnit || unit; // Fallback zur Einheit
+        });
+
+        return result;
+    }
+
+    function testAllKnownLocales() {
+        const allKnownLocales = [
+            "af", "af-NA", "af-ZA", "am", "am-ET", "ar", "ar-AE", "ar-BH", "ar-DJ", "ar-DZ", "ar-EG", "ar-EH", "ar-ER", "ar-IL", "ar-IQ", "ar-JO",
+            "ar-KM", "ar-KW", "ar-LB", "ar-LY", "ar-MA", "ar-MR", "ar-OM", "ar-PS", "ar-QA", "ar-SA", "ar-SD", "ar-SO", "ar-SS", "ar-SY", "ar-TD",
+            "ar-TN", "ar-YE", "as", "as-IN", "az", "az-AZ", "be", "be-BY", "bg", "bg-BG", "bn", "bn-BD", "bn-IN", "bs", "bs-BA", "ca", "ca-AD",
+            "ca-ES", "ca-ES-VALENCIA", "ca-FR", "ca-IT", "ce", "ce-RU", "cs", "cs-CZ", "cy", "cy-GB", "da", "da-DK", "de", "de-AT", "de-BE", "de-CH",
+            "de-DE", "de-IT", "de-LI", "de-LU", "dz", "dz-BT", "ee", "ee-GH", "ee-TG", "el", "el-CY", "el-GR", "en", "en-001", "en-150", "en-AG",
+            "en-AI", "en-AS", "en-AT", "en-AU", "en-BB", "en-BE", "en-BM", "en-BS", "en-BW", "en-BZ", "en-CA", "en-CC", "en-CH", "en-CK", "en-CM",
+            "en-CX", "en-CY", "en-DE", "en-DG", "en-DK", "en-DM", "en-ER", "en-FI", "en-FJ", "en-FK", "en-FM", "en-GB", "en-GD", "en-GG", "en-GH",
+            "en-GI", "en-GM", "en-GU", "en-GY", "en-HK", "en-IE", "en-IL", "en-IM", "en-IN", "en-IO", "en-JE", "en-JM", "en-KE", "en-KI", "en-KN",
+            "en-KY", "en-LC", "en-LR", "en-LS", "en-MG", "en-MH", "en-MO", "en-MP", "en-MS", "en-MT", "en-MU", "en-MW", "en-MY", "en-NA", "en-NF",
+            "en-NG", "en-NL", "en-NR", "en-NU", "en-NZ", "en-PG", "en-PH", "en-PK", "en-PN", "en-PR", "en-PW", "en-RW", "en-SB", "en-SC", "en-SD",
+            "en-SE", "en-SG", "en-SH", "en-SI", "en-SL", "en-SS", "en-SX", "en-SZ", "en-TC", "en-TK", "en-TO", "en-TT", "en-TV", "en-TZ", "en-UG",
+            "en-UM", "en-US", "en-US-POSIX", "en-VC", "en-VG", "en-VI", "en-VU", "en-WS", "en-ZA", "en-ZM", "en-ZW", "eo", "eo-001", "es", "es-419",
+            "es-AR", "es-BO", "es-BR", "es-BZ", "es-CL", "es-CO", "es-CR", "es-CU", "es-DO", "es-EA", "es-EC", "es-ES", "es-GQ", "es-GT", "es-HN",
+            "es-IC", "es-MX", "es-NI", "es-PA", "es-PE", "es-PH", "es-PR", "es-PY", "es-SV", "es-US", "es-UY", "es-VE", "et", "et-EE", "eu", "eu-ES",
+            "fa", "fa-AF", "fa-IR", "ff", "ff-Latn", "ff-Latn-BF", "ff-Latn-CM", "ff-Latn-GH", "ff-Latn-GM", "ff-Latn-GN", "ff-Latn-GW", "ff-Latn-LR",
+            "ff-Latn-MR", "ff-Latn-NE", "ff-Latn-NG", "ff-Latn-SL", "ff-Latn-SN", "fi", "fi-FI", "fo", "fo-DK", "fo-FO", "fr", "fr-BE", "fr-BF",
+            "fr-BI", "fr-BJ", "fr-BL", "fr-CA", "fr-CD", "fr-CF", "fr-CG", "fr-CH", "fr-CI", "fr-CM", "fr-DJ", "fr-DZ", "fr-FR", "fr-GA", "fr-GF",
+            "fr-GN", "fr-GP", "fr-GQ", "fr-HT", "fr-KM", "fr-LU", "fr-MA", "fr-MC", "fr-MF", "fr-MG", "fr-ML", "fr-MQ", "fr-MR", "fr-MU", "fr-NC",
+            "fr-NE", "fr-PF", "fr-PM", "fr-RE", "fr-RW", "fr-SC", "fr-SN", "fr-SY", "fr-TD", "fr-TG", "fr-TN", "fr-VU", "fr-WF", "fr-YT", "fy",
+            "fy-NL", "ga", "ga-IE", "gd", "gd-GB", "gl", "gl-ES", "gu", "gu-IN", "gv", "gv-IM", "ha", "ha-GH", "ha-NE", "ha-NG", "he", "he-IL",
+            "hi", "hi-IN", "hr", "hr-BA", "hr-HR", "hu", "hu-HU", "hy", "hy-AM", "ia", "ia-001", "id", "id-ID", "ig", "ig-NG", "ii", "ii-CN", "is",
+            "is-IS", "it", "it-CH", "it-IT", "it-SM", "it-VA", "ja", "ja-JP", "ja-JP-u-ca-japanese", "jv", "jv-ID", "ka", "ka-GE", "ki", "ki-KE",
+            "kk", "kk-KZ", "kl", "kl-GL", "km", "km-KH", "kn", "kn-IN", "ko", "ko-KP", "ko-KR", "ks", "ks-Arab", "ks-Arab-IN", "kw", "kw-GB", "ky",
+            "ky-KG", "lb", "lb-LU", "lg", "lg-UG", "ln", "ln-AO", "ln-CD", "ln-CF", "ln-CG", "lo", "lo-LA", "lt", "lt-LT", "lu", "lu-CD", "lv",
+            "lv-LV", "mg", "mg-MG", "mi", "mi-NZ", "mk", "mk-MK", "ml", "ml-IN", "mn", "mn-MN", "mr", "mr-IN", "ms", "ms-BN", "ms-MY", "ms-SG",
+            "mt", "mt-MT", "mua", "mua-CM", "my", "my-MM", "naq", "naq-NA", "nb", "nb-NO", "nb-SJ", "nd", "nd-ZW", "ne", "ne-IN", "ne-NP", "nl",
+            "nl-AW", "nl-BE", "nl-BQ", "nl-CW", "nl-NL", "nl-SR", "nl-SX", "nmg", "nmg-CM", "nn", "nn-NO", "nnh", "nnh-CM", "nus", "nus-SS", "nyn",
+            "nyn-UG", "om", "om-ET", "om-KE", "or", "or-IN", "os", "os-GE", "os-RU", "pa", "pa-Arab", "pa-Arab-PK", "pa-Guru", "pa-Guru-IN", "pl",
+            "pl-PL", "ps", "ps-AF", "pt", "pt-AO", "pt-BR", "pt-CH", "pt-CV", "pt-GQ", "pt-GW", "pt-LU", "pt-MO", "pt-MZ", "pt-PT", "pt-ST", "pt-TL",
+            "qu", "qu-BO", "qu-EC", "qu-PE", "rm", "rm-CH", "rn", "rn-BI", "ro", "ro-MD", "ro-RO", "rof", "rof-TZ"
+        ];
+
+        allKnownLocales.forEach(locale => {
+            const result = getStandardizedUnits(locale);
+            console.log(locale, result);
+        });
+    }
+
+    testAllKnownLocales();
 
     /**
      * Convert a given local format (e.g. "de-DE") into a required format (e.g. "DE").
@@ -2227,10 +2341,154 @@
                 if (inSearchMode) {
                     e.stopPropagation();
                 } else {
-                    setView($wrapper, $(e.currentTarget).data('view'));
-                    buildByView($wrapper);
+                    const oldView = getView($wrapper);
+                    const newView = $(e.currentTarget).attr('data-view');
+                    if (oldView !== newView) {
+                        setView($wrapper, newView);
+                        buildByView($wrapper);
+                    }
                 }
             })
+    }
+
+    function removeFromLocalStorage($wrapper, key) {
+        const settings = getSettings($wrapper);
+        if (settings.debug) {
+            log('Removing data from local storage: ' + key);
+        }
+        if (isValueEmpty($wrapper.attr('id'))) {
+            if (settings.debug) {
+                log('Wrapper element has no id attribute. Cannot remove data from local storage.');
+            }
+            return;
+        }
+        const elementId = $wrapper.attr('id');
+        const keyComplete = `bsCalendar.${elementId}.${key}`;
+        localStorage.removeItem(keyComplete);
+    }
+
+    function saveToLocalStorage($wrapper, key, value) {
+        const settings = getSettings($wrapper);
+        if (settings.debug) {
+            log('Saving element data to local storage: ' + key + ' = ' + value);
+        }
+        if (!settings.storeState) {
+            if (settings.debug) {
+                removeFromLocalStorage($wrapper, key);
+                log('Saving is disabled. Please enable it in the settings.');
+            }
+            return;
+        }
+        if (isValueEmpty($wrapper.attr('id'))) {
+            if (settings.debug) {
+                log('Element has no ID, cannot save data to local storage');
+            }
+            return;
+        }
+
+        const elementId = $wrapper.attr('id');
+        const keyComplete = `bsCalendar.${elementId}.${key}`;
+
+        if (value === undefined) {
+            if (settings.debug) {
+                log('Value is undefined, cannot save data to local storage');
+            }
+            return;
+        }
+
+        if (value === null) {
+            if (settings.debug) {
+                log('Value is null, cannot save data to local storage');
+            }
+            localStorage.setItem(keyComplete, 'null');
+        } else if (typeof value === 'object') {
+            if (settings.debug) {
+                log('Saving object to local storage', JSON.stringify(value));
+            }
+            localStorage.setItem(keyComplete, JSON.stringify(value));
+        } else if (typeof value === 'boolean') {
+            if (settings.debug) {
+                log('Saving boolean to local storage', value.toString());
+            }
+            localStorage.setItem(keyComplete, value.toString());
+        } else if (typeof value === 'function') {
+            log('Functions cannot be stored in localStorage.');
+            return;
+        } else {
+            if (settings.debug) {
+                log('Saving string to local storage', value.toString());
+            }
+            localStorage.setItem(keyComplete, value.toString());
+        }
+    }
+
+    function getFromLocalStorage($wrapper, key) {
+        const settings = getSettings($wrapper);
+        if (settings.debug) {
+            log('Getting element data from local storage: ' + key);
+        }
+        if (isValueEmpty($wrapper.attr('id'))) {
+            if (settings.debug) {
+                log('Element has no ID, cannot get data from local storage');
+            }
+            return;
+        }
+        if (!settings.storeState) {
+            if (settings.debug) {
+                removeFromLocalStorage($wrapper, key);
+                log('Getting is disabled. Please enable it in the settings.');
+            }
+            return;
+        }
+        const elementId = $wrapper.attr('id');
+
+        // Verwenden des mit Element-ID erweiterten Schlüssels
+        const keyComplete = `bsCalendar.${elementId}.${key}`;
+        const value = localStorage.getItem(keyComplete);
+
+        try {
+            // Versuch, JSON-Werte zu parsen (für Objekte/Arrays)
+            if (settings.debug) {
+                log('Parsing value from local storage', value);
+            }
+            return JSON.parse(value);
+        } catch (e) {
+            // Prüfe auf spezielle Werte (null oder boolean)
+            if (value === 'null') {
+                if (settings.debug) {
+                    log('Value is null, returning null', null);
+                }
+                return null;
+            }
+
+            if (value === 'true') {
+                if (settings.debug) {
+                    log('Value is \'true\', returning true', true);
+                }
+                return true;
+            }
+
+            if (value === 'false') {
+                if (settings.debug) {
+                    log('Value is \'false\', returning false', false);
+                }
+                return false;
+            }
+
+            // Prüfe, ob es sich um eine Zahl handelt
+            if (!isNaN(value)) {
+                if (settings.debug) {
+                    log('Value is a number, returning number', Number(value));
+                }
+                return Number(value);
+            }
+
+            if (settings.debug) {
+                log('Value is not a valid JSON value, returning string', value);
+            }
+            // Rückgabe als String, falls nichts anderes passt
+            return value;
+        }
     }
 
     /**
@@ -2374,6 +2632,7 @@
         if (settings.debug) {
             log('Set view to:', view);
         }
+        saveToLocalStorage($wrapper, 'view', view);
         $wrapper.data('view', view);
     }
 

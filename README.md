@@ -2,7 +2,7 @@
 
 The calendar provides a wide range of configuration options to customize its behavior and appearance. While there are
 many options available, you don’t need to configure them all—the default values are already set for common use cases.
-Simply adjust the options as needed to better fit your specific requirements. Below is a detailed overview of all
+Adjust the options as needed to better fit your specific requirements. Below is a detailed overview of all
 available options, including their types, default values, and descriptions.
 
 | **Option**        | **Type**                         | **Default Value**                  | **Description**                                                                                                                                                                                                                                 |
@@ -26,6 +26,7 @@ available options, including their types, default values, and descriptions.
 | topbarAddons      | `function` \| `null`             | `null`                             | Additional content for the top navigation bar.                                                                                                                                                                                                  |
 | sidebarAddons     | `function` \| `null`             | `null`                             | Additional content for the side navigation bar.                                                                                                                                                                                                 |
 | debug             | `boolean`                        | `false`                            | Enables debug mode.                                                                                                                                                                                                                             |
+| storeState        | `boolean`                        | `false`                            | If the value is set to `true`, the current view will be saved in localStorage and requested on the next load.                                                                                                                                   |
 | formatter         | `object`                         | `formatterDay`, `formatterWeek`    | Formatters for views and content.                                                                                                                                                                                                               |
 
 ### Holidays
@@ -47,12 +48,6 @@ Text editions of the calendar can be adapted to the language here.
 
 | **Key**        | **Default Value**        |
 |----------------|--------------------------|
-| day            | `"Day"`                  |
-| week           | `"Week"`                 |
-| month          | `"Month"`                |
-| year           | `"Year"`                 |
-| today          | `"Today"`                |
-| appointment    | `"Appointment"`          |
 | search         | `"Type and press Enter"` |
 | searchNoResult | `"No appointment found"` |
 
