@@ -3143,6 +3143,7 @@
                         ? (columnIndex * (100 / totalColumns))
                         : 0;
 
+                    console.log('>>>>>>>>>>>>>>>>>> before calculateSlotPosition' , 'drawAppointmentsForDayOrWeek collumns');
                     const position = calculateSlotPosition(
                         $wrapper,
                         startDate.toISOString(),
@@ -3200,6 +3201,7 @@
                     slotData.end instanceof Date &&
                     !isNaN(slotData.end)
                 ) {
+                    console.log('>>>>>>>>>>>>>>>>>> before calculateSlotPosition' , 'drawAppointmentsForDayOrWeek fullWidth');
                     position = calculateSlotPosition(
                         $wrapper,
                         slotData.start.toISOString(),
@@ -4793,6 +4795,7 @@
             } else if (currentHour >= hourSlots.end) {
                 return {top: "", bottom: 0}; // Nach der Endzeit
             } else {
+                console.log('>>>>>>>>>>>>>>>>>> before calculateSlotPosition' , 'addCurrentTimeIndicator');
                 return {top: calculateSlotPosition($wrapper, now).top, bottom: ""}; // Innerhalb des Zeitbereichs
             }
         };
