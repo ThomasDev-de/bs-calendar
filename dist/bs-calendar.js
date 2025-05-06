@@ -548,7 +548,7 @@
         });
     }
 
-    testAllKnownLocales();
+    // testAllKnownLocales();
 
     /**
      * Convert a given local format (e.g. "de-DE") into a required format (e.g. "DE").
