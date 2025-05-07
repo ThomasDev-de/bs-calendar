@@ -2672,8 +2672,7 @@
      * @return {*} The settings data retrieved from the wrapper element.
      */
     function getSettings($wrapper) {
-        return $wrapper.data('settings');
-
+        return $wrapper.data('settings') ?? null;
     }
 
     /**
@@ -4783,6 +4782,9 @@
     function addCurrentTimeIndicator($wrapper, $container) {
         const getDynamicNow = () => new Date(); // Immer die aktuelle Zeit abrufen
         const settings = getSettings($wrapper); // Dynamische Einstellungen holen
+        if (settings === null) {
+            return;
+        }
         const {hourSlots} = settings; // Hole Start, Ende und Höhe der Slots
 
         // Funktion zur Berechnung der Position
