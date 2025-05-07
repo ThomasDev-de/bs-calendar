@@ -4851,15 +4851,25 @@
             currentTimeIndicator.find('.js-current-time').text(getMinutesAndSeconds($wrapper, now)); // Aktualisiere den Badge-Text
         };
 
-        // Jede Minute die Position und Zeit aktualisieren
         const intervalId = setInterval(() => {
-            if ($wrapper.find('.current-time-indicator').length === 0) {
-                // Falls der Indikator entfernt wurde, wird das Intervall gelöscht
+            // Überprüfen, ob der Wrapper noch im DOM ist
+            if (!$wrapper.closest('body').length) {
+                // Falls der Wrapper entfernt wurde, beende das Intervall
                 clearInterval(intervalId);
+                console.log('Intervall gestoppt: $wrapper ist nicht mehr im DOM.');
                 return;
             }
+
+            // Überprüfen, ob der Zeit-Indikator (noch) existiert
+            if ($wrapper.find('.current-time-indicator').length === 0) {
+                // Falls der Indikator entfernt wurde, beende das Intervall
+                clearInterval(intervalId);
+                console.log('Intervall gestoppt: .current-time-indicator ist nicht vorhanden.');
+                return;
+            }
+
             updateIndicator(); // Aktualisiere Indikator und Zeit-Badge
-        }, 60 * 1000);
+        }, 60 * 1000); // 1-Minuten-Intervall
 
         // Position und Badge für die erste Initialisierung einmal direkt setzen
         updateIndicator();
