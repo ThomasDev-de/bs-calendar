@@ -1,0 +1,36 @@
+<component name="libraryTable">
+  <library name="Generated files" type="javaScript">
+    <properties>
+      <sourceFilesUrls>
+        <item url="file://$PROJECT_DIR$/demo/openHolidays.min.js" />
+        <item url="file://$PROJECT_DIR$/dist/bs-calendar.min.js" />
+        <item url="file://$PROJECT_DIR$/dist/bs-calendar.min.min.js" />
+        <item url="file://$PROJECT_DIR$/vendor/components/jquery/jquery.min.js" />
+        <item url="file://$PROJECT_DIR$/vendor/components/jquery/jquery.min.min.js" />
+        <item url="file://$PROJECT_DIR$/vendor/components/jquery/jquery.slim.min.js" />
+        <item url="file://$PROJECT_DIR$/vendor/components/jquery/jquery.slim.min.min.js" />
+        <item url="file://$PROJECT_DIR$/vendor/twbs/bootstrap-icons/.fantasticonrc.min.js" />
+        <item url="file://$PROJECT_DIR$/vendor/twbs/bootstrap-icons/docs/assets/js/application.min.js" />
+        <item url="file://$PROJECT_DIR$/vendor/twbs/bootstrap-icons/docs/assets/js/color-modes.min.js" />
+        <item url="file://$PROJECT_DIR$/vendor/twbs/bootstrap-icons/docs/assets/js/search.min.js" />
+        <item url="file://$PROJECT_DIR$/vendor/twbs/bootstrap-icons/svgo.config.min.js" />
+      </sourceFilesUrls>
+    </properties>
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/demo/openHolidays.min.js" />
+      <root url="file://$PROJECT_DIR$/dist/bs-calendar.min.js" />
+      <root url="file://$PROJECT_DIR$/dist/bs-calendar.min.min.js" />
+      <root url="file://$PROJECT_DIR$/vendor/components/jquery/jquery.min.js" />
+      <root url="file://$PROJECT_DIR$/vendor/components/jquery/jquery.min.min.js" />
+      <root url="file://$PROJECT_DIR$/vendor/components/jquery/jquery.slim.min.js" />
+      <root url="file://$PROJECT_DIR$/vendor/components/jquery/jquery.slim.min.min.js" />
+      <root url="file://$PROJECT_DIR$/vendor/twbs/bootstrap-icons/.fantasticonrc.min.js" />
+      <root url="file://$PROJECT_DIR$/vendor/twbs/bootstrap-icons/docs/assets/js/application.min.js" />
+      <root url="file://$PROJECT_DIR$/vendor/twbs/bootstrap-icons/docs/assets/js/color-modes.min.js" />
+      <root url="file://$PROJECT_DIR$/vendor/twbs/bootstrap-icons/docs/assets/js/search.min.js" />
+      <root url="file://$PROJECT_DIR$/vendor/twbs/bootstrap-icons/svgo.config.min.js" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
