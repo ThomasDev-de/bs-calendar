@@ -39,8 +39,6 @@
  * @file bs-calendar.js
  * @date 2025-05-06
  *
- * @note This plugin makes use of the nager.date API for holiday-related functionalities.
- *       For more information about the API and its usage, please refer to the MIT license provided by nager.date.
  */
 
 (function ($) {
@@ -121,6 +119,642 @@
                 start: 0, // starting hour as integer
                 end: 24 // ending hour as integer
             }
+        },
+        utils: {
+            /**
+             * Formats a given Date object or date string into a time string.
+             *
+             * @param {Date|string} date - The date object or a valid date string to format. If a string is provided, it will be parsed into a Date object.
+             * @param {boolean} [withSeconds=true] - Indicates whether the formatted string should include seconds or not.
+             * @return {string|null} The formatted time string in "HH:mm:ss" or "HH:mm" format, or null if the provided date is invalid.
+             */
+            formatTime: (date, withSeconds = true) => {
+                if (typeof date === 'string') {
+                    date = new Date(date);
+                }
+
+                // Überprüfen, ob das Datum ungültig ist
+                if (isNaN(date.getTime())) {
+                    console.error("Invalid date in formatTime:", date);
+                    return null; // Ungültiges Datum
+                }
+
+                const hours = date.getHours().toString().padStart(2, '0');
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                const seconds = date.getSeconds().toString().padStart(2, '0');
+
+                if (!withSeconds) {
+                    return `${hours}:${minutes}`;
+                }
+
+                return `${hours}:${minutes}:${seconds}`;
+            },
+
+            /**
+             * Calculates the calendar week number for a given date according to the ISO 8601 standard.
+             * ISO 8601 defines the first week of the year as the week with the first Thursday.
+             * Weeks start on Monday, and the week containing January 4th is considered the first calendar week.
+             *
+             * @param {Date} date - The date for which the calendar week number should be calculated.
+             * @return {number} The ISO 8601 calendar week number for the provided date.
+             */
+            getCalendarWeek: (date) => {
+                // copy of the input date and weekday calculation
+                const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+                const dayNr = (target.getUTCDay() + 6) % 7; // Montag = 0, Sonntag = 6
+                target.setUTCDate(target.getUTCDate() - dayNr + 3); // Auf den Donnerstag der aktuellen Woche schieben
+
+                // The first Thursday of the year
+                const firstThursday = new Date(Date.UTC(target.getUTCFullYear(), 0, 4));
+                const firstDayOfWeek = firstThursday.getUTCDate() - ((firstThursday.getUTCDay() + 6) % 7);
+
+                // Calculate number weeks between the first Thursday and the current Thursday
+                return Math.floor(1 + (target - new Date(Date.UTC(target.getUTCFullYear(), 0, firstDayOfWeek))) / (7 * 24 * 60 * 60 * 1000));
+            },
+            /**
+             * Returns the shortened names of the weekdays based on the locale,
+             * adapted to the start day of the week.
+             *
+             * This function retrieves the short names of the weekdays (e.g. "Sun", "Mon", etc.)
+             * for the specified locale and rearranges the order of the days depending on
+             * whether the week starts on Sunday or Monday.
+             *
+             * @param {string} locale - The locale like 'en-US' or 'de-DE', used to format names.
+             * @param {boolean} startWeekOnSunday - Indicates whether the week should start with Sunday.
+             * @returns {string[]} - An array of the short weekday names, e.g.  ['Sun', 'Mon', 'Tue', ...].
+             */
+            getShortWeekDayNames: (locale, startWeekOnSunday) => {
+                // Create an Intl.DateTimeFormat instance for the provided locale to format weekdays.
+                // The 'short' option generates abbreviated weekday names (e.g. 'Mon', 'Tue').
+                const formatter = new Intl.DateTimeFormat(locale, {weekday: 'short'});
+
+                // Generate an array of all weekdays (0 = Sunday, 1 = Monday, ..., 6 = Saturday).
+                // Use Date.UTC to ensure consistent results in all environments (ignoring local time zones).
+                const weekDays = [...Array(7).keys()].map(day =>
+                    // Add 1 to the day index to represent the day of the month.
+                    // Example: '2023-01-01' for Sunday, '2023-01-02' for Monday, and so on.
+                    formatter.format(new Date(Date.UTC(2023, 0, day + 1)))
+                );
+
+                // If the week should start on Sunday, return the weekdays as is.
+                // Otherwise, reorder the array to start from Monday:
+                // - day 1 (Monday) to day 6 (Saturday) remain first (`weekDays.slice(1)`),
+                // - day 0 (Sunday) is moved to the end (`weekDays[0]`).
+                return startWeekOnSunday ? weekDays : weekDays.slice(1).concat(weekDays[0]);
+            },
+            /**
+             * Converts a string or JavaScript Date object into a string formatted as an SQL date (YYYY-MM-DD).
+             *
+             * @param {string|Date} date - The input date, either as a string or as a Date object.
+             * @return {string} A string representation of the date in the SQL date format (YYYY-MM-DD).
+             */
+            formatDateToDateString: (date) => {
+                const dateObj = typeof date === 'string' ? new Date(date) : date;
+                const year = dateObj.getFullYear();
+                const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+                const day = String(dateObj.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            },
+            /**
+             * Compares two Date objects to determine if they represent the same calendar date.
+             *
+             * @param {Date} date1 - The first date to compare.
+             * @param {Date} date2 - The second date to compare.
+             * @return {boolean} Returns true if the two dates have the same year, month, and day; otherwise, false.
+             */
+            datesAreEqual: (date1, date2) => {
+                return (
+                    date1.getFullYear() === date2.getFullYear() &&
+                    date1.getMonth() === date2.getMonth() &&
+                    date1.getDate() === date2.getDate()
+                );
+            },
+            /**
+             * Determines the version of Bootstrap being used.
+             *
+             * @return {number} The Bootstrap version, either 4 or 5.
+             */
+            getBootstrapVersion: () => {
+                if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal?.VERSION === 'string') {
+                    // Major Version direkt extrahieren und zurückgeben
+                    const majorVersion = parseInt(bootstrap.Modal.VERSION.split('.')[0], 10);
+                    console.log(majorVersion);
+                    return majorVersion;
+                } else if (typeof $ === 'function' && typeof $().modal === 'function') {
+                    // Bootstrap 3 erkennen über jQuery
+                    return 3;
+                }
+                return null; // Bootstrap nicht geladen oder nicht erkannt
+            },
+            /**
+             * An object that maps CSS color names to their corresponding hexadecimal color codes.
+             *
+             * The keys in this object are the standard CSS color names (case-insensitive), and the values
+             * are their respective hexadecimal color codes.
+             * Some color names include both American and
+             * British English synonyms, providing equivalent hexadecimal values for those variants.
+             *
+             * This object can be used for converting color names to hex codes, validating color names, or
+             * referencing standard colors in styling and graphical applications.
+             *
+             * Note: Both American and British English synonyms (e.g. "gray" and "grey") are included
+             * where applicable, and they map to identical hexadecimal values.
+             */
+            colorNameToHex: {
+                aliceblue: "#f0f8ff",
+                antiquewhite: "#faebd7",
+                aqua: "#00ffff",
+                aquamarine: "#7fffd4",
+                azure: "#f0ffff",
+                beige: "#f5f5dc",
+                bisque: "#ffe4c4",
+                black: "#000000",
+                blanchedalmond: "#ffebcd",
+                blue: "#0000ff",
+                blueviolet: "#8a2be2",
+                brown: "#a52a2a",
+                burlywood: "#deb887",
+                cadetblue: "#5f9ea0",
+                chartreuse: "#7fff00",
+                chocolate: "#d2691e",
+                coral: "#ff7f50",
+                cornflowerblue: "#6495ed",
+                cornsilk: "#fff8dc",
+                crimson: "#dc143c",
+                cyan: "#00ffff",
+                darkblue: "#00008b",
+                darkcyan: "#008b8b",
+                darkgoldenrod: "#b8860b",
+                darkgray: "#a9a9a9",
+                darkgreen: "#006400",
+                darkgrey: "#a9a9a9", // British English synonym
+                darkkhaki: "#bdb76b",
+                darkmagenta: "#8b008b",
+                darkolivegreen: "#556b2f",
+                darkorange: "#ff8c00",
+                darkorchid: "#9932cc",
+                darkred: "#8b0000",
+                darksalmon: "#e9967a",
+                darkseagreen: "#8fbc8f",
+                darkslateblue: "#483d8b",
+                darkslategray: "#2f4f4f",
+                darkslategrey: "#2f4f4f", // British English synonym
+                darkturquoise: "#00ced1",
+                darkviolet: "#9400d3",
+                deeppink: "#ff1493",
+                deepskyblue: "#00bfff",
+                dimgray: "#696969",
+                dimgrey: "#696969", // British English synonym
+                dodgerblue: "#1e90ff",
+                firebrick: "#b22222",
+                floralwhite: "#fffaf0",
+                forestgreen: "#228b22",
+                fuchsia: "#ff00ff",
+                gainsboro: "#dcdcdc",
+                ghostwhite: "#f8f8ff",
+                gold: "#ffd700",
+                goldenrod: "#daa520",
+                gray: "#808080",
+                green: "#008000",
+                greenyellow: "#adff2f",
+                grey: "#808080", // British English synonym
+                honeydew: "#f0fff0",
+                hotpink: "#ff69b4",
+                indianred: "#cd5c5c",
+                indigo: "#4b0082",
+                ivory: "#fffff0",
+                khaki: "#f0e68c",
+                lavender: "#e6e6fa",
+                lavenderblush: "#fff0f5",
+                lawngreen: "#7cfc00",
+                lemonchiffon: "#fffacd",
+                lightblue: "#add8e6",
+                lightcoral: "#f08080",
+                lightcyan: "#e0ffff",
+                lightgoldenrodyellow: "#fafad2",
+                lightgray: "#d3d3d3",
+                lightgreen: "#90ee90",
+                lightgrey: "#d3d3d3", // British English synonym
+                lightpink: "#ffb6c1",
+                lightsalmon: "#ffa07a",
+                lightseagreen: "#20b2aa",
+                lightskyblue: "#87cefa",
+                lightslategray: "#778899",
+                lightslategrey: "#778899", // British English synonym
+                lightsteelblue: "#b0c4de",
+                lightyellow: "#ffffe0",
+                lime: "#00ff00",
+                limegreen: "#32cd32",
+                linen: "#faf0e6",
+                magenta: "#ff00ff",
+                maroon: "#800000",
+                mediumaquamarine: "#66cdaa",
+                mediumblue: "#0000cd",
+                mediumorchid: "#ba55d3",
+                mediumpurple: "#9370db",
+                mediumseagreen: "#3cb371",
+                mediumslateblue: "#7b68ee",
+                mediumspringgreen: "#00fa9a",
+                mediumturquoise: "#48d1cc",
+                mediumvioletred: "#c71585",
+                midnightblue: "#191970",
+                mintcream: "#f5fffa",
+                mistyrose: "#ffe4e1",
+                moccasin: "#ffe4b5",
+                navajowhite: "#ffdead",
+                navy: "#000080",
+                oldlace: "#fdf5e6",
+                olive: "#808000",
+                olivedrab: "#6b8e23",
+                orange: "#ffa500",
+                orangered: "#ff4500",
+                orchid: "#da70d6",
+                palegoldenrod: "#eee8aa",
+                palegreen: "#98fb98",
+                paleturquoise: "#afeeee",
+                palevioletred: "#db7093",
+                papayawhip: "#ffefd5",
+                peachpuff: "#ffdab9",
+                peru: "#cd853f",
+                pink: "#ffc0cb",
+                plum: "#dda0dd",
+                powderblue: "#b0e0e6",
+                purple: "#800080",
+                rebeccapurple: "#663399",
+                red: "#ff0000",
+                rosybrown: "#bc8f8f",
+                royalblue: "#4169e1",
+                saddlebrown: "#8b4513",
+                salmon: "#fa8072",
+                sandybrown: "#f4a460",
+                seagreen: "#2e8b57",
+                seashell: "#fff5ee",
+                sienna: "#a0522d",
+                silver: "#c0c0c0",
+                skyblue: "#87ceeb",
+                slateblue: "#6a5acd",
+                slategray: "#708090",
+                slategrey: "#708090", // British English synonym
+                snow: "#fffafa",
+                springgreen: "#00ff7f",
+                steelblue: "#4682b4",
+                tan: "#d2b48c",
+                teal: "#008080",
+                thistle: "#d8bfd8",
+                tomato: "#ff6347",
+                turquoise: "#40e0d0",
+                violet: "#ee82ee",
+                wheat: "#f5deb3",
+                white: "#ffffff",
+                whitesmoke: "#f5f5f5",
+                yellow: "#ffff00",
+                yellowgreen: "#9acd32"
+            },
+            /**
+             * Computes the color properties based on the input color.
+             *
+             * @param {string} inputColor - The input color, which can be in various formats (e.g.  named color, hex, or invalid string).
+             * @return {Object|null} Returns an object with computed background and text color properties if the input is valid, or null if the input is invalid.
+             *                       The returned object contains:
+             *                       - `backgroundColor`: The resolved background color in a valid format (e.g.  Hex).
+             *                       - `backgroundImage`: Set to "none" by default.
+             *                       - `color`: The computed text color depending on the background color (black or white).
+             */
+            computeColor: (inputColor) => {
+                if ($.bsCalendar.utils.isDirectColorValid(inputColor)) {
+                    // dissolve the color into a valid format (e.g. hex)
+                    const resolvedColor = $.bsCalendar.utils.resolveColor(inputColor);
+                    const isDark = $.bsCalendar.utils.isDarkColor(resolvedColor);
+                    return {
+                        backgroundColor: resolvedColor, // background color
+                        backgroundImage: "none", // By default, no picture
+                        color: isDark ? "#FFFFFF" : "#000000", // text color based on background color
+                    };
+                } else if (inputColor) {
+                    return $.bsCalendar.utils.getComputedStyles(inputColor);
+                }
+
+                return null; // invalid input
+            },
+            /**
+             * Computes and returns the styles (background color, background image, text color, etc.)
+             * for a series of class names by temporarily applying them to a DOM element and extracting
+             * their computed styles.
+             *
+             * @param {string} inputClassNames - A space-separated string of class names to compute styles for.
+             * @return {Object} An object containing the computed styles:
+             * - `backgroundColor` {string}: The computed background color with respect to opacity adjustments.
+             * - `backgroundImage` {string}: The computed background image property.
+             * - `color` {string}: The computed text color.
+             * - `classList` {string[]} An array of class names applied to the computation.
+             * - `origin` {string}: The original input class names string.
+             */
+            getComputedStyles: (inputClassNames) => {
+                const bsV = $.bsCalendar.utils.getBootstrapVersion();
+                const classList = inputClassNames.split(" ").map(className => {
+                    if (className.includes("opacity") || className.includes("gradient")) {
+                        return className.startsWith("bg-") ? className : `bg-${className}`;
+                    } else {
+                        switch (bsV) {
+                            case 5:
+                                return className.startsWith("bg-") ?
+                                    className.replace("bg-", "text-bg-") :
+                                    `text-bg-${className}`;
+                            case 4:
+                                if (className.startsWith("bg-")) {
+                                    return className;
+                                } else {
+                                    return "bg-" + className;
+                                }
+                        }
+                        return className.startsWith("bg-") && bsV === 5 ?
+                            className.replace("bg-", "text-bg-") :
+                            `text-bg-${className}`;
+                    }
+                });
+
+                const tempElement = document.createElement("div");
+                tempElement.style.display = "none";
+                tempElement.style.position = "absolute";
+                document.body.appendChild(tempElement);
+
+                classList.forEach(className => {
+                    tempElement.classList.add(className);
+                });
+
+                const computedStyles = window.getComputedStyle(tempElement);
+
+                const backgroundColor = computedStyles.backgroundColor || "rgba(0, 0, 0, 0)";
+                const backgroundImage = computedStyles.backgroundImage || "none";
+                const color = bsV > 4 ? (computedStyles.color || "#000000")
+                    : ($.bsCalendar.utils.isDarkColor(backgroundColor) ? "#ffffff" : "#000000");
+                const opacity = computedStyles.opacity || "1";
+
+                document.body.removeChild(tempElement);
+
+                let adjustedBackgroundColor = backgroundColor;
+                if (backgroundColor.startsWith("rgb") && parseFloat(opacity) < 1) {
+                    const matchRgb = backgroundColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+                    if (matchRgb) {
+                        const r = matchRgb[1];
+                        const g = matchRgb[2];
+                        const b = matchRgb[3];
+                        adjustedBackgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+                    }
+                }
+
+                return {
+                    backgroundColor: adjustedBackgroundColor,
+                    backgroundImage: backgroundImage,
+                    color: color,
+                    classList: classList,
+                    origin: inputClassNames,
+                };
+            },
+            /**
+             * Validates if the provided color input is a valid direct color representation.
+             * The method checks if the input is in valid HEX format, RGB(A) format*/
+            isDirectColorValid: (inputColor) => {
+                if (!inputColor || typeof inputColor !== "string") {
+                    return false;
+                }
+
+                const hexPattern = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
+                const rgbPattern = /^rgba?\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})(?:,\s*(0|0?\.\d+|1))?\s*\)$/;
+
+                // check whether input is a valid hex/RGB value or a defined color name
+                return hexPattern.test(inputColor) || rgbPattern.test(inputColor) || inputColor.toLowerCase() in $.bsCalendar.utils.colorNameToHex;
+            },
+            /**
+             * Resolves the input color by converting color names to their hexadecimal representation
+             * if applicable. If the input is not a recognized color name, it returns the input as is.
+             *
+             * @param {string} inputColor - The color input, which can be a recognized color name or a direct color value.
+             * @return {string} The resolved color in hexadecimal format if the input is a recognized color name, otherwise the input color itself.
+             */
+            resolveColor: (inputColor) => {
+                // check whether it is a color name that has to be converted into hex
+                if (inputColor.toLowerCase() in $.bsCalendar.utils.colorNameToHex) {
+                    return $.bsCalendar.utils.colorNameToHex[inputColor.toLowerCase()];
+                }
+                return inputColor; // If no color name, return the input directly
+            },
+            /**
+             * Determines whether the given color is considered dark based on its luminance.
+             *
+             * @param {string} color - The color to evaluate. This can be a hex color code (e.g.  "#000", "#000000"),
+             * RGB(A) format (e.g.  "rgb(0, 0, 0)" or "rgba(0, 0, 0, 1)"), or a valid color name that can be resolved.
+             * @return {boolean} Returns true if the color is dark, false otherwise.
+             */
+            isDarkColor: (color) => {
+                // dissolve hex-color if it is a color name
+                color = $.bsCalendar.utils.resolveColor(color);
+
+                let r, g, b;
+
+                if (color.startsWith("#")) {
+                    if (color.length === 4) {
+                        // Expand 3-digit hex to 6-digit version
+                        color = "#" + color[1] + color[1] + color[2] + color[2] + color[3] + color[3];
+                    }
+
+                    // Hex-color code (6 digits)
+                    r = parseInt(color.slice(1, 3), 16);
+                    g = parseInt(color.slice(3, 5), 16);
+                    b = parseInt(color.slice(5, 7), 16);
+                } else if (color.startsWith("rgb")) {
+                    // RGB or RGBA color codes
+                    const rgbValues = color.match(/\d+/g); // extract numbers from the character chain
+                    r = parseInt(rgbValues[0]);
+                    g = parseInt(rgbValues[1]);
+                    b = parseInt(rgbValues[2]);
+                } else {
+                    throw new Error("Unsupported color format");
+                }
+
+                // YiQ calculation for determination whether the color is dark
+                const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
+                return yiq <= 128; // return true when the color is dark
+            },
+            /**
+             * Get colors (background and text) based on a given color or fallback color, built with jQuery.
+             *
+             * @param {string} color - The primary color as a direct HEX, RGB, RGBA value or a CSS class.
+             * @param {string | null} fallbackColor - The fallback color or class if the primary color is invalid.
+             * @returns {object} - An object containing the colors: backgroundColor, backgroundImage, and text color.
+             */
+            getColors: (color, fallbackColor = null) => {
+                const primaryResult = $.bsCalendar.utils.computeColor(color);
+                const fallbackResult = primaryResult || $.bsCalendar.utils.computeColor(fallbackColor);
+
+                const defaultValues = {
+                    backgroundColor: "#000000", // black background, if nothing fits
+                    backgroundImage: "none", // No background image by default
+                    color: "#FFFFFF", // standard text color with a dark background
+                };
+
+                const result = {...defaultValues, ...fallbackResult};
+
+                return {
+                    origin: color, // input for debug purposes
+                    ...result,
+                };
+            },
+            /**
+             * Converts a date-time string with a space separator into ISO 8601 format
+             * by replacing the space character with 'T'. If the input is not a string,
+             * it is returned as-is.
+             *
+             * @param {string|*} dateTime - The date-time value to normalize. If it's a string,
+             *                              it replaces the space with 'T'. For other types,
+             *                              the original value is returned.
+             * @return {string|*} - The normalized date-time string or the input if it is not a string.
+             */
+            normalizeDateTime: (dateTime) => {
+                if (typeof dateTime === "string") {
+                    return dateTime.replace(" ", "T");
+                }
+                return dateTime; // If the value is not a string, give it back directly.
+            },
+            /**
+             * Formatiert ein Datum anhand einer gegebenen Locale.
+             *
+             * @param {Date} date - Das zu formatierende Datum.
+             * @param {string} locale - Die zu verwendende Locale, z.B. 'de-DE' für Deutsch oder 'en-US' für Englisch (Standard: 'en-EN').
+             * @returns {string} Das formatierte Datum.
+             */
+            formatDateByLocale: (date, locale) => {
+                if (typeof date === 'string') {
+                    date = new Date(date);
+                }
+                // formatting options
+                const options = {weekday: 'long', month: 'long', day: 'numeric'};
+                return new Intl.DateTimeFormat(locale, options).format(date);
+            },
+            /**
+             * Generates CSS for the border-radius property based on the input number.
+             *
+             * @param {number} number - A number that corresponds to a predefined border-radius value.
+             *                          Supported values:
+             *                          1 -> '0.25rem'
+             *                          2 -> '0.5rem'
+             *                          3 -> '0.75rem'
+             *                          4 -> '1rem'
+             *                          5 -> '2rem'
+             * @return {string} The CSS string for the border-radius property with the specified value.
+             */
+            getBorderRadiusCss: (number) => {
+                let checkedNumber = Math.min(5, Math.max(0, number));
+                let rounded = '0';
+                switch (checkedNumber) {
+                    case 1:
+                        rounded = '0.25rem';
+                        break;
+                    case 2:
+                        rounded = '0.5rem';
+                        break;
+                    case 3:
+                        rounded = '0.75rem';
+                        break;
+                    case 4:
+                        rounded = '1rem';
+                        break;
+                    case 5:
+                        rounded = '2rem';
+                        break;
+                }
+                return `border-radius: ${rounded} !important`;
+            },
+            getStandardizedUnits: (locale) => {
+                const units = ['today', 'day', 'week', 'month', 'year']; // Eingabewerte
+                const result = {};
+
+                // Definierte gültige Einheiten für Intl.RelativeTimeFormat
+                const validRelativeTimeFormatUnits = ['day', 'week', 'month', 'year'];
+
+                units.forEach(unit => {
+                    let localizedUnit;
+
+                    // Statische Übersetzungen für fehlerhafte oder bekannte schwierige Locales
+                    if (locale === 'ar') {
+                        const arabicTranslations = {
+                            today: "اليوم", // heute
+                            day: "يوم",
+                            week: "أسبوع",
+                            month: "شهر",
+                            year: "سنة"
+                        };
+                        localizedUnit = arabicTranslations[unit];
+                    } else if (locale === 'he') {
+                        const hebrewTranslations = {
+                            today: "היום", // heute
+                            day: "יום",
+                            week: "שבוע",
+                            month: "חודש",
+                            year: "שנה"
+                        };
+                        localizedUnit = hebrewTranslations[unit];
+                    } else if (locale === 'zh') {
+                        const chineseTranslations = {
+                            today: "今天", // heute
+                            day: "天",
+                            week: "周",
+                            month: "月",
+                            year: "年"
+                        };
+                        localizedUnit = chineseTranslations[unit];
+                    } else {
+                        // Dynamische Verarbeitung für alle anderen Locales
+                        try {
+                            if (unit === 'today') {
+                                // Feste Übersetzung für "heute"
+                                localizedUnit = new Intl.RelativeTimeFormat(locale, {numeric: 'auto'}).format(0, 'day');
+                            } else if (validRelativeTimeFormatUnits.includes(unit)) {
+                                // Nur gültige Werte für Intl.RelativeTimeFormat verarbeiten
+                                const formatter = new Intl.RelativeTimeFormat(locale, {numeric: 'always'});
+                                const formatted = formatter.format(1, unit);
+
+                                // Entfernt Präfixe oder unerwarteten Text
+                                localizedUnit = formatted
+                                    .replace(/^\D*\d+\s?/, '') // Entfernt Präfixe/Zahlen (z.B. "in 1 ")
+                                    .replace(/後|后$/, '')     // Entfernt "später" für Japanisch/Chinesisch
+                                    .replace(/\s후$/, '')     // Entfernt "후" für Koreanisch
+                                    .replace(/^ในอีก\s?/, '') // Entfernt "in" für Thailändisch
+                                    .trim();
+                            } else {
+                                // Fallback für ungültige Einheiten
+                                console.error(`${unit} ist keine gültige Einheit für Intl.RelativeTimeFormat.`);
+                            }
+                        } catch (error) {
+                            console.error(`Fehler für ${unit} mit Locale ${locale}:`, error.message);
+                            localizedUnit = unit; // Rückfall zur Einheit
+                        }
+                    }
+
+                    // Ergebnis speichern
+                    result[unit] = localizedUnit || unit; // Fallback zur Einheit
+                });
+
+                return result;
+            },
+            getLanguageAndCountry: (locale) => {
+                const parts = locale.split('-'); // separate the string based on the bind screed
+                let language = parts[0].toUpperCase(); // The first part is the language, always present
+                let country = parts[1] ? parts[1].toUpperCase() : language; // The second part is the country, if available; Otherwise language as a fallback
+                return {language: language, country: country}; // return as an object (language and country)
+            },
+            isValueEmpty: (value) => {
+                if (value === null || value === undefined) {
+                    return true; // Null or undefined
+                }
+                if (Array.isArray(value)) {
+                    return value.length === 0; // Empty array
+                }
+                if (typeof value === 'string') {
+                    return value.trim().length === 0; // Empty string (including only spaces)
+                }
+                return false; // All other values are considered non-empty (including numbers)
+            }
         }
     };
 
@@ -200,169 +834,6 @@
         ]
     };
 
-    /**
-     * An object that maps CSS color names to their corresponding hexadecimal color codes.
-     *
-     * The keys in this object are the standard CSS color names (case-insensitive), and the values
-     * are their respective hexadecimal color codes. Some color names include both American and
-     * British English synonyms, providing equivalent hexadecimal values for those variants.
-     *
-     * This object can be used for converting color names to hex codes, validating color names, or
-     * referencing standard colors in styling and graphical applications.
-     *
-     * Note: Both American and British English synonyms (e.g., "gray" and "grey") are included
-     * where applicable, and they map to identical hexadecimal values.
-     */
-    const colorNameToHex = {
-        aliceblue: "#f0f8ff",
-        antiquewhite: "#faebd7",
-        aqua: "#00ffff",
-        aquamarine: "#7fffd4",
-        azure: "#f0ffff",
-        beige: "#f5f5dc",
-        bisque: "#ffe4c4",
-        black: "#000000",
-        blanchedalmond: "#ffebcd",
-        blue: "#0000ff",
-        blueviolet: "#8a2be2",
-        brown: "#a52a2a",
-        burlywood: "#deb887",
-        cadetblue: "#5f9ea0",
-        chartreuse: "#7fff00",
-        chocolate: "#d2691e",
-        coral: "#ff7f50",
-        cornflowerblue: "#6495ed",
-        cornsilk: "#fff8dc",
-        crimson: "#dc143c",
-        cyan: "#00ffff",
-        darkblue: "#00008b",
-        darkcyan: "#008b8b",
-        darkgoldenrod: "#b8860b",
-        darkgray: "#a9a9a9",
-        darkgreen: "#006400",
-        darkgrey: "#a9a9a9", // British English synonym
-        darkkhaki: "#bdb76b",
-        darkmagenta: "#8b008b",
-        darkolivegreen: "#556b2f",
-        darkorange: "#ff8c00",
-        darkorchid: "#9932cc",
-        darkred: "#8b0000",
-        darksalmon: "#e9967a",
-        darkseagreen: "#8fbc8f",
-        darkslateblue: "#483d8b",
-        darkslategray: "#2f4f4f",
-        darkslategrey: "#2f4f4f", // British English synonym
-        darkturquoise: "#00ced1",
-        darkviolet: "#9400d3",
-        deeppink: "#ff1493",
-        deepskyblue: "#00bfff",
-        dimgray: "#696969",
-        dimgrey: "#696969", // British English synonym
-        dodgerblue: "#1e90ff",
-        firebrick: "#b22222",
-        floralwhite: "#fffaf0",
-        forestgreen: "#228b22",
-        fuchsia: "#ff00ff",
-        gainsboro: "#dcdcdc",
-        ghostwhite: "#f8f8ff",
-        gold: "#ffd700",
-        goldenrod: "#daa520",
-        gray: "#808080",
-        green: "#008000",
-        greenyellow: "#adff2f",
-        grey: "#808080", // British English synonym
-        honeydew: "#f0fff0",
-        hotpink: "#ff69b4",
-        indianred: "#cd5c5c",
-        indigo: "#4b0082",
-        ivory: "#fffff0",
-        khaki: "#f0e68c",
-        lavender: "#e6e6fa",
-        lavenderblush: "#fff0f5",
-        lawngreen: "#7cfc00",
-        lemonchiffon: "#fffacd",
-        lightblue: "#add8e6",
-        lightcoral: "#f08080",
-        lightcyan: "#e0ffff",
-        lightgoldenrodyellow: "#fafad2",
-        lightgray: "#d3d3d3",
-        lightgreen: "#90ee90",
-        lightgrey: "#d3d3d3", // British English synonym
-        lightpink: "#ffb6c1",
-        lightsalmon: "#ffa07a",
-        lightseagreen: "#20b2aa",
-        lightskyblue: "#87cefa",
-        lightslategray: "#778899",
-        lightslategrey: "#778899", // British English synonym
-        lightsteelblue: "#b0c4de",
-        lightyellow: "#ffffe0",
-        lime: "#00ff00",
-        limegreen: "#32cd32",
-        linen: "#faf0e6",
-        magenta: "#ff00ff",
-        maroon: "#800000",
-        mediumaquamarine: "#66cdaa",
-        mediumblue: "#0000cd",
-        mediumorchid: "#ba55d3",
-        mediumpurple: "#9370db",
-        mediumseagreen: "#3cb371",
-        mediumslateblue: "#7b68ee",
-        mediumspringgreen: "#00fa9a",
-        mediumturquoise: "#48d1cc",
-        mediumvioletred: "#c71585",
-        midnightblue: "#191970",
-        mintcream: "#f5fffa",
-        mistyrose: "#ffe4e1",
-        moccasin: "#ffe4b5",
-        navajowhite: "#ffdead",
-        navy: "#000080",
-        oldlace: "#fdf5e6",
-        olive: "#808000",
-        olivedrab: "#6b8e23",
-        orange: "#ffa500",
-        orangered: "#ff4500",
-        orchid: "#da70d6",
-        palegoldenrod: "#eee8aa",
-        palegreen: "#98fb98",
-        paleturquoise: "#afeeee",
-        palevioletred: "#db7093",
-        papayawhip: "#ffefd5",
-        peachpuff: "#ffdab9",
-        peru: "#cd853f",
-        pink: "#ffc0cb",
-        plum: "#dda0dd",
-        powderblue: "#b0e0e6",
-        purple: "#800080",
-        rebeccapurple: "#663399",
-        red: "#ff0000",
-        rosybrown: "#bc8f8f",
-        royalblue: "#4169e1",
-        saddlebrown: "#8b4513",
-        salmon: "#fa8072",
-        sandybrown: "#f4a460",
-        seagreen: "#2e8b57",
-        seashell: "#fff5ee",
-        sienna: "#a0522d",
-        silver: "#c0c0c0",
-        skyblue: "#87ceeb",
-        slateblue: "#6a5acd",
-        slategray: "#708090",
-        slategrey: "#708090", // British English synonym
-        snow: "#fffafa",
-        springgreen: "#00ff7f",
-        steelblue: "#4682b4",
-        tan: "#d2b48c",
-        teal: "#008080",
-        thistle: "#d8bfd8",
-        tomato: "#ff6347",
-        turquoise: "#40e0d0",
-        violet: "#ee82ee",
-        wheat: "#f5deb3",
-        white: "#ffffff",
-        whitesmoke: "#f5f5f5",
-        yellow: "#ffff00",
-        yellowgreen: "#9acd32"
-    };
 
     /**
      * jQuery plugin that initializes and manages a Bootstrap-based calendar.
@@ -392,13 +863,13 @@
                 settings = $.extend(true, {}, settings, wrapper.data(), optionsOrMethod || {});
             }
 
-            settings.translations = $.extend(true, {}, settings.translations, getStandardizedUnits(settings.locale) || {});
+            settings.translations = $.extend(true, {}, settings.translations, $.bsCalendar.utils.getStandardizedUnits(settings.locale) || {});
 
             setSettings(wrapper, settings);
 
             if (settings.storeState) {
                 const view = getFromLocalStorage(wrapper, 'view');
-                if (!isValueEmpty(view)) {
+                if (!$.bsCalendar.utils.isValueEmpty(view)) {
                     settings.startView = view;
                     setSettings(wrapper, settings);
                 }
@@ -442,139 +913,6 @@
         return wrapper;
     }
 
-    function getStandardizedUnits(locale) {
-        const units = ['today', 'day', 'week', 'month', 'year'];
-        const result = {};
-
-        units.forEach(unit => {
-            let localizedUnit;
-
-            // Statische Übersetzungen für fehlerhafte oder bekannte schwierige Locales
-            if (locale === 'ar') {
-                const arabicTranslations = {
-                    today: "اليوم", // heute
-                    day: "يوم",
-                    week: "أسبوع",
-                    month: "شهر",
-                    year: "سنة"
-                };
-                localizedUnit = arabicTranslations[unit];
-            } else if (locale === 'he') {
-                const hebrewTranslations = {
-                    today: "היום", // heute
-                    day: "יום",
-                    week: "שבוע",
-                    month: "חודש",
-                    year: "שנה"
-                };
-                localizedUnit = hebrewTranslations[unit];
-            } else if (locale === 'zh') {
-                const chineseTranslations = {
-                    today: "今天", // heute
-                    day: "天",
-                    week: "周",
-                    month: "月",
-                    year: "年"
-                };
-                localizedUnit = chineseTranslations[unit];
-            } else {
-                // Dynamische Verarbeitung für alle anderen Locales
-                try {
-                    if (unit === 'today') {
-                        // Feste Übersetzung für "heute"
-                        localizedUnit = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' }).format(0, 'day');
-                    } else {
-                        const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'always' });
-                        const formatted = formatter.format(1, unit);
-
-                        // Entfernt Präfixe oder unerwarteten Text
-                        localizedUnit = formatted
-                            .replace(/^\D*\d+\s?/, '') // Entfernt Präfixe/Zahlen (z.B. "in 1 ")
-                            .replace(/後|后$/, '')     // Entfernt "später" für Japanisch/Chinesisch
-                            .replace(/\s후$/, '')     // Entfernt "후" für Koreanisch
-                            .replace(/^ในอีก\s?/, '') // Entfernt "in" für Thailändisch
-                            .trim();
-                    }
-                } catch (error) {
-                    console.error(`Fehler für ${unit} mit Locale ${locale}:`, error.message);
-                    localizedUnit = unit; // Rückfall zur Einheit
-                }
-            }
-
-            // Ergebnis speichern
-            result[unit] = localizedUnit || unit; // Fallback zur Einheit
-        });
-
-        return result;
-    }
-
-    function testAllKnownLocales() {
-        const allKnownLocales = [
-            "af", "af-NA", "af-ZA", "am", "am-ET", "ar", "ar-AE", "ar-BH", "ar-DJ", "ar-DZ", "ar-EG", "ar-EH", "ar-ER", "ar-IL", "ar-IQ", "ar-JO",
-            "ar-KM", "ar-KW", "ar-LB", "ar-LY", "ar-MA", "ar-MR", "ar-OM", "ar-PS", "ar-QA", "ar-SA", "ar-SD", "ar-SO", "ar-SS", "ar-SY", "ar-TD",
-            "ar-TN", "ar-YE", "as", "as-IN", "az", "az-AZ", "be", "be-BY", "bg", "bg-BG", "bn", "bn-BD", "bn-IN", "bs", "bs-BA", "ca", "ca-AD",
-            "ca-ES", "ca-ES-VALENCIA", "ca-FR", "ca-IT", "ce", "ce-RU", "cs", "cs-CZ", "cy", "cy-GB", "da", "da-DK", "de", "de-AT", "de-BE", "de-CH",
-            "de-DE", "de-IT", "de-LI", "de-LU", "dz", "dz-BT", "ee", "ee-GH", "ee-TG", "el", "el-CY", "el-GR", "en", "en-001", "en-150", "en-AG",
-            "en-AI", "en-AS", "en-AT", "en-AU", "en-BB", "en-BE", "en-BM", "en-BS", "en-BW", "en-BZ", "en-CA", "en-CC", "en-CH", "en-CK", "en-CM",
-            "en-CX", "en-CY", "en-DE", "en-DG", "en-DK", "en-DM", "en-ER", "en-FI", "en-FJ", "en-FK", "en-FM", "en-GB", "en-GD", "en-GG", "en-GH",
-            "en-GI", "en-GM", "en-GU", "en-GY", "en-HK", "en-IE", "en-IL", "en-IM", "en-IN", "en-IO", "en-JE", "en-JM", "en-KE", "en-KI", "en-KN",
-            "en-KY", "en-LC", "en-LR", "en-LS", "en-MG", "en-MH", "en-MO", "en-MP", "en-MS", "en-MT", "en-MU", "en-MW", "en-MY", "en-NA", "en-NF",
-            "en-NG", "en-NL", "en-NR", "en-NU", "en-NZ", "en-PG", "en-PH", "en-PK", "en-PN", "en-PR", "en-PW", "en-RW", "en-SB", "en-SC", "en-SD",
-            "en-SE", "en-SG", "en-SH", "en-SI", "en-SL", "en-SS", "en-SX", "en-SZ", "en-TC", "en-TK", "en-TO", "en-TT", "en-TV", "en-TZ", "en-UG",
-            "en-UM", "en-US", "en-US-POSIX", "en-VC", "en-VG", "en-VI", "en-VU", "en-WS", "en-ZA", "en-ZM", "en-ZW", "eo", "eo-001", "es", "es-419",
-            "es-AR", "es-BO", "es-BR", "es-BZ", "es-CL", "es-CO", "es-CR", "es-CU", "es-DO", "es-EA", "es-EC", "es-ES", "es-GQ", "es-GT", "es-HN",
-            "es-IC", "es-MX", "es-NI", "es-PA", "es-PE", "es-PH", "es-PR", "es-PY", "es-SV", "es-US", "es-UY", "es-VE", "et", "et-EE", "eu", "eu-ES",
-            "fa", "fa-AF", "fa-IR", "ff", "ff-Latn", "ff-Latn-BF", "ff-Latn-CM", "ff-Latn-GH", "ff-Latn-GM", "ff-Latn-GN", "ff-Latn-GW", "ff-Latn-LR",
-            "ff-Latn-MR", "ff-Latn-NE", "ff-Latn-NG", "ff-Latn-SL", "ff-Latn-SN", "fi", "fi-FI", "fo", "fo-DK", "fo-FO", "fr", "fr-BE", "fr-BF",
-            "fr-BI", "fr-BJ", "fr-BL", "fr-CA", "fr-CD", "fr-CF", "fr-CG", "fr-CH", "fr-CI", "fr-CM", "fr-DJ", "fr-DZ", "fr-FR", "fr-GA", "fr-GF",
-            "fr-GN", "fr-GP", "fr-GQ", "fr-HT", "fr-KM", "fr-LU", "fr-MA", "fr-MC", "fr-MF", "fr-MG", "fr-ML", "fr-MQ", "fr-MR", "fr-MU", "fr-NC",
-            "fr-NE", "fr-PF", "fr-PM", "fr-RE", "fr-RW", "fr-SC", "fr-SN", "fr-SY", "fr-TD", "fr-TG", "fr-TN", "fr-VU", "fr-WF", "fr-YT", "fy",
-            "fy-NL", "ga", "ga-IE", "gd", "gd-GB", "gl", "gl-ES", "gu", "gu-IN", "gv", "gv-IM", "ha", "ha-GH", "ha-NE", "ha-NG", "he", "he-IL",
-            "hi", "hi-IN", "hr", "hr-BA", "hr-HR", "hu", "hu-HU", "hy", "hy-AM", "ia", "ia-001", "id", "id-ID", "ig", "ig-NG", "ii", "ii-CN", "is",
-            "is-IS", "it", "it-CH", "it-IT", "it-SM", "it-VA", "ja", "ja-JP", "ja-JP-u-ca-japanese", "jv", "jv-ID", "ka", "ka-GE", "ki", "ki-KE",
-            "kk", "kk-KZ", "kl", "kl-GL", "km", "km-KH", "kn", "kn-IN", "ko", "ko-KP", "ko-KR", "ks", "ks-Arab", "ks-Arab-IN", "kw", "kw-GB", "ky",
-            "ky-KG", "lb", "lb-LU", "lg", "lg-UG", "ln", "ln-AO", "ln-CD", "ln-CF", "ln-CG", "lo", "lo-LA", "lt", "lt-LT", "lu", "lu-CD", "lv",
-            "lv-LV", "mg", "mg-MG", "mi", "mi-NZ", "mk", "mk-MK", "ml", "ml-IN", "mn", "mn-MN", "mr", "mr-IN", "ms", "ms-BN", "ms-MY", "ms-SG",
-            "mt", "mt-MT", "mua", "mua-CM", "my", "my-MM", "naq", "naq-NA", "nb", "nb-NO", "nb-SJ", "nd", "nd-ZW", "ne", "ne-IN", "ne-NP", "nl",
-            "nl-AW", "nl-BE", "nl-BQ", "nl-CW", "nl-NL", "nl-SR", "nl-SX", "nmg", "nmg-CM", "nn", "nn-NO", "nnh", "nnh-CM", "nus", "nus-SS", "nyn",
-            "nyn-UG", "om", "om-ET", "om-KE", "or", "or-IN", "os", "os-GE", "os-RU", "pa", "pa-Arab", "pa-Arab-PK", "pa-Guru", "pa-Guru-IN", "pl",
-            "pl-PL", "ps", "ps-AF", "pt", "pt-AO", "pt-BR", "pt-CH", "pt-CV", "pt-GQ", "pt-GW", "pt-LU", "pt-MO", "pt-MZ", "pt-PT", "pt-ST", "pt-TL",
-            "qu", "qu-BO", "qu-EC", "qu-PE", "rm", "rm-CH", "rn", "rn-BI", "ro", "ro-MD", "ro-RO", "rof", "rof-TZ"
-        ];
-
-        allKnownLocales.forEach(locale => {
-            const result = getStandardizedUnits(locale);
-            console.log(locale, result);
-        });
-    }
-
-    // testAllKnownLocales();
-
-    /**
-     * Convert a given local format (e.g. "de-DE") into a required format (e.g. "DE").
-     *
-     * @param {string} locale - The Locale in full format (e.g. "de-DE").
-     * @returns {string} - The formatted local (e.g. "DE").
-     */
-    function getCountryFromLocale(locale) {
-        // only get the country code in capital letters
-        return locale.split('-')[1]?.toUpperCase() || locale.toUpperCase();
-    }
-
-    /**
-     * Extracts the language and country from the given locale string.
-     * The locale string is expected to be in the format "language-country".
-     * If the country part is not provided, the language is used as the default country.
-     *
-     * @param {string} locale - The locale string comprising language and optionally a country.
-     * @return {Object} An object containing the extracted language and country as uppercase strings.
-     */
-    function getLanguageAndCountry(locale) {
-        const parts = locale.split('-'); // separate the string based on the bind screed
-        let language = parts[0].toUpperCase(); // The first part is the language, always present
-        let country = parts[1] ? parts[1].toUpperCase() : language; // The second part is the country, if available; Otherwise language as a fallback
-        return {language: language, country: country}; // return as an object (language and country)
-    }
 
     /**
      * Fetches public holidays from the OpenHolidays API for a specified country and language within a given date range.
@@ -621,8 +959,8 @@
      * Retrieves school holidays for a specified country and federal state within a given date range
      * using the Open Holidays API.
      *
-     * @param {string} country - The ISO country code (e.g., 'DE' for Germany).
-     * @param {string} federalState - The federal state code within the country (e.g., 'DE-BE' for Berlin).
+     * @param {string} country - The ISO country code (e.g.  'DE' for Germany).
+     * @param {string | null} federalState - The federal state code within the country (e.g.  'DE-BE' for Berlin).
      * @param {string} validFrom - The start date for the holidays in ISO format (YYYY-MM-DD).
      * @param {string} validTo - The end date for the holidays in ISO format (YYYY-MM-DD).
      * @return {Promise<Array<{startDate: string, endDate: string, title: string}>>} A promise that resolves
@@ -667,48 +1005,14 @@
 
 
     /**
-     * Generates CSS for the border-radius property based on the input number.
-     *
-     * @param {number} number - A number that corresponds to a predefined border-radius value.
-     *                          Supported values:
-     *                          1 -> '0.25rem'
-     *                          2 -> '0.5rem'
-     *                          3 -> '0.75rem'
-     *                          4 -> '1rem'
-     *                          5 -> '2rem'
-     * @return {string} The CSS string for the border-radius property with the specified value.
-     */
-    function getBorderRadiusCss(number) {
-        let checkedNumber = Math.min(5, Math.max(0, number));
-        let rounded = '0';
-        switch (checkedNumber) {
-            case 1:
-                rounded = '0.25rem';
-                break;
-            case 2:
-                rounded = '0.5rem';
-                break;
-            case 3:
-                rounded = '0.75rem';
-                break;
-            case 4:
-                rounded = '1rem';
-                break;
-            case 5:
-                rounded = '2rem';
-                break;
-        }
-        return `border-radius: ${rounded} !important`;
-    }
-
-    /**
-     * Formats the day of the appointment by including its title wrapped in specific HTML structure.
+     * Formats the day of the appointment by including its title wrapped in a specific HTML structure.
      *
      * @param {Object} appointment - An object representing the appointment.
-     * @param {Object} extras - Additional data or configuration for formatting, not currently used in this method.
+     * @param {Object} [extras] - Additional data or configuration for formatting, not currently used in this method.
      * @return {string} A formatted string representing the appointment's title enclosed in a styled HTML structure.
      */
     function formatterDay(appointment, extras) {
+        void extras; // Verhindert die Warnung, aber erfüllt keinen Zweck
         return `<small class="px-2">${appointment.title}</small>`;
     }
 
@@ -738,10 +1042,11 @@
      * Formats the given appointment as a small HTML string, potentially including additional extras.
      *
      * @param {Object} appointment - The appointment object containing information to be formatted.
-     * @param {Object} extras - An object containing additional parameters for formatting, if applicable.
+     * @param {Object} [extras] - An object containing additional parameters for formatting, if applicable.
      * @return {string} A formatted string representing the appointment, styled as a small HTML element.
      */
     function formatterWeek(appointment, extras) {
+        void extras; // Verhindert die Warnung, aber erfüllt keinen Zweck
         return `<small class="px-2" style="font-size: 10px">${appointment.title}</small>`;
     }
 
@@ -788,7 +1093,7 @@
             `font-size:1.75rem`,
             `width: 60px`,
         ].join(';');
-        const roundedCss = getBorderRadiusCss(5);
+        const roundedCss = $.bsCalendar.utils.getBorderRadiusCss(5);
         const link = buildLink(appointment.link, roundedCss);
         const day = new Date(appointment.start).getDate();
         const date = new Date(appointment.start).toLocaleDateString(extras.locale, {
@@ -797,9 +1102,9 @@
             weekday: 'short'
         })
 
-        const html = [
+        return [
             `<div class="d-flex align-items-center justify-content-start g-3 py-1">`,
-            `<div class="day fw-bold text-center" style="${firstCollStyle}" data-date="${formatDateToDateString(new Date(appointment.start))}">`,
+            `<div class="day fw-bold text-center" style="${firstCollStyle}" data-date="${$.bsCalendar.utils.formatDateToDateString(new Date(appointment.start))}">`,
             `${day}`,
             `</div>`,
             `<div class="text-muted" style="width: 150px;">`,
@@ -810,7 +1115,6 @@
             `</div>`,
             `</div>`,
         ].join('');
-        return html;
     }
 
     /**
@@ -819,7 +1123,7 @@
      * It Also triggers the fetching of appointments and updates the view accordingly.
      *
      * @param {jQuery} $wrapper - The wrapper object containing the calendar or context-related elements.
-     * @param {string} [view] - The optional view to set (e.g., 'day', 'week', 'month').
+     * @param {string} [view] - The optional view to set (e.g.  'day', 'week', 'month').
      *                          Should be included in the available views defined in settings.
      * @return {void} - Does not return a value.
      */
@@ -879,19 +1183,19 @@
     }
 
     /**
-     * Clears all appointment-related elements within the specified
-     * wrapper and resets its appointment list.
+     * Clears specific elements within a given wrapper and optionally removes associated appointments.
      *
-     * @param {jQuery} $wrapper The jQuery object representing the wrapper containing elements to be cleared.
-     * @return {void} This method does not return any value.
+     * @param {jQuery} $wrapper - The wrapper element where the elements will be cleared.
+     * @param {boolean} [removeAppointments=true] - Determines whether the appointments should also be removed.
+     * @return {void} This function does not return a value.
      */
     function methodClear($wrapper, removeAppointments = true) {
         $wrapper.find('[data-appointment]').remove();
         $wrapper.find('[data-role="holiday"]').remove();
         $wrapper.find('.tooltip').remove();
         if (removeAppointments) {
-            setAppointments($wrapper, []).then(cleanedAppointments => {
-                // empty
+            setAppointments($wrapper, []).then(_cleanedAppointments => {
+                void _cleanedAppointments; // Verhindert die Warnung, aber erfüllt keinen Zweck
             });
         }
     }
@@ -1068,19 +1372,21 @@
     }
 
     /**
-     * Erstellt einen HTML-Link basierend auf einem String oder einem Link-Objekt.
+     * Builds an HTML anchor (`<a>`) tag with specified attributes and styles.
      *
-     * @param {string|object|null} link - Der Link kann entweder ein String oder ein Objekt mit folgenden Attributen sein:
-     *  - href: (string) die URL des Links (erforderlich, falls Objekt)
-     *  - text: (string) der anzuzeigende Text (optional, Standard: "Link")
-     *  - target: (string) Attribut für Ziel (optional, Standard: "_blank")
-     *  - rel: (string) Sicherheitsattribute (optional, Standard: "noopener noreferrer")
-     *  - html: (string) Optionaler HTML-Content als Alternativen zu `text` (optional)
-     * @param {string} style - Zusätzliche CSS-Styles für den Link (optional)
-     * @returns {string} Generierter HTML-Link oder ein leerer String, wenn der Link ungültig ist.
+     * @param {string|Object} link - The link information. Can be a string URL or an object with anchor attributes:
+     *   - `href` (string): The URL for the link (required in object form).
+     *   - `text` (string): The text content for the link. Defaults to "Link".
+     *   - `html` (string): Optional HTML content for the link. If provided, overrides the `text`.
+     *   - `target` (string): Specifies where to open the linked document. Defaults to "_blank".
+     *   - `rel` (string): Specifies the relationship between the current document and the linked document. Defaults to "noopener noreferrer".
+     * @param {string} [style=""] - Optional style string applied to the `style` attribute of the anchor tag.
+     * @return {string} An HTML string representing an anchor tag. Returns an empty string if `link` is invalid.
      */
     function buildLink(link, style = "") {
-        if (!link) return ""; // If no link is specified, return empty.
+        if (!link) {
+            return "";  // If no link is specified, return empty.
+        }
 
         // prepare default values
         const defaultText = "Link";
@@ -1108,24 +1414,23 @@
     }
 
     /**
-     * Formats an HTML string for an information window based on the given appointment data.
+     * Formats the content for an info window based on the provided appointment data and additional information.
      *
-     * @param {Object} appointment - The appointment object containing details to format the information window.
-     * @return {string} An HTML string representing the formatted information window for the appointment.
+     * @param {object} appointment - The appointment object containing details such as title, description, location, and link.
+     * @param {object} extras - Additional data for display, including `displayDates` (array of date objects) and `duration`.
+     * @return {Promise<string>} A promise that resolves to the formatted HTML string for the info window or rejects with an error message.
      */
     async function formatInfoWindow(appointment, extras) {
         const locale = extras.locale;
         return new Promise((resolve, reject) => {
             try {
                 // extract times and ads
-                const times = [];
                 const displayDates = extras.displayDates;
-                const startDate = formatDateByLocale(displayDates[0].date);
-                const endDate = formatDateByLocale(displayDates[displayDates.length - 1].date);
+                const startDate = $.bsCalendar.utils.formatDateByLocale(displayDates[0].date, locale);
+                const endDate = $.bsCalendar.utils.formatDateByLocale(displayDates[displayDates.length - 1].date, locale);
                 const isSameDate = startDate === endDate;
 
-                let showDate = isSameDate ? startDate : `${startDate} - ${endDate}`;
-                let showTime = showDate;
+                let showTime = isSameDate ? startDate : `${startDate} - ${endDate}`;
 
                 if (!appointment.allDay) {
                     let startTime = extras.displayDates[0].times.start.substring(0, 5);
@@ -1138,7 +1443,7 @@
                 }
 
                 // generate link if available
-                const roundedCss = getBorderRadiusCss(5);
+                const roundedCss = $.bsCalendar.utils.getBorderRadiusCss(5);
                 const link = buildLink(appointment.link, roundedCss);
 
                 // process location information
@@ -1169,22 +1474,6 @@
                 reject(`Error in formatter.window: ${error.message}`);
             }
         });
-    }
-
-    /**
-     * Formatiert ein Datum anhand einer gegebenen Locale.
-     *
-     * @param {Date} date - Das zu formatierende Datum.
-     * @param {string} locale - Die zu verwendende Locale, z.B. 'de-DE' für Deutsch oder 'en-US' für Englisch (Standard: 'en-EN').
-     * @returns {string} Das formatierte Datum.
-     */
-    function formatDateByLocale(date, locale) {
-        if (typeof date === 'string') {
-            date = new Date(date);
-        }
-        // formatting options
-        const options = {weekday: 'long', month: 'long', day: 'numeric'};
-        return new Intl.DateTimeFormat(locale, options).format(date);
     }
 
     /**
@@ -1231,10 +1520,12 @@
     }
 
     /**
-     * Initializes the given wrapper element by setting up required data, structures, and event handlers.
+     * Initializes the calendar widget within the provided wrapper element.
+     * Configures settings, views, and event handling as necessary.
      *
-     * @param {jQuery} $wrapper - The wrapper element to initialize.
-     * @return {Promise<Object>} A promise that resolves with the initialized wrapper or rejects with an error.
+     * @param {jQuery} $wrapper - The jQuery object representing the container element where the calendar will be initialized.
+     * @param {boolean} [initEvents=true] - A flag indicating whether event handlers should be attached during initialization.
+     * @return {Promise<jQuery>} A promise that resolves with the initialized wrapper element or rejects with an error encountered during initialization.
      */
     function init($wrapper, initEvents = true) {
         return new Promise((resolve, reject) => {
@@ -1256,14 +1547,16 @@
                 setView($wrapper, settings.startView);
                 setDate($wrapper, settings.startDate);
                 setSearchMode($wrapper, false);
-                let searchObject = settings.search
-                && settings.search.hasOwnProperty('limit')
-                && settings.search.hasOwnProperty('offset') ?
-                    {limit: settings.search.limit, offset: settings.search.offset} : null;
+                let searchObject =
+                    settings.search &&
+                    settings.search.hasOwnProperty('limit') &&
+                    settings.search.hasOwnProperty('offset') ?
+                        {limit: settings.search.limit, offset: settings.search.offset} :
+                        null;
                 setSearchPagination($wrapper, searchObject);
                 buildFramework($wrapper);
                 if (initEvents) {
-                    handleEvents($wrapper, initEvents);
+                    handleEvents($wrapper);
                 }
 
                 buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
@@ -1284,23 +1577,6 @@
 
 
     /**
-     * Converts a date-time string with a space separator into ISO 8601 format
-     * by replacing the space character with 'T'. If the input is not a string,
-     * it is returned as-is.
-     *
-     * @param {string|*} dateTime - The date-time value to normalize. If it's a string,
-     *                              it replaces the space with 'T'. For other types,
-     *                              the original value is returned.
-     * @return {string|*} - The normalized date-time string or the input if it is not a string.
-     */
-    function normalizeDateTime(dateTime) {
-        if (typeof dateTime === "string") {
-            return dateTime.replace(" ", "T");
-        }
-        return dateTime; // If the value is not a string, give it back directly.
-    }
-
-    /**
      * Processes and sets the given appointments within the wrapper element. This involves validating,
      * sorting, adding extra details, and storing the processed appointments in the wrapper's data attribute.
      *
@@ -1315,7 +1591,7 @@
 
         // Return a Promise to manage asynchronous operations
         return new Promise((resolve, reject) => {
-            // Check if the appointments array is valid, contains appointments, and is not empty
+            // Check if the appointment array is valid, contains appointments, and is not empty
             const hasAppointmentsAsArray = appointments && Array.isArray(appointments) && appointments.length > 0;
             if (!hasAppointmentsAsArray) {
                 // If no valid appointments are provided, initialize an empty appointments array
@@ -1341,7 +1617,7 @@
                     })
                     .map(appointment => {
                         // Put the value of `total` on integer (if necessary)
-                        appointment.total = parseInt(appointment.total);
+                        appointment.total = parseInt(appointment.total+"");
                         return appointment;
                     });
                 setAppointmentExtras($wrapper, processedAppointments);
@@ -1349,7 +1625,7 @@
                 return resolve(processedAppointments);
             }
 
-            // Check if the appointments array is valid, contains appointments, and is not empty
+            // Check if the appointment array is valid, contains appointments, and is not empty
             cleanAppointments($wrapper, appointments);
 
             // Determine if the system is in search mode to adjust sorting behavior
@@ -1358,8 +1634,9 @@
             // Sort the appointments based on their start time
             // If not in search mode, use ascending order
             sortAppointmentByStart(appointments, !inSearchMode)
-                .then(sortedAppointments => {
-                    // Calculate additional details for appointments (e.g., duration, custom flags)
+                .then(_sortedAppointments => {
+                    void _sortedAppointments;
+                    // Calculate additional details for appointments (e.g.  duration, custom flags)
                     setAppointmentExtras($wrapper, appointments);
 
                     // Store the processed appointments inside the wrapper's data attribute
@@ -1381,232 +1658,20 @@
         });
     }
 
-    /**
-     * Determines the version of Bootstrap being used.
-     *
-     * @return {number} The Bootstrap version, either 4 or 5.
-     */
-    function getBootstrapVersion() {
-        let bootstrapVersion;
-
-        if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
-            if (typeof bootstrap.Modal.getOrCreateInstance === 'function') {
-                bootstrapVersion = 5; // Bootstrap 5
-            } else {
-                bootstrapVersion = 4; // Bootstrap 4
-            }
-        } else {
-            bootstrapVersion = 5; // boat trap not loaded
-        }
-        return bootstrapVersion;
-    }
-
-    /**
-     * Get colors (background and text) based on a given color or fallback color, built with jQuery.
-     *
-     * @param {string} color - The primary color as a direct HEX, RGB, RGBA value or a CSS class.
-     * @param {string} fallbackColor - The fallback color or class if the primary color is invalid.
-     * @returns {object} - An object containing the colors: backgroundColor, backgroundImage, and text color.
-     */
-    function getColors(color, fallbackColor) {
-        /**
-         * Validates if the provided color input is a valid direct color representation.
-         * The method checks if the input is in valid HEX format, RGB(A) format*/
-        function isDirectColorValid(inputColor) {
-            if (!inputColor || typeof inputColor !== "string") return false;
-
-            const hexPattern = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
-            const rgbPattern = /^rgba?\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})(?:,\s*(0|0?\.\d+|1))?\s*\)$/;
-
-            // check whether input is a valid hex/RGB value or a defined color name
-            return hexPattern.test(inputColor) || rgbPattern.test(inputColor) || inputColor.toLowerCase() in colorNameToHex;
-        }
-
-        /**
-         * Resolves the input color by converting color names to their hexadecimal representation
-         * if applicable. If the input is not a recognized color name, it returns the input as is.
-         *
-         * @param {string} inputColor - The color input, which can be a recognized color name or a direct color value.
-         * @return {string} The resolved color in hexadecimal format if the input is a recognized color name, otherwise the input color itself.
-         */
-        function resolveColor(inputColor) {
-            // check whether it is a color name that has to be converted into hex
-            if (inputColor.toLowerCase() in colorNameToHex) {
-                return colorNameToHex[inputColor.toLowerCase()];
-            }
-            return inputColor; // If no color name, return the input directly
-        }
-
-        /**
-         * Determines whether the given color is considered dark based on its luminance.
-         *
-         * @param {string} color - The color to evaluate. This can be a hex color code (e.g., "#000", "#000000"),
-         * RGB(A) format (e.g., "rgb(0, 0, 0)" or "rgba(0, 0, 0, 1)"), or a valid color name that can be resolved.
-         * @return {boolean} Returns true if the color is dark, false otherwise.
-         */
-        function isDarkColor(color) {
-            // dissolve hex-color if it is a color name
-            color = resolveColor(color);
-
-            let r, g, b;
-
-            if (color.startsWith("#")) {
-                if (color.length === 4) {
-                    // Expand 3-digit hex to 6-digit version
-                    color = "#" + color[1] + color[1] + color[2] + color[2] + color[3] + color[3];
-                }
-
-                // Hex-color code (6 digits)
-                r = parseInt(color.slice(1, 3), 16);
-                g = parseInt(color.slice(3, 5), 16);
-                b = parseInt(color.slice(5, 7), 16);
-            } else if (color.startsWith("rgb")) {
-                // RGB or RGBA color codes
-                const rgbValues = color.match(/\d+/g); // extract numbers from the character chain
-                r = parseInt(rgbValues[0]);
-                g = parseInt(rgbValues[1]);
-                b = parseInt(rgbValues[2]);
-            } else {
-                throw new Error("Unsupported color format");
-            }
-
-            // YiQ calculation for determination whether the color is dark
-            const yiq = ((r * 299) + (g * 587) + (b * 114)) / 1000;
-            return yiq <= 128; // return true when the color is dark
-        }
-
-        /**
-         * Computes and returns the styles (background color, background image, text color, etc.)
-         * for a series of class names by temporarily applying them to a DOM element and extracting
-         * their computed styles.
-         *
-         * @param {string} inputClassNames - A space-separated string of class names to compute styles for.
-         * @return {Object} An object containing the computed styles:
-         * - `backgroundColor` {string}: The computed background color with respect to opacity adjustments.
-         * - `backgroundImage` {string}: The computed background image property.
-         * - `color` {string}: The computed text color.
-         * - `classList` {string[]} An array of class names applied to the computation.
-         * - `origin` {string}: The original input class names string.
-         */
-        function getComputedStyles(inputClassNames) {
-            const bsV = getBootstrapVersion();
-            const classList = inputClassNames.split(" ").map(className => {
-                if (className.includes("opacity") || className.includes("gradient")) {
-                    return className.startsWith("bg-") ? className : `bg-${className}`;
-                } else {
-                    switch (bsV) {
-                        case 5:
-                            return className.startsWith("bg-")
-                                ? className.replace("bg-", "text-bg-")
-                                : `text-bg-${className}`;
-                        case 4:
-                            if (className.startsWith("bg-")) {
-                                return className;
-                            } else {
-                                return "bg-" + className;
-                            }
-                    }
-                    return className.startsWith("bg-") && bsV === 5
-                        ? className.replace("bg-", "text-bg-")
-                        : `text-bg-${className}`;
-                }
-            });
-
-            const tempElement = document.createElement("div");
-            tempElement.style.display = "none";
-            tempElement.style.position = "absolute";
-            document.body.appendChild(tempElement);
-
-            classList.forEach(className => {
-                tempElement.classList.add(className);
-            });
-
-            const computedStyles = window.getComputedStyle(tempElement);
-
-            const backgroundColor = computedStyles.backgroundColor || "rgba(0, 0, 0, 0)";
-            const backgroundImage = computedStyles.backgroundImage || "none";
-            const color = bsV > 4 ? (computedStyles.color || "#000000")
-                : (isDarkColor(backgroundColor) ? "#ffffff" : "#000000");
-            const opacity = computedStyles.opacity || "1";
-
-            document.body.removeChild(tempElement);
-
-            let adjustedBackgroundColor = backgroundColor;
-            if (backgroundColor.startsWith("rgb") && parseFloat(opacity) < 1) {
-                const matchRgb = backgroundColor.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-                if (matchRgb) {
-                    const [_, r, g, b] = matchRgb;
-                    adjustedBackgroundColor = `rgba(${r}, ${g}, ${b}, ${opacity})`;
-                }
-            }
-
-            return {
-                backgroundColor: adjustedBackgroundColor,
-                backgroundImage: backgroundImage,
-                color: color,
-                classList: classList,
-                origin: inputClassNames,
-            };
-        }
-
-        /**
-         * Computes the color properties based on the input color.
-         *
-         * @param {string} inputColor - The input color, which can be in various formats (e.g., named color, hex, or invalid string).
-         * @return {Object|null} Returns an object with computed background and text color properties if the input is valid, or null if the input is invalid.
-         *                       The returned object contains:
-         *                       - `backgroundColor`: The resolved background color in a valid format (e.g., Hex).
-         *                       - `backgroundImage`: Set to "none" by default.
-         *                       - `color`: The computed text color depending on the background color (black or white).
-         */
-        function computeColor(inputColor) {
-            if (isDirectColorValid(inputColor)) {
-                // dissolve the color into a valid format (e.g. hex)
-                const resolvedColor = resolveColor(inputColor);
-                const isDark = isDarkColor(resolvedColor);
-                return {
-                    backgroundColor: resolvedColor, // background color
-                    backgroundImage: "none", // By default no picture
-                    color: isDark ? "#FFFFFF" : "#000000", // text color based on background color
-                };
-            } else if (inputColor) {
-                return getComputedStyles(inputColor);
-            }
-
-            return null; // invalid input
-        }
-
-        const primaryResult = computeColor(color);
-        const fallbackResult = primaryResult || computeColor(fallbackColor);
-
-        const defaultValues = {
-            backgroundColor: "#000000", // black background, if nothing fits
-            backgroundImage: "none", // No background image by default
-            color: "#FFFFFF", // standard text color with dark background
-        };
-
-        const result = {...defaultValues, ...fallbackResult};
-
-        return {
-            origin: color, // input for debug purposes
-            ...result,
-        };
-    }
 
     /**
      * Cleans and normalizes a list of appointments by applying validation and formatting based on the provided wrapper settings.
      *
      * @param {Object} $wrapper - The wrapper object containing configuration and settings used for cleaning appointments.
      * @param {Array} appointments - A list of appointment objects to be cleaned and normalized.
-     * @return {void} - This method does not return a value but modifies the appointments array in place.
+     * @return {void} - This method does not return a value but modifies the appointment array in place.
      */
     function cleanAppointments($wrapper, appointments) {
-        const settings = getSettings($wrapper); // get settings from the wrapper
         appointments.forEach(appointment => {
 
             // Ensure start and end times are properly normalized
-            appointment.start = normalizeDateTime(appointment.start.trim());
-            appointment.end = normalizeDateTime(appointment.end.trim());
+            appointment.start = $.bsCalendar.utils.normalizeDateTime(appointment.start.trim());
+            appointment.end = $.bsCalendar.utils.normalizeDateTime(appointment.end.trim());
 
             if (appointment.allDay) {
                 // Clean up start and end times when the appointment is all-day
@@ -1632,10 +1697,11 @@
     }
 
     /**
-     * Sorts a list of appointments by their start time in ascending order.
+     * Sorts a list of appointments by their start date and optionally prioritizes all-day events.
      *
-     * @param {Array<Object>} appointments - An array of appointment objects where each object contains a 'start' property representing the starting time of the appointment.
-     * @return {Array<Object>} The sorted array of appointment objects in ascending order of their start times.
+     * @param {Array} appointments - The array of appointment objects to be sorted. Each object should contain `start` (date) and optionally `allDay` (boolean) properties.
+     * @param {boolean} [sortAllDay=true] - A flag to indicate whether all-day appointments should be prioritized at the beginning of the list.
+     * @return {Promise<Array>} A Promise that resolves to the sorted array of appointments.
      */
     async function sortAppointmentByStart(appointments, sortAllDay = true) {
         if (!appointments || !Array.isArray(appointments) || appointments.length === 0) {
@@ -1673,7 +1739,7 @@
      * @return {Array<Object>} The appointment data stored in the wrapper element, or undefined if no data is found.
      */
     function getAppointments($wrapper) {
-        return $wrapper.data('appointments');
+        return $wrapper.data('appointments') || [];
     }
 
     /**
@@ -1695,7 +1761,7 @@
             class: 'd-flex flex-column align-items-stretch h-100 w-100'
         }).appendTo($wrapper);
 
-        const roundedCss = getBorderRadiusCss(settings.rounded);
+        const roundedCss = $.bsCalendar.utils.getBorderRadiusCss(settings.rounded);
 
         // Create the wrapper for the upper navigation
         const topNav = $('<div>', {
@@ -1712,7 +1778,7 @@
         const middleCol = $('<div>', {class: 'col-auto col-lg-3 d-flex py-2 py-lg-0 justify-content-end justify-content-lg-center flex-fill flex-nowrap align-items-center'}).appendTo(topNav);
         const rightCol = $('<div>', {class: 'col-auto col-lg-3 d-flex py-2 py-lg-0 justify-content-end flex-nowrap flex-fill align-items-center'}).appendTo(topNav);
 
-        // Add button to switch on and off the sidebar.
+        // Add a button to switch on and off the sidebar.
         $('<button>', {
             class: `btn border me-2 mr-2`,
             style: roundedCss,
@@ -1739,7 +1805,7 @@
                 toggleSearchBar($wrapper, true);
             });
 
-            // add the search input to top search bar
+            // add the search input to the top search bar
             const inputCss = 'max-width: 400px; ' + roundedCss;
             $('<input>', {
                 type: 'search',
@@ -1873,7 +1939,7 @@
     /**
      * Updates the elements displaying the current date information based on the provided wrapper's settings, date, and view.
      *
-     * @param {jQuery} $wrapper The wrapper object containing settings, date, and view for obtaining and formatting the current date.
+     * @param {jQuery} $wrapper The wrapper object contains settings, date, and view for obtaining and formatting the current date.
      * @return {void} Does not return a value, directly updates the text content of the targeted elements with formatted date information.
      */
     function setCurrentDateName($wrapper) {
@@ -1886,7 +1952,7 @@
         const weekdayName = date.toLocaleDateString(settings.locale, {weekday: 'long'});
         const monthName = date.toLocaleDateString(settings.locale, {month: 'long'});
         const yearName = date.toLocaleDateString(settings.locale, {year: 'numeric'});
-        const calendarWeek = getCalendarWeek(date);
+        const calendarWeek = $.bsCalendar.utils.getCalendarWeek(date);
         switch (view) {
             case 'day':
                 el.text(weekdayName + ', ' + dayName + ' ' + monthName + ' ' + yearName);
@@ -2002,7 +2068,7 @@
     /**
      * Toggles the search mode for a given wrapper element and updates the view accordingly.
      *
-     * @param {Element} $wrapper - The wrapper element for which the search mode should be toggled.
+     * @param {jQuery} $wrapper - The wrapper element for which the search mode should be toggled.
      * @param {boolean} status - The desired status of search mode, where `true` enables it and `false` disables it.
      * @param {boolean} [rebuildView=true] - Specifies whether the view should be rebuilt when toggling search mode off.
      * @return {void} This method does not return a value.
@@ -2031,7 +2097,7 @@
     /**
      * Resets the search pagination settings to their default values based on the provided wrapper's configuration.
      *
-     * @param {HTMLElement} $wrapper - The wrapper element containing the settings for search pagination.
+     * @param {jQuery} $wrapper - The wrapper element containing the settings for search pagination.
      * @return {void} This function does not return a value.
      */
     function resetSearchPagination($wrapper) {
@@ -2048,7 +2114,7 @@
      * @return {void}
      */
     function setSearchPagination($wrapper, object) {
-        const pagination = isValueEmpty(object) ? null : object;
+        const pagination = $.bsCalendar.utils.isValueEmpty(object) ? null : object;
         $wrapper.data('searchPagination', pagination);
     }
 
@@ -2084,16 +2150,6 @@
     }
 
     /**
-     * Checks if a given wrapper element is in search mode.
-     *
-     * @param {jQuery} $wrapper - The jQuery-wrapped DOM element to check for search mode.
-     * @return {boolean} Returns true if the wrapper is in search mode; otherwise, returns false.
-     */
-    function inSearchMode($wrapper) {
-        return $wrapper.data('searchMode') || false;
-    }
-
-    /**
      * Toggles the visibility of a sidebar within a specified wrapper element,
      * with optional forced open/close behaviors.
      *
@@ -2103,11 +2159,11 @@
      * @return {void} This function does not return a value.
      */
     function handleSidebarVisibility($wrapper, forceClose = false, forceOpen = false) {
-        var $sidebar = $wrapper.find('.' + calendarElements.sideNav);
-        var isVisible = $sidebar.data('visible'); // Current status of the sidebar
+        const $sidebar = $wrapper.find('.' + calendarElements.sideNav);
+        const isVisible = $sidebar.data('visible'); // Current status of the sidebar
 
         // calculate target status
-        var shouldBeVisible = forceOpen || (!forceClose && !isVisible);
+        const shouldBeVisible = forceOpen || (!forceClose && !isVisible);
 
         // Set a position before the animation (only if it is opened)
         if (shouldBeVisible) {
@@ -2222,11 +2278,10 @@
                 e.preventDefault();
 
                 const input = $(e.currentTarget);
-                const isEmpty = isValueEmpty(input.val()); // Check if the input is empty
+                const isEmpty = $.bsCalendar.utils.isValueEmpty(input.val()); // Check if the input is empty
                 let inSearchMode = getSearchMode($wrapper);
                 if (!inSearchMode && !isEmpty) {
-                    setSearchMode($wrapper, true, false);
-                    inSearchMode = true;
+                    setSearchMode($wrapper, true);
                 }
 
                 // If input is empty, stop here and optionally disable search mode
@@ -2235,13 +2290,37 @@
                     return;
                 }
 
-                // Trigger search immediately if Enter key is pressed or input field gets updated
+                // Trigger search immediately if a Enter key is pressed or the input field gets updated
                 const isEnterKey = e.type === 'keyup' && (e.key === 'Enter' || e.which === 13 || e.keyCode === 13);
 
                 if (isEnterKey) {
                     triggerSearch($wrapper);
                 }
 
+            })
+            .on('click', '[data-day-hour]', function (e) {
+                const settings = getSettings($wrapper);
+                const details = $(e.currentTarget).data('details');
+                if (settings.debug) {
+                    log('Day hour clicked:', details);
+                }
+                const start = new Date(`${$.bsCalendar.utils.formatDateToDateString(details.date)} ${String(details.hour).padStart(2, '0')}:00:00`);
+                const end = new Date(start);
+                end.setMinutes(end.getMinutes() + 30);
+
+                const data = {
+                    start: {
+                        date: $.bsCalendar.utils.formatDateToDateString(start),
+                        time: start.toTimeString().slice(0, 5) // nur "HH:mm"
+                    },
+                    end: {
+                        date: $.bsCalendar.utils.formatDateToDateString(end),
+                        time: end.toTimeString().slice(0, 5) // nur "HH:mm"
+                    },
+                    view: getView($wrapper)
+                };
+
+                trigger($wrapper, 'add', [data]);
             })
             .on('click', '[data-add-appointment]', function (e) {
                 e.preventDefault();
@@ -2255,11 +2334,11 @@
 
                 const data = {
                     start: {
-                        date: formatDateToDateString(period.start),
+                        date: $.bsCalendar.utils.formatDateToDateString(period.start),
                         time: null
                     },
                     end: {
-                        date: formatDateToDateString(period.end),
+                        date: $.bsCalendar.utils.formatDateToDateString(period.end),
                         time: null
                     },
                     view: getView($wrapper)
@@ -2351,12 +2430,19 @@
             })
     }
 
+    /**
+     * Removes a specified key-value pair from local storage for the given wrapper element.
+     *
+     * @param {jQuery} $wrapper - The jQuery object representing the wrapper element. Must have an `id` attribute to properly construct the storage key.
+     * @param {string} key - The key of the data to be removed from local storage.
+     * @return {void} This function does not return a value.
+     */
     function removeFromLocalStorage($wrapper, key) {
         const settings = getSettings($wrapper);
         if (settings.debug) {
             log('Removing data from local storage: ' + key);
         }
-        if (isValueEmpty($wrapper.attr('id'))) {
+        if ($.bsCalendar.utils.isValueEmpty($wrapper.attr('id'))) {
             if (settings.debug) {
                 log('Wrapper element has no id attribute. Cannot remove data from local storage.');
             }
@@ -2367,6 +2453,15 @@
         localStorage.removeItem(keyComplete);
     }
 
+    /**
+     * Persists a key-value pair to the browser's local storage for a given wrapper element,
+     * provided the settings allow it and certain conditions are met.
+     *
+     * @param {jQuery} $wrapper
+     * @param {string} key - The key under which the data should be stored.
+     * @param {*} value - The value to store in local storage. Can be an object, boolean, or string.
+     * @return {void} This method does not return a value.
+     */
     function saveToLocalStorage($wrapper, key, value) {
         const settings = getSettings($wrapper);
         if (settings.debug) {
@@ -2379,7 +2474,7 @@
             }
             return;
         }
-        if (isValueEmpty($wrapper.attr('id'))) {
+        if ($.bsCalendar.utils.isValueEmpty($wrapper.attr('id'))) {
             if (settings.debug) {
                 log('Element has no ID, cannot save data to local storage');
             }
@@ -2412,8 +2507,9 @@
             }
             localStorage.setItem(keyComplete, value.toString());
         } else if (typeof value === 'function') {
-            log('Functions cannot be stored in localStorage.');
-            return;
+            if (settings.debug) {
+                log('Functions cannot be stored in localStorage.');
+            }
         } else {
             if (settings.debug) {
                 log('Saving string to local storage', value.toString());
@@ -2422,12 +2518,20 @@
         }
     }
 
+    /**
+     * Retrieves data from local storage for the specified key, associated with the given wrapper element.
+     * The method handles parsing of JSON values, as well as converting specific string values to their corresponding types (e.g.  boolean, number).
+     *
+     * @param {jQuery} $wrapper - The wrapper element whose ID is used as part of the local storage key.
+     * @param {string} key - The key used to retrieve the data from local storage.
+     * @return {*} The parsed value from local storage if successful, or the original string value if parsing fails. Returns null if the value is 'null'. Returns false if data retrieval is disabled or no valid key exists.
+     */
     function getFromLocalStorage($wrapper, key) {
         const settings = getSettings($wrapper);
         if (settings.debug) {
             log('Getting element data from local storage: ' + key);
         }
-        if (isValueEmpty($wrapper.attr('id'))) {
+        if ($.bsCalendar.utils.isValueEmpty($wrapper.attr('id'))) {
             if (settings.debug) {
                 log('Element has no ID, cannot get data from local storage');
             }
@@ -2476,7 +2580,9 @@
             }
 
             // Prüfe, ob es sich um eine Zahl handelt
-            if (!isNaN(value)) {
+            const isNumber = value => /^-?\d+(\.\d+)?$/.test(value);
+
+            if (isNumber(value)) {
                 if (settings.debug) {
                     log('Value is a number, returning number', Number(value));
                 }
@@ -2495,11 +2601,10 @@
      * Triggers the search functionality within the given wrapper element. This includes fetching settings,
      * resetting pagination, and updating the view.
      *
-     * @param {Object} $wrapper - The wrapper element containing the search context.
+     * @param {jQuery} $wrapper - The wrapper element containing the search context.
      * @return {void} - No return value.
      */
     function triggerSearch($wrapper) {
-        const settings = getSettings($wrapper);
         resetSearchPagination($wrapper);
         buildByView($wrapper);
     }
@@ -2512,45 +2617,6 @@
      */
     function getSelectViewElement($wrapper) {
         return $wrapper.find('.wc-select-calendar-view');
-    }
-
-    /**
-     * Retrieves the DOM element representing the "Today" button within a specified wrapper element.
-     *
-     * @param {jQuery} $wrapper - The jQuery object representing the wrapper element to search within.
-     * @return {jQuery} The jQuery object containing the "Today" button element.
-     */
-    function getTodayButtonElement($wrapper) {
-        return $wrapper.find('[data-today]');
-    }
-
-    /**
-     * Retrieves the element representing the "Add" button for appointments within the given wrapper element.
-     *
-     * @param {jQuery} $wrapper - A jQuery object representing the wrapper element that contains the "Add" button.
-     * @return {jQuery} - A jQuery object representing the "Add" button element.
-     */
-    function getAddButtonElement($wrapper) {
-        return $wrapper.find('[data-add-appointment]');
-    }
-
-    /**
-     * Checks whether a given value is considered empty.
-     *
-     * @param {any} value - The value to check for emptiness. It can be of any type such as null, undefined, array, or string.
-     * @return {boolean} Returns true if the value is empty (null, undefined, empty array, or string with only spaces). Returns false otherwise.
-     */
-    function isValueEmpty(value) {
-        if (value === null || value === undefined) {
-            return true; // Null or undefined
-        }
-        if (Array.isArray(value)) {
-            return value.length === 0; // Empty array
-        }
-        if (typeof value === 'string') {
-            return value.trim().length === 0; // Empty string (including only spaces)
-        }
-        return false; // All other values are considered non-empty (including numbers)
     }
 
     /**
@@ -2581,16 +2647,6 @@
     }
 
     /**
-     * Retrieves the last view data stored in the specified wrapper element.
-     *
-     * @param {Object} $wrapper - The wrapper element containing view data.
-     * @return {*} The value of the last view data associated with the wrapper element.
-     */
-    function getLastView($wrapper) {
-        return $wrapper.data('lastView');
-    }
-
-    /**
      * Sets the last view data attribute on the provided wrapper element.
      *
      * @param {jQuery} $wrapper - The jQuery object representing the DOM element to set the last view for.
@@ -2612,7 +2668,6 @@
      */
     function setView($wrapper, view) {
         const settings = getSettings($wrapper);
-        const lastView = getLastView($wrapper);
         const currentView = getView($wrapper);
 
         if (view !== 'search' && !['day', 'week', 'month', 'year'].includes(view)) {
@@ -2669,7 +2724,7 @@
      * Retrieves the settings data from the specified wrapper element.
      *
      * @param {jQuery} $wrapper - The wrapper element whose settings data is to be fetched.
-     * @return {*} The settings data retrieved from the wrapper element.
+     * @return {null|object} The settings data retrieved from the wrapper element.
      */
     function getSettings($wrapper) {
         return $wrapper.data('settings') ?? null;
@@ -2771,7 +2826,7 @@
 
         // Prepare data for the AJAX request
         if (!inSearchMode) {
-            // Retrieve the current view type (e.g., day, week, month, year)
+            // Retrieve the current view type (e.g.  day, week, month, year)
             const view = getView($wrapper);
             // Calculate the start and end date range based on the view
             const period = getStartAndEndDateByView($wrapper);
@@ -2794,7 +2849,7 @@
             const searchElement = getSearchElement($wrapper);
             const search = searchElement?.val() ?? null;
             // Check if the search value is empty to decide if loading should be skipped
-            skipLoading = isValueEmpty(search);
+            skipLoading = $.bsCalendar.utils.isValueEmpty(search);
             requestData = {
                 ...getSearchPagination($wrapper), // Include pagination data
                 search: search // The search string, if provided
@@ -2816,7 +2871,8 @@
                 log('Skip loading appointments because search is empty');
             }
             // Update the appointments list with an empty array and re-build the default view
-            setAppointments($wrapper, []).then(cleanedAppointments => {
+            setAppointments($wrapper, []).then(_cleanedAppointments => {
+                void _cleanedAppointments;
                 buildAppointmentsForView($wrapper);
             });
             return; // Exit the function
@@ -2851,7 +2907,8 @@
                         });
                     } else {
                         // In normal mode, process appointments and build the main view
-                        setAppointments($wrapper, appointments).then(cleanedAppointments => {
+                        setAppointments($wrapper, appointments).then(_cleanedAppointments => {
+                            void _cleanedAppointments;
                             buildAppointmentsForView($wrapper);
                         });
                     }
@@ -2898,7 +2955,8 @@
                         });
                     } else {
                         // In normal mode, handle the response and build the default view
-                        setAppointments($wrapper, response).then(cleanedAppointments => {
+                        setAppointments($wrapper, response).then(_cleanedAppointments => {
+                            void _cleanedAppointments;
                             buildAppointmentsForView($wrapper);
                         });
                     }
@@ -2924,24 +2982,10 @@
     }
 
     /**
-     * Checks if two appointments overlap based on their start and end times.
-     *
-     * @param {Object} appointment1 The first appointment object with `start` and `end` properties as date strings.
-     * @param {Object} appointment2 The second appointment object with `start` and `end` properties as date strings.
-     * @return {boolean} Returns true if the two appointments overlap; otherwise, false.
-     */
-    function checkAppointmentOverlap(appointment1, appointment2) {
-        return (
-            new Date(appointment1.start) < new Date(appointment2.end) &&
-            new Date(appointment1.end) > new Date(appointment2.start)
-        );
-    }
-
-    /**
      * Groups overlapping appointments by weekdays, organizing them into columns or marking them as full-width,
      * based on their overlapping properties and visibility conditions for different views.
      *
-     * @param {object} $wrapper - The wrapper DOM element or container associated with the view.
+     * @param {JQuery} $wrapper - The wrapper DOM element or container associated with the view.
      * @param {Array} appointments - An array of appointment objects. Each appointment is expected to include
      *                               scheduling and visibility details, such as date, time, and display properties.
      * @return {object} - An object where each key is a weekday (0-6, corresponding to Sunday-Saturday), and the value
@@ -3064,7 +3108,7 @@
             }
             appointment.extras.displayDates.forEach((obj) => {
                 const fakeStart = new Date(obj.date);
-                const allDayWrapper = $viewContainer.find('[data-all-day="' + fakeStart.getDay() + '"][data-date-local="' + formatDateToDateString(fakeStart) + '"]');
+                const allDayWrapper = $viewContainer.find('[data-all-day="' + fakeStart.getDay() + '"][data-date-local="' + $.bsCalendar.utils.formatDateToDateString(fakeStart) + '"]');
                 if (allDayWrapper.length) {
                     allDayWrapper.addClass('pb-3');
                     const appointmentElement = $('<div>', {
@@ -3102,7 +3146,7 @@
                     }
 
                     // Formatierung des Startdatums für den richtigen Container
-                    const targetDateLocal = formatDateToDateString(startDate);
+                    const targetDateLocal = $.bsCalendar.utils.formatDateToDateString(startDate);
 
                     // Suche des Containers anhand Wochentag und Datum
                     const $weekDayContainer = $viewContainer.find(
@@ -3133,16 +3177,18 @@
                         const remainingGap = (remainingColumns - 1) * columnGap;
                         appointmentWidthPercent = 100 - ((columnIndex * (100 / totalColumns)) + (remainingGap * 100 / $weekDayContainer.width()));
                     } else {
-                        appointmentWidthPercent = totalColumns > 1
-                            ? (100 - (totalGap * 100 / $weekDayContainer.width())) / totalColumns
-                            : 100;
+                        appointmentWidthPercent =
+                            totalColumns > 1 ?
+                                (100 - (totalGap * 100 / $weekDayContainer.width())) / totalColumns :
+                                100;
                     }
 
-                    const appointmentLeftPercent = totalColumns > 1
-                        ? (columnIndex * (100 / totalColumns))
-                        : 0;
+                    const appointmentLeftPercent =
+                        totalColumns > 1 ?
+                            (columnIndex * (100 / totalColumns)) :
+                            0;
 
-                    console.log('>>>>>>>>>>>>>>>>>> before calculateSlotPosition' , 'drawAppointmentsForDayOrWeek collumns');
+                    console.log('>>>>>>>>>>>>>>>>>> before calculateSlotPosition', 'drawAppointmentsForDayOrWeek collumns');
                     const position = calculateSlotPosition(
                         $wrapper,
                         startDate.toISOString(),
@@ -3181,7 +3227,6 @@
                 const appointment = slotData.appointment;
 
                 const startDate = new Date(slotData.start);
-                const endDate = new Date(slotData.end);
 
                 // appointments that take the whole width
                 const appointmentWidthPercent = 100; // full width
@@ -3200,7 +3245,7 @@
                     slotData.end instanceof Date &&
                     !isNaN(slotData.end)
                 ) {
-                    console.log('>>>>>>>>>>>>>>>>>> before calculateSlotPosition' , 'drawAppointmentsForDayOrWeek fullWidth');
+                    console.log('>>>>>>>>>>>>>>>>>> before calculateSlotPosition', 'drawAppointmentsForDayOrWeek fullWidth');
                     position = calculateSlotPosition(
                         $wrapper,
                         slotData.start.toISOString(),
@@ -3211,7 +3256,7 @@
                 }
 
                 // formatting of the start date for the container
-                const targetDateLocal = formatDateToDateString(startDate);
+                const targetDateLocal = $.bsCalendar.utils.formatDateToDateString(startDate);
 
                 // Search of the container based on the date and Weekday
                 const $weekDayContainer = $viewContainer.find(
@@ -3270,26 +3315,13 @@
     }
 
     /**
-     * Compares two Date objects to determine if they represent the same calendar date.
+     * Builds the appointment list and updates the search results container and pagination
+     * based on the given appointments and the current search criteria.
      *
-     * @param {Date} date1 - The first date to compare.
-     * @param {Date} date2 - The second date to compare.
-     * @return {boolean} Returns true if the two dates have the same year, month, and day; otherwise, false.
-     */
-    function isSameDate(date1, date2) {
-        return (
-            date1.getFullYear() === date2.getFullYear() &&
-            date1.getMonth() === date2.getMonth() &&
-            date1.getDate() === date2.getDate()
-        );
-    }
-
-    /**
-     * Builds and displays the list of appointments in the search result container.
-     *
-     * @param {jQuery} $wrapper - The jQuery DOM element wrapper containing the context where appointments will be created.
-     * @param {Array<Object>} appointments - An array of appointment objects containing the details needed for rendering.
-     * @return {void} This function does not return a value.
+     * @param {jQuery} $wrapper - The wrapper element that contains the search and related components.
+     * @param {Array<Object>} appointments - The list of appointment objects retrieved based on the search criteria.
+     * @param {number} total - The total number of appointments available that match the search criteria.
+     * @return {void} This function does not return a value. It updates the DOM directly.
      */
     function buildAppointmentsForSearch($wrapper, appointments, total) {
         const $container = getViewContainer($wrapper).find('.wc-search-result-container');
@@ -3303,7 +3335,7 @@
         const search = input.val().trim();
 
         // If there is no search term
-        if (isValueEmpty(search)) {
+        if ($.bsCalendar.utils.isValueEmpty(search)) {
             $container.html('<div class="d-flex p-5 align-items-center justify-content-center"></div>');
             input.appendTo($container.find('.d-flex'));
             input.focus();
@@ -3337,7 +3369,6 @@
 
         visibleAppointments.forEach((appointment) => {
             const borderLeftColor = appointment.color || settings.defaultColor;
-            const link = buildLink(appointment.link);
             const copy = getAppointmentForReturn(appointment)
             const html = settings.formatter.search(copy.appointment, copy.extras);
 
@@ -3465,7 +3496,6 @@
         }
 
         appointments.forEach(appointment => {
-            const multipleStartDates = appointment.extras.displayDates.length > 1;
             appointment.extras.displayDates.forEach(obj => {
                 const startString = obj.date
 
@@ -3533,14 +3563,12 @@
         if (view === 'year') {
             appointments.forEach(appointment => {
                 const date = new Date(appointment.date);
-                const extras = {
-                    colors: getColors(appointment.color || settings.defaultColor, settings.defaultColor),
+                appointment.extras = {
+                    colors: $.bsCalendar.utils.getColors(appointment.color || settings.defaultColor, settings.defaultColor),
                     isToday: date.toDateString() === now.toDateString(),
                     isNow: date.getFullYear() === now.getFullYear()
                 };
-                appointment.extras = extras;
             });
-            return;
         } else {
             appointments.forEach(appointment => {
                 const start = new Date(appointment.start);
@@ -3554,14 +3582,14 @@
                 const extras = {
                     locale: settings.locale,
                     icon: iconClass,
-                    colors: getColors(appointment.color, settings.defaultColor),
+                    colors: $.bsCalendar.utils.getColors(appointment.color, settings.defaultColor),
                     start: {
-                        date: formatDateToDateString(appointment.start),
-                        time: isAllDay ? '00:00:00' : formatTime(appointment.start)
+                        date: $.bsCalendar.utils.formatDateToDateString(appointment.start),
+                        time: isAllDay ? '00:00:00' : $.bsCalendar.utils.formatTime(appointment.start)
                     },
                     end: {
-                        date: formatDateToDateString(appointment.end),
-                        time: isAllDay ? '23:59:59' : formatTime(appointment.end)
+                        date: $.bsCalendar.utils.formatDateToDateString(appointment.end),
+                        time: isAllDay ? '23:59:59' : $.bsCalendar.utils.formatTime(appointment.end)
                     },
                     duration: {
                         days: 0,
@@ -3593,11 +3621,11 @@
                 monthEnd.setDate(lastOfMonth.getDate() + (6 - (lastOfMonth.getDay() - firstDayOffset + 7) % 7)); // last day of last week
 
                 while (tempDate <= tempEnd) {
-                    const dateIsStart = isSameDate(tempDate, start);
-                    const dateIsEnd = isSameDate(tempDate, end);
+                    const dateIsStart = $.bsCalendar.utils.datesAreEqual(tempDate, start);
+                    const dateIsEnd = $.bsCalendar.utils.datesAreEqual(tempDate, end);
 
                     const dateDetails = {
-                        date: formatDateToDateString(tempDate),
+                        date: $.bsCalendar.utils.formatDateToDateString(tempDate),
                         day: tempDate.getDay(),
                         times: {
                             start: null,
@@ -3612,13 +3640,13 @@
                         dateDetails.times.end = null;
                     } else {
                         if (dateIsStart) {
-                            dateDetails.times.start = formatTime(start);
-                            dateDetails.times.end = end > new Date(tempDate).setHours(23, 59, 59, 999)
-                                ? '23:59'
-                                : formatTime(end);
+                            dateDetails.times.start = $.bsCalendar.utils.formatTime(start);
+                            dateDetails.times.end = end > new Date(tempDate).setHours(23, 59, 59, 999) ?
+                                '23:59' :
+                                $.bsCalendar.utils.formatTime(end);
                         } else if (dateIsEnd) {
                             dateDetails.times.start = '00:00';
-                            dateDetails.times.end = formatTime(end);
+                            dateDetails.times.end = $.bsCalendar.utils.formatTime(end);
                         } else {
                             dateDetails.times.start = '00:00';
                             dateDetails.times.end = '23:59';
@@ -3727,29 +3755,29 @@
     /**
      * Loads and displays holidays on a given calendar wrapper element for a specific period.
      *
-     * @param {Object} $wrapper - The calendar wrapper element where holidays should be displayed.
+     * @param {jQuery} $wrapper - The calendar wrapper element where holidays should be displayed.
      * @return {void} This function does not return a value. It fetches and renders holidays on the given wrapper element.
      */
     function loadHolidays($wrapper) {
         const settings = getSettings($wrapper);
         const period = getStartAndEndDateByView($wrapper);
-        const locale = getLanguageAndCountry(settings.locale);
+        const locale = $.bsCalendar.utils.getLanguageAndCountry(settings.locale);
         if (typeof settings.holidays === 'object') {
-            let country = null;
-            let language = null;
+            let country;
+            let language;
             let federalState = null;
-            if (settings.holidays.hasOwnProperty('country') && !isValueEmpty(settings.holidays.country)) {
+            if (settings.holidays.hasOwnProperty('country') && !$.bsCalendar.utils.isValueEmpty(settings.holidays.country)) {
                 country = settings.holidays.country.toUpperCase();
             } else {
                 country = locale.country;
             }
 
-            if (settings.holidays.hasOwnProperty('language') && !isValueEmpty(settings.holidays.language)) {
+            if (settings.holidays.hasOwnProperty('language') && !$.bsCalendar.utils.isValueEmpty(settings.holidays.language)) {
                 language = settings.holidays.language.toUpperCase();
             } else {
                 language = locale.language;
             }
-            if (settings.holidays.hasOwnProperty('federalState') && !isValueEmpty(settings.holidays.federalState)) {
+            if (settings.holidays.hasOwnProperty('federalState') && !$.bsCalendar.utils.isValueEmpty(settings.holidays.federalState)) {
                 federalState = settings.holidays.federalState.toUpperCase();
             }
 
@@ -3803,15 +3831,15 @@
      * @param {jQuery} $wrapper - The main wrapper element for the calendar.
      * @param {Array} holidays - Array of holiday objects with the following structure:
      *                          {
-     *                              startDate: string (ISO date format, e.g., "2023-11-25"),
-     *                              endDate: string (ISO date format, e.g., "2023-11-27"),
-     *                              title: string (e.g., "Christmas"),
+     *                              startDate: string (ISO date format, e.g.  "2023-11-25"),
+     *                              endDate: string (ISO date format, e.g.  "2023-11-27"),
+     *                              title: string (e.g.  "Christmas"),
      *                              global: boolean (indicates if the holiday is global),
      *                              fixed: boolean (indicates if the holiday is fixed every year)
      *                          }
      */
     function drawHolidays($wrapper, holidays) {
-        // Get the current view of the calendar (e.g., "day", "week", "month")
+        // Get the current view of the calendar (e.g.  "day", "week", "month")
         const settings = getSettings($wrapper);
         const view = getView($wrapper);
         const isDayOrWeek = view === 'day' || view === 'week';
@@ -3819,17 +3847,6 @@
         const isYear = view === 'year';
         // Get the container element for the current calendar view
         const $viewContainer = getViewContainer($wrapper);
-        const color = getColors('bg-dark opacity-50 gradient');
-        const holidayStyle = [
-            ...bs4migration.roundedCircleCSS,
-            ...bs4migration.top50Css,
-            ...bs4migration.start50Css,
-            ...bs4migration.translateMiddleCss,
-            `background-color: ${color.backgroundColor}`,
-            'opacity: 0.25',
-            `color: ${color.color}`,
-            `backgroundImage: ${color.backgroundImage}`
-        ].join(';');
         // Iterate through each holiday object
         holidays.forEach(holiday => {
             // Parse the start and end dates of the holiday
@@ -4017,24 +4034,10 @@
         }
 
         return {
-            date: formatDateToDateString(date),
-            start: formatDateToDateString(startDate),
-            end: formatDateToDateString(endDate)
+            date: $.bsCalendar.utils.formatDateToDateString(date),
+            start: $.bsCalendar.utils.formatDateToDateString(startDate),
+            end: $.bsCalendar.utils.formatDateToDateString(endDate)
         };
-    }
-
-    /**
-     * Converts a string or JavaScript Date object into a string formatted as an SQL date (YYYY-MM-DD).
-     *
-     * @param {string|Date} date - The input date, either as a string or as a Date object.
-     * @return {string} A string representation of the date in the SQL date format (YYYY-MM-DD).
-     */
-    function formatDateToDateString(date) {
-        const dateObj = typeof date === 'string' ? new Date(date) : date;
-        const year = dateObj.getFullYear();
-        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-        const day = String(dateObj.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
     }
 
     /**
@@ -4045,38 +4048,6 @@
      */
     function getSearchElement($wrapper) {
         return $wrapper.find('[data-search-input]') || null;
-    }
-
-    /**
-     * Returns the shortened names of the weekdays based on the locale,
-     * adapted to the start day of the week.
-     *
-     * This function retrieves the short names of the weekdays (e.g., "Sun", "Mon", etc.)
-     * for the specified locale and rearranges the order of the days depending on
-     * whether the week starts on Sunday or Monday.
-     *
-     * @param {string} locale - The locale like 'en-US' or 'de-DE', used to format names.
-     * @param {boolean} startWeekOnSunday - Indicates whether the week should start with Sunday.
-     * @returns {string[]} - An array of the short weekday names, e.g., ['Sun', 'Mon', 'Tue', ...].
-     */
-    function getShortWeekDayNames(locale, startWeekOnSunday) {
-        // Create an Intl.DateTimeFormat instance for the provided locale to format weekdays.
-        // The 'short' option generates abbreviated weekday names (e.g., 'Mon', 'Tue').
-        const formatter = new Intl.DateTimeFormat(locale, {weekday: 'short'});
-
-        // Generate an array of all weekdays (0 = Sunday, 1 = Monday, ..., 6 = Saturday).
-        // Use Date.UTC to ensure consistent results in all environments (ignoring local time zones).
-        const weekDays = [...Array(7).keys()].map(day =>
-            // Add 1 to the day index to represent the day of the month.
-            // Example: '2023-01-01' for Sunday, '2023-01-02' for Monday, and so on.
-            formatter.format(new Date(Date.UTC(2023, 0, day + 1)))
-        );
-
-        // If the week should start on Sunday, return the weekdays as-is.
-        // Otherwise, reorder the array to start from Monday:
-        // - day 1 (Monday) to day 6 (Saturday) remain first (`weekDays.slice(1)`),
-        // - day 0 (Sunday) is moved to the end (`weekDays[0]`).
-        return startWeekOnSunday ? weekDays : weekDays.slice(1).concat(weekDays[0]);
     }
 
     /**
@@ -4130,7 +4101,7 @@
         container.empty();
 
         // Dynamische Wochentagsnamen basierend auf der Lokalisierung und Startwochentag
-        const weekDays = getShortWeekDayNames(locale, startWeekOnSunday);
+        const weekDays = $.bsCalendar.utils.getShortWeekDayNames(locale, startWeekOnSunday);
 
         // Tage rendern
         let currentDate = new Date(calendarStart);
@@ -4142,7 +4113,7 @@
             });
 
             // Kalenderwoche berechnen und hinzufügen
-            const calendarWeek = getCalendarWeek(currentDate);
+            const calendarWeek = $.bsCalendar.utils.getCalendarWeek(currentDate);
             const paddingTop = isFirstRow ? '1.75rem' : '.75rem';
             const weekRowCss = [
                 ...bs4migration.bgBodyTertiaryCss,
@@ -4171,7 +4142,7 @@
                     'font-size: 12px'
                 ];
                 if (isToday) {
-                    const dayColors = getColors('primary gradient');
+                    const dayColors = $.bsCalendar.utils.getColors('primary gradient', null);
                     dayCss.push(`background-color: ${dayColors.backgroundColor}`);
                     dayCss.push(`background-image: ${dayColors.backgroundImage}`);
                     dayCss.push(`color: ${dayColors.color}`);
@@ -4192,7 +4163,7 @@
 
                 // Wenn es die erste Zeile ist, Wochentagsnamen hinzufügen
                 const dayWrapper = $('<div>', {
-                    'data-month-date': formatDateToDateString(currentDate),
+                    'data-month-date': $.bsCalendar.utils.formatDateToDateString(currentDate),
                     class: `col ${borderClasses.join(' ')} px-1 flex-fill d-flex flex-column align-items-center justify-content-start ${
                         isOtherMonth ? 'text-muted' : ''
                     } ${isToday ? '' : ''}`,
@@ -4215,8 +4186,8 @@
                 }
 
                 // Tageszahl hinzufügen
-                const row = $('<small>', {
-                    'data-date': formatDateToDateString(currentDate),
+                $('<small>', {
+                    'data-date': $.bsCalendar.utils.formatDateToDateString(currentDate),
                     class: `text-center my-1`,
                     style: dayCss.join(';'),
                     text: currentDate.getDate(),
@@ -4224,7 +4195,7 @@
 
 
                 // inner wrapper
-                const dayWrapperInner = $('<div>', {
+                $('<div>', {
                     class: 'd-flex flex-column w-100 h-100',
                     'data-role': 'day-wrapper',
                     css: {
@@ -4255,8 +4226,9 @@
         const lgBreakPoint = 992;
         const calendarContainer = getViewContainer($wrapper);
 
-        if (handleSidebar)
+        if (handleSidebar) {
             handleSidebarVisibility($wrapper, windowWidth < lgBreakPoint, windowWidth >= lgBreakPoint);
+        }
 
 
         if (view === 'month') {
@@ -4264,16 +4236,16 @@
             const dayElements = calendarContainer.find('[data-month-date]');
 
             // calculate the height of a day
-            let squareHeight = 0;
+            let squareSize = 0;
             dayElements.each(function () {
                 const width = $(this).outerWidth(); // width of the element
                 $(this).css('height', `${width}px`); // set height
-                squareHeight = width; // save the height for the later calculation
+                squareSize = width; // save the height for the later calculation
             });
 
             // set dynamic container height
             const rowCount = Math.ceil(dayElements.length / 7); // Anzahl der Zeilen
-            const totalHeight = rowCount * squareHeight; // Gesamthöhe berechnen
+            const totalHeight = rowCount * squareSize; // Gesamthöhe berechnen
             calendarContainer.css('height', `${totalHeight}px`);
         } else {
             calendarContainer.css('height', '');
@@ -4282,13 +4254,13 @@
     }
 
     /**
-     * Builds a small-view calendar for a specific month and appends it to the provided container.
+     * Builds a small monthly view calendar inside the specified container element.
      *
-     * @param {jQuery} $wrapper The wrapper element containing configuration and state for the calendar.
-     * @param {Date} forDate The date object indicating the target month for which the small-view calendar will be constructed.
-     * @param {jQuery} $container The jQuery container element where the small-view calendar will be rendered.
-     * @return {void} This function does not return a value,
-     * it directly updates the DOM by appending the constructed calendar to the container.
+     * @param {jQuery} $wrapper The wrapper element containing the necessary settings and active date.
+     * @param {Date} forDate The date for which the monthly view should be generated.
+     * @param {jQuery} $container The container element where the small month view will be rendered.
+     * @param {boolean} [forYearView=false] Indicates if the calendar is being built as part of a year view, which adjusts styles accordingly.
+     * @return {void} Does not return a value; renders the small view calendar into the specified container.
      */
     function buildMonthSmallView($wrapper, forDate, $container, forYearView = false) {
         // Get container for miniature view
@@ -4360,7 +4332,7 @@
         }).appendTo(weekdaysRow);
 
         // Add weekly days (Mon, Tue, Wed, ...)
-        const weekDays = getShortWeekDayNames(settings.locale, settings.startWeekOnSunday);
+        const weekDays = $.bsCalendar.utils.getShortWeekDayNames(settings.locale, settings.startWeekOnSunday);
         weekDays.forEach(day => {
             $('<th>', {
                 class: '',
@@ -4373,7 +4345,7 @@
         const tbody = $('<tbody>').appendTo(table);
         let currentDate = new Date(calendarStart);
         const defaultColor = 'primary gradient';
-        const defaultColors = getColors(defaultColor);
+        const defaultColors = $.bsCalendar.utils.getColors(defaultColor, null);
         while (currentDate <= calendarEnd) {
             const weekRow = $('<tr>', {
                 css: {
@@ -4382,7 +4354,7 @@
             }).appendTo(tbody);
 
             // calculate calendar week
-            const calendarWeek = getCalendarWeek(currentDate);
+            const calendarWeek = $.bsCalendar.utils.getCalendarWeek(currentDate);
             const weekRowCss = [
                 ...bs4migration.bgBodyTertiaryCss,
                 `font-size: ${fontSize}px`,
@@ -4438,7 +4410,7 @@
                 ].join('')
 
                 $('<td>', {
-                    'data-date': formatDateToDateString(currentDate),
+                    'data-date': $.bsCalendar.utils.formatDateToDateString(currentDate),
                     class: `position-relative`,
                     css: {
                         cursor: 'pointer',
@@ -4474,38 +4446,16 @@
             },
             html: buildHeaderForDay($wrapper, date, false)
         }).appendTo($container);
-        headline.attr('data-date', formatDateToDateString(date)).css('cursor', 'pointer');
-        const allDayContainer = $('<div>', {
+        headline.attr('data-date', $.bsCalendar.utils.formatDateToDateString(date)).css('cursor', 'pointer');
+        $('<div>', {
             'data-all-day': date.getDay(),
-            'data-date-local': formatDateToDateString(date),
+            'data-date-local': $.bsCalendar.utils.formatDateToDateString(date),
             class: 'mx-5',
             css: {
                 paddingLeft: '40px'
             }
         }).appendTo($container);
         buildDayViewContent($wrapper, date, $container);
-    }
-
-    /**
-     * Calculates the calendar week number for a given date according to the ISO 8601 standard.
-     * ISO 8601 defines the first week of the year as the week with the first Thursday.
-     * Weeks start on Monday, and the week containing January 4th is considered the first calendar week.
-     *
-     * @param {Date} date - The date for which the calendar week number should be calculated.
-     * @return {number} The ISO 8601 calendar week number for the provided date.
-     */
-    function getCalendarWeek(date) {
-        // copy of the input date and weekday calculation
-        const target = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
-        const dayNr = (target.getUTCDay() + 6) % 7; // Montag = 0, Sonntag = 6
-        target.setUTCDate(target.getUTCDate() - dayNr + 3); // Auf den Donnerstag der aktuellen Woche schieben
-
-        // The first Thursday of the year
-        const firstThursday = new Date(Date.UTC(target.getUTCFullYear(), 0, 4));
-        const firstDayOfWeek = firstThursday.getUTCDate() - ((firstThursday.getUTCDay() + 6) % 7);
-
-        // Calculate number weeks between the first Thursday and the current Thursday
-        return Math.floor(1 + (target - new Date(Date.UTC(target.getUTCFullYear(), 0, firstDayOfWeek))) / (7 * 24 * 60 * 60 * 1000));
     }
 
     /**
@@ -4563,10 +4513,10 @@
                 class: 'wc-day-header mb-2',
                 html: buildHeaderForDay($wrapper, currentDate, false)
             }).appendTo(col);
-            headline.attr('data-date', formatDateToDateString(currentDate)).css('cursor', 'pointer');
-            const allDayContainer = $('<div>', {
+            headline.attr('data-date', $.bsCalendar.utils.formatDateToDateString(currentDate)).css('cursor', 'pointer');
+            $('<div>', {
                 'data-all-day': currentDate.getDay(),
-                'data-date-local': formatDateToDateString(currentDate),
+                'data-date-local': $.bsCalendar.utils.formatDateToDateString(currentDate),
                 class: 'd-flex flex-column align-items-stretch flex-fill w-100',
             }).appendTo(col);
         }
@@ -4587,7 +4537,7 @@
             // Create day container
             const dayContainer = $('<div>', {
                 'data-week-day': currentDate.getDay(),
-                'data-date-local': formatDateToDateString(currentDate),
+                'data-date-local': $.bsCalendar.utils.formatDateToDateString(currentDate),
                 class: 'wc-day-week-view flex-grow-1 flex-fill border-end border-right position-relative',
                 css: {
                     width: (100 / 7) + '%' // Fixe Breite für 7 Spalten
@@ -4605,7 +4555,7 @@
     /**
      * Builds an HTML header representation for a specific day.
      *
-     * @param {HTMLElement} $wrapper - The HTML element container for settings and configuration.
+     * @param {jQuery} $wrapper - The HTML element container for settings and configuration.
      * @param {Date} date - The date object representing the specific day to build the header for.
      * @param {boolean} [forWeekView=false] - Whether the header is being built for a week view context (default is false).
      * @return {string} The constructed HTML string representing the day's header.
@@ -4613,14 +4563,11 @@
     function buildHeaderForDay($wrapper, date, forWeekView = false) {
         const settings = getSettings($wrapper);
         const day = date.toLocaleDateString(settings.locale, {day: 'numeric'})
-        const shortMonth = date.toLocaleDateString(settings.locale, {month: 'short'})
-        const longMonth = date.toLocaleDateString(settings.locale, {month: 'long'});
         const shortWeekday = date.toLocaleDateString(settings.locale, {weekday: 'short'});
-        const longWeekday = date.toLocaleDateString(settings.locale, {weekday: 'long'});
         const justify = forWeekView ? 'center' : 'start';
         const isToday = date.toDateString() === new Date().toDateString();
         const todayColor = isToday ? 'text-primary' : '';
-        const colors = getColors('primary gradient');
+        const colors = $.bsCalendar.utils.getColors('primary gradient', null);
         const circleCss = [
             'width: 44px',
             'height: 44px',
@@ -4639,35 +4586,6 @@
             `</div>`
         ].join('')
 
-    }
-
-    /**
-     * Formats a given Date object or date string into a time string.
-     *
-     * @param {Date|string} date - The date object or a valid date string to format. If a string is provided, it will be parsed into a Date object.
-     * @param {boolean} [withSeconds=true] - Indicates whether the formatted string should include seconds or not.
-     * @return {string|null} The formatted time string in "HH:mm:ss" or "HH:mm" format, or null if the provided date is invalid.
-     */
-    function formatTime(date, withSeconds = true) {
-        if (typeof date === 'string') {
-            date = new Date(date);
-        }
-
-        // check whether the date is invalid
-        if (isNaN(date)) {
-            console.error("Invalid date in formatTime:", date);
-            return null; // Ungültiges Datum
-        }
-
-        const hours = date.getHours().toString().padStart(2, '0');
-        const minutes = date.getMinutes().toString().padStart(2, '0');
-        const seconds = date.getSeconds().toString().padStart(2, '0');
-
-        if (!withSeconds) {
-            return `${hours}:${minutes}`;
-        }
-
-        return `${hours}:${minutes}:${seconds}`;
     }
 
     /**
@@ -4697,27 +4615,19 @@
         $container.attr('data-weekday');
         $container.css('boxSizing', 'border-box');
 
-        const longHeader = date.toLocaleDateString(settings.locale, {weekday: 'long', day: 'numeric', month: 'long'});
-        const shortHeader = date.toLocaleDateString(settings.locale, {
-            weekday: 'short',
-            day: 'numeric',
-            month: 'short'
-        });
-
         // Container for time slots. Here we need a match for the day of the week and the date
         const timeSlots = $('<div>', {
             "data-week-day": date.getDay(),
-            "data-date-local": formatDateToDateString(date),
+            "data-date-local": $.bsCalendar.utils.formatDateToDateString(date),
             class: 'wc-day-view-time-slots d-flex flex-column position-relative'
         }).appendTo($container);
 
         // present hours (from 0 to 23) with a horizontal line
         for (let hour = settings.hourSlots.start; hour <= settings.hourSlots.end; hour++) {
-            const isLast = hour === 24;
+            const isLast = hour === settings.hourSlots.end;
             // line container for the hour
             // Add heading about the daily view
             const height = isLast ? 0 : settings.hourSlots.height;
-            const marginBottom = isLast ? settings.hourSlots.height : 0;
             const css = isLast ? {} : {
                 boxSizing: 'border-box',
                 height: height + 'px',
@@ -4730,24 +4640,11 @@
                 class: 'd-flex align-items-center border-top position-relative'
             }).appendTo(timeSlots);
 
-            row.on('click', function () {
-                const start = new Date(`${formatDateToDateString(date)} ${String(hour).padStart(2, '0')}:00:00`);
-                const end = new Date(start);
-                end.setMinutes(end.getMinutes() + 30);
-
-                const data = {
-                    start: {
-                        date: formatDateToDateString(start),
-                        time: start.toTimeString().slice(0, 5) // only "HH:mm"
-                    },
-                    end: {
-                        date: formatDateToDateString(end),
-                        time: end.toTimeString().slice(0, 5) // only "HH:mm"
-                    },
-                    view: getView($wrapper)
-                };
-
-                trigger($wrapper, 'add', [data]);
+            row.data('details', {
+                hour: hour,
+                date: date,
+                isToday: isToday,
+                isLast: isLast
             });
 
             if (showLabels) {
@@ -4762,7 +4659,7 @@
                 $('<div>', {
                     class: 'wc-time-label ps-2 pl-2 position-absolute',
                     style: combinedCss,
-                    html: formatTime(hourDate, false)
+                    html: $.bsCalendar.utils.formatTime(hourDate, false)
                 }).appendTo(row);
             }
         }
@@ -4773,174 +4670,227 @@
     }
 
     /**
-     * Adds a current time indicator to the provided container, displaying the current time and updating its position every minute.
+     * Adds a current time indicator to the provided container, displaying the current time
+     * and updating its position every minute dynamically.
      *
-     * @param {jQuery} $wrapper - The wrapper element containing the container where the time indicator will be added.
-     * @param {jQuery} $container - The container element where the current time indicator will be appended.
-     * @return {void} - No return value.
+     * @param {jQuery} $wrapper - The wrapper element, serving as the parent container for the calendar.
+     * @param {jQuery} $container - The target container element where the current time indicator will be placed.
+     * @return {void} - This function does not return a value.
      */
     function addCurrentTimeIndicator($wrapper, $container) {
-        const getDynamicNow = () => new Date(); // Immer die aktuelle Zeit abrufen
-        const settings = getSettings($wrapper); // Dynamische Einstellungen holen
+
+        // Helper function to dynamically retrieve the current time as a Date object.
+        const getDynamicNow = () => new Date();
+
+        // Retrieve settings dynamically for the calendar (e.g.  hour slots, start/end times).
+        const settings = getSettings($wrapper);
         if (settings === null) {
-            return;
+            return; // Exit early if no settings are found for the calendar.
         }
-        const {hourSlots} = settings; // Hole Start, Ende und Höhe der Slots
 
-        // Funktion zur Berechnung der Position
+        // Extract the `hourSlots` settings from the dynamic settings object.
+        const {hourSlots} = settings; // `hourSlots` contains the start, end, and height of hourly slots.
+
+        /**
+         * Calculates the position of the current time indicator based on the current system time.
+         * The position is calculated relative to the hour slots in the container.
+         *
+         * @return {Object} - An object containing `top` and `bottom` properties for positioning.
+         */
         const calculatePosition = () => {
-            const now = getDynamicNow(); // Hole die aktuelle Zeit dynamisch
-            const currentHour = now.getHours() + now.getMinutes() / 60; // Zeit in Dezimalform
+            const now = getDynamicNow(); // Fetch the current time.
+            const currentHour = now.getHours() + now.getMinutes() / 60; // Convert current time to decimal format.
 
+            // Determine the position of the time indicator based on calendar hour slots.
             if (currentHour < hourSlots.start) {
-                return {top: 0, bottom: ""}; // Vor der Startzeit
+                return {top: 0, bottom: ""}; // Time is earlier than the calendar start time.
             } else if (currentHour >= hourSlots.end) {
-                return {top: "", bottom: 0}; // Nach der Endzeit
+                return {top: "", bottom: 0}; // Time is later than the calendar end time.
             } else {
-                console.log('>>>>>>>>>>>>>>>>>> before calculateSlotPosition' , 'addCurrentTimeIndicator');
-                return {top: calculateSlotPosition($wrapper, now).top, bottom: ""}; // Innerhalb des Zeitbereichs
+                console.log('>>>> Calculating position for time indicator in addCurrentTimeIndicator');
+                return {top: calculateSlotPosition($wrapper, now).top, bottom: ""}; // Time is within the hour slot range.
             }
         };
 
-        // Initiale Position berechnen
+        // Calculate the initial position for the current time indicator when it is first created.
         const position = calculatePosition();
 
-        // Erzeuge den aktuellen Zeit-Indikator
+        /**
+         * Create the main time indicator as a horizontal line to visualize the current time.
+         * This line is styled as a red indicator and appended to the target container.
+         */
         const currentTimeIndicator = $('<div>', {
-            class: 'current-time-indicator position-absolute bg-danger',
+            class: 'current-time-indicator position-absolute bg-danger', // Add CSS classes for styling.
             css: {
-                boxSizing: 'border-box',
-                height: '1px',
-                width: '100%',
-                zIndex: 10,
-                ...position, // Dynamische Position setzen
+                boxSizing: 'border-box', // Ensure consistent box sizing.
+                height: '1px',           // Indicator height is 1px (horizontal line).
+                width: '100%',           // Full width of the container.
+                zIndex: 10,              // Ensure the element is rendered on top.
+                ...position,             // Apply the calculated top/bottom position.
             }
-        }).appendTo($container);
+        }).appendTo($container); // Append the indicator to the container element.
 
-        // Hol die Farben für das Badge
-        const badgeColor = getColors('danger gradient');
+        // Dynamically fetch the background and font colors for the badge based on a "danger gradient" theme.
+        const badgeColor = $.bsCalendar.utils.getColors('danger gradient', null);
+
+        /**
+         * Combine multiple CSS rules for the time badge (small text label).
+         * This small badge will display the current time in a readable format (e.g.  HH:mm).
+         */
         const combinedCss = [
-            ...bs4migration.translateMiddleCss,
-            ...bs4migration.start0Css,
-            ...bs4migration.top0Css,
-            'background-color: ' + badgeColor.backgroundColor,
-            'background-image: ' + badgeColor.backgroundImage,
-            'color: ' + badgeColor.color,
-        ].join(';');
+            ...bs4migration.translateMiddleCss,   // Center the badge using translation rules.
+            ...bs4migration.start0Css,           // Align the badge to the start (left).
+            ...bs4migration.top0Css,             // Align the badge to the top of the indicator.
+            'background-color: ' + badgeColor.backgroundColor, // Set the computed background color.
+            'background-image: ' + badgeColor.backgroundImage, // Set the computed gradient.
+            'color: ' + badgeColor.color,        // Set the computed font color.
+        ].join(';'); // Combine the rules into a single CSS string.
 
-        // Setze den Zeit-Badge
-        $(`<small class="position-absolute badge js-current-time" style="${combinedCss}">` + getMinutesAndSeconds($wrapper, getDynamicNow()) + '</small>').appendTo(currentTimeIndicator);
+        /**
+         * Create and append a small badge to the time indicator.
+         * This badge displays the current time in hours and minutes dynamically.
+         */
+        $(`<small class="position-absolute badge js-current-time" style="${combinedCss}">` +
+            $.bsCalendar.utils.formatTime(getDynamicNow(), false) +
+            '</small>').appendTo(currentTimeIndicator);
 
+        /**
+         * Combine CSS rules for the circle indicator (a small red dot).
+         * This is an additional visual marker for showing the exact current time.
+         */
         const combinedCss2 = [
-            ...bs4migration.translateMiddleCss,
-            ...bs4migration.start100Css,
-            ...bs4migration.top50Css,
-            ...bs4migration.roundedCircleCSS,
-            'width: 10px',
-            'height: 10px',
-        ].join(';');
+            ...bs4migration.translateMiddleCss,   // Center the circle using translation rules.
+            ...bs4migration.start100Css,          // Align the circle to the "end" (right) of the line.
+            ...bs4migration.top50Css,             // Center the circle vertically.
+            ...bs4migration.roundedCircleCSS,     // Apply circular styling to the dot.
+            'width: 10px',                        // Circle width.
+            'height: 10px',                       // Circle height.
+        ].join(';'); // Combine the rules into a single CSS string.
 
-        // Setze den Kreis-Indikator
-        $(`<div class="position-absolute bg-danger" style="${combinedCss2}"></div>`).appendTo(currentTimeIndicator);
+        /**
+         * Create and append a small circular marker to the time indicator.
+         * This marker visually represents the current time.
+         */
+        $(`<div class="position-absolute bg-danger" style="${combinedCss2}"></div>`)
+            .appendTo(currentTimeIndicator);
 
-        // Funktion zur Aktualisierung des Zeit-Indikators
+        /**
+         * Function to dynamically update the time indicator's position and badge text.
+         * Called periodically by the interval function.
+         */
         const updateIndicator = () => {
-            const now = getDynamicNow(); // Hole dynamisch die aktuelle Zeit
-            const newPosition = calculatePosition(); // Berechne die Position
-            currentTimeIndicator.css(newPosition); // Setze neue Position
-            currentTimeIndicator.find('.js-current-time').text(getMinutesAndSeconds($wrapper, now)); // Aktualisiere den Badge-Text
+            const now = getDynamicNow(); // Get the current time dynamically.
+            const newPosition = calculatePosition(); // Recalculate the top/bottom position.
+            currentTimeIndicator.css(newPosition); // Apply the new position to the indicator.
+            currentTimeIndicator.find('.js-current-time').text($.bsCalendar.utils.formatTime(now, false)); // Update the badge text with the current time.
         };
 
+        /**
+         * Interval function to update the time indicator every minute.
+         * Stops automatically if the wrapper or time indicator is removed from the DOM.
+         */
         const intervalId = setInterval(() => {
-            // Überprüfen, ob der Wrapper noch im DOM ist
-            if (!$wrapper.closest('body').length) {
-                // Falls der Wrapper entfernt wurde, beende das Intervall
-                clearInterval(intervalId);
-                console.log('Intervall gestoppt: $wrapper ist nicht mehr im DOM.');
+            const isWrapperInDOM = $wrapper.closest('body').length > 0; // Check if the wrapper is still in the DOM.
+            const hasTimeIndicator = $wrapper.find('.current-time-indicator').length > 0; // Check if the indicator exists.
+
+            if (!isWrapperInDOM || !hasTimeIndicator) {
+                clearInterval(intervalId); // Stop the interval if the wrapper or indicator is not found.
+                console.log('bsCalendar LOG: Interval stopped. Wrapper or time indicator is no longer in the DOM.');
                 return;
             }
 
-            // Überprüfen, ob der Zeit-Indikator (noch) existiert
-            if ($wrapper.find('.current-time-indicator').length === 0) {
-                // Falls der Indikator entfernt wurde, beende das Intervall
-                clearInterval(intervalId);
-                console.log('Intervall gestoppt: .current-time-indicator ist nicht vorhanden.');
-                return;
-            }
+            updateIndicator(); // Update the time indicator and badge text.
+        }, 60 * 1000); // Repeat every minute (60,000ms).
 
-            updateIndicator(); // Aktualisiere Indikator und Zeit-Badge
-        }, 60 * 1000); // 1-Minuten-Intervall
-
-        // Position und Badge für die erste Initialisierung einmal direkt setzen
+        // Immediately update the indicator's position and badge text on initialization.
         updateIndicator();
     }
 
     /**
-     * Calculates the position and height of a time slot based on the provided start and end times.
+     * Calculates the top position and height of a time slot based on the provided start and (optional) end times.
+     * This is used to visually map events or time slots in a calendar-like view.
      *
-     * @param {Date|string} startDate - The start date and time of the slot. Can be a Date object or a string representation of a date.
-     * @param {Date|string} [endDate] - The optional end date and time of the slot. Can be a Date object or a string representation of a date.
-     * @return {Object} An object containing the calculated top position and height of the time slot.
-     * @return {number} return.top - The top position calculated based on the start time.
-     * @return {number} return.height - The height of the slot calculated based on duration. Defaults to 0 if endDate is not provided.
+     * @param {jQuery} $wrapper - The wrapper element containing the relevant settings for the calendar.
+     * @param {Date|string} startDate - The start date and time of the time slot. Can be a Date object or a string representation of a date.
+     * @param {Date|string} [endDate] - The optional end date and time of the time slot. Can be a Date object or a string representation of a date.
+     * @return {Object} - An object containing the properties:
+     *   - `top` {number}: The calculated top position of the slot, relative to the calendar container.
+     *   - `height` {number}: The height of the slot, representing the duration. Defaults to 0 if `endDate` is not provided.
      */
     function calculateSlotPosition($wrapper, startDate, endDate) {
+        // Fetch the dynamic settings for hour slots (start hour, end hour, and height of each slot).
         const settings = getSettings($wrapper);
+
+        // Convert `startDate` to a Date object if it's a string representation of a date.
         if (typeof startDate === 'string') {
             startDate = new Date(startDate);
         }
+
+        // Convert `endDate` to a Date object if it's a string representation of a date (optional).
         if (typeof endDate === 'string') {
             endDate = new Date(endDate);
         }
 
+        // Extract hours and minutes from startDate.
         const startHours = startDate.getHours();
         const startMinutes = startDate.getMinutes();
+
+        // Extract hours and minutes from endDate, if provided.
         const endHours = endDate ? endDate.getHours() : null;
         const endMinutes = endDate ? endDate.getMinutes() : null;
 
-        // Fall 1: Termin vollständig außerhalb der Grenzen – nicht anzeigen
+        /**
+         * Case 1: Event occurs completely outside the visible time range.
+         * - If the start time is before the calendar start and the end is also before or at the start, OR
+         * - If the start time is at or beyond the calendar end time.
+         * Return early with `top = 0` and `height = 0` to hide the event.
+         */
         if ((startHours < settings.hourSlots.start && (!endHours || endHours <= settings.hourSlots.start)) ||
             (startHours >= settings.hourSlots.end)) {
             return {top: 0, height: 0};
         }
 
-        // Begrenzung anpassen, falls erforderlich
-        let adjustedStartHours = Math.max(startHours, settings.hourSlots.start); // Termin-Start auf Slot-Start setzen, falls davor
-        let adjustedStartMinutes = startHours < settings.hourSlots.start ? 0 : startMinutes; // Minuten nur zulassen, falls nach Start
-        let adjustedEndHours = endHours !== null ? Math.min(endHours, settings.hourSlots.end) : null; // Termin-Ende auf Slot-Ende setzen
-        let adjustedEndMinutes =
-            endHours !== null && endHours >= settings.hourSlots.end ? 0 : endMinutes; // Minuten nur zulassen, falls vor Ende
+        /**
+         * Adjust the start and end times to fit them within the visible bounds (hour slots) of the calendar.
+         */
+        let adjustedStartHours = Math.max(startHours, settings.hourSlots.start); // Ensure event starts no earlier than the calendar's start hour.
+        let adjustedStartMinutes = startHours < settings.hourSlots.start ? 0 : startMinutes; // Ignore minutes if event starts before the calendar.
 
-        // Berechnung der Top-Position (Startzeit)
+        let adjustedEndHours = endHours !== null ? Math.min(endHours, settings.hourSlots.end) : null; // Restrict end time to within the calendar's end hour.
+        let adjustedEndMinutes =
+            endHours !== null && endHours >= settings.hourSlots.end ? 0 : endMinutes; // Ignore minutes if event ends after the calendar.
+
+        /**
+         * Case 2: Calculate the top position of the slot:
+         * - `adjustedStartHours`: The hour difference from the calendar start multiplied by the slot height.
+         * - `adjustedStartMinutes`: Convert minutes to a fraction of an hour and multiply by slot height.
+         * - The value `4` ensures consistent alignment adjustment, applied across the calendar.
+         */
         const top =
             ((adjustedStartHours - settings.hourSlots.start) * settings.hourSlots.height) +
             ((adjustedStartMinutes / 60) * settings.hourSlots.height) +
             4;
 
-        let height = 0;
+        let height = 0; // Default height is 0.
 
+        /**
+         * Case 3: If `endDate` is provided, calculate the total duration in minutes:
+         * - Duration = Total minutes from the start time to the end time.
+         * - The height of the slot is proportional to the duration and the slot height setting.
+         */
         if (endDate) {
-            // Berechnung der Gesamtdauer in Minuten basierend auf den angepassten Werten
             const durationMinutes =
                 (adjustedEndHours * 60 + adjustedEndMinutes) - (adjustedStartHours * 60 + adjustedStartMinutes);
 
-            // Höhe basierend auf der Dauer
-            height = (durationMinutes / 60) * settings.hourSlots.height;
+            height = (durationMinutes / 60) * settings.hourSlots.height; // Convert duration to height based on hours.
         }
 
+        /**
+         * Case 4: Return the calculated `top` position and `height` of the slot.
+         * - Subtract `4` from the top position to ensure alignment with the adjusted offset.
+         * - If the height is negative (invalid), default it to 0.
+         */
         return {top: top - 4, height: height > 0 ? height : 0};
-    }
-
-    /**
-     * Converts the given date into a localized time string showing only hours and minutes.
-     *
-     * @param {Object} $wrapper - The wrapper object containing settings for localization.
-     * @param {Date} date - The date object to format into a time string.
-     * @return {string} A formatted time string showing hours and minutes based on the provided locale settings.
-     */
-    function getMinutesAndSeconds($wrapper, date) {
-        const settings = getSettings($wrapper);
-        return date.toLocaleTimeString(settings.locale, {hour: '2-digit', minute: '2-digit'});
     }
 
     /**
@@ -4966,7 +4916,7 @@
             },
         }).appendTo(container);
 
-        const roundedCss = getBorderRadiusCss(settings.rounded);
+        const roundedCss = $.bsCalendar.utils.getBorderRadiusCss(settings.rounded);
         // render a small calendar for each month
         for (let month = 0; month < 12; month++) {
             // Create a wrapper for every monthly calendar
@@ -5003,21 +4953,16 @@
     }
 
     /**
-     * Displays a Bootstrap modal containing information about a specific appointment.
+     * Displays an information modal window containing details about the provided appointment element.
      *
-     * The function dynamically creates a modal if it does not already exist, or updates its content
-     * if it does. It positions the modal relative to the provided `targetElement` based on the
-     * available space within the viewport to ensure optimal visibility. The modal includes the title,
-     * description, start, and end times of the appointment. Buttons for additional actions
-     * (e.g., close, edit, delete) are also included in the modal's header.
-     *
-     * @param {jQuery} targetElement - A jQuery-wrapped DOM element that contains the `data-appointment` attribute
-     *                                  with the appointment data to display in the modal.
+     * @param {JQuery} $wrapper - A wrapper element for the calendar DOM containing settings and references.
+     * @param {JQuery} $targetElement - The element that was clicked to trigger the modal, containing data about an appointment.
+     * @return {void} Does not return a value, but shows a modal with the appointment's details.
      */
-    function showInfoWindow($wrapper, targetElement) {
+    function showInfoWindow($wrapper, $targetElement) {
         const settings = getSettings($wrapper);
         // Extract the `appointment` data from the clicked target element (provided as a data attribute).
-        const appointment = targetElement.data('appointment');
+        const appointment = $targetElement.data('appointment');
 
         // Set a reference to the modal element using its ID.
         let $modal = $(calendarElements.infoModal);
@@ -5028,7 +4973,7 @@
             // Check if the modal already exists on the page.
             const modalExists = $modal.length > 0;
             if (!modalExists) {
-                const roundedCss = getBorderRadiusCss(settings.rounded);
+                const roundedCss = $.bsCalendar.utils.getBorderRadiusCss(settings.rounded);
                 // If the modal does not exist, create the modal's HTML structure and append it to the body.
                 const modalHtml = [
                     `<div class="modal fade" id="${calendarElements.infoModal.substring(1)}" tabindex="-1" data-backdrop="false" data-bs-backdrop="false" style="pointer-events: none;">`,
@@ -5086,7 +5031,7 @@
 
             // Get relevant dimensions and positioning of the modal and target element.
             const $modalDialog = $modal.find('.modal-dialog');
-            const $target = $(targetElement);
+            const $target = $($targetElement);
             const targetOffset = $target.offset(); // Target element's position.
             const targetWidth = $target.outerWidth(); // Width of the target element.
             const targetHeight = $target.outerHeight(); // Height of the target element.
