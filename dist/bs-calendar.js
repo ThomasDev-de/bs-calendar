@@ -70,6 +70,7 @@
             debug: false,
             storeState: false,
             locale: 'en-GB', // language and country
+            subdivisionCode: 'DE-BE', // subdivision code for the locale, e.g. 'DE-BE' for Berlin
             title: null,
             startWeekOnSunday: true,
             navigateOnWheel: true,
@@ -919,17 +920,19 @@
      *
      * @param {string} country - The ISO code of the country for which public holidays are being requested. This will be converted to uppercase.
      * @param {string} language - The ISO code of the language in which the holidays' data should be returned. This will be converted to uppercase.
+     * @param {string} subDivisionCode - The ISO code of the subdivision (e.g.  state or province) within the country, if applicable. This will also be converted to uppercase.
      * @param {string} validFrom - The start date for filtering the public holidays in the format YYYY-MM-DD.
      * @param {string} validTo - The end date for filtering the public holidays in the format YYYY-MM-DD.
      * @return {Promise<Array<Object>>} A promise that resolves to an array of public holiday objects, each containing `startDate`, `endDate`, and `title` properties. An error will be thrown if the API request fails.
      */
-    async function getPublicHolidaysFromOpenHolidays(country, language, validFrom, validTo) {
-        // ensure language and country (always in capital letters)
+    async function getPublicHolidaysFromOpenHolidays(country, language, subdivisionCode, validFrom, validTo) {
+        // ensure language, country and subDivisionCode (always in capital letters)
         const countryIsoCode = country.toUpperCase();
         const languageIsoCode = language.toUpperCase();
+        const subDivisionIsoCode = subdivisionCode.toUpperCase();
 
         // build URL
-        const url = `https://openholidaysapi.org/PublicHolidays?countryIsoCode=${countryIsoCode}&languageIsoCode=${languageIsoCode}&validFrom=${validFrom}&validTo=${validTo}`;
+        const url = `https://openholidaysapi.org/PublicHolidays?countryIsoCode=${countryIsoCode}&languageIsoCode=${languageIsoCode}&validFrom=${validFrom}&validTo=${validTo}&subdivisionCode=${subDivisionIsoCode}`;
 
         // execute the API request
         const response = await fetch(url, {
@@ -3762,6 +3765,7 @@
         const settings = getSettings($wrapper);
         const period = getStartAndEndDateByView($wrapper);
         const locale = $.bsCalendar.utils.getLanguageAndCountry(settings.locale);
+        const subdivisionCode = settings.subdivisionCode;
         if (typeof settings.holidays === 'object') {
             let country;
             let language;
@@ -3785,12 +3789,13 @@
                 log('Load public holidays with params:', {
                     country: country,
                     language: language,
+                    subDivisionCode: subdivisionCode,
                     period: period
                 });
             }
 
             getPublicHolidaysFromOpenHolidays(
-                country, language, period.start, period.end
+                country, language, subdivisionCode, period.start, period.end
             ).then(response => {
                 drawHolidays($wrapper, response);
             });
