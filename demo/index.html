@@ -17,10 +17,12 @@
         <h6 class="text-uppercase text-center mb-0">sidebar addons</h6>
     </div>
     <div class="card-body p-1 d-flex flex-column">
-        <div class="form-check form-switch">
+        <div class="form-check form-switch my-3">
             <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckTheme">
             <label class="form-check-label" for="flexSwitchCheckTheme">light / dark</label>
         </div>
+        <select class="form-select mb-3" id="selectCountries" name="countryIsoCode"></select>
+        <select class="form-select mb-3" id="selectSubdivision" name="Subdivision"></select>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setDate">setDate(1970-01-01, 'day')
         </button>
@@ -109,6 +111,26 @@
 <script src="../dist/bs-calendar.js"></script>
 <script>
     $(function () {
+        const select = $('#selectCountries');
+        const selectSubdivision = $('#selectSubdivision');
+        select.on('change', function () {
+            selectSubdivision.empty();
+            $.bsCalendar.utils.openHolidayApi.getSubdivisions($(this).val(), 'DE').then(subdivisions => {
+                subdivisions.forEach(subdivision => {
+                    selectSubdivision.append(`<option value="${subdivision.shortName}">${subdivision.name[0].text}</option>`)
+                })
+                console.log(subdivisions)
+            });
+        })
+        $.bsCalendar.utils.openHolidayApi.getCountries('DE').then(countries => {
+            countries.forEach(country => {
+                select.append(`<option value="${country.isoCode}">${country.name[0].text}</option>`)
+            })
+            select.val('DE'); select.trigger('change')
+            console.log(countries);
+        });
+
+
         $.bsCalendar.setDefaults({
             // title: 'Example',
             title: '<span class="h4 text-uppercase mb-0">EXAMPLE</span>',
@@ -136,8 +158,8 @@
                 height: 60
             },
             url: url,
-            debug: true,
-            storeState:true
+            debug: false,
+            storeState: true
         });
         const modal = $('#exampleModal');
         const calendarElement = $('#calendar');
@@ -222,6 +244,14 @@
                     default:
                         break;
                 }
+            })
+            .on('change', '#selectSubdivision', function () {
+                calendarElement.bsCalendar('updateOptions', {
+                    holidays: {
+                        federalState: selectSubdivision.val(),
+                        country: select.val()
+                    }
+                });
             })
 
         function sleep(ms) {
