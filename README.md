@@ -22,7 +22,7 @@ Whether you're building a scheduling application, an event tracker, or simply ne
     + [Usage](#usage)
     + [Notes](#notes-3)
   * [Utilities](#utilities)
-  * 
+
 ### Key Features
 - 🔄 **Dynamic Views**: Easily toggle between `day`, `week`, `month`, and `year` views.
 - 🌐 **Localization Support**: Customize `locale`, start-of-week, and translations.
