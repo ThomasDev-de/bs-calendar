@@ -75,21 +75,33 @@ The icons of bootstrap-icons are defined as standard.
 
 ```javascript
 // Available countries from the OpenHolidays API
-const availableCountries = $.bsCalendar.utils.openHolidayApi.getCountries('DE');
+$.bsCalendar.utils.openHolidayApi.getCountries('DE')
+    .then(countries => {
+        console.log(countries);
+    })
 
 // Available languages from the OpenHolidays API
-const availableLanguages = $.bsCalendar.utils.openHolidayApi.getLanguages('DE');
+$.bsCalendar.utils.openHolidayApi.getLanguages('DE')
+    .then(languages => {
+        console.log(languages);
+    });
 
 // Available subdivisions (states, regions, etc.)
-const availableSubdivisions = $.bsCalendar.utils.openHolidayApi.getSubdivisions('DE', 'DE');
+$.bsCalendar.utils.openHolidayApi.getSubdivisions('DE', 'DE')
+    .then(subdivisions => {
+        console.log(subdivisions);
+    });
 
 // Retrieve school holidays based on state and date range
-const schoolHolidays = $.bsCalendar.utils.openHolidayApi.getSchoolHolidays(
+$.bsCalendar.utils.openHolidayApi.getSchoolHolidays(
     'DE',          // Country (Germany)
     'BE',          // State (Berlin)
     '2025-01-01',  // Start date
     '2025-12-31'   // End date
-);
+)
+    .then(schoolHolidays => {
+        console.log(schoolHolidays);
+    })
 
 // Retrieve public holidays based on country, region, language, and date range
 const publicHolidays = $.bsCalendar.utils.openHolidayApi.getPublicHolidays(
@@ -98,5 +110,8 @@ const publicHolidays = $.bsCalendar.utils.openHolidayApi.getPublicHolidays(
     'DE',          // Language
     '2025-01-01',  // Start date
     '2025-12-31'   // End date
-);
+)
+    .then(publicHolidays => {
+        console.log(publicHolidays);
+    })
 ```
