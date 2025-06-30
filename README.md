@@ -1,3 +1,29 @@
+# Bootstrap Calendar Plugin
+
+Effortlessly manage and display calendar views with the **Bootstrap Calendar Plugin**, a lightweight yet powerful jQuery plugin designed for modern web applications. This plugin seamlessly integrates with Bootstrap (v4 & v5), offering a fully responsive and customizable calendar interface with advanced features such as event handling, dynamic holiday API integration, and support for multiple views (`day`, `week`, `month`, and `year`).
+
+Whether you're building a scheduling application, an event tracker, or simply need a robust calendar solution, this plugin puts flexibility and ease-of-use at your fingertips. Packed with intuitive options, versatile callbacks, and a highly customizable design, you can tailor it to fit your specific use case effortlessly.
+
+### Key Features
+- 🔄 **Dynamic Views**: Easily toggle between `day`, `week`, `month`, and `year` views.
+- 🌐 **Localization Support**: Customize `locale`, start-of-week, and translations.
+- 📅 **Event Management**: Add, edit, delete, and view appointments with ease.
+- 🛠️ **Customizable Styling**: Fine-tune the appearance with support for themes, icons, and utility classes.
+- 🎉 **Holiday Integration**: Fetch and display public holidays and school holidays using the `OpenHolidays API`.
+- ⚡ **Interactive UI**: Navigate with mouse wheel, handle user interactions, and access powerful event callbacks.
+- 🕒 **Flexible Time Slots**: Configure detailed hour slots for precision scheduling.
+
+### Example Usage
+
+```javascript
+$('#calendar').bsCalendar({ 
+  startView: 'week', 
+  locale: 'en-US', 
+  holidays: { country: 'US', federalState: 'CA' } 
+});
+```
+With the Bootstrap Calendar Plugin, you can turn any project into a fully functional, beautifully styled, and highly interactive scheduling solution!
+
 ## Options
 
 The calendar provides a wide range of configuration options to customize its behavior and appearance. While there are
