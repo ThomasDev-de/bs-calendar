@@ -2416,13 +2416,10 @@
                     const isModalOpen = $('body').hasClass('modal-open');
                     const inViewContainer = $(e.target).closest('.wc-calendar-container').length;
 
+                    $('body').css('overflow', '');
                     if (!settings.navigateOnWheel || !inViewContainer || isModalOpen) {
                         return; // do nothing if the user is not in the container
                     }
-
-                    // if (inViewContainer) {
-                        $('body').css('overflow', '');
-                    // }
 
                     e.preventDefault(); // prevent standard scroll
                     e.stopPropagation(); // prevent event bubbling
