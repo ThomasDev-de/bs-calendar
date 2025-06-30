@@ -21,9 +21,12 @@
             <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckTheme">
             <label class="form-check-label" for="flexSwitchCheckTheme">light / dark</label>
         </div>
-        <select class="form-select mb-3" id="selectCountries" name="countryIsoCode"></select>
-        <select class="form-select mb-3" id="selectSubdivision" name="Subdivision"></select>
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
+        <div class="card card-body mb-3">
+            <select class="form-select mb-3" id="selectCountries" name="countryIsoCode"></select>
+            <select class="form-select" id="selectSubdivision" name="Subdivision"></select>
+        </div>
+            <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
+
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setDate">setDate(1970-01-01, 'day')
         </button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="updateOptions">updateOptions {locale:
@@ -121,12 +124,14 @@
                 })
                 console.log(subdivisions)
             });
-        })
+        });
+
         $.bsCalendar.utils.openHolidayApi.getCountries('DE').then(countries => {
             countries.forEach(country => {
                 select.append(`<option value="${country.isoCode}">${country.name[0].text}</option>`)
             })
-            select.val('DE'); select.trigger('change')
+            select.val('DE');
+            select.trigger('change')
             console.log(countries);
         });
 
@@ -142,16 +147,6 @@
             holidays: {
                 federalState: 'BE',
             },
-            // translations: {
-            //     day: 'Tag',
-            //     week: 'Woche',
-            //     month: 'Monat',
-            //     year: 'Jahr',
-            //     today: 'Heute',
-            //     appointment: 'Termin',
-            //     search: 'Tippe und drücke Enter',
-            //     searchNoResult: 'Keine Termine gefunden',
-            // },
             hourSlots: {
                 start: 8,
                 end: 16,
