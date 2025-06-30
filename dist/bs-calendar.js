@@ -2400,27 +2400,33 @@
                     }
                 });
 
-            function debounce(func, delay) {
+            function debounce(func, wrapper, delay) {
                 let timer;
                 return function (...args) {
                     const context = this;
-                    $('body').css('overflow', 'hidden');
+                    const settings = getSettings(wrapper);
+                    if (settings.navigateOnWheel)
+                        $('body').css('overflow', 'hidden');
                     clearTimeout(timer);
-                    timer = setTimeout(() => func.apply(context, args), delay);
+                    timer = setTimeout(function () {
+                        $('body').css('overflow', '');
+                        func.apply(context, args)
+                    }, delay);
                 };
             }
 
             $wrapper
                 .on('wheel', '.wc-calendar-view-container', debounce(function (e) {
                     const settings = getSettings($wrapper);
-                    const isModalOpen = $('body').hasClass('modal-open');
+                    const isModalOpen =
+                        $('body').hasClass('modal-open');
                     const inViewContainer = $(e.target).closest('.wc-calendar-container').length;
 
-                    $('body').css('overflow', '');
+
                     if (!settings.navigateOnWheel || !inViewContainer || isModalOpen) {
+                        $('body').css('overflow', '');
                         return; // do nothing if the user is not in the container
                     }
-
                     e.preventDefault(); // prevent standard scroll
                     e.stopPropagation(); // prevent event bubbling
 
@@ -2429,7 +2435,7 @@
                     } else {
                         navigateBack($wrapper); // scroll up
                     }
-                }, 300))
+                },$wrapper, 300))
                 .on('click', '[data-bs-toggle="sidebar"]', function () {
                     handleSidebarVisibility($wrapper);
                 })
