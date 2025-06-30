@@ -4,6 +4,25 @@ Effortlessly manage and display calendar views with the **Bootstrap Calendar Plu
 
 Whether you're building a scheduling application, an event tracker, or simply need a robust calendar solution, this plugin puts flexibility and ease-of-use at your fingertips. Packed with intuitive options, versatile callbacks, and a highly customizable design, you can tailor it to fit your specific use case effortlessly.
 
+- [Bootstrap Calendar Plugin](#bootstrap-calendar-plugin)
+  + [Key Features](#key-features)
+  + [Example Usage](#example-usage)
+  * [Options](#options)
+    + [options.holidays](#optionsholidays)
+      - [Configuration Structure:](#configuration-structure)
+      - [Notes:](#notes)
+    + [options.translations](#optionstranslations)
+      - [Configuration Structure:](#configuration-structure-1)
+      - [Notes:](#notes-1)
+    + [options.icons](#optionsicons)
+      - [Configuration Structure:](#configuration-structure-2)
+      - [Notes:](#notes-2)
+  * [Triggerable Events](#triggerable-events)
+    + [Available Events and Parameters](#available-events-and-parameters)
+    + [Usage](#usage)
+    + [Notes](#notes-3)
+  * [Utilities](#utilities)
+  * 
 ### Key Features
 - 🔄 **Dynamic Views**: Easily toggle between `day`, `week`, `month`, and `year` views.
 - 🌐 **Localization Support**: Customize `locale`, start-of-week, and translations.
@@ -144,7 +163,7 @@ By default, icons are defined using the Bootstrap Icons library.
 - **Customization**:  
   Each key can be replaced with a different icon class to align with design requirements or preferences.
 
-### Triggerable Events
+## Triggerable Events
 
 In addition to the configurable callback options like **onAdd**, **onEdit**, and **onNavigateBack**, custom events are
 available for further flexibility. These events can perform specific actions when certain calendar interactions occur.
@@ -154,7 +173,7 @@ They follow the naming convention:
 [event-name].bs.calendar
 ```
 
-#### Available Events and Parameters
+### Available Events and Parameters
 
 | **Event**                         | **Parameters**                                      | **Description**                                                                                      |
 |-----------------------------------|----------------------------------------------------|------------------------------------------------------------------------------------------------------|
@@ -170,7 +189,7 @@ They follow the naming convention:
 | **hide-info.bs.calendar**         | `-`                                               | Triggered when the information dialog (info window) is closed.                                      |
 | **before-load.bs.calendar**       | `requestData`                                     | Fires before appointment data is retrieved.                                                         |
 
-#### Usage
+### Usage
 
 JavaScript can be used to listen to these events and take specific actions:
 
@@ -188,7 +207,7 @@ console.log(`Navigated forward in view: ${view}, from: ${from}, to: ${to}`);
 });
 ```
 
-#### Notes
+### Notes
 - **Global Event Handling**: The `all.bs.calendar` event provides a way to handle all events in one place with the `eventName` and its corresponding parameters.
 - **Detailed Parameters**: Each event passes specific arguments to provide more detailed contextual information.
 - **Flexibility**: These events allow developers to tap into native jQuery event management, enabling robust and custom handling for various use cases.
