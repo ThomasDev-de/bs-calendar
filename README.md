@@ -70,3 +70,33 @@ The icons of bootstrap-icons are defined as standard.
 | link              | `"bi bi-box-arrow-up-right"` |
 | appointment       | `"bi bi-clock"`              |
 | appointmentAllDay | `"bi bi-brightness-high"`    |
+
+## Utilities
+
+```javascript
+// Available countries from the OpenHolidays API
+const availableCountries = $.bsCalendar.utils.openHolidayApi.getCountries('DE');
+
+// Available languages from the OpenHolidays API
+const availableLanguages = $.bsCalendar.utils.openHolidayApi.getLanguages('DE');
+
+// Available subdivisions (states, regions, etc.)
+const availableSubdivisions = $.bsCalendar.utils.openHolidayApi.getSubdivisions('DE', 'DE');
+
+// Retrieve school holidays based on state and date range
+const schoolHolidays = $.bsCalendar.utils.openHolidayApi.getSchoolHolidays(
+    'DE',          // Country (Germany)
+    'BE',          // State (Berlin)
+    '2025-01-01',  // Start date
+    '2025-12-31'   // End date
+);
+
+// Retrieve public holidays based on country, region, language, and date range
+const publicHolidays = $.bsCalendar.utils.openHolidayApi.getPublicHolidays(
+    'DE',          // Country (Germany)
+    'BE',          // State (Berlin)
+    'DE',          // Language
+    '2025-01-01',  // Start date
+    '2025-12-31'   // End date
+);
+```
