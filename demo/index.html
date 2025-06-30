@@ -122,7 +122,7 @@
                 subdivisions.forEach(subdivision => {
                     selectSubdivision.append(`<option value="${subdivision.shortName}">${subdivision.name[0].text}</option>`)
                 })
-                console.log(subdivisions)
+                // console.log(subdivisions)
             });
         });
 
@@ -132,7 +132,7 @@
             })
             select.val('DE');
             select.trigger('change')
-            console.log(countries);
+            // console.log(countries);
         });
 
 
@@ -174,7 +174,7 @@
                 });
             })
             .on('add.bs.calendar', function (event, data) {
-                console.log(data);
+                // console.log(data);
                 modal.find('input[name="title"]').val(null);
                 modal.find('input[name="from_date"]').val(data.date);
                 modal.find('input[name="to_date"]').val(data.date);
@@ -188,7 +188,7 @@
             })
             .on('edit.bs.calendar', function (event, appointment, extras) {
                 event.preventDefault();
-                console.log(appointment);
+                // console.log(appointment);
 
                 const isAllDay = appointment.allDay;
                 const title = appointment.title;
@@ -211,7 +211,7 @@
                 modal.modal('show');
             })
             .on('view.bs.calendar', function (event, view) {
-                console.log(view);
+                // console.log(view);
             })
             .on('click', '[data-method]', function (event) {
                 event.preventDefault();
@@ -277,7 +277,7 @@
         }
 
         async function url(query) {
-            console.log('index url', query);
+            // console.log('index url', query);
             await sleep(Math.floor(Math.random())); // Wartet synchron für 2 Sekunden
 
             return new Promise((resolve, reject) => {

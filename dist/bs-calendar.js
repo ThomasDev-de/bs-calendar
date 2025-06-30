@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.2.1
+ * @version 1.2.2
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -67,8 +67,7 @@
                 return this.DEFAULTS;
             },
             DEFAULTS: {
-                debug: false,
-                storeState: false,
+
                 locale: 'en-GB', // language and country
                 title: null,
                 startWeekOnSunday: true,
@@ -118,7 +117,20 @@
                     height: 30, // one hour in px
                     start: 0, // starting hour as integer
                     end: 24 // ending hour as integer
-                }
+                },
+                onAll:null,
+                onInit:null,
+                onAdd: null,
+                onEdit:null,
+                onDelete:null,
+                onView:null,
+                onBeforeLoad:null,
+                onShowInfoWindow: null,
+                onHideInfoWindow:null,
+                onNavigateForward:null,
+                onNavigateBack:null,
+                storeState: false,
+                debug: false
             },
             utils: {
                 openHolidayApi: {
@@ -494,7 +506,6 @@
                     if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal?.VERSION === 'string') {
                         // Major Version direkt extrahieren und zurückgeben
                         const majorVersion = parseInt(bootstrap.Modal.VERSION.split('.')[0], 10);
-                        console.log(majorVersion);
                         return majorVersion;
                     } else if (typeof $ === 'function' && typeof $().modal === 'function') {
                         // Bootstrap 3 erkennen über jQuery
@@ -1021,6 +1032,8 @@
             sideNav: 'wc-calendar-left-nav',
             topSearchNav: 'wc-calendar-top-search-nav',
         };
+
+        const namespace = '.bs.calendar';
 
 
         /**
@@ -1655,34 +1668,53 @@
         }
 
         /**
-         * Triggers a specified event on a given wrapper element with optional parameters.
+         * Triggers an event on the provided wrapper element and executes corresponding settings functions dynamically.
          *
-         * @param {jQuery} $wrapper The jQuery wrapper element on which the event will be triggered.
-         * @param {string} event The name of the event to be triggered.
-         * @param {...any} params Additional parameters to pass to the event when triggered.
-         * @return {void} Does not return a value.
+         * - Always triggers the "all" event, which can be used as a global catch-all for any event.
+         * - Dynamically maps specific event names (e.g., "show-info-window") to their corresponding settings handler
+         *   (e.g., "onShowInfoWindow") and executes them if they exist.
+         *
+         * The method automatically transforms event names with dashes (`-`) into CamelCase,
+         * ensuring compatibility with handler naming conventions.
+         *
+         * @param {Object} $wrapper - The jQuery wrapper element on which the event is triggered.
+         * @param {string} event - The name of the event to trigger (e.g., "edit", "show-info-window").
+         * @param {...*} params - Any additional parameters to pass to the handler functions.
          */
         function trigger($wrapper, event, ...params) {
+            // Retrieve settings for the wrapper
             const settings = getSettings($wrapper);
             const p = params && params.length > 0 ? params : [];
 
+            // Debugging: Log event details if debug mode is enabled
             if (settings.debug) {
                 if (p.length > 0) {
-                    log('Triggering event:', event, 'with params:', ...p);
+                    log('Triggering event:', event, 'with params:', ...params);
                 } else {
                     log('Triggering event:', event, 'without params');
                 }
-
             }
 
+            // Skip "all" event, as it is handled globally
             if (event !== 'all') {
-                // trigger "all" event directly
-                $wrapper.trigger('all.bs.calendar', event, ...p);
+                // Trigger the "all" event with the current event as data
+                $wrapper.trigger(`all${namespace}`, event + namespace, ...params);
+                executeFunction(settings.onAll, event + namespace, ...params); // Execute the global "onAll" handler
 
-                // trigger specific event directly
-                $wrapper.trigger(`${event}.bs.calendar`, ...p);
+                // Trigger the specific event directly
+                $wrapper.trigger(`${event}${namespace}`, ...params);
+
+                // Automatically map the event name to a settings handler and execute it
+                // Convert event name to CamelCase + add "on" prefix (e.g., "show-info-window" -> "onShowInfoWindow")
+                const eventFunctionName = `on${event
+                    .split('-')
+                    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                    .join('')}`;
+
+                executeFunction(settings[eventFunctionName], ...params);
             }
         }
+
 
         /**
          * Initializes the calendar widget within the provided wrapper element.
@@ -1725,13 +1757,13 @@
                     }
 
                     buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
+                    trigger($wrapper, 'init');
                     buildByView($wrapper);
 
                     $wrapper.data('initBsCalendar', true);
                     if (settings.debug) {
                         log('bsCalendar initialized');
                     }
-                    trigger($wrapper, 'init');
 
                     resolve($wrapper);
                 } catch (error) {
@@ -2167,6 +2199,7 @@
                     break;
             }
             setDate($wrapper, newDate);
+            trigger($wrapper, 'navigate-back', view, date, newDate);
             buildByView($wrapper);
         }
 
@@ -2204,6 +2237,7 @@
 
             }
             setDate($wrapper, newDate);
+            trigger($wrapper, 'navigate-forward', view, date, newDate);
             buildByView($wrapper);
         }
 
@@ -2369,21 +2403,22 @@
             });
 
             $('body')
-                .on('click', calendarElements.infoModal + ' [data-edit]', function (e) {
+                .on('click' + namespace, calendarElements.infoModal + ' [data-edit]', function (e) {
                     e.preventDefault();
                     const appointment = $(calendarElements.infoModal).data('appointment');
                     const returnData = getAppointmentForReturn(appointment);
                     $(calendarElements.infoModal).modal('hide')
-                    trigger($wrapper, 'edit', [returnData.appointment, returnData.extras]);
+                    trigger($wrapper, 'edit', returnData.appointment, returnData.extras);
+
                 })
-                .on('click', calendarElements.infoModal + ' [data-remove]', function (e) {
+                .on('click' + namespace, calendarElements.infoModal + ' [data-remove]', function (e) {
                     e.preventDefault();
                     const appointment = $(calendarElements.infoModal).data('appointment');
                     const returnData = getAppointmentForReturn(appointment);
                     $(calendarElements.infoModal).modal('hide')
-                    trigger($wrapper, 'delete', [returnData.appointment, returnData.extras]);
+                    trigger($wrapper, 'delete', returnData.appointment, returnData.extras);
                 })
-                .on('click', function (e) {
+                .on('click' + namespace, function (e) {
                     const $target = $(e.target);
                     const isInsideModal = $target.closest(calendarElements.infoModal).length > 0; // checks for modal or child elements
                     const isTargetElement = $target.closest('[data-appointment]').length > 0; // checks for the target element with appointment data
@@ -2392,6 +2427,9 @@
                     if (!isInsideModal && !isTargetElement && $(calendarElements.infoModal).length) {
                         $(calendarElements.infoModal).modal('hide');
                     }
+                })
+                .on('hide.bs.modal', calendarElements.infoModal, function () {
+                    trigger($wrapper, 'hide-info-window');
                 })
                 .on('hidden.bs.modal', calendarElements.infoModal, function () {
                     // removes the modal completely after it has been closed
@@ -2405,8 +2443,9 @@
                 return function (...args) {
                     const context = this;
                     const settings = getSettings(wrapper);
-                    if (settings.navigateOnWheel)
+                    if (settings.navigateOnWheel) {
                         $('body').css('overflow', 'hidden');
+                    }
                     clearTimeout(timer);
                     timer = setTimeout(function () {
                         $('body').css('overflow', '');
@@ -2435,11 +2474,11 @@
                     } else {
                         navigateBack($wrapper); // scroll up
                     }
-                },$wrapper, 300))
-                .on('click', '[data-bs-toggle="sidebar"]', function () {
+                }, $wrapper, 300))
+                .on('click' + namespace, '[data-bs-toggle="sidebar"]', function () {
                     handleSidebarVisibility($wrapper);
                 })
-                .on('click', '.wc-search-pagination [data-page]', function (e) {
+                .on('click' + namespace, '.wc-search-pagination [data-page]', function (e) {
                     // A page in the search navigation was clicked
                     e.preventDefault();
                     // determine the requested page
@@ -2455,7 +2494,7 @@
                     // get the appointments
                     fetchAppointments($wrapper);
                 })
-                .on('keyup', '[data-search-input]', function (e) {
+                .on('keyup' + namespace, '[data-search-input]', function (e) {
                     e.preventDefault();
 
                     const input = $(e.currentTarget);
@@ -2479,7 +2518,7 @@
                     }
 
                 })
-                .on('click', '[data-day-hour]', function (e) {
+                .on('click' + namespace, '[data-day-hour]', function (e) {
                     const settings = getSettings($wrapper);
                     const details = $(e.currentTarget).data('details');
                     if (settings.debug) {
@@ -2501,9 +2540,9 @@
                         view: getView($wrapper)
                     };
 
-                    trigger($wrapper, 'add', [data]);
+                    trigger($wrapper, 'add', data);
                 })
-                .on('click', '[data-add-appointment]', function (e) {
+                .on('click' + namespace, '[data-add-appointment]', function (e) {
                     e.preventDefault();
 
                     if (getSearchMode($wrapper)) {
@@ -2525,9 +2564,9 @@
                         view: getView($wrapper)
                     };
 
-                    trigger($wrapper, 'add', [data]);
+                    trigger($wrapper, 'add', data);
                 })
-                .on('click', '[data-today]', function (e) {
+                .on('click' + namespace, '[data-today]', function (e) {
                     e.preventDefault();
                     const inSearchMode = getSearchMode($wrapper);
                     if (inSearchMode) {
@@ -2537,7 +2576,7 @@
                     }
 
                 })
-                .on('click touchend', '[data-appointment]', function (e) {
+                .on(`click${namespace} touchend${namespace}`, '[data-appointment]', function (e) {
                     const clickedOnDate = $(e.target).is('[data-date]');
                     const clickedOnMonth = $(e.target).is('[data-month]');
                     const clickedOnToday = $(e.target).is('[data-today]');
@@ -2553,7 +2592,7 @@
                     const element = $(e.currentTarget);
                     showInfoWindow($wrapper, element);
                 })
-                .on('click', '[data-date]', function (e) {
+                .on('click' + namespace, '[data-date]', function (e) {
                     e.preventDefault();
                     const settings = getSettings($wrapper);
                     const inSearchMode = getSearchMode($wrapper);
@@ -2567,7 +2606,7 @@
                         buildByView($wrapper);
                     }
                 })
-                .on('click', '[data-month]', function (e) {
+                .on('click' + namespace, '[data-month]', function (e) {
                     e.preventDefault();
                     const settings = getSettings($wrapper);
                     if (settings.views.includes('month')) {
@@ -2577,7 +2616,7 @@
                         buildByView($wrapper);
                     }
                 })
-                .on('click', '[data-prev]', function (e) {
+                .on('click' + namespace, '[data-prev]', function (e) {
                     e.preventDefault();
                     const inSearchMode = getSearchMode($wrapper);
                     if (inSearchMode) {
@@ -2586,7 +2625,7 @@
                         navigateBack($wrapper);
                     }
                 })
-                .on('click', '[data-next]', function (e) {
+                .on('click' + namespace, '[data-next]', function (e) {
                     e.preventDefault();
                     const inSearchMode = getSearchMode($wrapper);
                     if (inSearchMode) {
@@ -2595,7 +2634,7 @@
                         navigateForward($wrapper);
                     }
                 })
-                .on('click', '.wc-select-calendar-view [data-view]', function (e) {
+                .on('click' + namespace, '.wc-select-calendar-view [data-view]', function (e) {
                     e.preventDefault();
                     const inSearchMode = getSearchMode($wrapper);
                     if (inSearchMode) {
@@ -2972,10 +3011,30 @@
                 updateDropdownView($wrapper);
                 setCurrentDateName($wrapper);
                 buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
-                trigger($wrapper, 'view', [view]);
+                trigger($wrapper, 'view', view);
             }
 
             fetchAppointments($wrapper);
+        }
+
+        function executeFunction(functionOrName, ...args) {
+            if (!functionOrName) {
+                // console.warn("No function has been passed or the name is not defined.");
+                return null;
+            }
+
+            if (typeof functionOrName === 'function') {
+                // Direkte Funktionsreferenz
+                return functionOrName(...args);
+            }
+
+            if (typeof functionOrName === 'string' && typeof window[functionOrName] === 'function') {
+                // Funktionsname im globalen `window`-Kontext
+                return window[functionOrName](...args);
+            }
+
+            // console.warn(`"${functionOrName}" is neither a function nor a valid function name.`);
+            return null;
         }
 
         /**
@@ -3060,7 +3119,7 @@
             }
 
             // Trigger a custom "beforeLoad" event before loading appointments
-            trigger($wrapper, 'beforeLoad', [requestData]);
+            trigger($wrapper, 'before-load', requestData);
 
             // Display the loading indicator for the wrapper
             const callFunction = typeof settings.url === 'function';
@@ -3369,7 +3428,6 @@
                                 (columnIndex * (100 / totalColumns)) :
                                 0;
 
-                        console.log('>>>>>>>>>>>>>>>>>> before calculateSlotPosition', 'drawAppointmentsForDayOrWeek collumns');
                         const position = calculateSlotPosition(
                             $wrapper,
                             startDate.toISOString(),
@@ -3398,7 +3456,6 @@
                         }).appendTo($weekDayContainer);
 
                         appointmentElement.data('appointment', appointment);
-                        // console.log('set colors for day or week', appointment.extras.colors, appointment);
                         setAppointmentStyles(appointmentElement, appointment.extras.colors);
                     });
                 });
@@ -3426,7 +3483,6 @@
                         slotData.end instanceof Date &&
                         !isNaN(slotData.end)
                     ) {
-                        console.log('>>>>>>>>>>>>>>>>>> before calculateSlotPosition', 'drawAppointmentsForDayOrWeek fullWidth');
                         position = calculateSlotPosition(
                             $wrapper,
                             slotData.start.toISOString(),
@@ -4907,7 +4963,6 @@
                 } else if (currentHour >= hourSlots.end) {
                     return {top: "", bottom: 0}; // Time is later than the calendar end time.
                 } else {
-                    console.log('>>>> Calculating position for time indicator in addCurrentTimeIndicator');
                     return {top: calculateSlotPosition($wrapper, now).top, bottom: ""}; // Time is within the hour slot range.
                 }
             };
@@ -4995,7 +5050,6 @@
 
                 if (!isWrapperInDOM || !hasTimeIndicator) {
                     clearInterval(intervalId); // Stop the interval if the wrapper or indicator is not found.
-                    console.log('bsCalendar LOG: Interval stopped. Wrapper or time indicator is no longer in the DOM.');
                     return;
                 }
 
@@ -5168,6 +5222,7 @@
             let $modal = $(calendarElements.infoModal);
 
             const returnData = getAppointmentForReturn(appointment);
+            trigger($wrapper, 'show-info-window', returnData.appointment, returnData.extras);
             // Create the HTML content for the modal body, displaying the appointment details.
             settings.formatter.window(returnData.appointment, returnData.extras).then(html => {
                 // Check if the modal already exists on the page.
