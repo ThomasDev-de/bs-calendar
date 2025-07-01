@@ -1,6 +1,11 @@
 # Bootstrap Calendar Plugin
 
-Version 1.2.3 [changelog](changelog.md#version-123)
+![Version](https://img.shields.io/badge/version-1.2.3-blue)
+![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-v4%20%7C%20v5-blueviolet)
+![License](https://img.shields.io/badge/license-MIT-green)
+
+[changelog](changelog.md#version-123)
 
 | Day                      | Week                       | Month                        | Year                       |
 |--------------------------|----------------------------|------------------------------|----------------------------|
@@ -16,28 +21,32 @@ plugin puts flexibility and ease-of-use at your fingertips. Packed with intuitiv
 highly customizable design, you can tailor it to fit your specific use case effortlessly.
 
 - [Bootstrap Calendar Plugin](#bootstrap-calendar-plugin)
-    + [Key Features](#key-features)
-    + [Example Usage](#example-usage)
-        * [Options](#options)
-            + [options.holidays](#optionsholidays)
-                - [Configuration Structure:](#configuration-structure)
-                - [Notes](#notes)
-            + [options.translations](#optionstranslations)
-                - [Configuration Structure:](#configuration-structure-1)
-                - [Notes](#notes-1)
-            + [options.icons](#optionsicons)
-                - [Configuration Structure:](#configuration-structure-2)
-                - [Notes](#notes-2)
-        * [Attributes for an Appointment](#attributes-for-an-appointment)
-            + [Required Attributes](#required-attributes)
-            + [Optional Attributes](#optional-attributes)
-            + [Example](#example)
-            + [Notes](#notes-3)
-        * [Triggerable Events](#triggerable-events)
-            + [Available Events and Parameters](#available-events-and-parameters)
-            + [Usage](#usage)
-            + [Notes](#notes-4)
-        * [Utilities](#utilities)
+  + [Key Features](#key-features)
+  + [Example Usage](#example-usage)
+    * [Options](#options)
+        + [options.holidays](#optionsholidays)
+            - [Configuration Structure:](#configuration-structure)
+            - [Notes](#notes)
+        + [options.translations](#optionstranslations)
+            - [Configuration Structure:](#configuration-structure-1)
+            - [Notes](#notes-1)
+        + [options.icons](#optionsicons)
+            - [Configuration Structure:](#configuration-structure-2)
+            - [Notes](#notes-2)
+    * [Attributes for an Appointment](#attributes-for-an-appointment)
+        + [Required Attributes](#required-attributes)
+        + [Optional Attributes](#optional-attributes)
+        + [Example](#example)
+        + [Notes](#notes-3)
+    * [Triggerable Events](#triggerable-events)
+        + [Available Events and Parameters](#available-events-and-parameters)
+        + [Usage](#usage)
+        + [Notes](#notes-4)
+    * [Methods](#methods)
+        + [Available Methods](#available-methods)
+    * [Utilities](#utilities)
+    * [Feedback, Assistance, or Suggestions](#feedback-assistance-or-suggestions)
+    * [Explore More Projects](#explore-more-projects)
 
 ### Key Features
 
@@ -46,18 +55,39 @@ highly customizable design, you can tailor it to fit your specific use case effo
 - 📅 **Event Management**: Add, edit, delete, and view appointments with ease.
 - 🛠️ **Customizable Styling**: Fine-tune the appearance with support for themes, icons, and utility classes.
 - 🎉 **Holiday Integration**: Fetch and display public holidays and school holidays using the `OpenHolidays API`.
-- ⚡ **Interactive UI**: Navigate with mouse wheel, handle user interactions, and access powerful event callbacks.
+- ⚡ **Interactive UI**: Navigate with the mouse wheel, handle user interactions, and access powerful event callbacks.
 - 🕒 **Flexible Time Slots**: Configure detailed hour slots for precision scheduling.
 
 
 ### Example Usage
 
-```javascript
-$('#calendar').bsCalendar({
-    startView: 'week',
-    locale: 'en-US',
-    holidays: {country: 'US', federalState: 'CA'}
-});
+```html
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimalistic Calendar Example</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    </head>
+    <body>
+        <div id="calendar"></div>
+
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="path/to/bs-calendar.js"></script>
+        <script>
+            $(document).ready(function () {
+                $('#calendar').bsCalendar({
+                    startView: 'week',
+                    locale: 'de-DE',
+                    holidays: { country: 'DE', federalState: 'BE' }
+                });
+            });
+        </script>
+    </body>
+</html>
 ```
 
 With the Bootstrap Calendar Plugin, you can turn any project into a fully functional, beautifully styled, and highly
@@ -133,7 +163,7 @@ This option allows configuring the details of the holidays, such as specifying t
 
 - **OpenHolidays API Integration:**  
   This API serves as the source for holidays and school holidays data. Ensure the configuration matches the requirements
-  of the API (e.g., valid country or state codes).
+  of the API (e.g. valid country or state codes).
 
 - **Dynamic Locale Handling:**  
   If `country` or `language` are omitted, their values are derived from the calendar's locale setting (specified in
@@ -224,7 +254,7 @@ By default, icons are defined using the Bootstrap Icons library.
     - **Example**: `"primary"`, `"danger"`, or `"#FF5733"`
 
 5. **`link`**
-    - **Description**: A link associated with the appointment (e.g., an external reference or more details).
+    - **Description**: A link associated with the appointment (e.g. an external reference or more details).
     - **Example**: `"https://example.com"`
 
 6. **`location`**
@@ -317,6 +347,64 @@ $('#calendar').on('navigate-forward.bs.calendar', function (event, view, from, t
 
 ---
 
+## Methods
+
+The `bsCalendar` plugin offers various methods to dynamically control and interact with the calendar. Here is a list of supported methods with their usage:
+
+### Available Methods
+
+1. **`refresh`**
+    - **Description**: Refreshes the calendar and reloads all data.
+    - **Usage**:
+      ```javascript
+      $('#calendar').bsCalendar('refresh');
+      ```
+
+2. **`clear`**
+    - **Description**: Clears all content and appointments from the calendar.
+    - **Note**: This method is not available in search mode.
+    - **Usage**:
+      ```javascript
+      $('#calendar').bsCalendar('clear');
+      ```
+
+3. **`updateOptions`**
+    - **Description**: Updates the calendar's configuration options at runtime.
+    - **Parameters**: An object containing options to update.
+    - **Usage**:
+      ```javascript
+      $('#calendar').bsCalendar('updateOptions', {
+          startView: 'month',
+          locale: 'en-US'
+      });
+      ```
+
+4. **`destroy`**
+    - **Description**: Completely removes the calendar and restores the original DOM element.
+    - **Usage**:
+      ```javascript
+      $('#calendar').bsCalendar('destroy');
+      ```
+
+5. **`setDate`**
+    - **Description**: Sets the provided date as the currently visible reference date in the calendar.
+    - **Parameters**: A valid date object or a date string in the `YYYY-MM-DD` format.
+    - **Note**: Not available in search mode.
+    - **Usage**:
+      ```javascript
+      $('#calendar').bsCalendar('setDate', '2025-07-01');
+      ```
+
+6. **`setToday`**
+    - **Description**: Navigates to and sets today's date as the reference date.
+    - **Note**: Not available in search mode.
+    - **Usage**:
+      ```javascript
+      $('#calendar').bsCalendar('setToday');
+      ```
+
+---
+
 ## Utilities
 
 ```javascript
@@ -364,3 +452,17 @@ $.bsCalendar.utils.openHolidayApi.getPublicHolidays(
         console.log(publicHolidays);
     })
 ```
+
+---
+
+## Feedback, Assistance, or Suggestions
+
+I would love to hear your feedback, help improve this project, or learn about your feature requests!  
+Feel free to [create an issue](https://github.com/ThomasDev-de/bs-calendar/issues) or reach out directly.  
+Your support and ideas are greatly appreciated!
+
+---
+
+## Explore More Projects
+
+Feel free to explore my other repositories: [ThomasDev-de on GitHub](https://github.com/ThomasDev-de?tab=repositories)
