@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.2.2
+ * @version 1.2.3
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -125,6 +125,7 @@
                 onDelete:null,
                 onView:null,
                 onBeforeLoad:null,
+                onAfterLoad:null,
                 onShowInfoWindow: null,
                 onHideInfoWindow:null,
                 onNavigateForward:null,
@@ -3112,6 +3113,7 @@
                 }
                 // Update the appointments list with an empty array and re-build the default view
                 setAppointments($wrapper, []).then(_cleanedAppointments => {
+                    trigger($wrapper, 'after-load', _cleanedAppointments);
                     void _cleanedAppointments;
                     buildAppointmentsForView($wrapper);
                 });
@@ -3143,11 +3145,13 @@
                         if (inSearchMode) {
                             // In search mode, process the rows and build the search-related views
                             setAppointments($wrapper, appointments.rows).then(cleanedAppointments => {
+                                trigger($wrapper, 'after-load', cleanedAppointments);
                                 buildAppointmentsForSearch($wrapper, cleanedAppointments, appointments.total);
                             });
                         } else {
                             // In normal mode, process appointments and build the main view
                             setAppointments($wrapper, appointments).then(_cleanedAppointments => {
+                                trigger($wrapper, 'after-load', _cleanedAppointments);
                                 void _cleanedAppointments;
                                 buildAppointmentsForView($wrapper);
                             });
@@ -3191,11 +3195,13 @@
                         if (inSearchMode) {
                             // In search mode, handle the response rows and build the search views
                             setAppointments($wrapper, response.rows).then(cleanedAppointments => {
+                                trigger($wrapper, 'after-load', cleanedAppointments);
                                 buildAppointmentsForSearch($wrapper, cleanedAppointments, response.total);
                             });
                         } else {
                             // In normal mode, handle the response and build the default view
                             setAppointments($wrapper, response).then(_cleanedAppointments => {
+                                trigger($wrapper, 'after-load', _cleanedAppointments);
                                 void _cleanedAppointments;
                                 buildAppointmentsForView($wrapper);
                             });

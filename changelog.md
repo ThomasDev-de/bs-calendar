@@ -1,5 +1,24 @@
 ### Changelog for `bs-calendar.js`
 
+- [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 1.2.3**](#version-123)
+        + [**Added**](#added)
+    * [**Version 1.2.2**](#version-122)
+        + [**Added**](#added-1)
+        + [**Changed**](#changed)
+        + [**Fixed**](#fixed)
+        + [**Removed**](#removed)
+
+#### **Version 1.2.3**
+
+##### **Added**
+- **New Setting**: `settings.onAfterLoad`:
+    - A new callback triggered after appointment loading has completed.
+    - Receives the newly loaded appointments as parameters for additional processing.
+- **New Event**: `after-load.bs.calendar`:
+    - Introduced a jQuery event that fires after the calendar has finished loading appointments.
+    - The new appointments are passed as parameters, enabling dynamic handling of loaded data.
+
 #### **Version 1.2.2**
 
 ##### **Added**

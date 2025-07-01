@@ -154,7 +154,10 @@
             },
             url: url,
             debug: false,
-            storeState: true
+            storeState: true,
+            onAll(eventName, ...args) {
+                console.log(eventName, ...args);
+            }
         });
         const modal = $('#exampleModal');
         const calendarElement = $('#calendar');

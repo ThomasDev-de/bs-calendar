@@ -1,29 +1,41 @@
 # Bootstrap Calendar Plugin
+Version 1.2.3 [changelog](changelog.md#version-123)
 
-Effortlessly manage and display calendar views with the **Bootstrap Calendar Plugin**, a lightweight yet powerful jQuery plugin designed for modern web applications. This plugin seamlessly integrates with Bootstrap (v4 & v5), offering a fully responsive and customizable calendar interface with advanced features such as event handling, dynamic holiday API integration, and support for multiple views (`day`, `week`, `month`, and `year`).
+Effortlessly manage and display calendar views with the **Bootstrap Calendar Plugin**, a lightweight yet powerful jQuery
+plugin designed for modern web applications. This plugin seamlessly integrates with Bootstrap (v4 & v5), offering a
+fully responsive and customizable calendar interface with advanced features such as event handling, dynamic holiday API
+integration, and support for multiple views (`day`, `week`, `month`, and `year`).
 
-Whether you're building a scheduling application, an event tracker, or simply need a robust calendar solution, this plugin puts flexibility and ease-of-use at your fingertips. Packed with intuitive options, versatile callbacks, and a highly customizable design, you can tailor it to fit your specific use case effortlessly.
+Whether you're building a scheduling application, an event tracker, or simply need a robust calendar solution, this
+plugin puts flexibility and ease-of-use at your fingertips. Packed with intuitive options, versatile callbacks, and a
+highly customizable design, you can tailor it to fit your specific use case effortlessly.
 
 - [Bootstrap Calendar Plugin](#bootstrap-calendar-plugin)
   + [Key Features](#key-features)
   + [Example Usage](#example-usage)
-  * [Options](#options)
-    + [options.holidays](#optionsholidays)
-      - [Configuration Structure:](#configuration-structure)
-      - [Notes:](#notes)
-    + [options.translations](#optionstranslations)
-      - [Configuration Structure:](#configuration-structure-1)
-      - [Notes:](#notes-1)
-    + [options.icons](#optionsicons)
-      - [Configuration Structure:](#configuration-structure-2)
-      - [Notes:](#notes-2)
-  * [Triggerable Events](#triggerable-events)
-    + [Available Events and Parameters](#available-events-and-parameters)
-    + [Usage](#usage)
-    + [Notes](#notes-3)
-  * [Utilities](#utilities)
+    * [Options](#options)
+        + [options.holidays](#optionsholidays)
+            - [Configuration Structure:](#configuration-structure)
+            - [Notes](#notes)
+        + [options.translations](#optionstranslations)
+            - [Configuration Structure:](#configuration-structure-1)
+            - [Notes](#notes-1)
+        + [options.icons](#optionsicons)
+            - [Configuration Structure:](#configuration-structure-2)
+            - [Notes](#notes-2)
+    * [Attributes for an Appointment](#attributes-for-an-appointment)
+        + [Required Attributes](#required-attributes)
+        + [Optional Attributes](#optional-attributes)
+        + [Example](#example)
+        + [Notes](#notes-3)
+    * [Triggerable Events](#triggerable-events)
+        + [Available Events and Parameters](#available-events-and-parameters)
+        + [Usage](#usage)
+        + [Notes](#notes-4)
+    * [Utilities](#utilities)
 
 ### Key Features
+
 - 🔄 **Dynamic Views**: Easily toggle between `day`, `week`, `month`, and `year` views.
 - 🌐 **Localization Support**: Customize `locale`, start-of-week, and translations.
 - 📅 **Event Management**: Add, edit, delete, and view appointments with ease.
@@ -35,13 +47,17 @@ Whether you're building a scheduling application, an event tracker, or simply ne
 ### Example Usage
 
 ```javascript
-$('#calendar').bsCalendar({ 
-  startView: 'week', 
-  locale: 'en-US', 
-  holidays: { country: 'US', federalState: 'CA' } 
+$('#calendar').bsCalendar({
+    startView: 'week',
+    locale: 'en-US',
+    holidays: {country: 'US', federalState: 'CA'}
 });
 ```
-With the Bootstrap Calendar Plugin, you can turn any project into a fully functional, beautifully styled, and highly interactive scheduling solution!
+
+With the Bootstrap Calendar Plugin, you can turn any project into a fully functional, beautifully styled, and highly
+interactive scheduling solution!
+
+---
 
 ## Options
 
@@ -79,6 +95,7 @@ available options, including their types, default values, and descriptions.
 | **onDelete**          | `function(appointment, extras)`  | `null`                                           | Triggered when deleting an appointment. The first argument is the appointment being deleted, and the second provides additional context.                                                                           |
 | **onView**            | `function(view)`                 | `null`                                           | Triggered when the calendar view changes. The new view is passed as an argument.                                                                                                                                   |
 | **onBeforeLoad**      | `function(requestData)`          | `null`                                           | Invoked prior to retrieving appointments. Receives contextual information, such as the current view, time span, and search term, if any.                                                                           |
+| **onAfterLoad**       | `function(appointments)`         | `null`                                           | Triggers after the appointments have been loaded and gives them as parameters.                                                                                                                                     |
 | **onShowInfoWindow**  | `function(appointment, extras)`  | `null`                                           | Triggered when an information dialog (info window) is displayed. The appointment and supplemental context are passed as parameters.                                                                                |
 | **onHideInfoWindow**  | `function()`                     | `null`                                           | Triggered when an information dialog (info window) is closed.                                                                                                                                                      |
 | **onNavigateForward** | `function(view, from, to)`       | `null`                                           | Triggered when navigating forward within the calendar. Provides the current view, and the starting and ending dates of the period.                                                                                 |
@@ -106,7 +123,7 @@ This option allows configuring the details of the holidays, such as specifying t
 | **country**      | `null` \| `string` | `null`            | The country code in ISO 3166-1 alpha-2 format (e.g., `DE` for Germany). A full list of supported countries can be found [here](https://www.openholidaysapi.org/en/sources/). |
 | **language**     | `null` \| `string` | `null`            | The language code in ISO 639-1 format (e.g., `DE` for German). Determines the language used when fetching holidays.                                                          |
 
-#### Notes:
+#### Notes
 
 - **OpenHolidays API Integration:**  
   This API serves as the source for holidays and school holidays data. Ensure the configuration matches the requirements
@@ -128,7 +145,7 @@ different languages or personal preferences.
 | **search**         | `string` | `"Type and press Enter"` | The placeholder text displayed in the search input field.     |
 | **searchNoResult** | `string` | `"No appointment found"` | The message displayed when a search query returns no results. |
 
-#### Notes:
+#### Notes
 
 - **Localization**:  
   This feature is particularly useful for multi-language applications, allowing developers to easily customize text
@@ -156,12 +173,81 @@ By default, icons are defined using the Bootstrap Icons library.
 | **appointment**       | `"bi bi-clock"`              | Icon representing time-based appointments.        |
 | **appointmentAllDay** | `"bi bi-brightness-high"`    | Icon representing all-day appointments.           |
 
-#### Notes:
+#### Notes
 
 - **Default Icon Library**:  
   Bootstrap Icons are used as the default icon set. Ensure the appropriate icons are loaded in your project.
 - **Customization**:  
   Each key can be replaced with a different icon class to align with design requirements or preferences.
+
+---
+
+## Attributes for an Appointment
+### Required Attributes
+1. **`title`**
+    - **Description**: The title of the appointment.
+    - **Example**: `"Meeting with Bob"`
+
+2. **`start`**
+    - **Description**: The starting date and time of the appointment in `YYYY-MM-DD HH:mm:ss` format.
+    - **Example**: `"2025-07-01 10:00:00"`
+
+3. **`end`**
+    - **Description**: The ending date and time of the appointment in `YYYY-MM-DD HH:mm:ss` format.
+    - **Example**: `"2025-07-01 12:00:00"`
+
+### Optional Attributes
+1. **`id`**
+    - **Description**: A unique identifier for the appointment.
+    - **Example**: `1`
+
+2. **`description`**
+    - **Description**: A detailed description of the appointment.
+    - **Example**: `"Discuss project roadmap and deliverables"`
+
+3. **`allDay`**
+    - **Description**: Specifies whether the appointment spans the whole day.
+    - **Example**: `true` or `false`
+
+4. **`color`**
+    - **Description**: The color associated with the appointment. It can be a predefined class (`Bootstrap classes`) or a color code (e.g., HEX).
+    - **Example**: `"primary"`, `"danger"`, or `"#FF5733"`
+
+5. **`link`**
+    - **Description**: A link associated with the appointment (e.g., an external reference or more details).
+    - **Example**: `"https://example.com"`
+
+6. **`location`**
+    - **Description**: The location of the appointment. It can be:
+        - A string: `"Conference Room A"`
+        - An array: `["Room 3", "Building 1"]`
+        - Or `null` if no location is specified.
+
+### Example
+```json
+{
+  "id": 123,
+  "title": "Project Kickoff Meeting",
+  "description": "Initial meeting to discuss project goals, timelines, and responsibilities.",
+  "start": "2025-07-01 10:00:00",
+  "end": "2025-07-01 12:00:00",
+  "allDay": false,
+  "color": "#FF5733",
+  "link": "https://example.com/meeting-details",
+  "location": [
+    "Room 5A",
+    "Building HQ"
+  ]
+}
+```
+
+### Notes
+- `start` and `end` times are **mandatory** for creating valid appointments.
+- Appointments marked as `allDay: true` do not require specific times, only the `start` and `end` dates.
+- Additional attributes like `id`, `color`, or `link` provide extended functionality, but are not strictly required.
+- When handling appointments using the modal in the code, attributes like `title`, `description`, `from_date`, `to_date`, etc., are mapped to respective inputs for user interaction.
+
+---
 
 ## Triggerable Events
 
@@ -175,19 +261,20 @@ They follow the naming convention:
 
 ### Available Events and Parameters
 
-| **Event**                         | **Parameters**                                      | **Description**                                                                                      |
-|-----------------------------------|----------------------------------------------------|------------------------------------------------------------------------------------------------------|
-| **all.bs.calendar**               | `eventName, ...params`                            | Triggered for every calendar event.                                                                 |
-| **init.bs.calendar**              | `-`                                               | Triggered after the calendar has been initialized.                                                  |
-| **add.bs.calendar**               | `data`                                            | Triggered when a new item (e.g., appointment) is added.                                             |
-| **edit.bs.calendar**              | `appointment, extras`                             | Triggered when an appointment or item is edited.                                                    |
-| **delete.bs.calendar**            | `appointment, extras`                             | Fired when an appointment is deleted.                                                               |
-| **view.bs.calendar**              | `view`                                            | Triggered when the calendar view is changed (e.g., from month to week).                             |
-| **navigate-forward.bs.calendar**  | `view, from, to`                                  | Triggered when navigating forwards (e.g., to the next month or year).                               |
-| **navigate-back.bs.calendar**     | `view, from, to`                                  | Fired when navigating backwards (e.g., to the previous month or year).                              |
-| **show-info.bs.calendar**         | `appointment, extras`                             | Triggered when the information dialog (info window) for an appointment is displayed.                |
-| **hide-info.bs.calendar**         | `-`                                               | Triggered when the information dialog (info window) is closed.                                      |
-| **before-load.bs.calendar**       | `requestData`                                     | Fires before appointment data is retrieved.                                                         |
+| **Event**                        | **Parameters**         | **Description**                                                                      |
+|----------------------------------|------------------------|--------------------------------------------------------------------------------------|
+| **all.bs.calendar**              | `eventName, ...params` | Triggered for every calendar event.                                                  |
+| **init.bs.calendar**             | `-`                    | Triggered after the calendar has been initialized.                                   |
+| **add.bs.calendar**              | `data`                 | Triggered when a new item (e.g., appointment) is added.                              |
+| **edit.bs.calendar**             | `appointment, extras`  | Triggered when an appointment or item is edited.                                     |
+| **delete.bs.calendar**           | `appointment, extras`  | Fired when an appointment is deleted.                                                |
+| **view.bs.calendar**             | `view`                 | Triggered when the calendar view is changed (e.g., from month to week).              |
+| **navigate-forward.bs.calendar** | `view, from, to`       | Triggered when navigating forwards (e.g., to the next month or year).                |
+| **navigate-back.bs.calendar**    | `view, from, to`       | Fired when navigating backwards (e.g., to the previous month or year).               |
+| **show-info.bs.calendar**        | `appointment, extras`  | Triggered when the information dialog (info window) for an appointment is displayed. |
+| **hide-info.bs.calendar**        | `-`                    | Triggered when the information dialog (info window) is closed.                       |
+| **before-load.bs.calendar**      | `requestData`          | Fires before appointment data is retrieved.                                          |
+| **after-load.bs.calendar**       | `appointments`         | Triggers after the appointments have been loaded and gives them as parameters.       |
 
 ### Usage
 
@@ -195,22 +282,27 @@ JavaScript can be used to listen to these events and take specific actions:
 
 ```javascript
 $('#calendar').on('view.bs.calendar', function (event, view) {
-console.log("The calendar view has changed to:", view);
+    console.log("The calendar view has changed to:", view);
 });
 
 $('#calendar').on('add.bs.calendar', function (event, data) {
-console.log("A new item was added:", data);
+    console.log("A new appointment is to be created", data);
 });
 
 $('#calendar').on('navigate-forward.bs.calendar', function (event, view, from, to) {
-console.log(`Navigated forward in view: ${view}, from: ${from}, to: ${to}`);
+    console.log(`Navigated forward in view: ${view}, from: ${from}, to: ${to}`);
 });
 ```
 
 ### Notes
-- **Global Event Handling**: The `all.bs.calendar` event provides a way to handle all events in one place with the `eventName` and its corresponding parameters.
+
+- **Global Event Handling**: The `all.bs.calendar` event provides a way to handle all events in one place with the
+  `eventName` and its corresponding parameters.
 - **Detailed Parameters**: Each event passes specific arguments to provide more detailed contextual information.
-- **Flexibility**: These events allow developers to tap into native jQuery event management, enabling robust and custom handling for various use cases.
+- **Flexibility**: These events allow developers to tap into native jQuery event management, enabling robust and custom
+  handling for various use cases.
+
+---
 
 ## Utilities
 
@@ -218,8 +310,11 @@ console.log(`Navigated forward in view: ${view}, from: ${from}, to: ${to}`);
 // Available countries from the OpenHolidays API
 $.bsCalendar.utils.openHolidayApi.getCountries('DE')
     .then(countries => {
-        console.log(countries);
+        console.log('Countries loaded successfully:', countries);
     })
+    .catch(error => {
+        console.error('Error while fetching countries:', error.message || error);
+    });
 
 // Available languages from the OpenHolidays API
 $.bsCalendar.utils.openHolidayApi.getLanguages('DE')
