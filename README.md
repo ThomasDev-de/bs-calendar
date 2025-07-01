@@ -2,6 +2,10 @@
 
 Version 1.2.3 [changelog](changelog.md#version-123)
 
+| Day                      | Week                       | Month                        | Year                       |
+|--------------------------|----------------------------|------------------------------|----------------------------|
+| ![day](demo/img/day.png) | ![week](demo/img/week.png) | ![month](demo/img/month.png) | ![year](demo/img/year.png) |
+
 Effortlessly manage and display calendar views with the **Bootstrap Calendar Plugin**, a lightweight yet powerful jQuery
 plugin designed for modern web applications. This plugin seamlessly integrates with Bootstrap (v4 & v5), offering a
 fully responsive and customizable calendar interface with advanced features such as event handling, dynamic holiday API
@@ -44,11 +48,6 @@ highly customizable design, you can tailor it to fit your specific use case effo
 - 🎉 **Holiday Integration**: Fetch and display public holidays and school holidays using the `OpenHolidays API`.
 - ⚡ **Interactive UI**: Navigate with mouse wheel, handle user interactions, and access powerful event callbacks.
 - 🕒 **Flexible Time Slots**: Configure detailed hour slots for precision scheduling.
-
-
-| Day                      | Week                       | Month                        | Year                       |
-|--------------------------|----------------------------|------------------------------|----------------------------|
-| ![day](demo/img/day.png) | ![week](demo/img/week.png) | ![month](demo/img/month.png) | ![year](demo/img/year.png) |
 
 
 ### Example Usage
