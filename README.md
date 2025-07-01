@@ -1,4 +1,5 @@
 # Bootstrap Calendar Plugin
+
 Version 1.2.3 [changelog](changelog.md#version-123)
 
 Effortlessly manage and display calendar views with the **Bootstrap Calendar Plugin**, a lightweight yet powerful jQuery
@@ -11,28 +12,28 @@ plugin puts flexibility and ease-of-use at your fingertips. Packed with intuitiv
 highly customizable design, you can tailor it to fit your specific use case effortlessly.
 
 - [Bootstrap Calendar Plugin](#bootstrap-calendar-plugin)
-  + [Key Features](#key-features)
-  + [Example Usage](#example-usage)
-    * [Options](#options)
-        + [options.holidays](#optionsholidays)
-            - [Configuration Structure:](#configuration-structure)
-            - [Notes](#notes)
-        + [options.translations](#optionstranslations)
-            - [Configuration Structure:](#configuration-structure-1)
-            - [Notes](#notes-1)
-        + [options.icons](#optionsicons)
-            - [Configuration Structure:](#configuration-structure-2)
-            - [Notes](#notes-2)
-    * [Attributes for an Appointment](#attributes-for-an-appointment)
-        + [Required Attributes](#required-attributes)
-        + [Optional Attributes](#optional-attributes)
-        + [Example](#example)
-        + [Notes](#notes-3)
-    * [Triggerable Events](#triggerable-events)
-        + [Available Events and Parameters](#available-events-and-parameters)
-        + [Usage](#usage)
-        + [Notes](#notes-4)
-    * [Utilities](#utilities)
+    + [Key Features](#key-features)
+    + [Example Usage](#example-usage)
+        * [Options](#options)
+            + [options.holidays](#optionsholidays)
+                - [Configuration Structure:](#configuration-structure)
+                - [Notes](#notes)
+            + [options.translations](#optionstranslations)
+                - [Configuration Structure:](#configuration-structure-1)
+                - [Notes](#notes-1)
+            + [options.icons](#optionsicons)
+                - [Configuration Structure:](#configuration-structure-2)
+                - [Notes](#notes-2)
+        * [Attributes for an Appointment](#attributes-for-an-appointment)
+            + [Required Attributes](#required-attributes)
+            + [Optional Attributes](#optional-attributes)
+            + [Example](#example)
+            + [Notes](#notes-3)
+        * [Triggerable Events](#triggerable-events)
+            + [Available Events and Parameters](#available-events-and-parameters)
+            + [Usage](#usage)
+            + [Notes](#notes-4)
+        * [Utilities](#utilities)
 
 ### Key Features
 
@@ -43,6 +44,12 @@ highly customizable design, you can tailor it to fit your specific use case effo
 - 🎉 **Holiday Integration**: Fetch and display public holidays and school holidays using the `OpenHolidays API`.
 - ⚡ **Interactive UI**: Navigate with mouse wheel, handle user interactions, and access powerful event callbacks.
 - 🕒 **Flexible Time Slots**: Configure detailed hour slots for precision scheduling.
+
+
+| Day                      | Week                       | Month                        | Year                       |
+|--------------------------|----------------------------|------------------------------|----------------------------|
+| ![day](demo/img/day.png) | ![week](demo/img/week.png) | ![month](demo/img/month.png) | ![year](demo/img/year.png) |
+
 
 ### Example Usage
 
@@ -183,7 +190,9 @@ By default, icons are defined using the Bootstrap Icons library.
 ---
 
 ## Attributes for an Appointment
+
 ### Required Attributes
+
 1. **`title`**
     - **Description**: The title of the appointment.
     - **Example**: `"Meeting with Bob"`
@@ -197,6 +206,7 @@ By default, icons are defined using the Bootstrap Icons library.
     - **Example**: `"2025-07-01 12:00:00"`
 
 ### Optional Attributes
+
 1. **`id`**
     - **Description**: A unique identifier for the appointment.
     - **Example**: `1`
@@ -210,7 +220,8 @@ By default, icons are defined using the Bootstrap Icons library.
     - **Example**: `true` or `false`
 
 4. **`color`**
-    - **Description**: The color associated with the appointment. It can be a predefined class (`Bootstrap classes`) or a color code (e.g., HEX).
+    - **Description**: The color associated with the appointment. It can be a predefined class (`Bootstrap classes`) or
+      a color code (e.g., HEX).
     - **Example**: `"primary"`, `"danger"`, or `"#FF5733"`
 
 5. **`link`**
@@ -224,6 +235,7 @@ By default, icons are defined using the Bootstrap Icons library.
         - Or `null` if no location is specified.
 
 ### Example
+
 ```json
 {
   "id": 123,
@@ -242,10 +254,12 @@ By default, icons are defined using the Bootstrap Icons library.
 ```
 
 ### Notes
+
 - `start` and `end` times are **mandatory** for creating valid appointments.
 - Appointments marked as `allDay: true` do not require specific times, only the `start` and `end` dates.
 - Additional attributes like `id`, `color`, or `link` provide extended functionality, but are not strictly required.
-- When handling appointments using the modal in the code, attributes like `title`, `description`, `from_date`, `to_date`, etc., are mapped to respective inputs for user interaction.
+- When handling appointments using the modal in the code, attributes like `title`, `description`, `from_date`,
+  `to_date`, etc., are mapped to respective inputs for user interaction.
 
 ---
 
