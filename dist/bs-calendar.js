@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.2.3
+ * @version 1.2.3.1
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -37,7 +37,7 @@
  * See the individual method and function documentation in this file for more details.
  *
  * @file bs-calendar.js
- * @date 2025-05-06
+ * @date 2025-07-07
  *
  */
 
@@ -1685,11 +1685,10 @@
         function trigger($wrapper, event, ...params) {
             // Retrieve settings for the wrapper
             const settings = getSettings($wrapper);
-            const p = params && params.length > 0 ? params : [];
 
             // Debugging: Log event details if debug mode is enabled
             if (settings.debug) {
-                if (p.length > 0) {
+                if (params.length > 0) {
                     log('Triggering event:', event, 'with params:', ...params);
                 } else {
                     log('Triggering event:', event, 'without params');
@@ -1703,7 +1702,7 @@
                 executeFunction(settings.onAll, event + namespace, ...params); // Execute the global "onAll" handler
 
                 // Trigger the specific event directly
-                $wrapper.trigger(`${event}${namespace}`, ...params);
+                $wrapper.trigger(`${event}${namespace}`, [...params]);
 
                 // Automatically map the event name to a settings handler and execute it
                 // Convert event name to CamelCase + add "on" prefix (e.g., "show-info-window" -> "onShowInfoWindow")
@@ -3019,23 +3018,37 @@
         }
 
         function executeFunction(functionOrName, ...args) {
-            if (!functionOrName) {
-                // console.warn("No function has been passed or the name is not defined.");
-                return null;
+            if (functionOrName) {
+                // Direct Function Reference
+                if (typeof functionOrName === 'function') {
+                    return functionOrName(...args);
+                }
+
+                // Check Function Name in String Format
+                if (typeof functionOrName === 'string') {
+                    let func = null;
+
+                    // Step 1: Check the local context
+                    try {
+                        func = new Function(`return typeof ${functionOrName} === 'function' ? ${functionOrName} : undefined`)();
+                    } catch (error) {
+                        // Ignore mistakes and move on to the next step
+                    }
+
+                    // Step 2: Check in the global 'window' context
+                    if (!func && typeof window !== 'undefined' && typeof window[functionOrName] === 'function') {
+                        func = window[functionOrName];
+                    }
+
+                    // If the function is found, run it
+                    if (typeof func === 'function') {
+                        return func(...args);
+                    }
+                }
             }
 
-            if (typeof functionOrName === 'function') {
-                // Direkte Funktionsreferenz
-                return functionOrName(...args);
-            }
-
-            if (typeof functionOrName === 'string' && typeof window[functionOrName] === 'function') {
-                // Funktionsname im globalen `window`-Kontext
-                return window[functionOrName](...args);
-            }
-
-            // console.warn(`"${functionOrName}" is neither a function nor a valid function name.`);
-            return null;
+            // Explicit return if nothing was executed
+            return undefined;
         }
 
         /**
