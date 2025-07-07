@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.2.3.1
+ * @version 1.2.4
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -118,18 +118,18 @@
                     start: 0, // starting hour as integer
                     end: 24 // ending hour as integer
                 },
-                onAll:null,
-                onInit:null,
+                onAll: null,
+                onInit: null,
                 onAdd: null,
-                onEdit:null,
-                onDelete:null,
-                onView:null,
-                onBeforeLoad:null,
-                onAfterLoad:null,
+                onEdit: null,
+                onDelete: null,
+                onView: null,
+                onBeforeLoad: null,
+                onAfterLoad: null,
                 onShowInfoWindow: null,
-                onHideInfoWindow:null,
-                onNavigateForward:null,
-                onNavigateBack:null,
+                onHideInfoWindow: null,
+                onNavigateForward: null,
+                onNavigateBack: null,
                 storeState: false,
                 debug: false
             },
@@ -2526,6 +2526,36 @@
                     }
                     const start = new Date(`${$.bsCalendar.utils.formatDateToDateString(details.date)} ${String(details.hour).padStart(2, '0')}:00:00`);
                     const end = new Date(start);
+                    end.setMinutes(end.getMinutes() + 30);
+
+                    const data = {
+                        start: {
+                            date: $.bsCalendar.utils.formatDateToDateString(start),
+                            time: start.toTimeString().slice(0, 5) // nur "HH:mm"
+                        },
+                        end: {
+                            date: $.bsCalendar.utils.formatDateToDateString(end),
+                            time: end.toTimeString().slice(0, 5) // nur "HH:mm"
+                        },
+                        view: getView($wrapper)
+                    };
+
+                    trigger($wrapper, 'add', data);
+                })
+                .on('click' + namespace, '[data-role="day-wrapper"]', function (e) {
+                    if (e.target !== e.currentTarget) {
+                        return; // Abbrechen, falls ein untergeordnetes Element angeklickt wurde
+                    }
+
+                    const settings = getSettings($wrapper);
+                    const dayWrapper = $(e.currentTarget).closest('[data-month-date]');
+                    const dateAttribute = dayWrapper.attr('data-month-date'); // Hole das Datum aus dem Attribut
+
+                    const currentTime = new Date(); // Aktuelle Zeit
+                    const start = new Date(`${$.bsCalendar.utils.formatDateToDateString(dateAttribute)} ${String(currentTime.getHours()).padStart(2, '0')}:${String(currentTime.getMinutes()).padStart(2, '0')}:${String(currentTime.getSeconds()).padStart(2, '0')}`);
+                    const end = new Date(start); // Erstelle eine Kopie des Startzeitpunkts (kann für andere Zwecke genutzt werden)
+
+
                     end.setMinutes(end.getMinutes() + 30);
 
                     const data = {

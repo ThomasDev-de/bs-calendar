@@ -179,10 +179,10 @@
             .on('add.bs.calendar', function (event, data) {
                 // console.log(data);
                 modal.find('input[name="title"]').val(null);
-                modal.find('input[name="from_date"]').val(data.date);
-                modal.find('input[name="to_date"]').val(data.date);
-                modal.find('input[name="from_time"]').val(null);
-                modal.find('input[name="to_time"]').val(null);
+                modal.find('input[name="from_date"]').val(data.start.date);
+                modal.find('input[name="to_date"]').val(data.end.date);
+                modal.find('input[name="from_time"]').val(data.start.time);
+                modal.find('input[name="to_time"]').val(data.end.time);
                 modal.find('input[name="allDay"]').prop('checked', false).trigger('change');
                 modal.find('textarea[name="description"]').val(null);
                 modal.find('input[name="color"]').val(null);

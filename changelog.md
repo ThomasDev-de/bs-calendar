@@ -1,13 +1,33 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
-    * [**Version 1.2.3**](#version-123)
+    * [**Version 1.2.4**](#version-124)
         + [**Added**](#added)
-    * [**Version 1.2.2**](#version-122)
+    * [**Version 1.2.3**](#version-123)
         + [**Added**](#added-1)
+    * [**Version 1.2.2**](#version-122)
+        + [**Added**](#added-2)
         + [**Changed**](#changed)
         + [**Fixed**](#fixed)
         + [**Removed**](#removed)
+
+#### **Version 1.2.4**
+
+##### **Added**
+- **Feature**: Appointment creation in the **Month View**:
+    - Users can now effortlessly add appointments by clicking on a specific day in the calendar's month view.
+    - This enhancement improves usability and streamlines the process of scheduling events directly from the calendar interface.
+
+  **Technical Details:**
+    - A click event on elements with `data-role="day-wrapper"` triggers a new appointment dialog.
+    - The selected date is automatically populated in the appointment form.
+
+  **Example:**
+  ```javascript
+  $('#calendar').on('add.bs.calendar', function (event, data) {
+      console.log('New appointment created:', data);
+  });
+  ```
 
 #### **Version 1.2.3**
 
