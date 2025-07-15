@@ -21,32 +21,32 @@ plugin puts flexibility and ease-of-use at your fingertips. Packed with intuitiv
 highly customizable design, you can tailor it to fit your specific use case effortlessly.
 
 - [Bootstrap Calendar Plugin](#bootstrap-calendar-plugin)
-  + [Key Features](#key-features)
-  + [Example Usage](#example-usage)
-    * [Options](#options)
-        + [options.holidays](#optionsholidays)
-            - [Configuration Structure:](#configuration-structure)
-            - [Notes](#notes)
-        + [options.translations](#optionstranslations)
-            - [Configuration Structure:](#configuration-structure-1)
-            - [Notes](#notes-1)
-        + [options.icons](#optionsicons)
-            - [Configuration Structure:](#configuration-structure-2)
-            - [Notes](#notes-2)
-    * [Attributes for an Appointment](#attributes-for-an-appointment)
-        + [Required Attributes](#required-attributes)
-        + [Optional Attributes](#optional-attributes)
-        + [Example](#example)
-        + [Notes](#notes-3)
-    * [Triggerable Events](#triggerable-events)
-        + [Available Events and Parameters](#available-events-and-parameters)
-        + [Usage](#usage)
-        + [Notes](#notes-4)
-    * [Methods](#methods)
-        + [Available Methods](#available-methods)
-    * [Utilities](#utilities)
-    * [Feedback, Assistance, or Suggestions](#feedback-assistance-or-suggestions)
-    * [Explore More Projects](#explore-more-projects)
+    + [Key Features](#key-features)
+    + [Example Usage](#example-usage)
+        * [Options](#options)
+            + [options.holidays](#optionsholidays)
+                - [Configuration Structure:](#configuration-structure)
+                - [Notes](#notes)
+            + [options.translations](#optionstranslations)
+                - [Configuration Structure:](#configuration-structure-1)
+                - [Notes](#notes-1)
+            + [options.icons](#optionsicons)
+                - [Configuration Structure:](#configuration-structure-2)
+                - [Notes](#notes-2)
+        * [Attributes for an Appointment](#attributes-for-an-appointment)
+            + [Required Attributes](#required-attributes)
+            + [Optional Attributes](#optional-attributes)
+            + [Example](#example)
+            + [Notes](#notes-3)
+        * [Triggerable Events](#triggerable-events)
+            + [Available Events and Parameters](#available-events-and-parameters)
+            + [Usage](#usage)
+            + [Notes](#notes-4)
+        * [Methods](#methods)
+            + [Available Methods](#available-methods)
+        * [Utilities](#utilities)
+        * [Feedback, Assistance, or Suggestions](#feedback-assistance-or-suggestions)
+        * [Explore More Projects](#explore-more-projects)
 
 ### Key Features
 
@@ -58,35 +58,34 @@ highly customizable design, you can tailor it to fit your specific use case effo
 - ⚡ **Interactive UI**: Navigate with the mouse wheel, handle user interactions, and access powerful event callbacks.
 - 🕒 **Flexible Time Slots**: Configure detailed hour slots for precision scheduling.
 
-
 ### Example Usage
 
 ```html
 <!DOCTYPE html>
 <html lang="en">
-    <head>
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Minimalistic Calendar Example</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
-    </head>
-    <body>
-        <div id="calendar"></div>
+</head>
+<body>
+<div id="calendar"></div>
 
-        <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="path/to/bs-calendar.js"></script>
-        <script>
-            $(document).ready(function () {
-                $('#calendar').bsCalendar({
-                    startView: 'week',
-                    locale: 'de-DE',
-                    holidays: { country: 'DE', federalState: 'BE' }
-                });
-            });
-        </script>
-    </body>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+<script src="path/to/bs-calendar.js"></script>
+<script>
+    $(document).ready(function () {
+        $('#calendar').bsCalendar({
+            startView: 'week',
+            locale: 'de-DE',
+            holidays: {country: 'DE', federalState: 'BE'}
+        });
+    });
+</script>
+</body>
 </html>
 ```
 
@@ -122,7 +121,7 @@ available options, including their types, default values, and descriptions.
 | **queryParams**       | `function` \| `null`             | `null`                                           | A function to dynamically define query parameters for external requests. Receives existing request data as input and returns additional key-value pairs for the request. If `null`, no extra parameters are added. |
 | **topbarAddons**      | `function` \| `null`             | `null`                                           | Allows injecting additional custom content in the top navigation bar of the calendar.                                                                                                                              |
 | **sidebarAddons**     | `function` \| `null`             | `null`                                           | Allows injecting additional custom content in the side navigation panel.                                                                                                                                           |
-| **formatter**         | `object`                         | `formatterDay`, `formatterWeek`                  | Defines formatters to customize the display or structure of specific calendar views.                                                                                                                               |
+| **formatter**         | `object`                         | See [options.formatter](#optionsFormatter)       | Defines formatters to customize the display or structure of specific calendar views.                                                                                                                               |
 | **hourSlots**         | `object`                         | `{height: 30, start: 0, end: 24}`                | Customizes time slots in the day or week view with detailed configurations (e.g., slot height, starting hour, ending hour).                                                                                        |
 | **onAll**             | `function(eventName, ...params)` | `null`                                           | Global handler that triggers on all events. Receives the event name and additional parameters as arguments.                                                                                                        |
 | **onInit**            | `function()`                     | `null`                                           | Called after the calendar is fully initialized. Use this for any required setup operations.                                                                                                                        |
@@ -138,6 +137,62 @@ available options, including their types, default values, and descriptions.
 | **onNavigateBack**    | `function(view, from, to)`       | `null`                                           | Triggered when navigating backward within the calendar. Similar to `onNavigateForward`, providing the current view, and the starting/ending dates of the period.                                                   |
 | **storeState**        | `boolean`                        | `false`                                          | When enabled (`true`), the current calendar state (e.g., selected view) is saved to `localStorage` and restored on the next page load.                                                                             |
 | **debug**             | `boolean`                        | `false`                                          | Enables debug mode for development purposes. Logs additional information on various calendar operations.                                                                                                           |
+
+### options.formatter
+
+The `formatter` object enables advanced customization of various calendar views and components. Each property within
+`formatter` accepts a function to adjust the display or behavior of the respective calendar component dynamically.
+
+#### Properties
+
+| **Property** | **Type**   | **Description**                                                                                                                |
+|--------------|------------|--------------------------------------------------------------------------------------------------------------------------------|
+| **day**      | `function` | Customizes the rendering of the daily view contents.                                                                           |
+| **week**     | `function` | Customizes the rendering of the weekly view contents.                                                                          |
+| **month**    | `function` | Customizes the rendering of the monthly view contents.                                                                         |
+| **search**   | `function` | Formats the search results displayed in the search section.                                                                    |
+| **holiday**  | `function` | Customizes how holidays are displayed.                                                                                         |
+| **window**   | `Promise`  | Handles the rendering of the information window. This **must** be implemented as a Promise to support asynchronous operations. |
+| **duration** | `function` | Defines how to calculate and display the duration of appointments or calendar events.                                          |
+
+---
+
+#### Example Configuration
+
+```javascript
+ $('#calendar').bsCalendar({
+    formatter: {
+        day(appointment, extras) {
+            // console.log(appointment, extras)
+            return appointment.title;
+        },
+        week(appointment, extras) {
+            // console.log(appointment, extras)
+        },
+        month(appointment, extras) {
+            // console.log(appointment, extras)
+        },
+        search(appointment, extras) {
+            // console.log(appointment, extras)
+        },
+        holiday(holiday, view) {
+            // console log(holiday, view)
+        },
+        window: async function (appointment, extras) {
+            return new Promise((resolve) => {
+                const result = [
+                    `<h3>${appointment.title}</h3>`,
+                    `<p>${appointment.description || "Keine Beschreibung verfügbar."}</p>`
+                ].join('');
+                resolve(result);
+            });
+        },
+        duration(duration) {
+            // console.log(duration)
+        }
+    }
+});
+```
 
 ### options.holidays
 
@@ -349,7 +404,8 @@ $('#calendar').on('navigate-forward.bs.calendar', function (event, view, from, t
 
 ## Methods
 
-The `bsCalendar` plugin offers various methods to dynamically control and interact with the calendar. Here is a list of supported methods with their usage:
+The `bsCalendar` plugin offers various methods to dynamically control and interact with the calendar. Here is a list of
+supported methods with their usage:
 
 ### Available Methods
 
