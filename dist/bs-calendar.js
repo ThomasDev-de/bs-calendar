@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.2.4
+ * @version 1.2.5
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -60,6 +60,7 @@
          * requirements.
          */
         $.bsCalendar = {
+            version: '1.2.5',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -1962,7 +1963,7 @@
 
             // Create the wrapper for the upper navigation
             const topNav = $('<div>', {
-                class: `row align-items-center px-0 justify-content-between mb-3 ${calendarElements.topNav} bg-body`,
+                class: `row align-items-center px-0 justify-content-between mb-3 ${calendarElements.topNav}`,
                 style: roundedCss
             }).appendTo(innerWrapper);
 
@@ -1986,7 +1987,7 @@
             // If search is activated, add a search container
             if (settings.search) {
                 const topSearchNav = $('<div>', {
-                    class: `d-none align-items-center px-0 justify-content-center mb-3 ${calendarElements.topSearchNav} bg-body`,
+                    class: `d-none align-items-center px-0 justify-content-center mb-3 ${calendarElements.topSearchNav}`,
                     style: roundedCss
                 }).insertAfter(topNav);
 
@@ -4430,7 +4431,7 @@
                 ].join(';');
                 weekRow.append(
                     $('<div>', {
-                        class: `col px-1 d-flex align-items-start pt-${paddingTop} fw-bold justify-content-center bg-body-tertiary`,
+                        class: `col px-1 d-flex align-items-start pt-${paddingTop} fw-bold justify-content-center`,
                         style: weekRowCss,
                         html: `<small>${calendarWeek}</small>`,
                     })
@@ -4668,7 +4669,7 @@
                 ].join(';');
                 $('<td>', {
                     style: weekRowCss,
-                    class: 'px-1 text-center bg-body-tertiary',
+                    class: 'px-1 text-center',
                     text: calendarWeek,
                 }).appendTo(weekRow); // insert cw into the first column of the line
 
