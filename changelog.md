@@ -1,22 +1,38 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 1.2.6**](#version-126)
     * [**Version 1.2.4**](#version-124)
-        + [**Added**](#added)
     * [**Version 1.2.3**](#version-123)
-        + [**Added**](#added-1)
     * [**Version 1.2.2**](#version-122)
-        + [**Added**](#added-2)
-        + [**Changed**](#changed)
-        + [**Fixed**](#fixed)
-        + [**Removed**](#removed)
+
+#### **Version 1.2.6**
+
+##### **Changed**
+
+- Extended the `formatter.allDay` function:  
+  The callback now supports additional parameters to provide more flexibility when customizing the all-day area in the
+  week view. Existing implementations remain compatible, but developers can now access more detailed context if needed.
+
+##### **Docs**
+
+- The documentation for the `formatter` option has been updated:
+    - The description for `allDay` now reflects the possible new parameters and their structure.
+
+  Example (in table format):
+
+  | **Property** | **Type**   | **Params**                  | **Description**                                                       | 
+    |--------------|------------|-----------------------------|-----------------------------------------------------------------------|
+  | **allDay**   | `function` | (appointment, extras, view) | Customizes the rendering of the all-day area in weekly or daily view. |
 
 #### **Version 1.2.4**
 
 ##### **Added**
+
 - **Feature**: Appointment creation in the **Month View**:
     - Users can now effortlessly add appointments by clicking on a specific day in the calendar's month view.
-    - This enhancement improves usability and streamlines the process of scheduling events directly from the calendar interface.
+    - This enhancement improves usability and streamlines the process of scheduling events directly from the calendar
+      interface.
 
   **Technical Details:**
     - A click event on elements with `data-role="day-wrapper"` triggers a new appointment dialog.
@@ -32,6 +48,7 @@
 #### **Version 1.2.3**
 
 ##### **Added**
+
 - **New Setting**: `settings.onAfterLoad`:
     - A new callback triggered after appointment loading has completed.
     - Receives the newly loaded appointments as parameters for additional processing.
@@ -42,6 +59,7 @@
 #### **Version 1.2.2**
 
 ##### **Added**
+
 - **Utils Integration**:
     - Introduced `openHolidayApi` utility to handle holiday-related external API integrations, including:
         - `getSubdivisions`: Fetch subdivisions based on country and language ISO codes.
@@ -56,19 +74,25 @@
         - `getCalendarWeek`: Calculates ISO 8601-compliant week numbers for a given date.
         - `getShortWeekDayNames`: Returns an array of shortened weekday names based on a locale.
         - `datesAreEqual`: Checks if two dates are equal by year, month, and day.
-- **Dynamic Style Computation**: Added `computeColor` and `getComputedStyles` utilities to handle dynamic CSS class-based style computation.
+- **Dynamic Style Computation**: Added `computeColor` and `getComputedStyles` utilities to handle dynamic CSS
+  class-based style computation.
 - **Color Handling**: Implemented `colorNameToHex` for CSS color name to hex mapping.
 
 ##### **Changed**
+
 - **Default Options**:
     - Improved flexibility with new configuration options:
-        - `hourSlots`: Added new configuration for customizing the day/week view with parameters like `start`, `end`, and `height`.
-        - `on*` Events: Expanded events (`onInit`, `onAdd`, `onEdit`, etc.) for granular handling of UI actions like event additions, deletions, calendar-view changes, etc.
+        - `hourSlots`: Added new configuration for customizing the day/week view with parameters like `start`, `end`,
+          and `height`.
+        - `on*` Events: Expanded events (`onInit`, `onAdd`, `onEdit`, etc.) for granular handling of UI actions like
+          event additions, deletions, calendar-view changes, etc.
 - **Formatter Views**: Added support for holiday and duration display customization.
 
 ##### **Fixed**
+
 - Error handling for invalid inputs in functions like API calls and date utilities.
 - Validation of default configurations, ensuring fallbacks for undefined or null settings.
 
 ##### **Removed**
+
 - Redundant or outdated methods that overlapped with newer, more efficient utilities.

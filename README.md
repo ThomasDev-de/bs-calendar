@@ -145,15 +145,16 @@ The `formatter` object enables advanced customization of various calendar views 
 
 #### Properties
 
-| **Property** | **Type**   | **Description**                                                                                                                |
-|--------------|------------|--------------------------------------------------------------------------------------------------------------------------------|
-| **day**      | `function` | Customizes the rendering of the daily view contents.                                                                           |
-| **week**     | `function` | Customizes the rendering of the weekly view contents.                                                                          |
-| **month**    | `function` | Customizes the rendering of the monthly view contents.                                                                         |
-| **search**   | `function` | Formats the search results displayed in the search section.                                                                    |
-| **holiday**  | `function` | Customizes how holidays are displayed.                                                                                         |
-| **window**   | `Promise`  | Handles the rendering of the information window. This **must** be implemented as a Promise to support asynchronous operations. |
-| **duration** | `function` | Defines how to calculate and display the duration of appointments or calendar events.                                          |
+| **Property** | **Type**   | **Params**                  | **Description**                                                                                                                |
+|--------------|------------|-----------------------------|--------------------------------------------------------------------------------------------------------------------------------|
+| **day**      | `function` | (appointment, extras)       | Customizes the rendering of the daily view contents.                                                                           |
+| **week**     | `function` | (appointment, extras)       | Customizes the rendering of the weekly view contents.                                                                          |
+| **allDay**   | `function` | (appointment, extras, view) | Customizes the rendering of the all-day area in weekly or daily view.                                                          |
+| **month**    | `function` | (appointment, extras)       | Customizes the rendering of the monthly view contents.                                                                         |
+| **search**   | `function` | (appointment, extras)       | Formats the search results displayed in the search section.                                                                    |
+| **holiday**  | `function` | (holiday, view)             | Customizes how holidays are displayed.                                                                                         |
+| **window**   | `Promise`  | (appointment, extras)       | Handles the rendering of the information window. This **must** be implemented as a Promise to support asynchronous operations. |
+| **duration** | `function` | (duration)                  | Defines how to calculate and display the duration of appointments or calendar events.                                          |
 
 ---
 

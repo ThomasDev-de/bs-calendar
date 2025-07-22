@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.2.5
+ * @version 1.2.6
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -60,7 +60,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '1.2.5',
+            version: '1.2.6',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -68,7 +68,6 @@
                 return this.DEFAULTS;
             },
             DEFAULTS: {
-
                 locale: 'en-GB', // language and country
                 title: null,
                 startWeekOnSunday: true,
@@ -108,6 +107,7 @@
                 formatter: {
                     day: formatterDay,
                     week: formatterWeek,
+                    allDay: formatterAllDay,
                     month: formatterMonth,
                     search: formatterSearch,
                     holiday: formatterHoliday,
@@ -1014,15 +1014,19 @@
                 },
                 isValueEmpty: (value) => {
                     if (value === null || value === undefined) {
-                        return true; // Null or undefined
+                        return true; // zero or undefined
                     }
                     if (Array.isArray(value)) {
-                        return value.length === 0; // Empty array
+                        return value.length === 0; // empty array
                     }
                     if (typeof value === 'string') {
-                        return value.trim().length === 0; // Empty string (including only spaces)
+                        return value.trim().length === 0; // empty string
                     }
-                    return false; // All other values are considered non-empty (including numbers)
+                    if (typeof value === 'object') {
+                        // check whether it is an empty object (and no array/no value with prototype)
+                        return Object.keys(value).length === 0 && value.constructor === Object;
+                    }
+                    return false; // Alle anderen Werte sind nicht leer
                 }
             }
         };
@@ -1195,6 +1199,46 @@
             void extras; // Verhindert die Warnung, aber erfüllt keinen Zweck
             return `<small class="px-2">${appointment.title}</small>`;
         }
+
+        /**
+         * Formats an all-day appointment into an HTML string representation.
+         *
+         * @param {Object} appointment - The appointment object containing details about the event.
+         * @param {Object} extras - Additional data, including style information such as colors.
+         * @return {string} An HTML string representing the formatted all-day appointment.
+         */
+        function formatterAllDay(appointment, extras, view) {
+            const style = {
+                backgroundColor: extras.colors.backgroundColor,
+                backgroundImage: extras.colors.backgroundImage,
+                color: extras.colors.color
+            };
+            const styleString = toStyleString(style);
+
+            return [
+                '<div class="badge px-2 w-100" style="'+styleString+'">',
+                appointment.title,
+                '</div>'
+            ].join('')
+        }
+
+        /**
+         * Converts a style object into a string representation suitable for inline CSS.
+         *
+         * @param {Object} styleObj - An object containing style properties as keys and their corresponding values.
+         *                              Keys are in camelCase format, and the values can be strings or numbers.
+         *                              Undefined or null values will be filtered out.
+         * @return {string} A formatted string representing the styles in "key: value;" format, with keys converted to kebab-case.
+         */
+        function toStyleString(styleObj) {
+            return Object.entries(styleObj)
+                .filter(([_, value]) => value !== undefined && value !== null) // Filter out undefined/null
+                .map(([key, value]) =>
+                    key.replace(/([A-Z])/g, '-$1').toLowerCase() + ': ' + value + ';'
+                )
+                .join(' ');
+        }
+
 
         /**
          * Formats a holiday object into a styled HTML string representation suitable for display.
@@ -3401,13 +3445,15 @@
                     const allDayWrapper = $viewContainer.find('[data-all-day="' + fakeStart.getDay() + '"][data-date-local="' + $.bsCalendar.utils.formatDateToDateString(fakeStart) + '"]');
                     if (allDayWrapper.length) {
                         allDayWrapper.addClass('pb-3');
+                        // Copy the original and return the clean appointment with the calculated extras
+                        const returnData = getAppointmentForReturn(appointment);
+
                         const appointmentElement = $('<div>', {
                             'data-appointment': true,
-                            html: appointment.title,
-                            class: `badge mx-1 mb-1 flex-fill`,
+                            html: settings.formatter.allDay(returnData.appointment, returnData.extras, view),
+                            class: `mx-1 mb-1 flex-fill overflow-hidden`,
                         }).appendTo(allDayWrapper);
                         appointmentElement.data('appointment', appointment);
-                        setAppointmentStyles(appointmentElement, appointment.extras.colors);
                     }
                 });
             });
@@ -4049,7 +4095,7 @@
             const settings = getSettings($wrapper);
             const period = getStartAndEndDateByView($wrapper);
             const locale = $.bsCalendar.utils.getLanguageAndCountry(settings.locale);
-            if (typeof settings.holidays === 'object') {
+            if (typeof settings.holidays === 'object' && !$.bsCalendar.utils.isValueEmpty(settings.holidays)) {
                 let countryIsoCode;
                 let languageIsoCode;
                 let federalState = null;
@@ -4743,8 +4789,13 @@
          * @return {void} This function does not return a value.
          */
         function buildDayView($wrapper) {
+            // Get the view container and empty its content
             const $container = getViewContainer($wrapper).empty();
+
+            // Retrieve the current date from the wrapper
             const date = getDate($wrapper);
+
+            // Create the headline for the day's header
             const headline = $('<div>', {
                 class: 'wc-day-header mb-2 ms-5 ml-5',
                 css: {
@@ -4752,7 +4803,11 @@
                 },
                 html: buildHeaderForDay($wrapper, date, false)
             }).appendTo($container);
+
+            // Set data attributes for the headline and change the cursor to pointer
             headline.attr('data-date', $.bsCalendar.utils.formatDateToDateString(date)).css('cursor', 'pointer');
+
+            // Append a div for all-day events or metadata
             $('<div>', {
                 'data-all-day': date.getDay(),
                 'data-date-local': $.bsCalendar.utils.formatDateToDateString(date),
@@ -4761,6 +4816,8 @@
                     paddingLeft: '40px'
                 }
             }).appendTo($container);
+
+            // Build the main content for the day view
             buildDayViewContent($wrapper, date, $container);
         }
 
