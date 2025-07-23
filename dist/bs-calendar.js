@@ -2448,21 +2448,24 @@
             });
 
             $('body')
+                .off('click' + namespace, calendarElements.infoModal + ' [data-edit]')
                 .on('click' + namespace, calendarElements.infoModal + ' [data-edit]', function (e) {
                     e.preventDefault();
                     const appointment = $(calendarElements.infoModal).data('appointment');
                     const returnData = getAppointmentForReturn(appointment);
-                    $(calendarElements.infoModal).modal('hide')
                     trigger($wrapper, 'edit', returnData.appointment, returnData.extras);
+                    $(calendarElements.infoModal).modal('hide');
 
                 })
+                .off('click' + namespace, calendarElements.infoModal + ' [data-remove]')
                 .on('click' + namespace, calendarElements.infoModal + ' [data-remove]', function (e) {
                     e.preventDefault();
                     const appointment = $(calendarElements.infoModal).data('appointment');
                     const returnData = getAppointmentForReturn(appointment);
-                    $(calendarElements.infoModal).modal('hide')
                     trigger($wrapper, 'delete', returnData.appointment, returnData.extras);
+                    $(calendarElements.infoModal).modal('hide');
                 })
+                .off('click' + namespace)
                 .on('click' + namespace, function (e) {
                     const $target = $(e.target);
                     const isInsideModal = $target.closest(calendarElements.infoModal).length > 0; // checks for modal or child elements
@@ -2473,9 +2476,11 @@
                         $(calendarElements.infoModal).modal('hide');
                     }
                 })
+                .off('hide.bs.modal', calendarElements.infoModal)
                 .on('hide.bs.modal', calendarElements.infoModal, function () {
                     trigger($wrapper, 'hide-info-window');
                 })
+                .off('hidden.bs.modal', calendarElements.infoModal)
                 .on('hidden.bs.modal', calendarElements.infoModal, function () {
                     // removes the modal completely after it has been closed
                     if ($(calendarElements.infoModal).length) {
@@ -2500,6 +2505,7 @@
             }
 
             $wrapper
+                .off('wheel', '.wc-calendar-view-container')
                 .on('wheel', '.wc-calendar-view-container', debounce(function (e) {
                     const settings = getSettings($wrapper);
                     const isModalOpen =
@@ -2520,9 +2526,11 @@
                         navigateBack($wrapper); // scroll up
                     }
                 }, $wrapper, 300))
+                .off('click' + namespace, '[data-bs-toggle="sidebar"]')
                 .on('click' + namespace, '[data-bs-toggle="sidebar"]', function () {
                     handleSidebarVisibility($wrapper);
                 })
+                .off('click' + namespace, '.wc-search-pagination [data-page]')
                 .on('click' + namespace, '.wc-search-pagination [data-page]', function (e) {
                     // A page in the search navigation was clicked
                     e.preventDefault();
@@ -2539,6 +2547,7 @@
                     // get the appointments
                     fetchAppointments($wrapper);
                 })
+                .off('keyup' + namespace, '[data-search-input]')
                 .on('keyup' + namespace, '[data-search-input]', function (e) {
                     e.preventDefault();
 
@@ -2563,6 +2572,7 @@
                     }
 
                 })
+                .off('click' + namespace, '[data-day-hour]')
                 .on('click' + namespace, '[data-day-hour]', function (e) {
                     const settings = getSettings($wrapper);
                     const details = $(e.currentTarget).data('details');
@@ -2587,6 +2597,7 @@
 
                     trigger($wrapper, 'add', data);
                 })
+                .off('click' + namespace, '[data-role="day-wrapper"]')
                 .on('click' + namespace, '[data-role="day-wrapper"]', function (e) {
                     if (e.target !== e.currentTarget) {
                         return; // Abbrechen, falls ein untergeordnetes Element angeklickt wurde
@@ -2617,6 +2628,7 @@
 
                     trigger($wrapper, 'add', data);
                 })
+                .off('click' + namespace, '[data-add-appointment]')
                 .on('click' + namespace, '[data-add-appointment]', function (e) {
                     e.preventDefault();
 
@@ -2641,6 +2653,7 @@
 
                     trigger($wrapper, 'add', data);
                 })
+                .off('click' + namespace, '[data-today]')
                 .on('click' + namespace, '[data-today]', function (e) {
                     e.preventDefault();
                     const inSearchMode = getSearchMode($wrapper);
@@ -2651,6 +2664,7 @@
                     }
 
                 })
+                .off(`click${namespace} touchend${namespace}`, '[data-appointment]')
                 .on(`click${namespace} touchend${namespace}`, '[data-appointment]', function (e) {
                     const clickedOnDate = $(e.target).is('[data-date]');
                     const clickedOnMonth = $(e.target).is('[data-month]');
@@ -2667,6 +2681,7 @@
                     const element = $(e.currentTarget);
                     showInfoWindow($wrapper, element);
                 })
+                .off('click' + namespace, '[data-date]')
                 .on('click' + namespace, '[data-date]', function (e) {
                     e.preventDefault();
                     const settings = getSettings($wrapper);
@@ -2681,6 +2696,7 @@
                         buildByView($wrapper);
                     }
                 })
+                .off('click' + namespace, '[data-month]')
                 .on('click' + namespace, '[data-month]', function (e) {
                     e.preventDefault();
                     const settings = getSettings($wrapper);
@@ -2691,6 +2707,7 @@
                         buildByView($wrapper);
                     }
                 })
+                .off('click' + namespace, '[data-prev]')
                 .on('click' + namespace, '[data-prev]', function (e) {
                     e.preventDefault();
                     const inSearchMode = getSearchMode($wrapper);
@@ -2700,6 +2717,7 @@
                         navigateBack($wrapper);
                     }
                 })
+                .off('click' + namespace, '[data-next]')
                 .on('click' + namespace, '[data-next]', function (e) {
                     e.preventDefault();
                     const inSearchMode = getSearchMode($wrapper);
@@ -2709,6 +2727,7 @@
                         navigateForward($wrapper);
                     }
                 })
+                .off('click' + namespace, '.wc-select-calendar-view [data-view]')
                 .on('click' + namespace, '.wc-select-calendar-view [data-view]', function (e) {
                     e.preventDefault();
                     const inSearchMode = getSearchMode($wrapper);
