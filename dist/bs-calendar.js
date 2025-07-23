@@ -934,6 +934,14 @@
                     }
                     return `border-radius: ${rounded} !important`;
                 },
+                generateRandomString(length = 8, prefix = 'bs_calendar_id_') {
+                    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                    let result = '';
+                    for (let i = 0; i < length; i++) {
+                        result += chars.charAt(Math.floor(Math.random() * chars.length));
+                    }
+                    return prefix + result;
+                },
                 getStandardizedUnits: (locale) => {
                     const units = ['today', 'day', 'week', 'month', 'year']; // Eingabewerte
                     const result = {};
@@ -1774,6 +1782,9 @@
                 try {
                     const settings = getSettings($wrapper);
                     $wrapper.addClass('position-relative');
+                    const wrapperUniqueId = $.bsCalendar.utils.generateRandomString(8);
+                    $wrapper.attr('data-bs-calendar-id', wrapperUniqueId);
+
                     if (!settings.hasOwnProperty('views') || settings.views.length === 0) {
                         settings.views = ['day', 'week', 'month', 'year'];
                         setSettings($wrapper, settings);
@@ -2451,9 +2462,12 @@
                 .off('click' + namespace, calendarElements.infoModal + ' [data-edit]')
                 .on('click' + namespace, calendarElements.infoModal + ' [data-edit]', function (e) {
                     e.preventDefault();
+                    const modal  = $(calendarElements.infoModal);
+                    const wrapperId = modal.attr('data-bs-calendar-id');
+                    const wrapper = $('#' + wrapperId);
                     const appointment = $(calendarElements.infoModal).data('appointment');
                     const returnData = getAppointmentForReturn(appointment);
-                    trigger($wrapper, 'edit', returnData.appointment, returnData.extras);
+                    trigger(wrapper, 'edit', returnData.appointment, returnData.extras);
                     $(calendarElements.infoModal).modal('hide');
 
                 })
@@ -5378,6 +5392,8 @@
 
                     // Re-select the modal to get the updated reference.
                     $modal = $(calendarElements.infoModal);
+                    // save the calendar wrapper ID in the modal to find the wrapper again
+                    $modal.attr('data-bs-calendar-id', $wrapper.attr('data-bs-calendar-id'));
 
                     // Initialize the modal with specific settings.
                     $modal.modal({
