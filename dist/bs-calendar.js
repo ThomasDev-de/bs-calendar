@@ -2459,7 +2459,6 @@
             });
 
             $('body')
-                .off('click' + namespace, calendarElements.infoModal + ' [data-edit]')
                 .on('click' + namespace, calendarElements.infoModal + ' [data-edit]', function (e) {
                     e.preventDefault();
                     const modal  = $(calendarElements.infoModal);
@@ -2471,7 +2470,6 @@
                     $(calendarElements.infoModal).modal('hide');
 
                 })
-                .off('click' + namespace, calendarElements.infoModal + ' [data-remove]')
                 .on('click' + namespace, calendarElements.infoModal + ' [data-remove]', function (e) {
                     e.preventDefault();
                     const appointment = $(calendarElements.infoModal).data('appointment');
@@ -2479,7 +2477,6 @@
                     trigger($wrapper, 'delete', returnData.appointment, returnData.extras);
                     $(calendarElements.infoModal).modal('hide');
                 })
-                .off('click' + namespace)
                 .on('click' + namespace, function (e) {
                     const $target = $(e.target);
                     const isInsideModal = $target.closest(calendarElements.infoModal).length > 0; // checks for modal or child elements
@@ -2490,11 +2487,9 @@
                         $(calendarElements.infoModal).modal('hide');
                     }
                 })
-                .off('hide.bs.modal', calendarElements.infoModal)
                 .on('hide.bs.modal', calendarElements.infoModal, function () {
                     trigger($wrapper, 'hide-info-window');
                 })
-                .off('hidden.bs.modal', calendarElements.infoModal)
                 .on('hidden.bs.modal', calendarElements.infoModal, function () {
                     // removes the modal completely after it has been closed
                     if ($(calendarElements.infoModal).length) {
