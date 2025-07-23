@@ -1781,7 +1781,7 @@
             return new Promise((resolve, reject) => {
                 try {
                     const settings = getSettings($wrapper);
-                    $wrapper.addClass('position-relative');
+                    $wrapper.addClass('position-relative bs-calendar');
                     const wrapperUniqueId = $.bsCalendar.utils.generateRandomString(8);
                     $wrapper.attr('data-bs-calendar-id', wrapperUniqueId);
 
@@ -2462,8 +2462,8 @@
                 .on('click' + namespace, calendarElements.infoModal + ' [data-edit]', function (e) {
                     e.preventDefault();
                     const modal  = $(calendarElements.infoModal);
-                    const wrapperId = modal.attr('data-bs-calendar-id');
-                    const wrapper = $('#' + wrapperId);
+                    const wrapperId = modal.attr('data-bs-calendar-wrapper-id');
+                    const wrapper = $(`.bs-calendar[data-bs-calendar-id="${wrapperId}"]`);
                     const appointment = $(calendarElements.infoModal).data('appointment');
                     const returnData = getAppointmentForReturn(appointment);
                     trigger(wrapper, 'edit', returnData.appointment, returnData.extras);
@@ -2472,9 +2472,12 @@
                 })
                 .on('click' + namespace, calendarElements.infoModal + ' [data-remove]', function (e) {
                     e.preventDefault();
+                    const modal  = $(calendarElements.infoModal);
+                    const wrapperId = modal.attr('data-bs-calendar-wrapper-id');
+                    const wrapper = $(`.bs-calendar[data-bs-calendar-id="${wrapperId}"]`);
                     const appointment = $(calendarElements.infoModal).data('appointment');
                     const returnData = getAppointmentForReturn(appointment);
-                    trigger($wrapper, 'delete', returnData.appointment, returnData.extras);
+                    trigger(wrapper, 'delete', returnData.appointment, returnData.extras);
                     $(calendarElements.infoModal).modal('hide');
                 })
                 .on('click' + namespace, function (e) {
@@ -2488,7 +2491,10 @@
                     }
                 })
                 .on('hide.bs.modal', calendarElements.infoModal, function () {
-                    trigger($wrapper, 'hide-info-window');
+                    const modal  = $(calendarElements.infoModal);
+                    const wrapperId = modal.attr('data-bs-calendar-wrapper-id');
+                    const wrapper = $(`.bs-calendar[data-bs-calendar-id="${wrapperId}"]`);
+                    trigger(wrapper, 'hide-info-window');
                 })
                 .on('hidden.bs.modal', calendarElements.infoModal, function () {
                     // removes the modal completely after it has been closed
@@ -5388,7 +5394,7 @@
                     // Re-select the modal to get the updated reference.
                     $modal = $(calendarElements.infoModal);
                     // save the calendar wrapper ID in the modal to find the wrapper again
-                    $modal.attr('data-bs-calendar-id', $wrapper.attr('data-bs-calendar-id'));
+                    $modal.attr('data-bs-calendar-wrapper-id', $wrapper.attr('data-bs-calendar-id'));
 
                     // Initialize the modal with specific settings.
                     $modal.modal({
