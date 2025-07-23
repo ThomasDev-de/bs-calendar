@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.2.6
+ * @version 1.2.7
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -60,7 +60,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '1.2.6',
+            version: '1.2.7',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -2451,11 +2451,14 @@
         function handleEvents($wrapper) {
             let resizeTimer;
 
-            $(window).on('resize', function () {
+            // Erst alle vorhandenen Handler für dieses handleEvents() entfernen:
+            $(window).off('resize'+namespace);
+
+            $(window).on('resize'+namespace, function () {
                 clearTimeout(resizeTimer);
                 resizeTimer = setTimeout(function () {
-                    onResize($wrapper, true); // call up your function here
-                }, 100); // Delay of 100 milliseconds
+                    onResize($wrapper, true);
+                }, 100);
             });
 
             $('body')

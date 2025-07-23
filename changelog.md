@@ -1,10 +1,16 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 1.2.7**](#version-127)
     * [**Version 1.2.6**](#version-126)
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+#### **Version 1.2.7**
+
+- Fixed an issue where clicks inside the modal could trigger unintended calendar interactions or events. User actions on
+  modal controls (inputs, buttons, etc.) are now isolated and no longer propagate unwanted events to the calendar view.
 
 #### **Version 1.2.6**
 
@@ -22,7 +28,7 @@
   Example (in table format):
 
   | **Property** | **Type**   | **Params**                  | **Description**                                                       | 
-    |--------------|------------|-----------------------------|-----------------------------------------------------------------------|
+      |--------------|------------|-----------------------------|-----------------------------------------------------------------------|
   | **allDay**   | `function` | (appointment, extras, view) | Customizes the rendering of the all-day area in weekly or daily view. |
 
 #### **Version 1.2.4**
