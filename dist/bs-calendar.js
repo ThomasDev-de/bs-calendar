@@ -139,8 +139,9 @@
                     /**
                      * Fetches subdivision data from an external API based on a given language ISO code.
                      *
+                     * @param {string} countryIsoCode - The ISO code of the country.
                      * @param {string} languageIsoCode - The ISO code of the language for which subdivisions are requested.
-                     * @return {Promise<Object>} A promise that resolves to the JSON response containing subdivisions data.
+                     * @return {Promise<Object>} A promise that resolves to the JSON response containing subdivision data.
                      * @throws {Error} If the API request fails or the response is not successful.
                      */
                     async getSubdivisions(countryIsoCode, languageIsoCode) {
@@ -225,8 +226,10 @@
                     /**
                      * Retrieves a list of countries based on the specified language ISO code.
                      *
-                     * @param {string} languageIsoCode - The ISO code of the desired language (e.g., 'EN', 'FR'). It must be a valid language code and will be automatically converted to uppercase.
-                     * @return {Promise<Object>} A promise that resolves to an object containing the list of countries in the specified language, or rejects with an error if the API request fails.
+                     * @param {string} languageIsoCode - The ISO code of the desired language (e.g. 'EN', 'FR').
+                     * It must be a valid language code and will be automatically converted to uppercase.
+                     * @return {Promise<Object>} A promise that resolves to an object containing the list of
+                     * countries in the specified language, or rejects with an error if the API request fails.
                      */
                     async getCountries(languageIsoCode) {
                         // Check required parameter
@@ -265,7 +268,7 @@
                     /**
                      * Fetches school holiday information for a given country and optional federal state within a specified date range.
                      *
-                     * @param {string} country - The ISO country code in uppercase (e.g., "US", "DE").
+                     * @param {string} country - The ISO country code in uppercase (e.g. "US", "DE").
                      * @param {string} [federalState] - The two-letter code of the federal state in uppercase (optional).
                      * @param {string} validFrom - The start date for the query in YYYY-MM-DD format.
                      * @param {string} validTo - The end date for the query in YYYY-MM-DD format.
@@ -284,7 +287,7 @@
                             throw new Error("The parameter 'validTo' is required and cannot be null or undefined.");
                         }
 
-                        // Ensure country is always in uppercase
+                        // Ensure the country is always in uppercase
                         let countryIsoCode = country.toUpperCase();
                         let params = {
                             countryIsoCode: countryIsoCode,
@@ -326,8 +329,10 @@
                     /**
                      * Fetches the public holidays for a specified country and within a provided date range.
                      *
-                     * @param {string} country - The ISO 3166-1 alpha-2 country code (e.g., "US", "DE"). Must be in uppercase.
-                     * @param {string} language - The ISO 639-1 language code (e.g., "EN", "DE"). Must be in uppercase.
+                     * @param {string} country - The ISO 3166-1 alpha-2 country code (e.g. "US", "DE").
+                     * Must be in uppercase.
+                     * @param {string} language - The ISO 639-1 language code (e.g. "EN", "DE").
+                     * Must be in uppercase.
                      * @param {string} validFrom - The start date of the holiday range in YYYY-MM-DD format.
                      * @param {string} validTo - The end date of the holiday range in YYYY-MM-DD format.
                      * @param {string|null} [federalState=null] - The state's ISO 3166-2 subdivision code for more specific filtering, if applicable.
@@ -364,8 +369,7 @@
 
                         // Add subdivisionCode only if federalState is provided
                         if (federalState) {
-                            const subDivisionIsoCode = `${countryIsoCode}-${federalState.toUpperCase()}`;
-                            params.subdivisionCode = subDivisionIsoCode;
+                            params.subdivisionCode = `${countryIsoCode}-${federalState.toUpperCase()}`;
                         }
 
                         // Build query string
@@ -451,7 +455,7 @@
                  *
                  * @param {string} locale - The locale like 'en-US' or 'de-DE', used to format names.
                  * @param {boolean} startWeekOnSunday - Indicates whether the week should start with Sunday.
-                 * @returns {string[]} - An array of the short weekday names, e.g.  ['Sun', 'Mon', 'Tue', ...].
+                 * @returns {string[]} - An array of the short weekday names, e.g. ['Sun', 'Mon', 'Tue', ...].
                  */
                 getShortWeekDayNames: (locale, startWeekOnSunday) => {
                     // Create an Intl.DateTimeFormat instance for the provided locale to format weekdays.
@@ -507,8 +511,7 @@
                 getBootstrapVersion: () => {
                     if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal?.VERSION === 'string') {
                         // Major Version direkt extrahieren und zurückgeben
-                        const majorVersion = parseInt(bootstrap.Modal.VERSION.split('.')[0], 10);
-                        return majorVersion;
+                        return parseInt(bootstrap.Modal.VERSION.split('.')[0], 10);
                     } else if (typeof $ === 'function' && typeof $().modal === 'function') {
                         // Bootstrap 3 erkennen über jQuery
                         return 3;
@@ -682,10 +685,10 @@
                 /**
                  * Computes the color properties based on the input color.
                  *
-                 * @param {string} inputColor - The input color, which can be in various formats (e.g.  named color, hex, or invalid string).
+                 * @param {string} inputColor - The input color, which can be in various formats (e.g. named color, hex, or invalid string).
                  * @return {Object|null} Returns an object with computed background and text color properties if the input is valid, or null if the input is invalid.
                  *                       The returned object contains:
-                 *                       - `backgroundColor`: The resolved background color in a valid format (e.g.  Hex).
+                 *                       - `backgroundColor`: The resolved background color in a valid format (e.g. Hex).
                  *                       - `backgroundImage`: Set to "none" by default.
                  *                       - `color`: The computed text color depending on the background color (black or white).
                  */
@@ -811,8 +814,9 @@
                 /**
                  * Determines whether the given color is considered dark based on its luminance.
                  *
-                 * @param {string} color - The color to evaluate. This can be a hex color code (e.g.  "#000", "#000000"),
-                 * RGB(A) format (e.g.  "rgb(0, 0, 0)" or "rgba(0, 0, 0, 1)"), or a valid color name that can be resolved.
+                 * @param {string} color - The color to evaluate.
+                 * This can be a hex color code (e.g. "#000", "#000000"),
+                 * RGB(A) format (e.g. "rgb(0, 0, 0)" or "rgba(0, 0, 0, 1)"), or a valid color name that can be resolved.
                  * @return {boolean} Returns true if the color is dark, false otherwise.
                  */
                 isDarkColor: (color) => {
@@ -889,7 +893,7 @@
                  * Formats a given date object or date string into a localized string based on a specified locale.
                  *
                  * @param {Date|string} date - The date to be formatted. Can be a Date object or a date string.
-                 * @param {string} locale - The locale identifier (e.g., "en-US", "fr-FR") used for formatting the date.
+                 * @param {string} locale - The locale identifier (e.g. "en-US", "fr-FR") used for formatting the date.
                  * @returns {string} The formatted date string localized according to the specified locale.
                  */
                 formatDateByLocale: (date, locale) => {
@@ -987,11 +991,9 @@
                                     // Feste Übersetzung für "heute"
                                     localizedUnit = new Intl.RelativeTimeFormat(locale, {numeric: 'auto'}).format(0, 'day');
                                 } else if (validRelativeTimeFormatUnits.includes(unit)) {
-                                    // Nur gültige Werte für Intl.RelativeTimeFormat verarbeiten
                                     const formatter = new Intl.RelativeTimeFormat(locale, {numeric: 'always'});
                                     const formatted = formatter.format(1, unit);
 
-                                    // Entfernt Präfixe oder unerwarteten Text
                                     localizedUnit = formatted
                                         .replace(/^\D*\d+\s?/, '') // Entfernt Präfixe/Zahlen (z.B. "in 1 ")
                                         .replace(/後|后$/, '')     // Entfernt "später" für Japanisch/Chinesisch
@@ -1213,6 +1215,7 @@
          *
          * @param {Object} appointment - The appointment object containing details about the event.
          * @param {Object} extras - Additional data, including style information such as colors.
+         * @param {string} view - the current view.
          * @return {string} An HTML string representing the formatted all-day appointment.
          */
         function formatterAllDay(appointment, extras, view) {
@@ -1242,7 +1245,7 @@
          * @param {Object} styleObj - An object containing style properties as keys and their corresponding values.
          *                              Keys are in camelCase format, and the values can be strings or numbers.
          *                              Undefined or null values will be filtered out.
-         * @return {string} A formatted string representing the styles in "key: value;" format, with keys converted to kebab-case.
+         * @return {string} A formatted string representing the styles in "key: value"; format, with keys converted to a kebab-case.
          */
         function toStyleString(styleObj) {
             return Object.entries(styleObj)
@@ -1361,7 +1364,7 @@
          * It Also triggers the fetching of appointments and updates the view accordingly.
          *
          * @param {jQuery} $wrapper - The wrapper object containing the calendar or context-related elements.
-         * @param {string} [view] - The optional view to set (e.g.  'day', 'week', 'month').
+         * @param {string} [view] - The optional view to set (e.g. 'day', 'week', 'month').
          *                          Should be included in the available views defined in settings.
          * @return {void} - Does not return a value.
          */
@@ -1617,7 +1620,8 @@
          *   - `text` (string): The text content for the link. Defaults to "Link".
          *   - `html` (string): Optional HTML content for the link. If provided, overrides the `text`.
          *   - `target` (string): Specifies where to open the linked document. Defaults to "_blank".
-         *   - `rel` (string): Specifies the relationship between the current document and the linked document. Defaults to "noopener noreferrer".
+         *   - `rel` (string): Specifies the relationship between the current document and the linked document.
+         *   Defaults to "noopener noreferrer".
          * @param {string} [style=""] - Optional style string applied to the `style` attribute of the anchor tag.
          * @return {string} An HTML string representing an anchor tag. Returns an empty string if `link` is invalid.
          */
@@ -1731,14 +1735,14 @@
          * Triggers an event on the provided wrapper element and executes corresponding settings functions dynamically.
          *
          * - Always triggers the "all" event, which can be used as a global catch-all for any event.
-         * - Dynamically maps specific event names (e.g., "show-info-window") to their corresponding settings handler
-         *   (e.g., "onShowInfoWindow") and executes them if they exist.
+         * - Dynamically maps specific event names (e.g. "show-info-window") to their corresponding settings handler
+         *   (e.g. "onShowInfoWindow") and executes them if they exist.
          *
          * The method automatically transforms event names with dashes (`-`) into CamelCase,
          * ensuring compatibility with handler naming conventions.
          *
-         * @param {Object} $wrapper - The jQuery wrapper element on which the event is triggered.
-         * @param {string} event - The name of the event to trigger (e.g., "edit", "show-info-window").
+         * @param {jQuery} $wrapper - The jQuery wrapper element on which the event is triggered.
+         * @param {string} event - The name of the event to trigger (e.g. "edit", "show-info-window").
          * @param {...*} params - Any additional parameters to pass to the handler functions.
          */
         function trigger($wrapper, event, ...params) {
@@ -1764,7 +1768,7 @@
                 $wrapper.trigger(`${event}${namespace}`, [...params]);
 
                 // Automatically map the event name to a settings handler and execute it
-                // Convert event name to CamelCase + add "on" prefix (e.g., "show-info-window" -> "onShowInfoWindow")
+                // Converts event name to CamelCase + add "on" prefix (e.g., "show-info-window" -> "onShowInfoWindow")
                 const eventFunctionName = `on${event
                     .split('-')
                     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
@@ -2052,7 +2056,7 @@
                     style: roundedCss
                 }).insertAfter(topNav);
 
-                // add a search button to topnav
+                // add a search button to topNav
                 const showSearchbar = $('<button>', {
                     class: `btn border js-btn-search me-2 mr-2`,
                     html: `<i class="${settings.icons.search}"></i>`,
@@ -2532,13 +2536,14 @@
                 .off('wheel', '.wc-calendar-view-container')
                 .on('wheel', '.wc-calendar-view-container', debounce(function (e) {
                     const settings = getSettings($wrapper);
+                    const body = $('body');
                     const isModalOpen =
-                        $('body').hasClass('modal-open');
+                        body.hasClass('modal-open');
                     const inViewContainer = $(e.target).closest('.wc-calendar-container').length;
 
 
                     if (!settings.navigateOnWheel || !inViewContainer || isModalOpen) {
-                        $('body').css('overflow', '');
+                        body.css('overflow', '');
                         return; // do nothing if the user is not in the container
                     }
                     e.preventDefault(); // prevent standard scroll
@@ -2588,7 +2593,7 @@
                         return;
                     }
 
-                    // Trigger search immediately if a Enter key is pressed or the input field gets updated
+                    // Trigger search immediately if an Enter key is pressed or the input field gets updated
                     const isEnterKey = e.type === 'keyup' && (e.key === 'Enter' || e.which === 13 || e.keyCode === 13);
 
                     if (isEnterKey) {
@@ -2627,7 +2632,6 @@
                         return; // Abbrechen, falls ein untergeordnetes Element angeklickt wurde
                     }
 
-                    const settings = getSettings($wrapper);
                     const dayWrapper = $(e.currentTarget).closest('[data-month-date]');
                     const dateAttribute = dayWrapper.attr('data-month-date'); // Hole das Datum aus dem Attribut
 
@@ -2693,9 +2697,9 @@
                     const clickedOnDate = $(e.target).is('[data-date]');
                     const clickedOnMonth = $(e.target).is('[data-month]');
                     const clickedOnToday = $(e.target).is('[data-today]');
-                    const clickedOnAncor = $(e.target).is('a[href]') || $(e.target).closest('a[href]').length > 0;
+                    const clickedOnAnchor = $(e.target).is('a[href]') || $(e.target).closest('a[href]').length > 0;
                     // check whether the goal is a [data date] or a link with [href]
-                    if (clickedOnToday || clickedOnDate || clickedOnMonth || clickedOnAncor) {
+                    if (clickedOnToday || clickedOnDate || clickedOnMonth || clickedOnAnchor) {
                         // stop the execution of the parent event
                         e.stopPropagation();
                         return;
@@ -2857,8 +2861,8 @@
         }
 
         /**
-         * Retrieves data from local storage for the specified key, associated with the given wrapper element.
-         * The method handles parsing of JSON values, as well as converting specific string values to their corresponding types (e.g.  boolean, number).
+         * Retrieves data from local storage for the specified key associated with the given wrapper element.
+         * The method handles parsing of JSON values, as well as converting specific string values to their corresponding types (e.g. boolean, number).
          *
          * @param {jQuery} $wrapper - The wrapper element whose ID is used as part of the local storage key.
          * @param {string} key - The key used to retrieve the data from local storage.
@@ -3171,7 +3175,7 @@
 
         /**
          * Fetches and processes appointments for a given wrapper element. The function retrieves
-         * appointment data based on the selected view, date range, and additional search criteria, and
+         * appointment data based on the selected view, date range, and additional search criteria and
          * then renders the appointments within the wrapper. It supports URL callbacks or string-based
          * AJAX requests for data retrieval.
          *
@@ -3198,7 +3202,7 @@
 
             // Prepare data for the AJAX request
             if (!inSearchMode) {
-                // Retrieve the current view type (e.g.  day, week, month, year)
+                // Retrieve the current view type (e.g. day, week, month, year)
                 const view = getView($wrapper);
                 // Calculate the start and end date range based on the view
                 const period = getStartAndEndDateByView($wrapper);
@@ -3242,7 +3246,7 @@
                 if (settings.debug) {
                     log('Skip loading appointments because search is empty');
                 }
-                // Update the appointments list with an empty array and re-build the default view
+                // Update the appointment list with an empty array and re-build the default view
                 setAppointments($wrapper, []).then(_cleanedAppointments => {
                     trigger($wrapper, 'after-load', _cleanedAppointments);
                     void _cleanedAppointments;
@@ -3303,7 +3307,7 @@
             } else if (callAjax) {
                 // If the URL is a string, manage the current request
 
-                // Check if there's an ongoing request associated with the wrapper, and abort it
+                // Check if there's an ongoing request associated with the wrapper and abort it
                 const existingRequest = $wrapper.data('currentRequest');
 
                 if (existingRequest) {
@@ -3362,7 +3366,7 @@
          * Groups overlapping appointments by weekdays, organizing them into columns or marking them as full-width,
          * based on their overlapping properties and visibility conditions for different views.
          *
-         * @param {JQuery} $wrapper - The wrapper DOM element or container associated with the view.
+         * @param {jQuery} $wrapper - The wrapper DOM element or container associated with the view.
          * @param {Array} appointments - An array of appointment objects. Each appointment is expected to include
          *                               scheduling and visibility details, such as date, time, and display properties.
          * @return {object} - An object where each key is a weekday (0-6, corresponding to Sunday-Saturday), and the value
@@ -3473,7 +3477,7 @@
 
             if (settings.debug) {
                 log('Call drawAppointmentsForDayOrWeek with view:', view);
-                log("All-Day AppointmWWents:", allDays);
+                log("All-Day Appointments:", allDays);
                 log("Not-All-Day Appointments:", notAllDays);
                 log("All Appointments:", appointments);
             }
@@ -3491,10 +3495,10 @@
                         // Copy the original and return the clean appointment with the calculated extras
                         const returnData = getAppointmentForReturn(appointment);
 
-                        const appointmentElement = $('<div>', {
+                        const appointmentElement = $('<span>', {
                             'data-appointment': true,
                             html: settings.formatter.allDay(returnData.appointment, returnData.extras, view),
-                            class: `mx-1 mb-1 flex-fill overflow-hidden`,
+                            class: `mx-1 mb-1 flex-fill`,
                         }).appendTo(allDayWrapper);
                         appointmentElement.data('appointment', appointment);
                     }
@@ -3515,7 +3519,7 @@
 
                         const appointment = slotData.appointment;
 
-                        // Prüfen ob slotData.start und slotData.end gültige Daten sind
+                        // check whether slotdata.start and slotdata.
                         const startDate = new Date(slotData.start);
                         const endDate = new Date(slotData.end);
 
@@ -3527,7 +3531,7 @@
                         // Formatierung des Startdatums für den richtigen Container
                         const targetDateLocal = $.bsCalendar.utils.formatDateToDateString(startDate);
 
-                        // Suche des Containers anhand Wochentag und Datum
+                       // Search of the container based on weekdays and date
                         const $weekDayContainer = $viewContainer.find(
                             `[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`
                         );
@@ -3607,7 +3611,7 @@
 
                     // appointments that take the whole width
                     const appointmentWidthPercent = 100; // full width
-                    const appointmentLeftPercent = 0; // no distance from left
+                    const appointmentLeftPercent = 0; // no distance from the left
 
                     // default value for position
                     let position = {
@@ -3799,7 +3803,7 @@
             const $pagination = $('<nav>', {'aria-label': 'Page navigation'}).appendTo($paginationWrapper);
             const $paginationList = $('<ul>', {class: 'pagination mb-0'}).appendTo($pagination);
 
-            // number of maximum number of pages on the left and right of the current page
+            // number of maximum numbers of pages on the left and right of the current page
             const maxAdjacentPages = 2;
 
             // Auxiliary function: Add sites
@@ -3912,7 +3916,7 @@
          *
          * @param {Object} origin - The original appointment object containing the details and extras.
          * @return {Object} An object with two properties:
-         * `appointment` which contains the main appointment details, and
+         * `appointment`, which contains the main appointment details, and
          * `extras` which contains the extra details separated from the original object.
          */
         function getAppointmentForReturn(origin) {
@@ -4055,26 +4059,26 @@
                         tempDate.setDate(tempDate.getDate() + 1);
                     }
 
-                    // check whether the appointment remains completely in one day
+                    // check whether the appointment remains complete in one day
                     extras.inADay = extras.displayDates.length === 1;
 
                     // calculation of the total duration of the appointment
                     const diffMillis = end - start;
 
-                    // check whether it is a full -day appointment
+                    // check whether it is a full-day appointment
                     if (appointment.allDay) {
                         // only take into account the calendar days, regardless of the time
                         const startDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
                         const endDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
-                        // calculate difference in days
+                        // calculate difference in the past days
                         const diffDaysMillis = endDate - startDate;
                         extras.duration.days = Math.floor(diffDaysMillis / (24 * 3600 * 1000)) + 1; // +1 inkludiert den letzten Tag
                         extras.duration.hours = 0;
                         extras.duration.minutes = 0;
                         extras.duration.seconds = 0;
                     } else {
-                        // normal calculation for hourly -based appointments
+                        // normal calculation for hourly-based appointments
                         const totalSeconds = Math.floor(diffMillis / 1000);
                         extras.duration.days = Math.floor(totalSeconds / (24 * 3600));
                         extras.duration.hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
@@ -4226,15 +4230,15 @@
          * @param {jQuery} $wrapper - The main wrapper element for the calendar.
          * @param {Array} holidays - Array of holiday objects with the following structure:
          *                          {
-         *                              startDate: string (ISO date format, e.g.  "2023-11-25"),
-         *                              endDate: string (ISO date format, e.g.  "2023-11-27"),
-         *                              title: string (e.g.  "Christmas"),
+         *                              startDate: string (ISO date format, e.g. "2023-11-25"),
+         *                              endDate: string (ISO date format, e.g. "2023-11-27"),
+         *                              title: string (e.g. "Christmas"),
          *                              global: boolean (indicates if the holiday is global),
          *                              fixed: boolean (indicates if the holiday is fixed every year)
          *                          }
          */
         function drawHolidays($wrapper, holidays) {
-            // Get the current view of the calendar (e.g.  "day", "week", "month")
+            // Get the current view of the calendar (e.g. "day", "week", "month")
             const settings = getSettings($wrapper);
             const view = getView($wrapper);
             const isDayOrWeek = view === 'day' || view === 'week';
@@ -4273,7 +4277,7 @@
                     // Add the holiday element to the container if it exists
                     if (container?.length) {
                         if (!isYear) {
-                            // build a wrapper for holiday element
+                            // build a wrapper for a holiday element
                             if (container.is(':empty') && (view === 'day' || view === 'week')) {
                                 container.addClass('pb-3');
                             }
@@ -4331,7 +4335,7 @@
             // $('<div>', {
             //     class: 'wc-calendar-overlay opacity-25 position-absolute w-100 h-100 d-flex justify-content-center align-items-center',
             //     style: combinedCss,
-            //     html: '<div class="spinner-grow" role="status"  style="width: 7rem; height: 7rem;"><span class="visually-hidden">Loading...</span></div>'
+            //     html: '<div class="spinner-grow" role="status" style="width: 7rem; height: 7rem;"><span class="visually-hidden">Loading...</span></div>'
             // }).appendTo($wrapper);
         }
 
@@ -4455,7 +4459,7 @@
          */
         function buildSearchView($wrapper) {
             const container = getViewContainer($wrapper);
-            // Empty the container and generate new structure
+            // Empty the container and generate a new structure
             container.empty();
             $('<div>', {
                 class: 'wc-search-result-container list-group list-group-flush overflow-auto',
@@ -4658,7 +4662,7 @@
          * @return {void} Does not return a value; renders the small view calendar into the specified container.
          */
         function buildMonthSmallView($wrapper, forDate, $container, forYearView = false) {
-            // Get container for miniature view
+            // Get container for a miniature view
 
             const settings = getSettings($wrapper);
             const date = forDate; // Aktuelles Datum
@@ -4710,7 +4714,7 @@
                 },
             }).appendTo($container);
 
-            // Create header for weekdays
+            // Create a header for weekdays
             const thead = $('<thead>').appendTo(table);
             const weekdaysRow = $('<tr>', {
                 class: '',
@@ -4847,7 +4851,7 @@
                 html: buildHeaderForDay($wrapper, date, false)
             }).appendTo($container);
 
-            // Set data attributes for the headline and change the cursor to pointer
+            // Set data attributes for the headline and change the cursor to a pointer
             headline.attr('data-date', $.bsCalendar.utils.formatDateToDateString(date)).css('cursor', 'pointer');
 
             // Append a div for all-day events or metadata
@@ -4928,7 +4932,7 @@
             }
             ////////
 
-            // Create weekly view as a flexible layout
+            // Create a weekly view as a flexible layout
             const weekContainer = $('<div>', {
                 class: 'wc-week-view d-flex flex-nowrap',
                 css: {paddingLeft: '40px'}
@@ -5085,10 +5089,10 @@
          */
         function addCurrentTimeIndicator($wrapper, $container) {
 
-            // Helper function to dynamically retrieve the current time as a Date object.
+            // Helper functions to dynamically retrieve the current time as a Date object.
             const getDynamicNow = () => new Date();
 
-            // Retrieve settings dynamically for the calendar (e.g.  hour slots, start/end times).
+            // Retrieve settings dynamically for the calendar (e.g. hour slots, start/end times).
             const settings = getSettings($wrapper);
             if (settings === null) {
                 return; // Exit early if no settings are found for the calendar.
@@ -5140,7 +5144,7 @@
 
             /**
              * Combine multiple CSS rules for the time badge (small text label).
-             * This small badge will display the current time in a readable format (e.g.  HH:mm).
+             * This small badge will display the current time in a readable format (e.g. HH:mm).
              */
             const combinedCss = [
                 ...bs4migration.translateMiddleCss,   // Center the badge using translation rules.
@@ -5160,7 +5164,7 @@
                 '</small>').appendTo(currentTimeIndicator);
 
             /**
-             * Combine CSS rules for the circle indicator (a small red dot).
+             * Combine CSS rules with the circle indicator (a small red dot).
              * This is an additional visual marker for showing the exact current time.
              */
             const combinedCss2 = [
@@ -5235,11 +5239,11 @@
                 endDate = new Date(endDate);
             }
 
-            // Extract hours and minutes from startDate.
+            // Extract hours and minutes from the startDate.
             const startHours = startDate.getHours();
             const startMinutes = startDate.getMinutes();
 
-            // Extract hours and minutes from endDate, if provided.
+            // Extract hours and minutes from the endDate, if provided.
             const endHours = endDate ? endDate.getHours() : null;
             const endMinutes = endDate ? endDate.getMinutes() : null;
 
@@ -5257,12 +5261,12 @@
             /**
              * Adjust the start and end times to fit them within the visible bounds (hour slots) of the calendar.
              */
-            let adjustedStartHours = Math.max(startHours, settings.hourSlots.start); // Ensure event starts no earlier than the calendar's start hour.
-            let adjustedStartMinutes = startHours < settings.hourSlots.start ? 0 : startMinutes; // Ignore minutes if event starts before the calendar.
+            let adjustedStartHours = Math.max(startHours, settings.hourSlots.start); // Ensure an event starts no earlier than the calendar's start hour.
+            let adjustedStartMinutes = startHours < settings.hourSlots.start ? 0 : startMinutes; // Ignore minutes if an event starts before the calendar.
 
             let adjustedEndHours = endHours !== null ? Math.min(endHours, settings.hourSlots.end) : null; // Restrict end time to within the calendar's end hour.
             let adjustedEndMinutes =
-                endHours !== null && endHours >= settings.hourSlots.end ? 0 : endMinutes; // Ignore minutes if event ends after the calendar.
+                endHours !== null && endHours >= settings.hourSlots.end ? 0 : endMinutes; // Ignore minutes if the event ends after the calendar.
 
             /**
              * Case 2: Calculate the top position of the slot:
@@ -5359,8 +5363,8 @@
         /**
          * Displays an information modal window containing details about the provided appointment element.
          *
-         * @param {JQuery} $wrapper - A wrapper element for the calendar DOM containing settings and references.
-         * @param {JQuery} $targetElement - The element that was clicked to trigger the modal, containing data about an appointment.
+         * @param {jQuery} $wrapper - A wrapper element for the calendar DOM containing settings and references.
+         * @param {jQuery} $targetElement - The element that was clicked to trigger the modal, containing data about an appointment.
          * @return {void} Does not return a value, but shows a modal with the appointment's details.
          */
         function showInfoWindow($wrapper, $targetElement) {
