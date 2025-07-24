@@ -1221,10 +1221,16 @@
                 backgroundImage: extras.colors.backgroundImage,
                 color: extras.colors.color
             };
+
             const styleString = toStyleString(style);
 
+            const classes = [];
+            if (view === 'week') {
+                classes.push('w-100');
+            }
+
             return [
-                '<div class="badge px-2 w-100" style="'+styleString+'">',
+                '<div class="badge px-2 ' + classes.join(' ') + '" style="' + styleString + '">',
                 appointment.title,
                 '</div>'
             ].join('')
@@ -2452,9 +2458,9 @@
             let resizeTimer;
 
             // Erst alle vorhandenen Handler für dieses handleEvents() entfernen:
-            $(window).off('resize'+namespace);
+            $(window).off('resize' + namespace);
 
-            $(window).on('resize'+namespace, function () {
+            $(window).on('resize' + namespace, function () {
                 clearTimeout(resizeTimer);
                 resizeTimer = setTimeout(function () {
                     onResize($wrapper, true);
@@ -2464,7 +2470,7 @@
             $('body')
                 .on('click' + namespace, calendarElements.infoModal + ' [data-edit]', function (e) {
                     e.preventDefault();
-                    const modal  = $(calendarElements.infoModal);
+                    const modal = $(calendarElements.infoModal);
                     const wrapperId = modal.attr('data-bs-calendar-wrapper-id');
                     const wrapper = $(`.bs-calendar[data-bs-calendar-id="${wrapperId}"]`);
                     const appointment = $(calendarElements.infoModal).data('appointment');
@@ -2475,7 +2481,7 @@
                 })
                 .on('click' + namespace, calendarElements.infoModal + ' [data-remove]', function (e) {
                     e.preventDefault();
-                    const modal  = $(calendarElements.infoModal);
+                    const modal = $(calendarElements.infoModal);
                     const wrapperId = modal.attr('data-bs-calendar-wrapper-id');
                     const wrapper = $(`.bs-calendar[data-bs-calendar-id="${wrapperId}"]`);
                     const appointment = $(calendarElements.infoModal).data('appointment');
@@ -2494,7 +2500,7 @@
                     }
                 })
                 .on('hide.bs.modal', calendarElements.infoModal, function () {
-                    const modal  = $(calendarElements.infoModal);
+                    const modal = $(calendarElements.infoModal);
                     const wrapperId = modal.attr('data-bs-calendar-wrapper-id');
                     const wrapper = $(`.bs-calendar[data-bs-calendar-id="${wrapperId}"]`);
                     trigger(wrapper, 'hide-info-window');
