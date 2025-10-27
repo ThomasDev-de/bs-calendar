@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.2.9
+ * @version 1.2.10
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -1724,12 +1724,13 @@
                         }
                     }
 
+                    const desc = appointment.description ? `<p>${appointment.description}</p>` : "";
                     // assemble the result and dissolve the promise
                     const result = [
                         `<h3>${appointment.title}</h3>`,
                         `<p>${showTime} (${extras.duration.formatted})</p>`,
                         location,
-                        `<p>${appointment.description || "Keine Beschreibung verfügbar."}</p>`,
+                        `${desc}`,
                         link
                     ].join('');
 
