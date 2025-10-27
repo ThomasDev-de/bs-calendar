@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.2.7
+ * @version 1.2.8
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -132,7 +132,7 @@
                 onNavigateForward: null,
                 onNavigateBack: null,
                 storeState: false,
-                debug: false
+                debug: true
             },
             utils: {
                 openHolidayApi: {
@@ -1150,6 +1150,27 @@
 
                 settings.translations = $.extend(true, {}, settings.translations, $.bsCalendar.utils.getStandardizedUnits(settings.locale) || {});
 
+                // Normalize `views` immediately after merging settings to avoid duplicates
+                // coming from defaults, data-attributes or passed options.
+                if (settings.hasOwnProperty('views')) {
+                    // Accept comma separated string as well (defensive)
+                    if (typeof settings.views === 'string') {
+                        settings.views = settings.views.split(',').map(v => v.trim()).filter(Boolean);
+                    }
+                    if (Array.isArray(settings.views)) {
+                        // Keep original order while removing duplicates
+                        const seen = new Set();
+                        settings.views = settings.views.filter(v => {
+                            if (seen.has(v)) return false;
+                            seen.add(v);
+                            return true;
+                        });
+                    } else {
+                        // Fallback to sensible default when views is invalid
+                        settings.views = ['day', 'week', 'month', 'year'];
+                    }
+                }
+
                 setSettings(wrapper, settings);
 
                 if (settings.storeState) {
@@ -2152,6 +2173,9 @@
                     ].join('')
                 }).appendTo(rightCol);
 
+                if (settings.debug) {
+                    console.log('buidlFramwork', settings.views);
+                }
                 settings.views.forEach(view => {
                     $('<li>', {
                         html: `<a class="dropdown-item" data-view="${view}" href="#"><i class="${settings.icons[view]} me-2 mr-2"></i> ${settings.translations[view]}</a>`
@@ -2216,18 +2240,59 @@
             const monthName = date.toLocaleDateString(settings.locale, {month: 'long'});
             const yearName = date.toLocaleDateString(settings.locale, {year: 'numeric'});
             const calendarWeek = $.bsCalendar.utils.getCalendarWeek(date);
+
+            // ISO week string "YYYY-Www" (unambiguous machine-readable)
+            function getIsoWeekString(d) {
+                const tmp = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+                tmp.setUTCDate(tmp.getUTCDate() + 4 - (tmp.getUTCDay() || 7));
+                const yearStart = new Date(Date.UTC(tmp.getUTCFullYear(), 0, 1));
+                const weekNo = Math.ceil((((tmp - yearStart) / 86400000) + 1) / 7);
+                return tmp.getUTCFullYear() + '-W' + String(weekNo).padStart(2, '0');
+            }
+
+            // Localized date range for the week (human-friendly)
+            function getWeekDateRange(d, locale, startWeekOnSunday) {
+                const dt = new Date(d);
+                const day = dt.getDay(); // 0..6 (Sun..Sat)
+                const startOffset = startWeekOnSunday ? day : (day === 0 ? 6 : day - 1);
+                const start = new Date(dt);
+                start.setDate(dt.getDate() - startOffset);
+                const end = new Date(start);
+                end.setDate(start.getDate() + 6);
+                const options = { day: 'numeric', month: 'short', year: 'numeric' };
+                const startStr = start.toLocaleDateString(locale, options);
+                const endStr = end.toLocaleDateString(locale, options);
+                return startStr + ' — ' + endStr;
+            }
+
             switch (view) {
                 case 'day':
                     el.text(weekdayName + ', ' + dayName + ' ' + monthName + ' ' + yearName);
+                    el.removeAttr('data-iso-week');
+                    el.attr('title', '');
                     break;
-                case 'week':
-                    el.text('KW ' + calendarWeek + ' / ' + monthName + ' ' + yearName);
+                case 'week': {
+                    // Use a short universal week label "W42" (widely recognized) for the visible text,
+                    // keep ISO week in a data-attribute, and expose the localized date range in the title/tooltip.
+                    const weekNumber = String(calendarWeek);
+                    const visibleLabel = `W${weekNumber}`; // compact, language-neutral
+                    const iso = getIsoWeekString(date);
+                    const range = getWeekDateRange(date, settings.locale, settings.startWeekOnSunday);
+
+                    el.text(visibleLabel + ' · ' + monthName + ' ' + yearName);
+                    el.attr('data-iso-week', iso);
+                    el.attr('title', range); // browser tooltip shows localized date range
                     break;
+                }
                 case 'month':
                     el.text(monthName + ' ' + yearName);
+                    el.removeAttr('data-iso-week');
+                    el.attr('title', '');
                     break;
                 case 'year':
                     el.text(yearName);
+                    el.removeAttr('data-iso-week');
+                    el.attr('title', '');
                     break;
             }
             elSmall.text(monthName + ' ' + yearName);

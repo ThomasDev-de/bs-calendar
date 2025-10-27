@@ -139,8 +139,9 @@
         $.bsCalendar.setDefaults({
             // title: 'Example',
             title: '<span class="h4 text-uppercase mb-0">$.fn.bsCalendar</span>',
-            locale: 'en-GB',
+            locale: 'de-DE',
             startWeekOnSunday: false,
+            // views: ["week", "day"],
             rounded: 5,
             defaultColor: 'info',
             navigateOnWheel: true,
@@ -153,7 +154,7 @@
                 height: 60
             },
             url: url,
-            debug: false,
+            debug: true,
             storeState: true,
             onAll(eventName, ...args) {
                 console.log(eventName, ...args);
