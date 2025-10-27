@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.2.8
+ * @version 1.2.9
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -82,6 +82,7 @@
                 defaultColor: 'primary',
                 views: ['year', 'month', 'week', 'day'],
                 holidays: null,
+                showAddButton: true,
                 translations: {
                     search: 'Type and press Enter',
                     searchNoResult: 'No appointment found'
@@ -2117,12 +2118,14 @@
             }
 
             // add a button to create appointments
-            $('<button>', {
-                class: `btn border mr-2 me-2`,
-                style: roundedCss,
-                html: `<i class="${settings.icons.add}"></i>`,
-                'data-add-appointment': true
-            }).appendTo(leftCol);
+            if (settings.showAddButton) {
+                $('<button>', {
+                    class: `btn border mr-2 me-2`,
+                    style: roundedCss,
+                    html: `<i class="${settings.icons.add}"></i>`,
+                    'data-add-appointment': true
+                }).appendTo(leftCol);
+            }
 
             // add the title when known
             if (settings.title) {
