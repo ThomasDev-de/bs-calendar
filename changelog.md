@@ -1,11 +1,18 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 1.2.8**](#version-128)
     * [**Version 1.2.7**](#version-127)
     * [**Version 1.2.6**](#version-126)
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+#### **Version 1.2.8**
+
+- Fix: Normalize and deduplicate settings.views after merging defaults, data-attributes and passed options to avoid duplicating view entries in the view dropdown (prevents rendering the same view multiple times).
+- Fix: Ensure settings.views accepts comma-separated strings and invalid values gracefully (falls back to sensible defaults).
+- Improvement: Replace locale-dependent "KW" week label with a language-neutral compact week label ("W42") for UI, store ISO week ("YYYY-Www") in a data-attribute, and add a localized date-range tooltip for better international clarity.
 
 #### **Version 1.2.7**
 
