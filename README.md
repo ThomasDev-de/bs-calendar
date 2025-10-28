@@ -1,6 +1,6 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-1.2.7-blue)
+![Version](https://img.shields.io/badge/version-1.2.11-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v4%20%7C%20v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -109,6 +109,7 @@ available options, including their types, default values, and descriptions.
 | **showAddButton**     | `boolean`                        | `true`                                           | Should a button for adding an appointment be displayed in the top navbar.                                                                                                                                          |
 | **navigateOnWheel**   | `boolean`                        | `true`                                           | Enables navigation through days, weeks, months, or years using the mouse wheel if set to `true`.                                                                                                                   |
 | **rounded**           | `number`                         | `5`                                              | Specifies the border rounding of elements in pixels, enhancing the visual presentation.                                                                                                                            |
+| **search**            | `object` \| `null`               | `{limit: 10, offset: 0}`                         | Activates search. Set the option to zero to disable searching.                                                                                                                                                     |
 | **search.limit**      | `number`                         | `10`                                             | Sets a maximum number of search results to be returned.                                                                                                                                                            |
 | **search.offset**     | `number`                         | `0`                                              | Sets an offset for starting the search results.                                                                                                                                                                    |
 | **startDate**         | `Date`                           | `new Date()`                                     | The starting date for the calendar view.                                                                                                                                                                           |
@@ -195,6 +196,91 @@ The `formatter` object enables advanced customization of various calendar views 
     }
 });
 ```
+
+### The 'extras' object
+
+For each appointment, the plugin creates an 'extras' object with additional information.
+
+Example:
+
+```json
+{
+  "locale": "de-DE",
+  "icon": "bi bi-brightness-high",
+  "colors": {
+    "origin": "success gradient  opacity-75",
+    "backgroundColor": "rgba(25, 135, 84, 0.75)",
+    "backgroundImage": "linear-gradient(rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0))",
+    "color": "rgb(255, 255, 255)",
+    "classList": [
+      "text-bg-success",
+      "bg-gradient",
+      "bg-opacity-75"
+    ]
+  },
+  "start": {
+    "date": "2025-10-19",
+    "time": "00:00:00"
+  },
+  "end": {
+    "date": "2025-10-19",
+    "time": "23:59:59"
+  },
+  "duration": {
+    "days": 1,
+    "hours": 0,
+    "minutes": 0,
+    "seconds": 0,
+    "formatted": "1d"
+  },
+  "displayDates": [
+    {
+      "date": "2025-10-19",
+      "day": 0,
+      "times": {
+        "start": null,
+        "end": null
+      },
+      "visibleInWeek": true,
+      "visibleInMonth": true
+    }
+  ],
+  "allDay": false,
+  "inADay": true,
+  "isToday": false,
+  "isNow": false
+}
+```
+
+| Attribute                     | Description                                                       |
+|-------------------------------|-------------------------------------------------------------------|
+| locale                        | Language/locale used for display formatting (e.g. date formats).  |
+| icon                          | Icon class used for the appointment (e.g. Bootstrap Icons class). |
+| colors.origin                 | Semantic label/origin of the color combination.                   |
+| colors.backgroundColor        | Background color for the element (RGBA or HEX).                   |
+| colors.backgroundImage        | Optional background gradient/image for the element.               |
+| colors.color                  | Text color appropriate for the background.                        |
+| colors.classList              | Array of extra CSS classes applied to the element.                |
+| start.date                    | Appointment start date (YYYY-MM-DD).                              |
+| start.time                    | Appointment start time (HH:MM:SS).                                |
+| end.date                      | Appointment end date (YYYY-MM-DD).                                |
+| end.time                      | Appointment end time (HH:MM:SS).                                  |
+| duration.days                 | Duration in full days.                                            |
+| duration.hours                | Remaining duration hours (after counting full days).              |
+| duration.minutes              | Remaining duration minutes (after hours).                         |
+| duration.seconds              | Remaining duration seconds (after minutes).                       |
+| duration.formatted            | Human-friendly short duration (e.g. "1d", "2h 30m").              |
+| displayDates                  | List of display/visibility entries (used for month/week views).   |
+| displayDates[].date           | Specific date for this display entry.                             |
+| displayDates[].day            | Weekday index for the date (0-6).                                 |
+| displayDates[].times.start    | Visible start time for this date (or null).                       |
+| displayDates[].times.end      | Visible end time for this date (or null).                         |
+| displayDates[].visibleInWeek  | Boolean flag: visible in week view.                               |
+| displayDates[].visibleInMonth | Boolean flag: visible in month view.                              |
+| allDay                        | Boolean: whether the appointment is all-day.                      |
+| inADay                        | Boolean: whether the appointment stays within a single day.       |
+| isToday                       | Boolean: whether the appointment date is today.                   |
+| isNow                         | Boolean: whether the appointment is currently active.             |
 
 ### options.holidays
 
@@ -466,6 +552,10 @@ supported methods with their usage:
 ## Utilities
 
 ```javascript
+// Returns a formatted date using the extra Object
+const formattedAppointmentTimespan = $.bsCalendar.utils.getAppointmentTimespanBeautify(extras, withDuration);
+console.log(formattedAppointmentTimespan); // Wednesday, October 8th 2:10 p.m.-4:10 p.m. (2h)
+
 // Available countries from the OpenHolidays API
 $.bsCalendar.utils.openHolidayApi.getCountries('DE')
     .then(countries => {

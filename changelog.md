@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 1.2.11**](#version-1211)
     * [**Version 1.2.9**](#version-129)
     * [**Version 1.2.8**](#version-128)
     * [**Version 1.2.7**](#version-127)
@@ -8,6 +9,11 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+#### **Version 1.2.11**
+
+- Update: readme
+- Add: util function `getAppointmentTimespanBeautify`
 
 #### **Version 1.2.9**
 

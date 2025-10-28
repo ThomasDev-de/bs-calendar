@@ -7,7 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.2.10
+ * @version 1.2.11
+ * @date 2025-10-28
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -1038,6 +1039,40 @@
                         return Object.keys(value).length === 0 && value.constructor === Object;
                     }
                     return false; // Alle anderen Werte sind nicht leer
+                },
+                /**
+                 * Formats and beautifies the appointment timespan based on the provided settings and locale.
+                 *
+                 * @param {Object} extras - An object containing additional data required for formatting.
+                 * @param {string} extras.locale - The locale to be used for date formatting.
+                 * @param {Array} extras.displayDates - An array of date and time information for the appointment.
+                 * @param {boolean} extras.allDay - Indicates whether the appointment is an all-day event.
+                 * @param {Object} extras.duration - The duration object containing a formatted string representation of the duration.
+                 * @param {boolean} withDuration - Determines whether the formatted duration should be appended to the result.
+                 *
+                 * @return {string} A string representing the beautified appointment timespan, optionally including the duration.
+                 */
+                getAppointmentTimespanBeautify(extras, withDuration = true) {
+                    const locale = extras.locale;
+                    // extract times and ads
+                    const displayDates = extras.displayDates;
+                    const startDate = $.bsCalendar.utils.formatDateByLocale(displayDates[0].date, locale);
+                    const endDate = $.bsCalendar.utils.formatDateByLocale(displayDates[displayDates.length - 1].date, locale);
+                    const isSameDate = startDate === endDate;
+
+                    let showTime = isSameDate ? startDate : `${startDate} - ${endDate}`;
+
+                    if (!extras.allDay) {
+                        let startTime = extras.displayDates[0].times.start.substring(0, 5);
+                        let endTime = extras.displayDates[displayDates.length - 1].times.end.substring(0, 5);
+                        if (isSameDate) {
+                            showTime = `${startDate} ${startTime} - ${endTime}`;
+                        } else {
+                            showTime = `${startDate} ${startTime}<br>${endDate} ${endTime}`;
+                        }
+                    }
+
+                    return !withDuration ? showTime : `${showTime}  (${extras.duration.formatted})`;
                 }
             }
         };
@@ -1677,6 +1712,9 @@
             return "";
         }
 
+
+
+
         /**
          * Formats the content for an info window based on the provided appointment data and additional information.
          *
@@ -1688,24 +1726,7 @@
             const locale = extras.locale;
             return new Promise((resolve, reject) => {
                 try {
-                    // extract times and ads
-                    const displayDates = extras.displayDates;
-                    const startDate = $.bsCalendar.utils.formatDateByLocale(displayDates[0].date, locale);
-                    const endDate = $.bsCalendar.utils.formatDateByLocale(displayDates[displayDates.length - 1].date, locale);
-                    const isSameDate = startDate === endDate;
-
-                    let showTime = isSameDate ? startDate : `${startDate} - ${endDate}`;
-
-                    if (!appointment.allDay) {
-                        let startTime = extras.displayDates[0].times.start.substring(0, 5);
-                        let endTime = extras.displayDates[displayDates.length - 1].times.end.substring(0, 5);
-                        if (isSameDate) {
-                            showTime = `${startDate} ${startTime} - ${endTime}`;
-                        } else {
-                            showTime = `${startDate} ${startTime}<br>${endDate} ${endTime}`;
-                        }
-                    }
-
+                    const showTime = $.bsCalendar.utils.getAppointmentTimespanBeautify(extras, true);
                     // generate link if available
                     const roundedCss = $.bsCalendar.utils.getBorderRadiusCss(5);
                     const link = buildLink(appointment.link, roundedCss);
@@ -1728,7 +1749,7 @@
                     // assemble the result and dissolve the promise
                     const result = [
                         `<h3>${appointment.title}</h3>`,
-                        `<p>${showTime} (${extras.duration.formatted})</p>`,
+                        `<p>${showTime}</p>`,
                         location,
                         `${desc}`,
                         link
@@ -2263,7 +2284,7 @@
                 start.setDate(dt.getDate() - startOffset);
                 const end = new Date(start);
                 end.setDate(start.getDate() + 6);
-                const options = { day: 'numeric', month: 'short', year: 'numeric' };
+                const options = {day: 'numeric', month: 'short', year: 'numeric'};
                 const startStr = start.toLocaleDateString(locale, options);
                 const endStr = end.toLocaleDateString(locale, options);
                 return startStr + ' — ' + endStr;
@@ -3600,7 +3621,7 @@
                         // Formatierung des Startdatums für den richtigen Container
                         const targetDateLocal = $.bsCalendar.utils.formatDateToDateString(startDate);
 
-                       // Search of the container based on weekdays and date
+                        // Search of the container based on weekdays and date
                         const $weekDayContainer = $viewContainer.find(
                             `[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`
                         );
@@ -4047,6 +4068,7 @@
                             seconds: 0
                         },
                         displayDates: [],
+                        allDay: isAllDay,
                         inADay: false,
                         isToday: start.toDateString() === now.toDateString(),
                         isNow: (start <= now && end >= now),
