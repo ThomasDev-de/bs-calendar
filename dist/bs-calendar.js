@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.2.11
+ * @version 1.2.12
  * @date 2025-10-28
  * @license MIT
  * @requires "jQuery" ^3
@@ -4065,6 +4065,8 @@
                             days: 0,
                             hours: 0,
                             minutes: 0,
+                            totalMinutes: 0,
+                            totalSeconds: 0,
                             seconds: 0
                         },
                         displayDates: [],
@@ -4167,6 +4169,8 @@
                         extras.duration.days = Math.floor(diffDaysMillis / (24 * 3600 * 1000)) + 1; // +1 inkludiert den letzten Tag
                         extras.duration.hours = 0;
                         extras.duration.minutes = 0;
+                        extras.duration.totalMinutes = Math.floor(diffMillis / (60 * 1000));
+                        extras.duration.totalSeconds = Math.floor(diffMillis / 1000);
                         extras.duration.seconds = 0;
                     } else {
                         // normal calculation for hourly-based appointments
@@ -4174,6 +4178,8 @@
                         extras.duration.days = Math.floor(totalSeconds / (24 * 3600));
                         extras.duration.hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
                         extras.duration.minutes = Math.floor((totalSeconds % 3600) / 60);
+                        extras.duration.totalSeconds = totalSeconds;
+                        extras.duration.totalMinutes = Math.round(totalSeconds / 60);
                         extras.duration.seconds = totalSeconds % 60;
                     }
 

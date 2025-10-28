@@ -1,6 +1,6 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-1.2.11-blue)
+![Version](https://img.shields.io/badge/version-1.2.12-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v4%20%7C%20v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -220,17 +220,19 @@ Example:
   },
   "start": {
     "date": "2025-10-19",
-    "time": "00:00:00"
+    "time": "01:00:00"
   },
   "end": {
     "date": "2025-10-19",
-    "time": "23:59:59"
+    "time": "02:00:00"
   },
   "duration": {
-    "days": 1,
-    "hours": 0,
+    "days": 0,
+    "hours": 1,
     "minutes": 0,
     "seconds": 0,
+    "totalMinutes": 60,
+    "totalSeconds": 3600,
     "formatted": "1d"
   },
   "displayDates": [
