@@ -22,10 +22,12 @@
             <label class="form-check-label" for="flexSwitchCheckTheme">light / dark</label>
         </div>
         <div class="card card-body mb-3">
+            <label for="selectCountries" class="d-none"></label>
             <select class="form-select mb-3" id="selectCountries" name="countryIsoCode"></select>
+            <label for="selectSubdivision" class="d-none"></label>
             <select class="form-select" id="selectSubdivision" name="Subdivision"></select>
         </div>
-            <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
 
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setDate">setDate(1970-01-01, 'day')
         </button>
@@ -112,6 +114,7 @@
 
 <script src="../vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../dist/bs-calendar.js"></script>
+<!--suppress JSUnresolvedReference -->
 <script>
     $(function () {
         const select = $('#selectCountries');
@@ -283,17 +286,17 @@
 
         async function url(query) {
             // console.log('index url', query);
-            await sleep(Math.floor(Math.random())); // Wartet synchron für 2 Sekunden
+            await sleep(Math.floor(Math.random())); // Waits synchronously for 2 seconds
 
             return new Promise((resolve, reject) => {
                 try {
-                    // Standardwerte setzen, falls fromDate oder toDate nicht verfügbar sind
+                    // Set default values if fromDate or toDate are not available
                     const fromDate = query.fromDate ? new Date(`${query.fromDate}T00:00:00`) : null;
                     const toDate = query.toDate ? new Date(`${query.toDate}T23:59:59`) : null;
                     const search = query.search;
 
 
-                    // Wenn nur ein Suchbegriff existiert, nutze die neue Funktion
+                    // If there is only one search term, use the new function
                     if (search && !fromDate && !toDate) {
                         const limit = query.limit;
                         const offset = query.offset;
@@ -351,41 +354,41 @@
                 appointment.title.toLowerCase().includes(search.toLowerCase())
             );
 
-            // Berechne die Gesamtzahl der Treffer
+            // Calculate the total number of hits
             const total = filteredAppointments.length;
 
-            // Wende limit und offset an, um die Ergebnisse einzuschränken
-            const startIndex = offset || 0; // Standardwert für offset ist 0
+            // Apply limit and offset to limit the results
+            const startIndex = offset || 0; // Default value for offset is 0
             const endIndex = limit ? startIndex + limit : total;
 
-            // Schneide das Ergebnis gemäß limit und offset zu
+            // Crop the result according to limit and offset
             const rows = filteredAppointments.slice(startIndex, endIndex);
 
-            // Gib das Ergebnis als Objekt zurück
+            // Return the result as an object
             return {rows, total};
         }
 
         function generateStaticAppointmentsForSearch() {
             const staticAppointments = []; // Array für Termine
-            const colors = ['#FF5733', '#33FF57', '#3357FF', '#F1C40F', '#9B59B6']; // Beispiel-Farbpalette
-            const links = ['https://example.com/event', 'https://example.com/details']; // Beispiel-Links
+            const colors = ['#FF5733', '#33FF57', '#3357FF', '#F1C40F', '#9B59B6']; // Example color palette
+            const links = ['https://example.com/event', 'https://example.com/details']; // Example links
 
             for (let i = 0; i < 46; i++) {
-                // Zufällige Beschreibung
+                // Random description
                 const description = `Description for Appointment ${i + 1}`;
-                const randomMonth = Math.floor(Math.random() * 12); // Zufälliger Monat (0-11)
+                const randomMonth = Math.floor(Math.random() * 12); // Random Month (0-11)
                 const randomYear = Math.floor(Math.random() * (2025 - 2022 + 1)) + 2022;
 
-                // Zufällige Zeitpunkte für Start und Ende
+                // Random start and end times
                 const randomTimeStart = new Date(randomYear, randomMonth, Math.floor(Math.random() * 27) + 1, Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
                 const randomTimeEnd = new Date(randomTimeStart);
-                randomTimeEnd.setHours(randomTimeEnd.getHours() + 2); // Termin dauert 2 Stunden
+                randomTimeEnd.setHours(randomTimeEnd.getHours() + 2); // Appointment lasts 2 hours
 
-                // Zufällige Farbe und Link
+                // Random Color and Link
                 const color = colors[i % colors.length];
                 const link = links[i % links.length];
 
-                // Termin erstellen
+                // Create an appointment
                 const appointment = {
                     id: i + 1,
                     title: `Appointment ${i + 1}`,
@@ -397,7 +400,7 @@
                     link: link
                 };
 
-                // Termin hinzufügen
+                // Add an appointment
                 staticAppointments.push(appointment);
             }
 
@@ -414,17 +417,17 @@
             const startDate = new Date(start);
             const endDate = new Date(end);
 
-            // Validierung: Sicherstellen, dass Start- und Enddatum gültig sind
+            // Validation: Ensure that the start and end dates are valid
             if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
                 throw new Error("Ungültiges Start- oder Enddatum übergeben.");
             }
 
-            // Validierung: Sicherstellen, dass das Enddatum nach dem Startdatum liegt
+            // Validation: Make sure the end date is after the start date
             if (endDate <= startDate) {
                 throw new Error("Das Enddatum muss nach dem Startdatum liegen.");
             }
 
-            // Bestimmen der Anzahl von Terminen basierend auf der Ansicht (view)
+            // Determining the Number of Appointments Based on the View
             let count;
             switch (view) {
                 case 'month':
@@ -435,12 +438,12 @@
                 case 'year':
                     count = Math.floor(Math.random() * 200);
                     break;
-                default: // Standardanzahl, wenn keine Ansicht definiert wurde
+                default: // Default Count if No View Has Been Defined
                     count = Math.floor(Math.random() * 120);
             }
 
             for (let i = 0; i < count; i++) {
-                // Zufälligen Startzeitpunkt generieren
+                // Generate random start time
                 const startMinutesOptions = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
                 const randomStartTime = new Date(
                     startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime())
@@ -452,23 +455,23 @@
                 randomStartTime.setSeconds(0);
                 randomStartTime.setMilliseconds(0);
 
-                // Dauer des Termins zufällig bestimmen
+                // Randomly determine the duration of the appointment
                 const durationOptions = [45, 60, 90, 120, 240, 500];
                 const randomDuration = durationOptions[Math.floor(Math.random() * durationOptions.length)];
 
-                // Endzeitpunkt des Termins berechnen
+                // Calculate the end time of the appointment
                 const randomEndTime = new Date(randomStartTime.getTime() + randomDuration * 60000);
 
-                // Sicherstellen, dass die Endzeit innerhalb der erlaubten Grenzen liegt
+                // Make sure the end time is within the allowed limits
                 if (randomEndTime > endDate) {
-                    continue; // Skip Termin, wenn der Endzeitpunkt außerhalb der Grenzen liegt
+                    continue; //Skip date if the end time is out of bounds
                 }
 
                 const description = `This is a randomly generated appointment description. The appointment is meant to provide useful information about the scheduled event. Details such as the purpose of the appointment, participants, or special instructions can typically be included here. Appointment #${i + 1} is designed to showcase how descriptions enhance context.`;
                 const color = colors[Math.floor(Math.random() * colors.length)];
                 const link = 'https://github.com/ThomasDev-de/bs-calendar';
 
-                // Location zufällig generieren: String, Array oder null
+                // Generate Location randomly: String, Array, or null
                 let location;
                 const randomChoice = Math.floor(Math.random() * 3); // 0 = String, 1 = Array, 2 = null
                 if (randomChoice === 0) {
@@ -479,7 +482,7 @@
                         `Building ${Math.floor(Math.random() * 5) + 1}`
                     ]; // z. B. ["Room 3", "Building 2"]
                 } else {
-                    location = null; // Keine Location
+                    location = null; // No location
                 }
 
                 const allDay = i % 21 === 0;
@@ -493,7 +496,7 @@
                     allDay: allDay,
                     color: color,
                     link: link,
-                    location: location // Location hinzufügen
+                    location: location // Add Location
                 };
 
                 appointments.push(appointment);

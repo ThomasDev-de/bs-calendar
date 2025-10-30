@@ -531,7 +531,7 @@
                  * This object can be used for converting color names to hex codes, validating color names, or
                  * referencing standard colors in styling and graphical applications.
                  *
-                 * Note: Both American and British English synonyms (e.g. "gray" and "grey") are included
+                 * Note: Both American and British English synonyms (e.g. "gray" and "gray") are included
                  * where applicable, and they map to identical hexadecimal values.
                  */
                 colorNameToHex: {
@@ -687,16 +687,16 @@
                 /**
                  * Computes the color properties based on the input color.
                  *
-                 * @param {string} inputColor - The input color, which can be in various formats (e.g. named color, hex, or invalid string).
+                 * @param {string} inputColor - The input color, which can be in various formats (e.g., named color, hex, or invalid string).
                  * @return {Object|null} Returns an object with computed background and text color properties if the input is valid, or null if the input is invalid.
                  *                       The returned object contains:
-                 *                       - `backgroundColor`: The resolved background color in a valid format (e.g. Hex).
+                 *                       - `backgroundColor`: The resolved background color in a valid format (e.g., Hex).
                  *                       - `backgroundImage`: Set to "none" by default.
                  *                       - `color`: The computed text color depending on the background color (black or white).
                  */
                 computeColor: (inputColor) => {
                     if ($.bsCalendar.utils.isDirectColorValid(inputColor)) {
-                        // dissolve the color into a valid format (e.g. hex)
+                        // dissolve the color into a valid format (e.g., hex)
                         const resolvedColor = $.bsCalendar.utils.resolveColor(inputColor);
                         const isDark = $.bsCalendar.utils.isDarkColor(resolvedColor);
                         return {
@@ -997,7 +997,7 @@
                                     const formatted = formatter.format(1, unit);
 
                                     localizedUnit = formatted
-                                        .replace(/^\D*\d+\s?/, '') // Entfernt Präfixe/Zahlen (z.B. "in 1 ")
+                                        .replace(/^\D*\d+\s?/, '') // Entfernt Präfixe/Zahlen (z. B. "in 1 ")
                                         .replace(/後|后$/, '')     // Entfernt "später" für Japanisch/Chinesisch
                                         .replace(/\s후$/, '')     // Entfernt "후" für Koreanisch
                                         .replace(/^ในอีก\s?/, '') // Entfernt "in" für Thailändisch
@@ -1648,7 +1648,7 @@
          *
          * @param {Object} duration - The duration object containing time components.
          * @return {string} A formatted string representing the duration in the format of "Xd Xh Xm Xs".
-         * If all components are zero, returns "0s".
+         * If all components are zero, returns "0 s".
          */
         function formatDuration(duration) {
             const parts = [];
@@ -2251,7 +2251,7 @@
         /**
          * Updates the elements displaying the current date information based on the provided wrapper's settings, date, and view.
          *
-         * @param {jQuery} $wrapper The wrapper object contains settings, date, and view for obtaining and formatting the current date.
+         * @param {jQuery} $wrapper The wrapper object contains settings, date, and view for getting and formatting the current date.
          * @return {void} Does not return a value, directly updates the text content of the targeted elements with formatted date information.
          */
         function setCurrentDateName($wrapper) {
@@ -2360,7 +2360,7 @@
         }
 
         /**
-         * Navigates forward in the calendar based on the current view (e.g. day, week, month, year).
+         * Navigates forward in the calendar based on the current view (e.g., day, week, month, year).
          * Updates the date and rebuilds the view accordingly.
          *
          * @param {jQuery} $wrapper - The wrapper element that contains the calendar state and view information.
@@ -2952,11 +2952,13 @@
 
         /**
          * Retrieves data from local storage for the specified key associated with the given wrapper element.
-         * The method handles parsing of JSON values, as well as converting specific string values to their corresponding types (e.g. boolean, number).
+         * The method handles parsing of JSON values, as well as converting specific string values to 
+         * their corresponding types (e.g., boolean, number).
          *
          * @param {jQuery} $wrapper - The wrapper element whose ID is used as part of the local storage key.
          * @param {string} key - The key used to retrieve the data from local storage.
-         * @return {*} The parsed value from local storage if successful, or the original string value if parsing fails. Returns null if the value is 'null'. Returns false if data retrieval is disabled or no valid key exists.
+         * @return {*} The parsed value from local storage if successful, or the original string value if parsing fails.
+         * Returns null if the value is 'null'. Returns false if data retrieval is disabled or no valid key exists.
          */
         function getFromLocalStorage($wrapper, key) {
             const settings = getSettings($wrapper);
@@ -4155,7 +4157,7 @@
                     // check whether the appointment remains complete in one day
                     extras.inADay = extras.displayDates.length === 1;
 
-                    // calculation of the total duration of the appointment
+                    // calculation the total duration of the appointment
                     const diffMillis = end - start;
 
                     // check whether it is a full-day appointment
@@ -4450,7 +4452,7 @@
         /**
          * Calculates the start and end dates based on the provided view type and a given date context.
          *
-         * @param {jQuery} $wrapper - A wrapper element or object providing context for obtaining
+         * @param {jQuery} $wrapper - A wrapper element or object providing context for getting
          *                            settings, date, and view type.
          * @return {Object} An object containing the following properties:
          *                  - `date`: The original date in ISO string format (yyyy-mm-dd).
@@ -5189,7 +5191,7 @@
             // Helper functions to dynamically retrieve the current time as a Date object.
             const getDynamicNow = () => new Date();
 
-            // Retrieve settings dynamically for the calendar (e.g. hour slots, start/end times).
+            // Retrieve settings dynamically for the calendar (e.g., hour slots, start/end times).
             const settings = getSettings($wrapper);
             if (settings === null) {
                 return; // Exit early if no settings are found for the calendar.
@@ -5229,7 +5231,7 @@
                 class: 'current-time-indicator position-absolute bg-danger', // Add CSS classes for styling.
                 css: {
                     boxSizing: 'border-box', // Ensure consistent box sizing.
-                    height: '1px',           // Indicator height is 1px (horizontal line).
+                    height: '1px',           // Indicator height is 1 px (horizontal line).
                     width: '100%',           // Full width of the container.
                     zIndex: 10,              // Ensure the element is rendered on top.
                     ...position,             // Apply the calculated top/bottom position.
@@ -5241,7 +5243,7 @@
 
             /**
              * Combine multiple CSS rules for the time badge (small text label).
-             * This small badge will display the current time in a readable format (e.g. HH:mm).
+             * This small badge will display the current time in a readable format (e.g., HH:mm).
              */
             const combinedCss = [
                 ...bs4migration.translateMiddleCss,   // Center the badge using translation rules.
@@ -5305,7 +5307,7 @@
                 }
 
                 updateIndicator(); // Update the time indicator and badge text.
-            }, 60 * 1000); // Repeat every minute (60,000ms).
+            }, 60 * 1000); // Repeat every minute (60,000 ms).
 
             // Immediately update the indicator's position and badge text on initialization.
             updateIndicator();

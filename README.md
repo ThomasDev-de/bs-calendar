@@ -157,11 +157,11 @@ The `url` option controls how the calendar fetches appointment (and search) data
 Usage patterns:
 
 1. Static URL (string)  
-   Provide a server endpoint that returns JSON in the expected structure. The plugin uses a GET request and passes query parameters describing the requested period or search parameters.
+   Provides a server endpoint that returns JSON in the expected structure. The plugin uses a GET request and passes query parameters describing the requested period or search parameters.
 
    Example response formats:
-    - For normal views (day / week / month / day): an array of appointment objects:
-   ```markdown
+    - For normal views (day / week / month): an array of appointment objects:
+   ```json
    [
      {
        "id": 1,
@@ -169,14 +169,13 @@ Usage patterns:
        "start": "2025-07-01 10:00:00",
        "end": "2025-07-01 11:00:00",
        "color": "primary"
-     },
-     ...
+     }
    ]
    ```
-    - For search mode: an object with `rows` (appointments array) and `total` (number of results):
-   ```markdown
+    - For search mode: an object with `rows` (an appointment array) and `total` (number of results):
+   ```json
    {
-     "rows": [ /* appointment objects */ ],
+     "rows": [],
      "total": 42
    }
    ```
@@ -192,17 +191,17 @@ Usage patterns:
         - `offset`: pagination offset (from `options.search.offset`)
 
    Example configuration:
-   ```markdown
+   ```js
    $('#calendar').bsCalendar({
      url: '/api/appointments'
    });
    ```
 
 2. Function (dynamic)  
-   Pass a function that receives a `requestData` object (same shape as above) and must return a Promise that resolves to the expected response (array for normal views, or `{ rows, total }` for search). This allows full control over how the data is fetched (e.g. using fetch, adding auth headers, POST requests, local filtering, etc.).
+   Pass a function that receives a `requestData` object (same shape as above) and must return a Promise that resolves to the expected response (array for normal views, or `{ rows, total }` for search). This allows full control over how the data is fetched (e.g., using fetch, adding auth headers, POST requests, local filtering, etc.).
 
    Example:
-   ```markdown
+   ```js
    $('#calendar').bsCalendar({
      url: (requestData) => {
        // requestData contains fromDate/toDate or search pagination depending on mode
@@ -222,9 +221,9 @@ Important notes
 
 Examples serverside contract (summary)
 - GET /api/appointments?fromDate=2025-07-01&toDate=2025-07-31&view=month
-  -> JSON array of appointments
+  → JSON array of appointments
 - GET /api/appointments?search=john&limit=10&offset=0
-  -> { "rows": [ ... ], "total": 123 }
+  → { "rows": [ ... ], "total": 123 }
 
 ### options.formatter
 
@@ -343,7 +342,7 @@ This option allows configuring the details of the holidays, such as specifying t
 
 - **OpenHolidays API Integration:**  
   This API serves as the source for holidays and school holidays data. Ensure the configuration matches the requirements
-  of the API (e.g. valid country or state codes).
+  of the API (e.g., valid country or state codes).
 
 - **Dynamic Locale Handling:**  
   If `country` or `language` are omitted, their values are derived from the calendar's locale setting (specified in
@@ -434,7 +433,7 @@ By default, icons are defined using the Bootstrap Icons library.
     - **Example**: `"primary"`, `"danger"`, or `"#FF5733"`
 
 5. **`link`**
-    - **Description**: A link associated with the appointment (e.g. an external reference or more details).
+    - **Description**: A link associated with the appointment (e.g., an external reference or more details).
     - **Example**: `"https://example.com"`
 
 6. **`location`**
@@ -480,7 +479,7 @@ By default, icons are defined using the Bootstrap Icons library.
 ### Notes
 
 - `start` and `end` times are **mandatory** for creating valid appointments.
-- Appointments marked as `allDay: true` do not require specific times, only the `start` and `end` dates.
+- Appointments marked as `allDay: true` do not require specific times, only the start, and the end dates.
 - Additional attributes like `id`, `color`, or `link` provide extended functionality, but are not strictly required.
 - When handling appointments using the modal in the code, attributes like `title`, `description`, `from_date`,
   `to_date`, etc., are mapped to respective inputs for user interaction.
