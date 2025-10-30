@@ -20,35 +20,48 @@ Whether you're building a scheduling application, an event tracker, or simply ne
 plugin puts flexibility and ease-of-use at your fingertips. Packed with intuitive options, versatile callbacks, and a
 highly customizable design, you can tailor it to fit your specific use case effortlessly.
 
-- [Bootstrap Calendar Plugin](#bootstrap-calendar-plugin)
-    + [Key Features](#key-features)
-    + [Example Usage](#example-usage)
-        * [Options](#options)
-            + [options.holidays](#optionsholidays)
-                - [Configuration Structure:](#configuration-structure)
-                - [Notes](#notes)
-            + [options.translations](#optionstranslations)
-                - [Configuration Structure:](#configuration-structure-1)
-                - [Notes](#notes-1)
-            + [options.icons](#optionsicons)
-                - [Configuration Structure:](#configuration-structure-2)
-                - [Notes](#notes-2)
-        * [Attributes for an Appointment](#attributes-for-an-appointment)
-            + [Required Attributes](#required-attributes)
-            + [Optional Attributes](#optional-attributes)
-            + [Example](#example)
-            + [Notes](#notes-3)
-        * [Triggerable Events](#triggerable-events)
-            + [Available Events and Parameters](#available-events-and-parameters)
-            + [Usage](#usage)
-            + [Notes](#notes-4)
-        * [Methods](#methods)
-            + [Available Methods](#available-methods)
-        * [Utilities](#utilities)
-        * [Feedback, Assistance, or Suggestions](#feedback-assistance-or-suggestions)
-        * [Explore More Projects](#explore-more-projects)
 
-### Key Features
+<!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
+
+- [Bootstrap Calendar Plugin](#bootstrap-calendar-plugin)
+    * [Key Features](#key-features)
+    * [Example Usage](#example-usage)
+    * [Options](#options)
+        + [options.formatter](#optionsformatter)
+            - [Properties](#properties)
+            - [Example Configuration](#example-configuration)
+        + [The 'extras' object](#the-extras-object)
+        + [options.holidays](#optionsholidays)
+            - [Configuration Structure:](#configuration-structure)
+            - [Notes](#notes)
+        + [options.translations](#optionstranslations)
+            - [Configuration Structure:](#configuration-structure-1)
+            - [Notes](#notes-1)
+        + [options.icons](#optionsicons)
+            - [Configuration Structure:](#configuration-structure-2)
+            - [Notes](#notes-2)
+    * [Attributes for an Appointment](#attributes-for-an-appointment)
+        + [Required Attributes](#required-attributes)
+        + [Optional Attributes](#optional-attributes)
+        + [Reserved Attributes](#reserved-attributes)
+        + [Example](#example)
+        + [Notes](#notes-3)
+    * [Triggerable Events](#triggerable-events)
+        + [Available Events and Parameters](#available-events-and-parameters)
+        + [Usage](#usage)
+        + [Notes](#notes-4)
+    * [Methods](#methods)
+        + [Available Methods](#available-methods)
+    * [Utilities](#utilities)
+    * [Feedback, Assistance, or Suggestions](#feedback-assistance-or-suggestions)
+    * [Explore More Projects](#explore-more-projects)
+
+<!-- TOC end -->
+
+
+
+
+## Key Features
 
 - 🔄 **Dynamic Views**: Easily toggle between `day`, `week`, `month`, and `year` views.
 - 🌐 **Localization Support**: Customize `locale`, start-of-week, and translations.
@@ -58,7 +71,7 @@ highly customizable design, you can tailor it to fit your specific use case effo
 - ⚡ **Interactive UI**: Navigate with the mouse wheel, handle user interactions, and access powerful event callbacks.
 - 🕒 **Flexible Time Slots**: Configure detailed hour slots for precision scheduling.
 
-### Example Usage
+## Example Usage
 
 ```html
 <!DOCTYPE html>
@@ -201,59 +214,6 @@ The `formatter` object enables advanced customization of various calendar views 
 
 For each appointment, the plugin creates an 'extras' object with additional information.
 
-Example:
-
-```json
-{
-  "locale": "de-DE",
-  "icon": "bi bi-brightness-high",
-  "colors": {
-    "origin": "success gradient  opacity-75",
-    "backgroundColor": "rgba(25, 135, 84, 0.75)",
-    "backgroundImage": "linear-gradient(rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0))",
-    "color": "rgb(255, 255, 255)",
-    "classList": [
-      "text-bg-success",
-      "bg-gradient",
-      "bg-opacity-75"
-    ]
-  },
-  "start": {
-    "date": "2025-10-19",
-    "time": "01:00:00"
-  },
-  "end": {
-    "date": "2025-10-19",
-    "time": "02:00:00"
-  },
-  "duration": {
-    "days": 0,
-    "hours": 1,
-    "minutes": 0,
-    "seconds": 0,
-    "totalMinutes": 60,
-    "totalSeconds": 3600,
-    "formatted": "1d"
-  },
-  "displayDates": [
-    {
-      "date": "2025-10-19",
-      "day": 0,
-      "times": {
-        "start": null,
-        "end": null
-      },
-      "visibleInWeek": true,
-      "visibleInMonth": true
-    }
-  ],
-  "allDay": false,
-  "inADay": true,
-  "isToday": false,
-  "isNow": false
-}
-```
-
 | Attribute                     | Description                                                       |
 |-------------------------------|-------------------------------------------------------------------|
 | locale                        | Language/locale used for display formatting (e.g. date formats).  |
@@ -271,6 +231,8 @@ Example:
 | duration.hours                | Remaining duration hours (after counting full days).              |
 | duration.minutes              | Remaining duration minutes (after hours).                         |
 | duration.seconds              | Remaining duration seconds (after minutes).                       |
+| duration.totalMinutes         | The absolute number of minutes.                                   |
+| duration.totalSeconds         | The absolute number of seconds.                                   |
 | duration.formatted            | Human-friendly short duration (e.g. "1d", "2h 30m").              |
 | displayDates                  | List of display/visibility entries (used for month/week views).   |
 | displayDates[].date           | Specific date for this display entry.                             |
@@ -408,6 +370,19 @@ By default, icons are defined using the Bootstrap Icons library.
         - An array: `["Room 3", "Building 1"]`
         - Or `null` if no location is specified.
 
+7. **`editable`**
+    - **Description**: Specifies whether the appointment can be edited.
+    - **Example**: `true` or `false``**
+
+8. **`deleteable`**
+    - **Description**: Specifies whether the appointment can be deleted.
+    - **Example**: `true` or `false``**
+
+### Reserved Attributes
+
+1. **`extras`**
+    - **Description**: An object containing additional information about the appointment.
+
 ### Example
 
 ```json
@@ -423,7 +398,9 @@ By default, icons are defined using the Bootstrap Icons library.
   "location": [
     "Room 5A",
     "Building HQ"
-  ]
+  ],
+  "editable": true,
+  "deleteable": false
 }
 ```
 
