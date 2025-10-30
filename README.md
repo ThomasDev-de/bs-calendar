@@ -372,11 +372,11 @@ By default, icons are defined using the Bootstrap Icons library.
 
 7. **`editable`**
     - **Description**: Specifies whether the appointment can be edited.
-    - **Example**: `true` or `false``**
+    - **Example**: `true` or `false`
 
 8. **`deleteable`**
     - **Description**: Specifies whether the appointment can be deleted.
-    - **Example**: `true` or `false``**
+    - **Example**: `true` or `false`
 
 ### Reserved Attributes
 
