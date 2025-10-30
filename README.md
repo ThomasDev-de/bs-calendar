@@ -5,7 +5,7 @@
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v4%20%7C%20v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[changelog](changelog.md#version-123)
+[changelog](changelog.md#version-1212)
 
 | Day                      | Week                       | Month                        | Year                       |
 |--------------------------|----------------------------|------------------------------|----------------------------|
