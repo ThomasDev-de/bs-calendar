@@ -20,13 +20,11 @@ Whether you're building a scheduling application, an event tracker, or simply ne
 plugin puts flexibility and ease-of-use at your fingertips. Packed with intuitive options, versatile callbacks, and a
 highly customizable design, you can tailor it to fit your specific use case effortlessly.
 
-
-<!-- TOC start (generated with https://github.com/derlin/bitdowntoc) -->
-
 - [Bootstrap Calendar Plugin](#bootstrap-calendar-plugin)
     * [Key Features](#key-features)
     * [Example Usage](#example-usage)
     * [Options](#options)
+        + [options.url](#optionsurl)
         + [options.formatter](#optionsformatter)
             - [Properties](#properties)
             - [Example Configuration](#example-configuration)
@@ -55,11 +53,6 @@ highly customizable design, you can tailor it to fit your specific use case effo
     * [Utilities](#utilities)
     * [Feedback, Assistance, or Suggestions](#feedback-assistance-or-suggestions)
     * [Explore More Projects](#explore-more-projects)
-
-<!-- TOC end -->
-
-
-
 
 ## Key Features
 
@@ -132,7 +125,7 @@ available options, including their types, default values, and descriptions.
 | **holidays**          | `object` \| `null`               | See [options.holidays](#optionsHolidays)         | Data source for holiday display. Use an object for custom settings or `null` for no holidays.                                                                                                                      |
 | **translations**      | `object`                         | See [options.translations](#optionsTranslations) | Defines translations used for various textual content in the calendar.                                                                                                                                             |
 | **icons**             | `object`                         | See [options.icons](#optionsIcons)               | Specifies icons for different controls and actions in the calendar (e.g., next, back, add).                                                                                                                        |
-| **url**               | `string` \| `function` \| `null` | `null`                                           | Specifies the base URL for fetching external data like holidays or events. Can be a fixed string URL or a dynamic function that generates the URL. `null` disables external requests.                              |
+| **url**               | `string` \| `function` \| `null` | See [options.url](#optionsUrl)                   | Specifies the base URL for fetching external data like holidays or events. Can be a fixed string URL or a dynamic function that generates the URL. `null` disables external requests.                              |
 | **queryParams**       | `function` \| `null`             | `null`                                           | A function to dynamically define query parameters for external requests. Receives existing request data as input and returns additional key-value pairs for the request. If `null`, no extra parameters are added. |
 | **topbarAddons**      | `function` \| `null`             | `null`                                           | Allows injecting additional custom content in the top navigation bar of the calendar.                                                                                                                              |
 | **sidebarAddons**     | `function` \| `null`             | `null`                                           | Allows injecting additional custom content in the side navigation panel.                                                                                                                                           |
@@ -152,6 +145,86 @@ available options, including their types, default values, and descriptions.
 | **onNavigateBack**    | `function(view, from, to)`       | `null`                                           | Triggered when navigating backward within the calendar. Similar to `onNavigateForward`, providing the current view, and the starting/ending dates of the period.                                                   |
 | **storeState**        | `boolean`                        | `false`                                          | When enabled (`true`), the current calendar state (e.g., selected view) is saved to `localStorage` and restored on the next page load.                                                                             |
 | **debug**             | `boolean`                        | `false`                                          | Enables debug mode for development purposes. Logs additional information on various calendar operations.                                                                                                           |
+
+### options.url
+
+The `url` option controls how the calendar fetches appointment (and search) data. It accepts a `string`, a `function`, or `null`. If left as `null` (the default), the calendar will not attempt to load external appointment data.
+
+- Type: `string | function | null`
+- Default: `null`
+- Purpose: Provide either a static endpoint or a custom fetch function to supply appointments to the calendar.
+
+Usage patterns:
+
+1. Static URL (string)  
+   Provide a server endpoint that returns JSON in the expected structure. The plugin uses a GET request and passes query parameters describing the requested period or search parameters.
+
+   Example response formats:
+    - For normal views (day / week / month / day): an array of appointment objects:
+   ```markdown
+   [
+     {
+       "id": 1,
+       "title": "Meeting",
+       "start": "2025-07-01 10:00:00",
+       "end": "2025-07-01 11:00:00",
+       "color": "primary"
+     },
+     ...
+   ]
+   ```
+    - For search mode: an object with `rows` (appointments array) and `total` (number of results):
+   ```markdown
+   {
+     "rows": [ /* appointment objects */ ],
+     "total": 42
+   }
+   ```
+
+   Request parameters sent by the plugin:
+    - Non-search mode:
+        - `view`: one of `"day"`, `"week"`, `"month"`, `"year"`
+        - If `view === "year"`: `year` (numeric)
+        - Otherwise: `fromDate` (YYYY-MM-DD), `toDate` (YYYY-MM-DD)
+    - Search mode:
+        - `search`: the search string
+        - `limit`: page size (from `options.search.limit`)
+        - `offset`: pagination offset (from `options.search.offset`)
+
+   Example configuration:
+   ```markdown
+   $('#calendar').bsCalendar({
+     url: '/api/appointments'
+   });
+   ```
+
+2. Function (dynamic)  
+   Pass a function that receives a `requestData` object (same shape as above) and must return a Promise that resolves to the expected response (array for normal views, or `{ rows, total }` for search). This allows full control over how the data is fetched (e.g. using fetch, adding auth headers, POST requests, local filtering, etc.).
+
+   Example:
+   ```markdown
+   $('#calendar').bsCalendar({
+     url: (requestData) => {
+       // requestData contains fromDate/toDate or search pagination depending on mode
+       return fetch('/api/appointments?' + new URLSearchParams(requestData), {
+         headers: { 'Authorization': 'Bearer ...' }
+       }).then(r => r.json());
+     }
+   });
+   ```
+
+Important notes
+- If `url` is a string, the plugin uses jQuery.ajax GET requests. Any running request for the same calendar instance will be aborted when a new fetch is started.
+- If `url` is a function, it must return a Promise. The calendar will call it and expect a resolved value as described above.
+- Use `queryParams` (option) to append or override query parameters before the request is sent. `queryParams` is invoked with the prepared `requestData` and should return an object with extra key/value pairs to be merged into the request.
+- For search mode, the plugin sends `search`, `limit`, and `offset`. The server should return `{ rows: [...], total: <number> }`.
+- Keep CORS and authentication in mind when calling external APIs from the browser.
+
+Examples serverside contract (summary)
+- GET /api/appointments?fromDate=2025-07-01&toDate=2025-07-31&view=month
+  -> JSON array of appointments
+- GET /api/appointments?search=john&limit=10&offset=0
+  -> { "rows": [ ... ], "total": 123 }
 
 ### options.formatter
 
