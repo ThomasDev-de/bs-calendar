@@ -1514,7 +1514,7 @@
             $wrapper.removeData('searchMode');
             $wrapper.removeData('searchPagination');
             $wrapper.removeData('currentRequest');
-
+            $wrapper.find('[data-role="holiday"]').remove();
             $wrapper.empty();
         }
 
