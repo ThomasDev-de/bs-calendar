@@ -4138,6 +4138,9 @@
                     countryIsoCode, federalState, languageIsoCode, period.start, period.end
                 ).then(response => {
                     const holidays = [];
+                    if (settings.debug) {
+                        log('Received public holidays:', response);
+                    }
                     for (const holiday of response) {
                         holidays.push({
                             startDate: holiday.startDate,
@@ -4159,6 +4162,9 @@
                     }
                     $.bsCalendar.utils.openHolidayApi.getSchoolHolidays(countryIsoCode, federalState, period.start, period.end)
                         .then(response => {
+                            if (settings.debug) {
+                                log('Received school holidays:', response);
+                            }
                             const holidays = [];
                             for (const holiday of response) {
                                 holidays.push({
