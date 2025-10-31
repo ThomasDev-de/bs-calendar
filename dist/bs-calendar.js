@@ -506,21 +506,6 @@
                     );
                 },
                 /**
-                 * Determines the version of Bootstrap being used.
-                 *
-                 * @return {number} The Bootstrap version, either 4 or 5.
-                 */
-                getBootstrapVersion: () => {
-                    if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal?.VERSION === 'string') {
-                        // Major Version direkt extrahieren und zurückgeben
-                        return parseInt(bootstrap.Modal.VERSION.split('.')[0], 10);
-                    } else if (typeof $ === 'function' && typeof $().modal === 'function') {
-                        // Bootstrap 3 erkennen über jQuery
-                        return 3;
-                    }
-                    return null; // Bootstrap nicht geladen oder nicht erkannt
-                },
-                /**
                  * An object that maps CSS color names to their corresponding hexadecimal color codes.
                  *
                  * The keys in this object are the standard CSS color names (case-insensitive), and the values
@@ -724,24 +709,13 @@
                  * - `origin` {string}: The original input class names string.
                  */
                 getComputedStyles: (inputClassNames) => {
-                    const bsV = $.bsCalendar.utils.getBootstrapVersion();
+                    // Vereinfachte Implementierung: nur Bootstrap 5+ wird unterstützt.
                     const classList = inputClassNames.split(" ").map(className => {
                         if (className.includes("opacity") || className.includes("gradient")) {
                             return className.startsWith("bg-") ? className : `bg-${className}`;
                         } else {
-                            switch (bsV) {
-                                case 5:
-                                    return className.startsWith("bg-") ?
-                                        className.replace("bg-", "text-bg-") :
-                                        `text-bg-${className}`;
-                                case 4:
-                                    if (className.startsWith("bg-")) {
-                                        return className;
-                                    } else {
-                                        return "bg-" + className;
-                                    }
-                            }
-                            return className.startsWith("bg-") && bsV === 5 ?
+                            // Für Bootstrap 5 verwenden wir die text-bg-*-Utilities für textuelle Hintergründe.
+                            return className.startsWith("bg-") ?
                                 className.replace("bg-", "text-bg-") :
                                 `text-bg-${className}`;
                         }
@@ -760,8 +734,8 @@
 
                     const backgroundColor = computedStyles.backgroundColor || "rgba(0, 0, 0, 0)";
                     const backgroundImage = computedStyles.backgroundImage || "none";
-                    const color = bsV > 4 ? (computedStyles.color || "#000000")
-                        : ($.bsCalendar.utils.isDarkColor(backgroundColor) ? "#ffffff" : "#000000");
+                    // Bei Bootstrap 5 kann die Textfarbe direkt aus den berechneten Styles genommen werden.
+                    const color = computedStyles.color || "#000000";
                     const opacity = computedStyles.opacity || "1";
 
                     document.body.removeChild(tempElement);
@@ -2053,7 +2027,7 @@
                     display: 'none'
                 },
                 role: 'status',
-                html: '<span class="visually-hidden sr-only">Loading...</span>'
+                html: '<span class="visually-hidden">Loading...</span>'
             }).appendTo(leftCol);
 
             // navigation through the calendar depending on the view
@@ -4528,9 +4502,9 @@
                     if (isLastRow) {
                         borderClasses.push('border-bottom');
                     }
-                    borderClasses.push('border-start border-left');
+                    borderClasses.push('border-start');
                     if (isLastColumn) {
-                        borderClasses.push('border-end border-right');
+                        borderClasses.push('border-end ');
                     }
 
                     // Wenn es die erste Zeile ist, Wochentagsnamen hinzufügen
@@ -4915,7 +4889,7 @@
                 const dayContainer = $('<div>', {
                     'data-week-day': currentDate.getDay(),
                     'data-date-local': $.bsCalendar.utils.formatDateToDateString(currentDate),
-                    class: 'wc-day-week-view flex-grow-1 flex-fill border-end border-right position-relative',
+                    class: 'wc-day-week-view flex-grow-1 flex-fill border-end position-relative',
                     css: {
                         width: (100 / 7) + '%' // Fixe Breite für 7 Spalten
                     }
