@@ -4111,10 +4111,12 @@
             const settings = getSettings($wrapper);
             const period = getStartAndEndDateByView($wrapper);
             const locale = $.bsCalendar.utils.getLanguageAndCountry(settings.locale);
+
             if (typeof settings.holidays === 'object' && !$.bsCalendar.utils.isValueEmpty(settings.holidays)) {
                 let countryIsoCode;
                 let languageIsoCode;
                 let federalState = null;
+
                 if (settings.holidays.hasOwnProperty('country') && !$.bsCalendar.utils.isValueEmpty(settings.holidays.country)) {
                     countryIsoCode = settings.holidays.country.toUpperCase();
                 } else {
@@ -4126,6 +4128,7 @@
                 } else {
                     languageIsoCode = locale.language;
                 }
+
                 if (settings.holidays.hasOwnProperty('federalState') && !$.bsCalendar.utils.isValueEmpty(settings.holidays.federalState)) {
                     federalState = settings.holidays.federalState.toUpperCase();
                 }
@@ -4139,28 +4142,25 @@
                     });
                 }
 
-                $.bsCalendar.utils.openHolidayApi.getPublicHolidays(
-                    countryIsoCode, federalState, languageIsoCode, period.start, period.end
-                ).then(response => {
-                    const holidays = [];
-                    if (settings.debug) {
-                        log('Received public holidays:', response);
-                    }
-                    for (const holiday of response) {
-                        holidays.push({
+                const promises = [];
+
+                // Public holidays
+                promises.push(
+                    $.bsCalendar.utils.openHolidayApi.getPublicHolidays(
+                        countryIsoCode, federalState, languageIsoCode, period.start, period.end
+                    ).then(response => {
+                        if (settings.debug) {
+                            log('Received public holidays:', response);
+                        }
+                        return response.map(holiday => ({
                             startDate: holiday.startDate,
                             endDate: holiday.endDate,
-                            title: holiday.name[0].text,
-                        });
-                    }
-                    drawHolidays($wrapper, holidays);
-                }).finally(() => {
-                    // Falls kein Bundesland angefragt wird, Flag hier aufräumen
-                    if (!federalState) {
-                        $wrapper.removeData('holidaysLoading');
-                    }
-                });
+                            title: holiday.name[0]?.text
+                        }));
+                    })
+                );
 
+                // School holidays (optional)
                 if (federalState !== null) {
                     if (settings.debug) {
                         log('Load school holidays with params:', {
@@ -4170,26 +4170,45 @@
                             federalState: federalState
                         });
                     }
-                    $.bsCalendar.utils.openHolidayApi.getSchoolHolidays(countryIsoCode, federalState, period.start, period.end)
-                        .then(response => {
+                    promises.push(
+                        $.bsCalendar.utils.openHolidayApi.getSchoolHolidays(
+                            countryIsoCode, federalState, period.start, period.end
+                        ).then(response => {
                             if (settings.debug) {
                                 log('Received school holidays:', response);
                             }
-                            const holidays = [];
-                            for (const holiday of response) {
-                                holidays.push({
-                                    startDate: holiday.startDate,
-                                    endDate: holiday.endDate,
-                                    title: holiday.name[0].text,
-                                });
-                            }
-                            drawHolidays($wrapper, holidays);
+                            return response.map(holiday => ({
+                                startDate: holiday.startDate,
+                                endDate: holiday.endDate,
+                                title: holiday.name[0]?.text
+                            }));
                         })
-                        .finally(() => {
-                            // Flag nach dem zweiten Call (School Holidays) aufräumen
-                            $wrapper.removeData('holidaysLoading');
-                        });
+                    );
                 }
+
+                Promise.all(promises)
+                    .then(results => {
+                        // flatten
+                        const all = [].concat.apply([], results);
+
+                        // dedupe nach (startDate|endDate|title)
+                        const seen = new Set();
+                        const unique = all.filter(h => {
+                            const key = [h.startDate, h.endDate, h.title].join('|');
+                            if (seen.has(key)) return false;
+                            seen.add(key);
+                            return true;
+                        });
+
+                        if (settings.debug) {
+                            log('Draw unique holidays:', unique);
+                        }
+                        drawHolidays($wrapper, unique);
+                    })
+                    .finally(() => {
+                        $wrapper.removeData('holidaysLoading');
+                    });
+
             } else if (typeof settings.holidays === 'function') {
                 if (settings.debug) {
                     log('Load custom function holidays with params:', {
@@ -4205,6 +4224,9 @@
                     settings.holidays(period.start, period.end, locale.country, locale.language, federalState)
                 )
                     .then(holidays => {
+                        if (settings.debug) {
+                            log('Received custom holidays:', holidays);
+                        }
                         drawHolidays($wrapper, holidays);
                     })
                     .finally(() => {
