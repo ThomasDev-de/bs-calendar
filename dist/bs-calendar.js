@@ -1834,7 +1834,6 @@
                         // Reject the Promise if an error occurs
                         reject(error);
                     });
-
             });
         }
 
@@ -4103,6 +4102,12 @@
          * @return {void} This function does not return a value. It fetches and renders holidays on the given wrapper element.
          */
         function loadHolidays($wrapper) {
+            // Reentrancy-Guard: verhindert doppeltes Laden innerhalb eines Build-Zyklus
+            if ($wrapper.data('holidaysLoading')) {
+                return;
+            }
+            $wrapper.data('holidaysLoading', true);
+
             const settings = getSettings($wrapper);
             const period = getStartAndEndDateByView($wrapper);
             const locale = $.bsCalendar.utils.getLanguageAndCountry(settings.locale);
@@ -4149,6 +4154,11 @@
                         });
                     }
                     drawHolidays($wrapper, holidays);
+                }).finally(() => {
+                    // Falls kein Bundesland angefragt wird, Flag hier aufräumen
+                    if (!federalState) {
+                        $wrapper.removeData('holidaysLoading');
+                    }
                 });
 
                 if (federalState !== null) {
@@ -4174,6 +4184,10 @@
                                 });
                             }
                             drawHolidays($wrapper, holidays);
+                        })
+                        .finally(() => {
+                            // Flag nach dem zweiten Call (School Holidays) aufräumen
+                            $wrapper.removeData('holidaysLoading');
                         });
                 }
             } else if (typeof settings.holidays === 'function') {
@@ -4187,10 +4201,18 @@
                     });
                     log('Make sure a promise is returned!');
                 }
-                settings.holidays(period.start, period.end, locale.country, locale.language, federalState)
+                Promise.resolve(
+                    settings.holidays(period.start, period.end, locale.country, locale.language, federalState)
+                )
                     .then(holidays => {
                         drawHolidays($wrapper, holidays);
+                    })
+                    .finally(() => {
+                        $wrapper.removeData('holidaysLoading');
                     });
+            } else {
+                // nichts zu laden → Flag aufräumen
+                $wrapper.removeData('holidaysLoading');
             }
         }
 
