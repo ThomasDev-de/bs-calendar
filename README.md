@@ -7,7 +7,8 @@
 
 [changelog](changelog.md#version-200)
 
-> 🔔 **Attention:** As of version 2, Bootstrap 4 is no longer supported.   
+> [!WARNING]
+> As of version 2, Bootstrap 4 is no longer supported.   
 > To use the plugin in **Bootstrap 4**, use version **^1.** .
 
 | Day                      | Week                       | Month                        | Year                       |
