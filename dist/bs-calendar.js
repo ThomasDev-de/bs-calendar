@@ -2065,7 +2065,7 @@
                 }).appendTo(rightCol);
 
                 if (settings.debug) {
-                    console.log('buidlFramwork', settings.views);
+                    log('buidlFramwork', settings.views);
                 }
                 settings.views.forEach(view => {
                     $('<li>', {
@@ -4212,6 +4212,9 @@
             const $viewContainer = getViewContainer($wrapper);
             // Iterate through each holiday object
             holidays.forEach(holiday => {
+                if (settings.debug) {
+                    log('Draw holiday:', holiday);
+                }
                 // Parse the start and end dates of the holiday
                 const startDate = new Date(holiday.startDate);
                 const endDate = new Date(holiday.endDate);
