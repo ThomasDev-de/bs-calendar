@@ -1363,7 +1363,7 @@
             $wrapper.find('.tooltip').remove();
             if (removeAppointments) {
                 setAppointments($wrapper, []).then(_cleanedAppointments => {
-                    void _cleanedAppointments; // Verhindert die Warnung, aber erfüllt keinen Zweck
+                    void _cleanedAppointments; // Prevents the warning, but serves no purpose
                 });
             }
         }
@@ -1376,6 +1376,7 @@
          */
         function destroy($wrapper) {
             $(calendarElements.infoModal).modal('hide');
+            methodClear($wrapper);
             $wrapper.removeData('initBsCalendar');
             $wrapper.removeData('settings');
             $wrapper.removeData('view');
@@ -1384,7 +1385,6 @@
             $wrapper.removeData('searchMode');
             $wrapper.removeData('searchPagination');
             $wrapper.removeData('currentRequest');
-            $wrapper.find('[data-role="holiday"]').remove();
             $wrapper.empty();
         }
 
@@ -1442,6 +1442,10 @@
                 // Merge the old settings with the new ones
                 const newSettings = $.extend(true, {}, $.bsCalendar.getDefaults(), $wrapper.data(), settingsBefore, options || {});
 
+                if (settingsBefore.debug) {
+                    log('Settings before update:', settingsBefore);
+                    log('Settings after update:', newSettings);
+                }
                 // Retain the date and view logic
                 if (!options.hasOwnProperty('startDate')) {
                     newSettings.startDate = startDate;
