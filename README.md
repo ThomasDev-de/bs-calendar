@@ -1,18 +1,21 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-1.2.12-blue)
+![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
-![Bootstrap](https://img.shields.io/badge/Bootstrap-v4%20%7C%20v5-blueviolet)
+![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[changelog](changelog.md#version-1212)
+[changelog](changelog.md#version-200)
+
+> 🔔 **Attention:** As of version 2, Bootstrap 4 is no longer supported.   
+> To use the plugin in **Bootstrap 4**, use version **^1.** .
 
 | Day                      | Week                       | Month                        | Year                       |
 |--------------------------|----------------------------|------------------------------|----------------------------|
 | ![day](demo/img/day.png) | ![week](demo/img/week.png) | ![month](demo/img/month.png) | ![year](demo/img/year.png) |
 
 Effortlessly manage and display calendar views with the **Bootstrap Calendar Plugin**, a lightweight yet powerful jQuery
-plugin designed for modern web applications. This plugin seamlessly integrates with Bootstrap (v4 & v5), offering a
+plugin designed for modern web applications. This plugin seamlessly integrates with Bootstrap ^v5, offering a
 fully responsive and customizable calendar interface with advanced features such as event handling, dynamic holiday API
 integration, and support for multiple views (`day`, `week`, `month`, and `year`).
 

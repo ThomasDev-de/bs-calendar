@@ -8,10 +8,10 @@
  *
  * @author Thomas Kirsch
  * @version 1.2.12
- * @date 2025-10-28
+ * @date 2025-10-31
  * @license MIT
  * @requires "jQuery" ^3
- * @requires "Bootstrap" ^v4 | ^v5
+ * @requires "Bootstrap" ^v5
  *
  * @description
  * This file defines a jQuery plugin `bsCalendar` that can be used to instantiate and manage a Bootstrap-based calendar
