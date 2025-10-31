@@ -906,41 +906,7 @@
                     const options = {weekday: 'long', month: 'long', day: 'numeric'};
                     return new Intl.DateTimeFormat(locale, options).format(date);
                 },
-                /**
-                 * Generates CSS for the border-radius property based on the input number.
-                 *
-                 * @param {number} number - A number that corresponds to a predefined border-radius value.
-                 *                          Supported values:
-                 *                          1 -> '0.25rem'
-                 *                          2 -> '0.5rem'
-                 *                          3 -> '0.75rem'
-                 *                          4 -> '1rem'
-                 *                          5 -> '2rem'
-                 * @return {string} The CSS string for the border-radius property with the specified value.
-                 */
-                getBorderRadiusCss: (number) => {
-                    let checkedNumber = Math.min(5, Math.max(0, number));
-                    let rounded = '0';
-                    switch (checkedNumber) {
-                        case 1:
-                            rounded = '0.25rem';
-                            break;
-                        case 2:
-                            rounded = '0.5rem';
-                            break;
-                        case 3:
-                            rounded = '0.75rem';
-                            break;
-                        case 4:
-                            rounded = '1rem';
-                            break;
-                        case 5:
-                            rounded = '2rem';
-                            break;
-                    }
-                    return `border-radius: ${rounded} !important`;
-                },
-                generateRandomString(length = 8, prefix = 'bs_calendar_id_') {
+               generateRandomString(length = 8, prefix = 'bs_calendar_id_') {
                     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
                     let result = '';
                     for (let i = 0; i < length; i++) {
@@ -1086,75 +1052,6 @@
         };
 
         const namespace = '.bs.calendar';
-
-
-        /**
-         * The `bs4migration` object provides CSS rule mappings for migrating or aligning styles
-         * to a consistent format during a transition period, specifically for Bootstrap 4-related styles.
-         * It includes predefined style rules for positioning, background, and bordered elements.
-         *
-         * Properties:
-         * - `translateMiddleCss`: Contains CSS rules for centering elements using translation on both axes.
-         * - `start0Css`: Contains CSS rules for aligning an element to the leftmost (0%) position.
-         * - `start25Css`: Contains CSS rules for aligning an element to the 25% left position.
-         * - `start50Css`: Contains CSS rules for aligning an element to the 50% left position.
-         * - `start75Css`: Contains CSS rules for aligning an element to the 75% left position.
-         * - `start100Css`: Contains CSS rules for aligning an element to the rightmost (100%) position.
-         * - `top0Css`: Contains CSS rules for aligning an element to the topmost (0%) vertical position.
-         * - `top25Css`: Contains CSS rules for aligning an element to the top 25% vertical position.
-         * - `top50Css`: Contains CSS rules for aligning an element to the vertical center (50%) position.
-         * - `top75Css`: Contains CSS rules for aligning an element to the top 75% vertical position.
-         * - `top100Css`: Contains CSS rules for aligning an element to the bottommost (100%) vertical position.
-         * - `bgBodyTertiaryCss`: Contains CSS rules for setting body background color with tertiary background and customizable opacity.
-         * - `roundedPillCSS`: Contains CSS rules for applying a pill-shaped border radius.
-         * - `roundedCircleCSS`: Contains CSS rules for applying a perfect circular border radius.
-         */
-        const bs4migration = {
-            translateMiddleCss: [
-                'transform: translate(-50%,-50%)'
-            ],
-            start0Css: [
-                'left: 0'
-            ],
-            start25Css: [
-                'left: 25%'
-            ],
-            start50Css: [
-                'left: 50%'
-            ],
-            start75Css: [
-                'left: 75%'
-            ],
-            start100Css: [
-                'left: 100%'
-            ],
-            top0Css: [
-                'top: 0'
-            ],
-            top25Css: [
-                'top: 25%'
-            ],
-            top50Css: [
-                'top: 50%'
-            ],
-            top75Css: [
-                'top: 75%'
-            ],
-            top100Css: [
-                'top: 100%'
-            ],
-            bgBodyTertiaryCss: [
-                'opacity: 1',
-                'background-color: rgba(var(--bs-tertiary-bg-rgb, 248, 249, 250), var(--bs-bg-opacity, 1))'
-            ],
-            roundedPillCSS: [
-                'border-radius: var(--bs-border-radius-pill, 50rem) !important',
-            ],
-            roundedCircleCSS: [
-                'border-radius: 50% !important',
-            ]
-        };
-
 
         /**
          * jQuery plugin that initializes and manages a Bootstrap-based calendar.
@@ -1360,8 +1257,8 @@
                 hour: '2-digit',
                 minute: '2-digit'
             });
-            const timeToShow = appointment.allDay ? '' : `<small class="me-1 mr-1">${startTime}</small>`;
-            const icon = `<i class="${extras.icon} me-1 mr-1"></i>`;
+            const timeToShow = appointment.allDay ? '' : `<small class="me-1">${startTime}</small>`;
+            const icon = `<i class="${extras.icon} me-1"></i>`;
             const styles = [
                 'font-size: 12px',
                 'line-height: 18px'
@@ -1391,8 +1288,7 @@
                 `font-size:1.75rem`,
                 `width: 60px`,
             ].join(';');
-            const roundedCss = $.bsCalendar.utils.getBorderRadiusCss(5);
-            const link = buildLink(appointment.link, roundedCss);
+            const link = buildLink(appointment.link);
             const day = new Date(appointment.start).getDate();
             const date = new Date(appointment.start).toLocaleDateString(extras.locale, {
                 month: 'short',
@@ -1682,7 +1578,7 @@
          * @param {string} [style=""] - Optional style string applied to the `style` attribute of the anchor tag.
          * @return {string} An HTML string representing an anchor tag. Returns an empty string if `link` is invalid.
          */
-        function buildLink(link, style = "") {
+        function buildLink(link) {
             if (!link) {
                 return "";  // If no link is specified, return empty.
             }
@@ -1694,7 +1590,7 @@
 
             if (typeof link === "string") {
                 // treatment as a simple string
-                return `<a class="btn btn-primary px-5" style="${style}" href="${link}" target="${defaultTarget}" rel="${defaultRel}">${defaultText}</a>`;
+                return `<a class="btn btn-primary px-5 rounded-pill" href="${link}" target="${defaultTarget}" rel="${defaultRel}">${defaultText}</a>`;
             }
 
             if (typeof link === "object" && link.href) {
@@ -1705,7 +1601,7 @@
 
                 // When HTML content is defined, this is used
                 const content = link.html || text;
-                return `<a class="btn btn-primary px-5" style="${style}" href="${link.href}" target="${target}" rel="${rel}">${content}</a>`;
+                return `<a class="btn btn-primary px-5 rounded-pill" href="${link.href}" target="${target}" rel="${rel}">${content}</a>`;
             }
 
             // If neither a string nor a correct object is available, return empty.
@@ -1728,8 +1624,7 @@
                 try {
                     const showTime = $.bsCalendar.utils.getAppointmentTimespanBeautify(extras, true);
                     // generate link if available
-                    const roundedCss = $.bsCalendar.utils.getBorderRadiusCss(5);
-                    const link = buildLink(appointment.link, roundedCss);
+                    const link = buildLink(appointment.link);
 
                     // process location information
                     let location = "";
@@ -2068,12 +1963,11 @@
                 class: 'd-flex flex-column align-items-stretch h-100 w-100'
             }).appendTo($wrapper);
 
-            const roundedCss = $.bsCalendar.utils.getBorderRadiusCss(settings.rounded);
+            const roundedClass = 'rounded-' + settings.rounded;
 
             // Create the wrapper for the upper navigation
             const topNav = $('<div>', {
-                class: `row align-items-center px-0 justify-content-between mb-3 ${calendarElements.topNav}`,
-                style: roundedCss
+                class: `row align-items-center px-0 justify-content-between ${roundedClass} mb-3 ${calendarElements.topNav}`
             }).appendTo(innerWrapper);
 
             // When an element has been set after the upper navigation, add it after navigation
@@ -2087,8 +1981,7 @@
 
             // Add a button to switch on and off the sidebar.
             $('<button>', {
-                class: `btn border me-2 mr-2`,
-                style: roundedCss,
+                class: `btn border me-2 ${roundedClass}`,
                 html: `<i class="${settings.icons.menu}"></i>`,
                 'data-bs-toggle': 'sidebar'
             }).appendTo(leftCol);
@@ -2096,15 +1989,13 @@
             // If search is activated, add a search container
             if (settings.search) {
                 const topSearchNav = $('<div>', {
-                    class: `d-none align-items-center px-0 justify-content-center mb-3 ${calendarElements.topSearchNav}`,
-                    style: roundedCss
+                    class: `d-none align-items-center px-0 justify-content-center mb-3 ${roundedClass} ${calendarElements.topSearchNav}`,
                 }).insertAfter(topNav);
 
                 // add a search button to topNav
                 const showSearchbar = $('<button>', {
-                    class: `btn border js-btn-search me-2 mr-2`,
-                    html: `<i class="${settings.icons.search}"></i>`,
-                    style: roundedCss,
+                    class: `btn border js-btn-search me-2 ${roundedClass}`,
+                    html: `<i class="${settings.icons.search}"></i>`
                 }).appendTo(leftCol);
 
                 // Add click event to start search mode
@@ -2113,20 +2004,19 @@
                 });
 
                 // add the search input to the top search bar
-                const inputCss = 'max-width: 400px; ' + roundedCss;
+                const inputCss = 'max-width: 400px;';
                 $('<input>', {
                     type: 'search',
                     style: inputCss,
-                    class: 'form-control border',
+                    class: `form-control border ${roundedClass}`,
                     placeholder: settings.translations.search || 'search',
                     'data-search-input': true
                 }).appendTo(topSearchNav);
 
                 // add a close button
                 const btnCloseSearch = $('<button>', {
-                    class: `btn p-2 ms-2 ml-2 js-btn-close-search`,
+                    class: `btn p-2 ms-2 js-btn-close-search ${roundedClass}`,
                     html: `<i class="bi bi-x-lg mx-2"></i>`,
-                    style: roundedCss,
                     "aria-label": "Close"
                 }).appendTo(topSearchNav);
 
@@ -2142,8 +2032,7 @@
             // add a button to create appointments
             if (settings.showAddButton) {
                 $('<button>', {
-                    class: `btn border mr-2 me-2`,
-                    style: roundedCss,
+                    class: `btn border me-2 ${roundedClass}`,
                     html: `<i class="${settings.icons.add}"></i>`,
                     'data-add-appointment': true
                 }).appendTo(leftCol);
@@ -2153,13 +2042,13 @@
             if (settings.title) {
                 $('<div>', {
                     html: settings.title,
-                    class: 'mb-0 me-2 mr-2'
+                    class: 'mb-0 me-2'
                 }).appendTo(middleCol);
             }
 
             // visual notification that appointments are loaded
             $('<div>', {
-                class: 'spinner-border me-auto mr-auto me-2 mr-2 text-secondary wc-calendar-spinner',
+                class: 'spinner-border me-auto me-2 text-secondary wc-calendar-spinner',
                 css: {
                     display: 'none'
                 },
@@ -2169,9 +2058,9 @@
 
             // navigation through the calendar depending on the view
             $('<div>', {
-                class: 'd-flex ms-2 ml-2 align-items-center justify-content-center wc-nav-view-wrapper flex-nowrap text-nowrap',
+                class: 'd-flex ms-2 align-items-center justify-content-center wc-nav-view-wrapper flex-nowrap text-nowrap',
                 html: [
-                    '<strong class="wc-nav-view-name mr-3 me-3"></strong>',
+                    '<strong class="wc-nav-view-name me-3"></strong>',
                     `<a data-prev href="#"><i class="${settings.icons.prev}"></i></a>`,
                     `<a class="mx-2" data-next href="#"><i class="${settings.icons.next}"></i></a>`,
                 ].join('')
@@ -2180,18 +2069,17 @@
 
             // Add a button today to activate the current date in the calendar
             $('<button>', {
-                class: `btn ms-2 ml-2 border`,
+                class: `btn ms-2 border ${roundedClass}`,
                 html: settings.translations.today,
-                style: roundedCss,
                 'data-today': true
             }).appendTo(rightCol);
 
             // If only one view is desired, give no selection
             if (settings.views.length > 1) {
                 const dropDownView = $('<div>', {
-                    class: 'dropdown dropdown-center wc-select-calendar-view ms-2 ml-2',
+                    class: 'dropdown dropdown-center wc-select-calendar-view ms-2',
                     html: [
-                        `<a class="btn dropdown-toggle border" data-dropdown-text style="${roundedCss}" href="#" role="button" data-toggle="dropdown" data-bs-toggle="dropdown" aria-expanded="false">`,
+                        `<a class="btn dropdown-toggle border ${roundedClass}" data-dropdown-text href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">`,
                         '</a>',
                         '<ul class="dropdown-menu">',
                         '</ul>',
@@ -2203,7 +2091,7 @@
                 }
                 settings.views.forEach(view => {
                     $('<li>', {
-                        html: `<a class="dropdown-item" data-view="${view}" href="#"><i class="${settings.icons[view]} me-2 mr-2"></i> ${settings.translations[view]}</a>`
+                        html: `<a class="dropdown-item" data-view="${view}" href="#"><i class="${settings.icons[view]} me-2"></i> ${settings.translations[view]}</a>`
                     }).appendTo(dropDownView.find('ul'));
                 });
             }
@@ -2218,14 +2106,14 @@
                 css: {
                     position: 'relative',
                 },
-                class: 'me-4 mr-4 ' + calendarElements.sideNav,
+                class: 'me-4 ' + calendarElements.sideNav,
                 html: [
                     '<div class="pb-3">',
                     '<div class="d-flex justify-content-between align-items-center">',
-                    '<span class="wc-nav-view-small-name me-3 mr-3"></span>',
+                    '<span class="wc-nav-view-small-name me-3"></span>',
                     '<div>',
                     `<a data-prev href="#"><i class="${settings.icons.prev}"></i></a>`,
-                    `<a class="ml-2 ms-2" data-next href="#"><i class="${settings.icons.next}"></i></a>`,
+                    `<a class="ms-2" data-next href="#"><i class="${settings.icons.next}"></i></a>`,
                     '</div>',
                     '</div>',
                     '</div>',
@@ -2241,8 +2129,7 @@
 
             // add the viewer
             $('<div>', {
-                class: `container-fluid ${calendarElements.containerView} pb-5 border-1 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`,
-                style: roundedCss,
+                class: `container-fluid ${calendarElements.containerView} ${roundedClass} pb-5 border-1 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`,
             }).appendTo(container);
 
             // done
@@ -2526,7 +2413,7 @@
             }
 
             // execute the animation (depending on Shouldbevisible)
-            $sidebar.animate({left: shouldBeVisible ? '0px' : '-300px'}, 300, function () {
+            $sidebar.animate({left: shouldBeVisible ? '0px' : '-400px'}, 300, function () {
                 // Set position after the animation when closed
                 if (!shouldBeVisible) {
                     $sidebar.css({position: 'absolute'});
@@ -3888,7 +3775,7 @@
             const statusText = `${startIndexDisplay}-${endIndexDisplay} | ${total}`;
 
             $('<div>', {
-                class: 'alert alert-secondary me-4 mr-4 py-2 px-4',
+                class: 'alert alert-secondary me-4 py-2 px-4',
                 text: statusText,
             }).appendTo($paginationWrapper);
 
@@ -4424,18 +4311,6 @@
             hideBSCalendarLoader($wrapper);
             const spinner = $wrapper.find('.wc-calendar-spinner');
             spinner.show();
-
-            // const combinedCss = [
-            //     ...bs4migration.start0Css,
-            //     ...bs4migration.top0Css
-            // ].join(';');
-            //
-            //
-            // $('<div>', {
-            //     class: 'wc-calendar-overlay opacity-25 position-absolute w-100 h-100 d-flex justify-content-center align-items-center',
-            //     style: combinedCss,
-            //     html: '<div class="spinner-grow" role="status" style="width: 7rem; height: 7rem;"><span class="visually-hidden">Loading...</span></div>'
-            // }).appendTo($wrapper);
         }
 
         /**
@@ -4614,7 +4489,6 @@
                 const calendarWeek = $.bsCalendar.utils.getCalendarWeek(currentDate);
                 const paddingTop = isFirstRow ? '1.75rem' : '.75rem';
                 const weekRowCss = [
-                    ...bs4migration.bgBodyTertiaryCss,
                     `padding-top:` + paddingTop,
                     'font-size: 12px',
                     'width: 24px',
@@ -4623,7 +4497,7 @@
                 ].join(';');
                 weekRow.append(
                     $('<div>', {
-                        class: `col px-1 d-flex align-items-start pt-${paddingTop} fw-bold justify-content-center`,
+                        class: `col px-1 d-flex align-items-start pt-${paddingTop} fw-bold justify-content-center bg-body-tertiary`,
                         style: weekRowCss,
                         html: `<small>${calendarWeek}</small>`,
                     })
@@ -4854,14 +4728,13 @@
                 // calculate calendar week
                 const calendarWeek = $.bsCalendar.utils.getCalendarWeek(currentDate);
                 const weekRowCss = [
-                    ...bs4migration.bgBodyTertiaryCss,
                     `font-size: ${fontSize}px`,
                     `width: ${weekRowWidth}px`,
                     `height: ${cellSize}px`,
                 ].join(';');
                 $('<td>', {
                     style: weekRowCss,
-                    class: 'px-1 text-center',
+                    class: 'px-1 text-center bg-body-tertiary',
                     text: calendarWeek,
                 }).appendTo(weekRow); // insert cw into the first column of the line
 
@@ -4873,7 +4746,6 @@
                     const isSelected = currentDate.toDateString() === activeDate.toDateString();
                     const dayStyleArray = [];
                     let dayClass = '';
-                    dayStyleArray.push(...bs4migration.roundedCircleCSS);
                     if (isToday) {
                         dayStyleArray.push('background-color: ' + defaultColors.backgroundColor);
                         dayStyleArray.push('background-image: ' + defaultColors.backgroundImage);
@@ -4891,17 +4763,13 @@
                     let badge = '';
                     if (forYearView) {
                         const combinedCss = [
-                            ...bs4migration.translateMiddleCss,
-                            ...bs4migration.roundedPillCSS,
-                            ...bs4migration.start50Css,
-                            ...bs4migration.top100Css,
                             'z-index: 1'
                         ].join(';');
 
-                        badge = `<span class="js-badge badge position-absolute" style="${combinedCss}"></span>`;
+                        badge = `<span class="js-badge badge position-absolute start-50 top-100 rounded-pill translate-middle" style="${combinedCss}"></span>`;
                     }
 
-                    const tdContent = [`<div style="${dayStyleArray.join(';')}" class="${dayClass} w-100 h-100 d-flex justify-content-center flex-column align-items-center">`,
+                    const tdContent = [`<div style="${dayStyleArray.join(';')}" class="${dayClass} rounded-circle w-100 h-100 d-flex justify-content-center flex-column align-items-center">`,
                         `<span>${currentDate.getDate()}</span>`,
                         badge,
                         `</div>`
@@ -4943,7 +4811,7 @@
 
             // Create the headline for the day's header
             const headline = $('<div>', {
-                class: 'wc-day-header mb-2 ms-5 ml-5',
+                class: 'wc-day-header mb-2 ms-5',
                 css: {
                     paddingLeft: '40px'
                 },
@@ -5082,8 +4950,9 @@
                 'height: 44px',
                 'line-height: 44px',
             ];
+            const circleClasses = [];
             if (isToday) {
-                circleCss.push(...bs4migration.roundedCircleCSS);
+                circleClasses.push('rounded-circle');
                 circleCss.push(`background-color: ${colors.backgroundColor}`);
                 circleCss.push(`background-image: ${colors.backgroundImage}`);
                 circleCss.push(`color: ${colors.color}`);
@@ -5091,7 +4960,7 @@
             return [
                 `<div class="d-flex flex-column justify-content-center  w-100 p-2 align-items-${justify} ${todayColor}">`,
                 `<div class="d-flex justify-content-center" style="width: 44px"><small>${shortWeekday}</small></div>`,
-                `<span style="${circleCss.join(';')}" class="h4 m-0 text-center">${day}</span>`,
+                `<span style="${circleCss.join(';')}" class="h4 m-0 text-center ${circleClasses.join(' ')}">${day} </span>`,
                 `</div>`
             ].join('')
 
@@ -5158,15 +5027,13 @@
 
                 if (showLabels) {
                     const combinedCss = [
-                        ...bs4migration.translateMiddleCss,
-                        ...bs4migration.top0Css,
                         'left: -34px'
                     ].join(';');
 
                     const hourDate = new Date(2023, 0, 1, hour); // 2023-01-01, Stunde = hour
 
                     $('<div>', {
-                        class: 'wc-time-label ps-2 pl-2 position-absolute',
+                        class: 'wc-time-label ps-2 position-absolute top-0 translate-middle',
                         style: combinedCss,
                         html: $.bsCalendar.utils.formatTime(hourDate, false)
                     }).appendTo(row);
@@ -5246,9 +5113,6 @@
              * This small badge will display the current time in a readable format (e.g., HH:mm).
              */
             const combinedCss = [
-                ...bs4migration.translateMiddleCss,   // Center the badge using translation rules.
-                ...bs4migration.start0Css,           // Align the badge to the start (left).
-                ...bs4migration.top0Css,             // Align the badge to the top of the indicator.
                 'background-color: ' + badgeColor.backgroundColor, // Set the computed background color.
                 'background-image: ' + badgeColor.backgroundImage, // Set the computed gradient.
                 'color: ' + badgeColor.color,        // Set the computed font color.
@@ -5258,7 +5122,7 @@
              * Create and append a small badge to the time indicator.
              * This badge displays the current time in hours and minutes dynamically.
              */
-            $(`<small class="position-absolute badge js-current-time" style="${combinedCss}">` +
+            $(`<small class="position-absolute badge js-current-time top-0 start-0 translate-middle" style="${combinedCss}">` +
                 $.bsCalendar.utils.formatTime(getDynamicNow(), false) +
                 '</small>').appendTo(currentTimeIndicator);
 
@@ -5267,10 +5131,6 @@
              * This is an additional visual marker for showing the exact current time.
              */
             const combinedCss2 = [
-                ...bs4migration.translateMiddleCss,   // Center the circle using translation rules.
-                ...bs4migration.start100Css,          // Align the circle to the "end" (right) of the line.
-                ...bs4migration.top50Css,             // Center the circle vertically.
-                ...bs4migration.roundedCircleCSS,     // Apply circular styling to the dot.
                 'width: 10px',                        // Circle width.
                 'height: 10px',                       // Circle height.
             ].join(';'); // Combine the rules into a single CSS string.
@@ -5279,7 +5139,7 @@
              * Create and append a small circular marker to the time indicator.
              * This marker visually represents the current time.
              */
-            $(`<div class="position-absolute bg-danger" style="${combinedCss2}"></div>`)
+            $(`<div class="position-absolute bg-danger start-100 top-50 rounded-circle translate-middle" style="${combinedCss2}"></div>`)
                 .appendTo(currentTimeIndicator);
 
             /**
@@ -5423,16 +5283,15 @@
                 },
             }).appendTo(container);
 
-            const roundedCss = $.bsCalendar.utils.getBorderRadiusCss(settings.rounded);
+            const roundedClass = `rounded-${settings.rounded}`;
             // render a small calendar for each month
             for (let month = 0; month < 12; month++) {
                 // Create a wrapper for every monthly calendar
                 const css = [
-                    roundedCss,
                     'margin: 5px'
                 ]
                 const monthWrapper = $('<div>', {
-                    class: 'd-flex p-2 flex-column align-items-start wc-year-month-container', // Col-Layout für Titel und Kalender
+                    class: `d-flex p-2 flex-column align-items-start wc-year-month-container ${roundedClass}`, // Col-Layout für Titel und Kalender
                     style: css.join(';'),
                 }).appendTo(grid);
 
@@ -5481,17 +5340,17 @@
                 // Check if the modal already exists on the page.
                 const modalExists = $modal.length > 0;
                 if (!modalExists) {
-                    const roundedCss = $.bsCalendar.utils.getBorderRadiusCss(settings.rounded);
+                    const roundedClass = 'rounded-' + settings.rounded;
                     // If the modal does not exist, create the modal's HTML structure and append it to the body.
                     const modalHtml = [
-                        `<div class="modal fade" id="${calendarElements.infoModal.substring(1)}" tabindex="-1" data-backdrop="false" data-bs-backdrop="false" style="pointer-events: none;">`,
-                        `<div class="modal-dialog modal-fullscreen-sm-down position-absolute" style="pointer-events: auto; ">`,
-                        `<div class="modal-content border border-1 shadow" style="${roundedCss}">`,
-                        `<div class="modal-body d-flex flex-column align-items-stretch pb-4" style="">`,
+                        `<div class="modal fade pe-none" id="${calendarElements.infoModal.substring(1)}" tabindex="-1" data-bs-backdrop="false">`,
+                        `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto">`,
+                        `<div class="modal-content border border-1 shadow ${roundedClass}">`,
+                        `<div class="modal-body d-flex flex-column align-items-stretch pb-4">`,
                         `<div class="d-flex justify-content-end align-items-center" data-modal-options>`,
-                        `<button type="button" data-dismiss="modal" data-bs-dismiss="modal" class="btn py-0 pe-0 pr-0"><i class="bi bi-x-lg"></i></button>`,
+                        `<button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i></button>`,
                         `</div>`,
-                        `<div class="modal-appointment-content flex-fill overflow-y-auto" style="">`,
+                        `<div class="modal-appointment-content flex-fill overflow-y-auto">`,
                         html,
                         `</div>`,
                         `</div>`,
@@ -5533,7 +5392,7 @@
                 }
                 if (deleteable) {
                     if (!$modal.find('[data-remove]').length) {
-                        $(`<button type="button" data-remove data-dismiss="modal" data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i></button>`).prependTo(modalOptions);
+                        $(`<button type="button" data-remove data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i></button>`).prependTo(modalOptions);
                     }
                 } else {
                     $modal.find('[data-remove]').remove();
