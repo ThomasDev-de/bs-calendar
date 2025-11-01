@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.1
+ * @version 2.0.2
  * @date 2025-11-01
  * @license MIT
  * @requires "jQuery" ^3

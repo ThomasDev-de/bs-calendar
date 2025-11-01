@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.2**](#version-202)
     * [**Version 2.0.0**](#version-200)
     * [**Version 1.2.12**](#version-1212)
     * [**Version 1.2.11**](#version-1211)
@@ -11,6 +12,33 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+#### **Version 2.0.2**
+
+- Fix: week/period calculation (week view)
+  - Fixed a bug where the calculated end date of the week was determined incorrectly (too far into the following month)
+  at the change of month.
+  - Cause: endDate was incorrectly modified based on the originally set Date object instead of being recalculated as a
+  copy of startDate. As a result, weeks that protrude into the previous month resulted in a "rolling" of the day (e.g.
+  27.10. => 03.12.).
+  - Fix: endDate is now explicitly copied from startDate and then added +6 days (endDate = new Date(
+  startDate.getTime()); endDate.setDate(startDate.getDate() + 6)).
+
+- Fix: Protection against unintentional overwriting of period parameters by queryParams
+  - When merging the values returned by settings.queryParams, period-related keys (fromDate, toDate, year, view) are now
+  protected by default and not overwritten.
+  - This keeps the UI calculation of the visible period consistent with the data queries.
+
+- Improvement: Defensive Copies & Debug Logs
+  - getStartAndEndDateByView now always uses copies of the internal date (avoiding side effects due to reference
+  mutations).
+  - Additional debug logs have been added (computed start/end data, requestData before/after queryParams) to make it
+  easier to find errors when determining the query periods.
+
+-Result:
+- Appointments are now correctly placed within the rendered week, even at the change of month.
+- Fewer error messages such as "Full-width container ... not found".
+- Better debugging for future time period and request issues.
 
 #### **Version 2.0.0**
 
@@ -31,9 +59,12 @@
 
 #### **Version 1.2.8**
 
-- Fix: Normalize and deduplicate settings.views after merging defaults, data-attributes and passed options to avoid duplicating view entries in the view dropdown (prevents rendering the same view multiple times).
-- Fix: Ensure settings.views accepts comma-separated strings and invalid values gracefully (falls back to sensible defaults).
-- Improvement: Replace locale-dependent "KW" week label with a language-neutral compact week label ("W42") for UI, store ISO week ("YYYY-Www") in a data-attribute, and add a localized date-range tooltip for better international clarity.
+- Fix: Normalize and deduplicate settings.views after merging defaults, data-attributes and passed options to avoid
+  duplicating view entries in the view dropdown (prevents rendering the same view multiple times).
+- Fix: Ensure settings.views accepts comma-separated strings and invalid values gracefully (falls back to sensible
+  defaults).
+- Improvement: Replace locale-dependent "KW" week label with a language-neutral compact week label ("W42") for UI, store
+  ISO week ("YYYY-Www") in a data-attribute, and add a localized date-range tooltip for better international clarity.
 
 #### **Version 1.2.7**
 
@@ -56,7 +87,7 @@
   Example (in table format):
 
   | **Property** | **Type**   | **Params**                  | **Description**                                                       | 
-      |--------------|------------|-----------------------------|-----------------------------------------------------------------------|
+        |--------------|------------|-----------------------------|-----------------------------------------------------------------------|
   | **allDay**   | `function` | (appointment, extras, view) | Customizes the rendering of the all-day area in weekly or daily view. |
 
 #### **Version 1.2.4**
