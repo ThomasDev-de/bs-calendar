@@ -1045,8 +1045,8 @@
             }
             const wrapper = $(this);
             const isInitialized = wrapper.data('initBsCalendar') === true;
-            const optionsGiven = typeof optionsOrMethod === 'object';
-            const methodGiven = typeof optionsOrMethod === 'string';
+            let optionsGiven = typeof optionsOrMethod === 'object';
+            let methodGiven = typeof optionsOrMethod === 'string';
 
 
             if (!isInitialized) {
