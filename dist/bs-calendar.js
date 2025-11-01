@@ -4489,10 +4489,17 @@
                     break;
                 case "week": {
                     const dayOfWeek = startDate.getDay();
-                    // If startWeekOnSunday -> offset relative to Sunday, otherwise Monday-based week
+                    // If startWeekOnSunday -> offset relative to Sunday, otherwise Monday-based week: compute offset to Monday (Sunday -> -6)
                     const diffToMonday = settings.startWeekOnSunday ? dayOfWeek : (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
                     startDate.setDate(startDate.getDate() + diffToMonday);
-                    endDate.setDate(startDate.getDate() + 6);
+
+                    // BUGFIX: endDate must be derived from startDate, not from the original date's month/day.
+                    // Former code: endDate.setDate(startDate.getDate() + 6);
+                    // That produced wrong month-rollover when startDate moved into previous month.
+                    const newEnd = new Date(startDate.getTime());
+                    newEnd.setDate(startDate.getDate() + 6);
+                    // replace endDate with the properly computed value
+                    endDate.setTime(newEnd.getTime());
 
                     if (settings.debug) {
                         log("getStartAndEndDateByView (week) computed:", {
