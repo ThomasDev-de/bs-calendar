@@ -1043,25 +1043,19 @@
                     return $(e).bsCalendar(optionsOrMethod, params);
                 });
             }
-            const wrapper = $(this);
             const isInitialized = wrapper.data('initBsCalendar') === true;
-            let optionsGiven = typeof optionsOrMethod === 'object';
-            let methodGiven = typeof optionsOrMethod === 'string';
-
+            const optionsGiven = typeof optionsOrMethod === 'object';
+            const methodGiven = typeof optionsOrMethod === 'string';
+            const wrapper = $(this);
 
             if (!isInitialized) {
                 let settings = $.bsCalendar.getDefaults();
 
-                if (methodGiven) {
-                    if (['updateOptions', 'refresh'].includes(optionsOrMethod)) {
-                        optionsOrMethod = params;
-                        methodGiven = false;
-                        optionsGiven = true;
-                    }
+                if (wrapper.data() || optionsGiven) {
+                    normalizeSettings(settings);
+                    settings = $.extend(true, {}, settings, wrapper.data() || {}, optionsGiven ? optionsOrMethod : {});
                 }
 
-                normalizeSettings(settings);
-                settings = $.extend(true, {}, settings, wrapper.data(), optionsGiven ? optionsOrMethod : {});
                 settings.translations = $.extend(true, {}, settings.translations, $.bsCalendar.utils.getStandardizedUnits(settings.locale) || {});
 
                 setSettings(wrapper, settings);
