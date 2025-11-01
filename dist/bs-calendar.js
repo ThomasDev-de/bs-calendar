@@ -1540,7 +1540,7 @@
                 // setDate($wrapper, startDate);
 
                 // Reinitialize the calendar
-                init($wrapper, false).then(() => {
+                init($wrapper, false, false).then(() => {
                     // If a temporary container was used, reinsert the addons
                     if (tmpDiv) {
                         if (needsBackupTopbar) {
@@ -1783,9 +1783,10 @@
          *
          * @param {jQuery} $wrapper - The jQuery object representing the container element where the calendar will be initialized.
          * @param {boolean} [initEvents=true] - A flag indicating whether event handlers should be attached during initialization.
+         * @param {boolean} [triggerEvent=true] - A flag indicating whether event handlers should be attached during initialization.
          * @return {Promise<jQuery>} A promise that resolves with the initialized wrapper element or rejects with an error encountered during initialization.
          */
-        function init($wrapper, initEvents = true) {
+        function init($wrapper, initEvents = true, triggerEvent = true) {
             return new Promise((resolve, reject) => {
                 try {
                     const settings = getSettings($wrapper);
@@ -1821,7 +1822,9 @@
                     }
 
                     buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
-                    trigger($wrapper, 'init');
+                    if(triggerEvent) {
+                        trigger($wrapper, 'init');
+                    }
                     buildByView($wrapper);
 
                     $wrapper.data('initBsCalendar', true);
