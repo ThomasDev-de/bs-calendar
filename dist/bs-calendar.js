@@ -1467,6 +1467,7 @@
                 $(window).off(namespace);
                 $("body").off(namespace);
                 $(document).off(namespace);
+                $wrapper.off(namespace);
             } catch (e) {
                 // defensive: if off fails for some reason, log in debug mode
                 const settings = getSettings($wrapper);
@@ -2560,18 +2561,6 @@
          * @return {void} This function does not return a value.
          */
         function handleEvents($wrapper) {
-            // Defensive: always remove previously registered handlers using the namespace
-            try {
-                $(window).off(namespace);
-                $("body").off(namespace);
-                $(document).off(namespace);
-            } catch (e) {
-                const settings = getSettings($wrapper);
-                if (settings && settings.debug) {
-                    log("Error while removing previous event handlers in handleEvents:", e);
-                }
-            }
-
             let resizeTimer;
             $(window).off("resize" + namespace);
             $(window).on("resize" + namespace, function () {
