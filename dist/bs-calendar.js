@@ -880,7 +880,7 @@
                     const options = {weekday: 'long', month: 'long', day: 'numeric'};
                     return new Intl.DateTimeFormat(locale, options).format(date);
                 },
-               generateRandomString(length = 8, prefix = 'bs_calendar_id_') {
+                generateRandomString(length = 8, prefix = 'bs_calendar_id_') {
                     const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
                     let result = '';
                     for (let i = 0; i < length; i++) {
@@ -1059,7 +1059,6 @@
                 settings.translations = $.extend(true, {}, settings.translations, $.bsCalendar.utils.getStandardizedUnits(settings.locale) || {});
 
 
-
                 setSettings(wrapper, settings);
 
                 if (settings.storeState) {
@@ -1107,7 +1106,7 @@
 
             return wrapper;
         }
-        
+
         function normalizeSettings(settings) {
 
             // clamp helper
@@ -1667,8 +1666,6 @@
             // If neither a string nor a correct object is available, return empty.
             return "";
         }
-
-
 
 
         /**
@@ -2898,7 +2895,7 @@
 
         /**
          * Retrieves data from local storage for the specified key associated with the given wrapper element.
-         * The method handles parsing of JSON values, as well as converting specific string values to 
+         * The method handles parsing of JSON values, as well as converting specific string values to
          * their corresponding types (e.g., boolean, number).
          *
          * @param {jQuery} $wrapper - The wrapper element whose ID is used as part of the local storage key.
@@ -3675,18 +3672,14 @@
 
                     // formatting of the start date for the container
                     const targetDateLocal = $.bsCalendar.utils.formatDateToDateString(startDate);
-// Defensive normalization: weekday als Integer (falls string kommt) und trim für date string
-                    const normalizedWeekday = Number.isFinite(Number(weekday)) ? parseInt(weekday, 10) : weekday;
-                    const selectorWeekday = `[data-week-day="${normalizedWeekday}"]`;
-                    const selectorDate = `[data-date-local="${targetDateLocal}"]`;
-                    const $weekDayContainer = $viewContainer.find(`${selectorWeekday}${selectorDate}`);
 
-// Wenn Container fehlt, mehr Debug-Infos ausgeben (Wrapper-ID, View, date)
+                    // Search of the container based on the date and Weekday
+                    const $weekDayContainer = $viewContainer.find(
+                        `[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`
+                    );
                     if (!$weekDayContainer.length) {
-                        const wrapperId = $wrapper?.attr?.('data-bs-calendar-id') || $wrapper?.attr?.('id') || 'unknown';
-                        const viewName = getView($wrapper);
                         console.warn(
-                            `Full-Width-Container nicht gefunden für wrapper=${wrapperId}, view=${viewName}, weekday=${String(weekday)} (normalized=${String(normalizedWeekday)}), date=${targetDateLocal}. Selector used: ${selectorWeekday}${selectorDate}`
+                            `Full-Width-Container für Weekday ${weekday} mit Datum ${targetDateLocal} nicht gefunden.`
                         );
                         return; // skip when the container is missing
                     }
@@ -4968,30 +4961,26 @@
                 class: 'position-relative px-1 px-lg-5'
             }).appendTo($viewContainer);
 
-            // Get the latest date for the view
             const date = getDate($wrapper);
-
-            // Call settings from the wrapper
             const settings = getSettings($wrapper);
-
-            // Calculation of the first day of the week based on startWeekOnSunday
             const {startWeekOnSunday} = settings;
-            const currentDay = date.getDay(); // weekday (0 = Sunday, 1 = Monday, ...)
+            const currentDay = date.getDay();
             const startOfWeek = new Date(date);
-            const startOffset = startWeekOnSunday ? currentDay : (currentDay === 0 ? 6 : currentDay - 1);
+            const startOffset = startWeekOnSunday ? currentDay : currentDay === 0 ? 6 : currentDay - 1;
             startOfWeek.setDate(date.getDate() - startOffset);
-
-            // calculation of the last day of the week
             const endOfWeek = new Date(startOfWeek);
             endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-            //////// All Day Wrapper
-            const wrappAllDay = $('<div>', {
-                class: 'd-flex flex-nowrap flex-fill w-100',
-                css: {
-                    paddingLeft: '40px'
-                },
+// DEBUG: Ausgabe des berechneten Wochenbereichs
+            if (settings.debug) {
+                console.log(`bsCalendar DEBUG: buildWeekView - viewDate=${$.bsCalendar.utils.formatDateToDateString(date)}, startOfWeek=${$.bsCalendar.utils.formatDateToDateString(startOfWeek)}, endOfWeek=${$.bsCalendar.utils.formatDateToDateString(endOfWeek)}, startWeekOnSunday=${startWeekOnSunday}`);
+            }
+
+            const wrappAllDay = $("<div>", {
+                class: "d-flex flex-nowrap flex-fill w-100",
+                css: {paddingLeft: "40px"}
             }).appendTo($container);
+
 
             for (let day = 0; day < 7; day++) {
                 const col = $('<div>', {
