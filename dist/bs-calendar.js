@@ -1536,6 +1536,8 @@
                 normalizeSettings(newSettings);
 
                 setSettings($wrapper, newSettings);
+                setView($wrapper, startView);
+                setDate($wrapper, startDate);
 
                 // Reinitialize the calendar
                 init($wrapper, false).then(() => {
