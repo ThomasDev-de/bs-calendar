@@ -3268,11 +3268,35 @@
             }
 
             // If queryParams is a function in settings, enrich the request data dynamically
-            if (typeof settings.queryParams === 'function') {
+            if (typeof settings.queryParams === "function") {
+                if (settings.debug) {
+                    log("Original requestData before queryParams:", requestData);
+                }
+                // call user-provided function
                 const queryParams = settings.queryParams(requestData);
-                for (const key in queryParams) {
-                    // Add or overwrite requestData fields with queryParams
-                    requestData[key] = queryParams[key];
+
+                // Defensive merge: verhindern, dass basic period-keys aus Versehen überschrieben werden
+                const protectedKeys = new Set(["fromDate", "toDate", "year", "view"]);
+
+                if (queryParams && typeof queryParams === "object") {
+                    Object.keys(queryParams).forEach(key => {
+                        if (protectedKeys.has(key)) {
+                            // If debug is enabled, show what would have been overwritten
+                            if (settings.debug) {
+                                log(`queryParams tried to override protected key "${key}" -> ignored. value:`, queryParams[key]);
+                            }
+                            return; // skip protected keys
+                        }
+                        requestData[key] = queryParams[key];
+                    });
+                } else {
+                    if (settings.debug) {
+                        log("queryParams did not return an object, skipping merge:", queryParams);
+                    }
+                }
+
+                if (settings.debug) {
+                    log("Merged requestData after queryParams:", requestData);
                 }
             }
 
