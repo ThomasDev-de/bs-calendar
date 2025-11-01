@@ -1899,6 +1899,35 @@
                     resolve(appointments);
                     return resolve([]);
                 }
+
+                // --- DEDUPLICATION: remove exact duplicates (by id if present, otherwise by start|end|title) ---
+                try {
+                    const seen = new Set();
+                    const deduped = [];
+                    for (const appt of appointments) {
+                        let key = null;
+                        if (appt && (appt.id !== undefined && appt.id !== null)) {
+                            key = `id:${appt.id}`;
+                        } else {
+                            // fallback key using important fields
+                            key = `k:${(appt.start || '')}|${(appt.end || '')}|${(appt.title || '')}`;
+                        }
+                        if (!seen.has(key)) {
+                            seen.add(key);
+                            deduped.push(appt);
+                        } else if (settings.debug) {
+                            log("Duplicate appointment removed by setAppointments:", appt);
+                        }
+                    }
+                    appointments = deduped;
+                } catch (e) {
+                    if (settings.debug) {
+                        log("Error during appointment deduplication:", e);
+                    }
+                    // fall through - still continue with original appointments if something fails
+                }
+                // --- end deduplication ---
+
                 const view = getView($wrapper);
                 if (view === 'year') {
                     const processedAppointments = appointments
@@ -3273,8 +3302,15 @@
             let skipLoading = false;
 
             // Log debug information if debugging is enabled in settings
-            if (settings.debug) {
-                log('Call fetchAppointments');
+            if (settings && settings.debug) {
+                try {
+                    log('fetchAppointments called for wrapper:', $wrapper.attr('data-bs-calendar-id') || $wrapper.attr('id') || $wrapper);
+                    // optional stack to see caller:
+                    // eslint-disable-next-line no-throw-literal
+                    log('Stack:', (new Error()).stack.split('\n').slice(2, 8).join('\n'));
+                } catch (e) {
+                    // ignore
+                }
             }
 
             // Declare variable for request data
