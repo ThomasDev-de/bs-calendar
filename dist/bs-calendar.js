@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.2.12
- * @date 2025-10-31
+ * @version 2.0.1
+ * @date 2025-11-01
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -1051,32 +1051,14 @@
             if (!wrapper.data('initBsCalendar')) {
                 let settings = $.bsCalendar.getDefaults();
 
-                if (wrapper.data() || optionsGiven) {
+                if (wrapper.data() || optionsOrMethod) {
+                    normalizeSettings(settings);
                     settings = $.extend(true, {}, settings, wrapper.data(), optionsOrMethod || {});
                 }
 
                 settings.translations = $.extend(true, {}, settings.translations, $.bsCalendar.utils.getStandardizedUnits(settings.locale) || {});
 
-                // Normalize `views` immediately after merging settings to avoid duplicates
-                // coming from defaults, data-attributes or passed options.
-                if (settings.hasOwnProperty('views')) {
-                    // Accept comma separated string as well (defensive)
-                    if (typeof settings.views === 'string') {
-                        settings.views = settings.views.split(',').map(v => v.trim()).filter(Boolean);
-                    }
-                    if (Array.isArray(settings.views)) {
-                        // Keep original order while removing duplicates
-                        const seen = new Set();
-                        settings.views = settings.views.filter(v => {
-                            if (seen.has(v)) return false;
-                            seen.add(v);
-                            return true;
-                        });
-                    } else {
-                        // Fallback to sensible default when views is invalid
-                        settings.views = ['day', 'week', 'month', 'year'];
-                    }
-                }
+
 
                 setSettings(wrapper, settings);
 
@@ -1124,6 +1106,103 @@
             }
 
             return wrapper;
+        }
+        
+        function normalizeSettings(settings) {
+
+            // clamp helper
+            const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
+            const possibleViews = ['day', 'week', 'month', 'year'];
+
+            // Normalize `views` immediately after merging settings to avoid duplicates
+            // coming from defaults, data-attributes or passed options.
+            if (settings.hasOwnProperty('views')) {
+                // Accept comma separated string as well (defensive)
+                if (typeof settings.views === 'string') {
+                    settings.views = settings.views.split(',').map(v => v.trim()).filter(Boolean);
+                }
+                if (Array.isArray(settings.views)) {
+                    // Keep original order while removing duplicates
+                    const seen = new Set();
+                    settings.views = settings.views.filter(v => {
+                        if (seen.has(v)) return false;
+                        seen.add(v);
+                        return true;
+                    });
+
+                    // Filter out any invalid views (only allow a defined set)
+                    const possibleViews = ['day', 'week', 'month', 'year'];
+                    settings.views = settings.views.filter(v => possibleViews.includes(v));
+
+                    // If nothing left after filtering, fallback to sensible default
+                    if (settings.views.length === 0) {
+                        settings.views = ['day', 'week', 'month', 'year'];
+                    }
+                } else {
+                    // Fallback to sensible default when views is invalid
+                    settings.views = ['day', 'week', 'month', 'year'];
+                }
+            }
+
+            // Validate `rounded` -> must be an integer between 0 and 5
+            if (settings.hasOwnProperty('rounded')) {
+                // Try to coerce to number
+                const parsed = Number(settings.rounded);
+
+                // If parsed is not a finite integer, fallback to default (5)
+                if (!Number.isFinite(parsed) || !Number.isInteger(parsed)) {
+                    settings.rounded = 3;
+                } else {
+                    settings.rounded = clamp(parsed, 0, 5);
+                }
+            }
+
+            if (settings.hasOwnProperty('hourSlots') && typeof settings.hourSlots === 'object') {
+                // parse integers defensiv (keine NaN)
+                settings.hourSlots.start = Number.isFinite(Number(settings.hourSlots.start)) ? parseInt(settings.hourSlots.start, 10) : NaN;
+                settings.hourSlots.end = Number.isFinite(Number(settings.hourSlots.end)) ? parseInt(settings.hourSlots.end, 10) : NaN;
+                settings.hourSlots.height = Number.isFinite(Number(settings.hourSlots.height)) ? parseInt(settings.hourSlots.height, 10) : NaN;
+
+                // Fallbacks für nicht-numerische Werte
+                if (Number.isNaN(settings.hourSlots.start)) settings.hourSlots.start = 0;
+                if (Number.isNaN(settings.hourSlots.end)) settings.hourSlots.end = 24;
+                if (Number.isNaN(settings.hourSlots.height)) settings.hourSlots.height = 30;
+
+                // Hours must be integers in [0,24]
+                settings.hourSlots.start = Math.floor(settings.hourSlots.start);
+                settings.hourSlots.end = Math.floor(settings.hourSlots.end);
+
+                settings.hourSlots.start = clamp(settings.hourSlots.start, 0, 24);
+                settings.hourSlots.end = clamp(settings.hourSlots.end, 0, 24);
+
+                // height mindestens 1 (oder deine default 30)
+                settings.hourSlots.height = Math.max(Math.floor(settings.hourSlots.height), 1);
+
+                // Ensure at least 1 hour difference and start < end
+                // Wenn start >= end, versuche zu korrigieren: setze end = start + 1 (falls möglich), sonst setze start = end -1
+                if (settings.hourSlots.start >= settings.hourSlots.end) {
+                    if (settings.hourSlots.start < 24) {
+                        settings.hourSlots.end = settings.hourSlots.start + 1;
+                    } else {
+                        // start == 24 -> setze start auf 23 und end auf 24
+                        settings.hourSlots.start = 23;
+                        settings.hourSlots.end = 24;
+                    }
+                }
+
+                // Falls nach Korrekturen die Differenz < 1 (defensive), erzwinge 1 Stunde
+                if ((settings.hourSlots.end - settings.hourSlots.start) < 1) {
+                    if (settings.hourSlots.start <= 23) {
+                        settings.hourSlots.end = settings.hourSlots.start + 1;
+                    } else {
+                        settings.hourSlots.start = settings.hourSlots.end - 1;
+                    }
+                }
+
+                // finaler Clamp (sicherheitshalber)
+                settings.hourSlots.start = clamp(settings.hourSlots.start, 0, 23);
+                settings.hourSlots.end = clamp(settings.hourSlots.end, 1, 24);
+            }
         }
 
         /**
@@ -1385,6 +1464,7 @@
             $wrapper.removeData('searchMode');
             $wrapper.removeData('searchPagination');
             $wrapper.removeData('currentRequest');
+            $wrapper.removeClass('position-relative bs-calendar overflow-hidden');
             $wrapper.empty();
         }
 
@@ -1453,6 +1533,8 @@
                 if (!options.hasOwnProperty('startView')) {
                     newSettings.startView = startView;
                 }
+
+                normalizeSettings(newSettings);
 
                 setSettings($wrapper, newSettings);
 
@@ -1708,7 +1790,7 @@
             return new Promise((resolve, reject) => {
                 try {
                     const settings = getSettings($wrapper);
-                    $wrapper.addClass('position-relative bs-calendar');
+                    $wrapper.addClass('position-relative bs-calendar overflow-hidden');
                     const wrapperUniqueId = $.bsCalendar.utils.generateRandomString(8);
                     $wrapper.attr('data-bs-calendar-id', wrapperUniqueId);
 
