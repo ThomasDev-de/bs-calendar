@@ -1458,18 +1458,43 @@
          * @return {void} Does not return a value.
          */
         function destroy($wrapper) {
-            $(calendarElements.infoModal).modal('hide');
+            $(calendarElements.infoModal).modal("hide");
             methodClear($wrapper);
-            $wrapper.removeData('initBsCalendar');
-            $wrapper.removeData('settings');
-            $wrapper.removeData('view');
-            $wrapper.removeData('date');
-            $wrapper.removeData('appointments');
-            $wrapper.removeData('searchMode');
-            $wrapper.removeData('searchPagination');
-            $wrapper.removeData('currentRequest');
-            $wrapper.removeClass('position-relative bs-calendar overflow-hidden');
+
+            // Remove namespaced event handlers to avoid duplicate bindings on re-init
+            // Remove window handlers (resize, etc.) and body handlers registered in handleEvents()
+            try {
+                $(window).off(namespace);
+                $("body").off(namespace);
+                $(document).off(namespace);
+            } catch (e) {
+                // defensive: if off fails for some reason, log in debug mode
+                const settings = getSettings($wrapper);
+                if (settings && settings.debug) {
+                    log("Error while removing namespaced events during destroy:", e);
+                }
+            }
+
+            // Remove stored data and classes
+            $wrapper.removeData("initBsCalendar");
+            $wrapper.removeData("settings");
+            $wrapper.removeData("view");
+            $wrapper.removeData("date");
+            $wrapper.removeData("appointments");
+            $wrapper.removeData("searchMode");
+            $wrapper.removeData("searchPagination");
+            $wrapper.removeData("currentRequest");
+            $wrapper.removeClass("position-relative bs-calendar overflow-hidden");
             $wrapper.empty();
+
+            // Ensure any info modal DOM node is removed (cleanup)
+            if ($(calendarElements.infoModal).length) {
+                try {
+                    $(calendarElements.infoModal).remove();
+                } catch (e) {
+                    // ignore
+                }
+            }
         }
 
         /**
