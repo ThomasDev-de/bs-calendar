@@ -1043,21 +1043,26 @@
                     return $(e).bsCalendar(optionsOrMethod, params);
                 });
             }
-
+            const wrapper = $(this);
+            const isInitialized = wrapper.data('initBsCalendar') === true;
             const optionsGiven = typeof optionsOrMethod === 'object';
             const methodGiven = typeof optionsOrMethod === 'string';
 
-            const wrapper = $(this);
-            if (!wrapper.data('initBsCalendar')) {
+
+            if (!isInitialized) {
                 let settings = $.bsCalendar.getDefaults();
 
-                if (wrapper.data() || optionsOrMethod) {
-                    normalizeSettings(settings);
-                    settings = $.extend(true, {}, settings, wrapper.data(), optionsOrMethod || {});
+                if (methodGiven) {
+                    if (['updateOptions', 'refresh'].includes(optionsOrMethod)) {
+                        optionsOrMethod = params;
+                        methodGiven = false;
+                        optionsGiven = true;
+                    }
                 }
 
+                normalizeSettings(settings);
+                settings = $.extend(true, {}, settings, wrapper.data(), optionsGiven ? optionsOrMethod : {});
                 settings.translations = $.extend(true, {}, settings.translations, $.bsCalendar.utils.getStandardizedUnits(settings.locale) || {});
-
 
                 setSettings(wrapper, settings);
 
@@ -1375,7 +1380,7 @@
          */
         function setToday($wrapper, view) {
             const settings = getSettings($wrapper);
-            let viewChanged= false;
+            let viewChanged = false;
             if (view && settings.views.includes(view)) {
                 const viewBefore = getView($wrapper);
                 if (viewBefore !== view) {
@@ -1386,6 +1391,48 @@
             const date = new Date();
             setDate($wrapper, date);
             buildByView($wrapper, viewChanged);
+        }
+
+        /**
+         * Prepares a date object from the given input.
+         *
+         * @param {string|Date} date - The input date, which can be a string or a Date object.
+         * @return {Date} The prepared Date object.
+         */
+        function prepareDate(date) {
+            if (typeof object === "string") {
+                date = new Date(object);
+            } else if (object instanceof Date) {
+                date = object;
+            }
+            return date;
+        }
+
+        function prepareParamsForMethodSetDate($wrapper, object) {
+            const settings = getSettings($wrapper);
+            let date = null;
+            let view = null;
+            let viewChanged = false;
+            if (typeof object === "string") {
+                date = new Date(object);
+            } else if (object instanceof Date) {
+                date = object;
+            } else if (typeof object === "object") {
+                if (object.hasOwnProperty('date')) {
+                    date = prepareDate(object.date);
+                }
+                const settings = getSettings($wrapper);
+                if (object.hasOwnProperty('view') && settings.views.includes(object.view)) {
+                    const viewBefore = getView($wrapper);
+                    if (viewBefore !== object.view) {
+                        view = object.view;
+                    }
+                }
+            }
+            return {
+                date: date,
+                view: view
+            };
         }
 
         /**
@@ -1401,29 +1448,15 @@
          * @return {void} This method does not return a value.
          */
         function methodSetDate($wrapper, object) {
-            const settings = getSettings($wrapper);
-            let date = null;
-            let viewChanged= false;
-            if (typeof object === "string") {
-                date = new Date(object);
-            } else if (object instanceof Date) {
-                date = object;
-            } else if (typeof object === "object") {
-                if (object.hasOwnProperty('date')) {
-                    if (typeof object.date === "string") {
-                        date = new Date(object.date);
-                    } else if (object.date instanceof Date) {
-                        date = object.date;
-                    }
-                }
 
-                if (object.hasOwnProperty('view') && settings.views.includes(object.view)) {
-                    const viewBefore = getView($wrapper);
-                    if (viewBefore !== object.view) {
-                        setView($wrapper, object.view);
-                        viewChanged = true;
-                    }
-                }
+            const p = prepareParamsForMethodSetDate($wrapper, object);
+            let date = p.date;
+            let view = p.view;
+            let viewChanged = false;
+
+            if (view) {
+                setView($wrapper, view);
+                viewChanged = true;
             }
 
             if (date) {
@@ -1857,7 +1890,7 @@
                     }
 
                     buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
-                    if(triggerEventInit) {
+                    if (triggerEventInit) {
                         trigger($wrapper, 'init');
                     }
                     buildByView($wrapper, triggerViewChange);
@@ -2565,7 +2598,9 @@
             $(window).off("resize" + namespace);
             $(window).on("resize" + namespace, function () {
                 clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(function () { onResize($wrapper, true); }, 100);
+                resizeTimer = setTimeout(function () {
+                    onResize($wrapper, true);
+                }, 100);
             });
 
             $('body')
@@ -3234,7 +3269,7 @@
                 updateDropdownView($wrapper);
                 setCurrentDateName($wrapper);
                 buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
-                if(triggerViewChanged) {
+                if (triggerViewChanged) {
                     trigger($wrapper, 'view', view);
                 }
             }
