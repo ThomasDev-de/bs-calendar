@@ -1375,15 +1375,17 @@
          */
         function setToday($wrapper, view) {
             const settings = getSettings($wrapper);
+            let viewChanged= false;
             if (view && settings.views.includes(view)) {
                 const viewBefore = getView($wrapper);
                 if (viewBefore !== view) {
                     setView($wrapper, view);
+                    viewChanged = true;
                 }
             }
             const date = new Date();
             setDate($wrapper, date);
-            buildByView($wrapper);
+            buildByView($wrapper, viewChanged);
         }
 
         /**
@@ -1401,6 +1403,7 @@
         function methodSetDate($wrapper, object) {
             const settings = getSettings($wrapper);
             let date = null;
+            let viewChanged= false;
             if (typeof object === "string") {
                 date = new Date(object);
             } else if (object instanceof Date) {
@@ -1413,10 +1416,12 @@
                         date = object.date;
                     }
                 }
+
                 if (object.hasOwnProperty('view') && settings.views.includes(object.view)) {
                     const viewBefore = getView($wrapper);
                     if (viewBefore !== object.view) {
                         setView($wrapper, object.view);
+                        viewChanged = true;
                     }
                 }
             }
@@ -1425,7 +1430,7 @@
                 setDate($wrapper, date);
             }
 
-            buildByView($wrapper);
+            buildByView($wrapper, viewChanged);
         }
 
         /**
@@ -1536,8 +1541,6 @@
                 normalizeSettings(newSettings);
 
                 setSettings($wrapper, newSettings);
-                // setView($wrapper, startView);
-                // setDate($wrapper, startDate);
 
                 // Reinitialize the calendar
                 init($wrapper, false, false).then(() => {
@@ -1569,8 +1572,10 @@
         function methodRefresh($wrapper, object) {
             // Retrieve the current settings for the given wrapper.
             const settings = getSettings($wrapper);
+            const viewBefore = getView($wrapper);
             // Flag to track if settings need to be updated.
             let changeSettings = false;
+            let changeView = false;
             // Check if 'params' is an object.
             if (typeof object === 'object') {
                 // If 'params' contains 'url', update the 'url' in settings.
@@ -1580,8 +1585,9 @@
                     changeSettings = true;
                 }
 
-                if (object.hasOwnProperty('view') && settings.views.includes(object.view)) {
+                if (object.hasOwnProperty('view') && settings.views.includes(object.view) && viewBefore !== object.view) {
                     setView($wrapper, object.view);
+                    changeView = true;
                     changeSettings = true;
                 }
 
@@ -1597,7 +1603,7 @@
                 setSettings($wrapper, settings);
             }
 
-            buildByView($wrapper);
+            buildByView($wrapper, changeView);
         }
 
         /**
@@ -1825,7 +1831,7 @@
                     if(triggerEvent) {
                         trigger($wrapper, 'init');
                     }
-                    buildByView($wrapper);
+                    buildByView($wrapper, triggerEvent);
 
                     $wrapper.data('initBsCalendar', true);
                     if (settings.debug) {
@@ -2304,7 +2310,7 @@
             }
             setDate($wrapper, newDate);
             trigger($wrapper, 'navigate-back', view, date, newDate);
-            buildByView($wrapper);
+            buildByView($wrapper, false);
         }
 
         /**
@@ -2342,7 +2348,7 @@
             }
             setDate($wrapper, newDate);
             trigger($wrapper, 'navigate-forward', view, date, newDate);
-            buildByView($wrapper);
+            buildByView($wrapper, false);
         }
 
         /**
@@ -2381,7 +2387,7 @@
             setSearchMode($wrapper, status);
 
             if (status) {
-                buildByView($wrapper);
+                buildByView($wrapper, false);
             } else {
                 const search = {
                     limit: settings.search.limit,
@@ -2391,7 +2397,7 @@
                 setSearchPagination($wrapper, search);
 
                 if (rebuildView) {
-                    buildByView($wrapper)
+                    buildByView($wrapper, true)
                 }
 
             }
@@ -2751,6 +2757,7 @@
                 .on('click' + namespace, '[data-date]', function (e) {
                     e.preventDefault();
                     const settings = getSettings($wrapper);
+                    const viewBefore = getView($wrapper);
                     const inSearchMode = getSearchMode($wrapper);
                     if (inSearchMode) {
                         toggleSearchMode($wrapper, false, false);
@@ -2759,18 +2766,19 @@
                         const date = new Date($(e.currentTarget).attr('data-date'));
                         setView($wrapper, 'day');
                         setDate($wrapper, date);
-                        buildByView($wrapper);
+                        buildByView($wrapper, viewBefore !== 'day');
                     }
                 })
                 .off('click' + namespace, '[data-month]')
                 .on('click' + namespace, '[data-month]', function (e) {
                     e.preventDefault();
                     const settings = getSettings($wrapper);
+                    const viewBefore = getView($wrapper);
                     if (settings.views.includes('month')) {
                         const date = new Date($(e.currentTarget).attr('data-month'));
                         setView($wrapper, 'month');
                         setDate($wrapper, date);
-                        buildByView($wrapper);
+                        buildByView($wrapper, viewBefore !== 'month');
                     }
                 })
                 .off('click' + namespace, '[data-prev]')
@@ -2804,7 +2812,7 @@
                         const newView = $(e.currentTarget).attr('data-view');
                         if (oldView !== newView) {
                             setView($wrapper, newView);
-                            buildByView($wrapper);
+                            buildByView($wrapper, true);
                         }
                     }
                 })
@@ -2988,7 +2996,7 @@
          */
         function triggerSearch($wrapper) {
             resetSearchPagination($wrapper);
-            buildByView($wrapper);
+            buildByView($wrapper, false);
         }
 
         /**
@@ -3143,7 +3151,7 @@
          *
          * @return {void} This function does not return a value. It updates the DOM elements associated with the wrapper.
          */
-        function buildByView($wrapper) {
+        function buildByView($wrapper, triggerViewChanged = true) {
             const settings = getSettings($wrapper);
             const view = getView($wrapper);
             if (settings.debug) {
@@ -3173,7 +3181,9 @@
                 updateDropdownView($wrapper);
                 setCurrentDateName($wrapper);
                 buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
-                trigger($wrapper, 'view', view);
+                if(triggerViewChanged) {
+                    trigger($wrapper, 'view', view);
+                }
             }
 
             fetchAppointments($wrapper);
