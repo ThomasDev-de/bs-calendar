@@ -2528,16 +2528,23 @@
          * @return {void} This function does not return a value.
          */
         function handleEvents($wrapper) {
+            // Defensive: always remove previously registered handlers using the namespace
+            try {
+                $(window).off(namespace);
+                $("body").off(namespace);
+                $(document).off(namespace);
+            } catch (e) {
+                const settings = getSettings($wrapper);
+                if (settings && settings.debug) {
+                    log("Error while removing previous event handlers in handleEvents:", e);
+                }
+            }
+
             let resizeTimer;
-
-            // Erst alle vorhandenen Handler für dieses handleEvents() entfernen:
-            $(window).off('resize' + namespace);
-
-            $(window).on('resize' + namespace, function () {
+            $(window).off("resize" + namespace);
+            $(window).on("resize" + namespace, function () {
                 clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(function () {
-                    onResize($wrapper, true);
-                }, 100);
+                resizeTimer = setTimeout(function () { onResize($wrapper, true); }, 100);
             });
 
             $('body')
