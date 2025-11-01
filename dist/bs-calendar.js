@@ -1536,8 +1536,8 @@
                 normalizeSettings(newSettings);
 
                 setSettings($wrapper, newSettings);
-                setView($wrapper, startView);
-                setDate($wrapper, startDate);
+                // setView($wrapper, startView);
+                // setDate($wrapper, startDate);
 
                 // Reinitialize the calendar
                 init($wrapper, false).then(() => {
@@ -4472,72 +4472,70 @@
          */
         function getStartAndEndDateByView($wrapper) {
             const settings = getSettings($wrapper);
-            const date = getDate($wrapper);
+
+            // Use a clone of the stored date to avoid accidental external mutation
+            const rawDate = getDate($wrapper);
+            const date = rawDate instanceof Date ? new Date(rawDate.getTime()) : new Date(rawDate);
+
             const view = getView($wrapper);
-            const startDate = new Date(date);
-            const endDate = new Date(date);
+
+            // Work on copies to avoid accidental mutation of the stored date
+            const startDate = new Date(date.getTime());
+            const endDate = new Date(date.getTime());
 
             switch (view) {
-                case 'day':
-                    // Start and end remain within a day
+                case "day":
+                    // nothing to change
                     break;
-
-                case 'week':
-                    // Start date: Monday of the current week
-                    const dayOfWeek = startDate.getDay(); // 0 = Sunday, 1 = Monday, ...
-                    const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek; // Calculate deviation from Monday
+                case "week": {
+                    const dayOfWeek = startDate.getDay();
+                    // If startWeekOnSunday -> offset relative to Sunday, otherwise Monday-based week
+                    const diffToMonday = settings.startWeekOnSunday ? dayOfWeek : (dayOfWeek === 0 ? -6 : 1 - dayOfWeek);
                     startDate.setDate(startDate.getDate() + diffToMonday);
-
-                    // End date: Sunday of the same week
                     endDate.setDate(startDate.getDate() + 6);
+
+                    if (settings.debug) {
+                        log("getStartAndEndDateByView (week) computed:", {
+                            viewDate: $.bsCalendar.utils.formatDateToDateString(date),
+                            start: $.bsCalendar.utils.formatDateToDateString(startDate),
+                            end: $.bsCalendar.utils.formatDateToDateString(endDate),
+                            startWeekOnSunday: settings.startWeekOnSunday
+                        });
+                    }
                     break;
-
-                case 'month':
-                    // Start date: 1st day of the month
+                }
+                case "month": {
                     startDate.setDate(1);
-
-                    // Adjust the start date to the beginning of the displayed week
                     const startDayOfWeek = startDate.getDay();
                     if (settings.startWeekOnSunday) {
-                        // Sonntag als Wochenstart
                         startDate.setDate(startDate.getDate() - startDayOfWeek);
                     } else {
-                        // Montag als Wochenstart
                         const offset = startDayOfWeek === 0 ? 6 : startDayOfWeek - 1;
                         startDate.setDate(startDate.getDate() - offset);
                     }
 
-                    // End date: last day of the month
-                    endDate.setMonth(endDate.getMonth() + 1); // Jump to the next month
-                    endDate.setDate(0); // Move back one day to get the last day of the current month
-
-                    // Adjust the end date to the end of the displayed week
+                    endDate.setMonth(endDate.getMonth() + 1);
+                    endDate.setDate(0);
                     const endDayOfWeek = endDate.getDay();
                     if (settings.startWeekOnSunday) {
-                        // Sonntag als Wochenstart
                         const offset = 6 - endDayOfWeek;
                         endDate.setDate(endDate.getDate() + offset);
                     } else {
-                        // Montag als Wochenstart
                         const offset = endDayOfWeek === 0 ? -1 : 7 - endDayOfWeek;
                         endDate.setDate(endDate.getDate() + offset);
                     }
                     break;
-
-                case 'year':
-                case 'search':
-                    // Start date: January 1 of the current year
-                    startDate.setMonth(0); // January
-                    startDate.setDate(1);  // 1st day
-
-                    // End date: December 31 of the current year
-                    endDate.setMonth(11); // December
-                    endDate.setDate(31);  // Last day
+                }
+                case "year":
+                case "search":
+                    startDate.setMonth(0);
+                    startDate.setDate(1);
+                    endDate.setMonth(11);
+                    endDate.setDate(31);
                     break;
-
                 default:
                     if (settings.debug) {
-                        console.error('Unknown view:', view);
+                        console.error("Unknown view:", view);
                     }
                     break;
             }
