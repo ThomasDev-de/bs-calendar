@@ -1043,10 +1043,11 @@
                     return $(e).bsCalendar(optionsOrMethod, params);
                 });
             }
+            const wrapper = $(this);
             const isInitialized = wrapper.data('initBsCalendar') === true;
             const optionsGiven = typeof optionsOrMethod === 'object';
             const methodGiven = typeof optionsOrMethod === 'string';
-            const wrapper = $(this);
+
 
             if (!isInitialized) {
                 let settings = $.bsCalendar.getDefaults();
