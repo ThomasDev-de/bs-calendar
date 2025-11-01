@@ -3675,14 +3675,18 @@
 
                     // formatting of the start date for the container
                     const targetDateLocal = $.bsCalendar.utils.formatDateToDateString(startDate);
+// Defensive normalization: weekday als Integer (falls string kommt) und trim für date string
+                    const normalizedWeekday = Number.isFinite(Number(weekday)) ? parseInt(weekday, 10) : weekday;
+                    const selectorWeekday = `[data-week-day="${normalizedWeekday}"]`;
+                    const selectorDate = `[data-date-local="${targetDateLocal}"]`;
+                    const $weekDayContainer = $viewContainer.find(`${selectorWeekday}${selectorDate}`);
 
-                    // Search of the container based on the date and Weekday
-                    const $weekDayContainer = $viewContainer.find(
-                        `[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`
-                    );
+// Wenn Container fehlt, mehr Debug-Infos ausgeben (Wrapper-ID, View, date)
                     if (!$weekDayContainer.length) {
+                        const wrapperId = $wrapper?.attr?.('data-bs-calendar-id') || $wrapper?.attr?.('id') || 'unknown';
+                        const viewName = getView($wrapper);
                         console.warn(
-                            `Full-Width-Container für Weekday ${weekday} mit Datum ${targetDateLocal} nicht gefunden.`
+                            `Full-Width-Container nicht gefunden für wrapper=${wrapperId}, view=${viewName}, weekday=${String(weekday)} (normalized=${String(normalizedWeekday)}), date=${targetDateLocal}. Selector used: ${selectorWeekday}${selectorDate}`
                         );
                         return; // skip when the container is missing
                     }
