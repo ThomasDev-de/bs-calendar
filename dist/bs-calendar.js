@@ -3294,6 +3294,17 @@
          * @return {void} - This function does not return a value. It updates the DOM of the provided wrapper with the fetched appointments.
          */
         function fetchAppointments($wrapper) {
+            // Prevent concurrent fetches for the same wrapper
+            if ($wrapper.data('bsCalendarLoading')) {
+                const settings = getSettings($wrapper);
+                if (settings && settings.debug) {
+                    log("fetchAppointments: already loading for wrapper, skipping duplicate call");
+                }
+                return;
+            }
+            // mark as loading
+            $wrapper.data('bsCalendarLoading', true);
+
             // Clear previous data or states related to the wrapper
             methodClear($wrapper);
 
@@ -3306,7 +3317,6 @@
                 try {
                     log('fetchAppointments called for wrapper:', $wrapper.attr('data-bs-calendar-id') || $wrapper.attr('id') || $wrapper);
                     // optional stack to see caller:
-                    // eslint-disable-next-line no-throw-literal
                     log('Stack:', (new Error()).stack.split('\n').slice(2, 8).join('\n'));
                 } catch (e) {
                     // ignore
@@ -3393,6 +3403,9 @@
                     trigger($wrapper, 'after-load', _cleanedAppointments);
                     void _cleanedAppointments;
                     buildAppointmentsForView($wrapper);
+                }).finally(() => {
+                    // clear loading flag
+                    $wrapper.removeData('bsCalendarLoading');
                 });
                 return; // Exit the function
             }
@@ -3444,6 +3457,8 @@
                     .finally(() => {
                         // Always hide the loader, regardless of success or error
                         hideBSCalendarLoader($wrapper);
+                        // remove loading flag
+                        $wrapper.removeData('bsCalendarLoading');
                     });
 
             } else if (callAjax) {
@@ -3496,11 +3511,16 @@
                         // Always remove the current request and hide the loader after the request ends
                         $wrapper.removeData('currentRequest');
                         hideBSCalendarLoader($wrapper);
+                        // remove loading flag
+                        $wrapper.removeData('bsCalendarLoading');
                     }
                 });
 
                 // Save the newly initiated request in the wrapper's data for management
                 $wrapper.data('currentRequest', newRequest);
+            } else {
+                // No callFunction and no callAjax -> nothing to load, remove loading flag
+                $wrapper.removeData('bsCalendarLoading');
             }
         }
 
