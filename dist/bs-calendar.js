@@ -1544,6 +1544,7 @@
                 // Store the current date and view
                 const startDate = getDate($wrapper);
                 const startView = getView($wrapper);
+                let viewChanged = false;
 
                 // Destroy the current calendar
                 destroy($wrapper);
@@ -1561,6 +1562,8 @@
                 }
                 if (!options.hasOwnProperty('startView')) {
                     newSettings.startView = startView;
+                } else {
+                    viewChanged = options.startView !== startView;
                 }
 
                 normalizeSettings(newSettings);
@@ -1568,7 +1571,7 @@
                 setSettings($wrapper, newSettings);
 
                 // Reinitialize the calendar
-                init($wrapper, false, false).then(() => {
+                init($wrapper, false, false, viewChanged).then(() => {
                     // If a temporary container was used, reinsert the addons
                     if (tmpDiv) {
                         if (needsBackupTopbar) {
@@ -1814,10 +1817,10 @@
          *
          * @param {jQuery} $wrapper - The jQuery object representing the container element where the calendar will be initialized.
          * @param {boolean} [initEvents=true] - A flag indicating whether event handlers should be attached during initialization.
-         * @param {boolean} [triggerEvent=true] - A flag indicating whether event handlers should be attached during initialization.
+         * @param {boolean} [triggerEventInit=true] - A flag indicating whether event handlers should be attached during initialization.
          * @return {Promise<jQuery>} A promise that resolves with the initialized wrapper element or rejects with an error encountered during initialization.
          */
-        function init($wrapper, initEvents = true, triggerEvent = true) {
+        function init($wrapper, initEvents = true, triggerEventInit = true, triggerViewChange = true) {
             return new Promise((resolve, reject) => {
                 try {
                     const settings = getSettings($wrapper);
@@ -1853,10 +1856,10 @@
                     }
 
                     buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
-                    if(triggerEvent) {
+                    if(triggerEventInit) {
                         trigger($wrapper, 'init');
                     }
-                    buildByView($wrapper, triggerEvent);
+                    buildByView($wrapper, triggerViewChange);
 
                     $wrapper.data('initBsCalendar', true);
                     if (settings.debug) {
