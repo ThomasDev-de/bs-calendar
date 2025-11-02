@@ -1496,11 +1496,36 @@
                 $("body").off(namespace);
                 $(document).off(namespace);
                 $wrapper.off(namespace);
+                // Defensive: also remove handlers that might have been bound without namespace
+                $wrapper.find('*').off();
             } catch (e) {
                 // defensive: if off fails for some reason, log in debug mode
                 const settings = getSettings($wrapper);
                 if (settings && settings.debug) {
                     log("Error while removing namespaced events during destroy:", e);
+                }
+            }
+
+            // If there is an active request stored, try to abort it (jqXHR or AbortController)
+            try {
+                const currentRequest = $wrapper.data('currentRequest');
+                if (currentRequest) {
+                    if (typeof currentRequest.abort === 'function') {
+                        // jqXHR or XHR-like
+                        currentRequest.abort();
+                    } else if (currentRequest instanceof AbortController) {
+                        currentRequest.abort();
+                    } else if (currentRequest.signal && typeof currentRequest.signal.aborted === 'boolean') {
+                        // nothing to do, already a fetch with signal; but try to call abort if controller stored
+                        if (typeof currentRequest.abort === 'function') {
+                            currentRequest.abort();
+                        }
+                    }
+                }
+            } catch (e) {
+                const settings = getSettings($wrapper);
+                if (settings && settings.debug) {
+                    log("Error while aborting currentRequest during destroy:", e);
                 }
             }
 
@@ -1513,12 +1538,21 @@
             $wrapper.removeData("searchMode");
             $wrapper.removeData("searchPagination");
             $wrapper.removeData("currentRequest");
+            $wrapper.removeData("lastView");
             $wrapper.removeClass("position-relative bs-calendar overflow-hidden");
+            // remove generated unique id attribute
+            $wrapper.removeAttr('data-bs-calendar-id');
             $wrapper.empty();
 
             // Ensure any info modal DOM node is removed (cleanup)
             if ($(calendarElements.infoModal).length) {
                 try {
+                    // Dispose bootstrap modal instance (Bootstrap 5)
+                    try {
+                        $(calendarElements.infoModal).modal('dispose');
+                    } catch (ignore) {
+                        // fallback: ignore if dispose not available
+                    }
                     $(calendarElements.infoModal).remove();
                 } catch (e) {
                     // ignore
