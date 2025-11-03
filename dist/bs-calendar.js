@@ -1071,8 +1071,14 @@
                     }
                 };
 
+                let ignoreStore = false;
+
                 if (optionsGiven) {
                     bsCalendarData.settings = $.extend(true, {}, bsCalendarData.settings, optionsOrMethod);
+                    ignoreStore = bsCalendarData.settings.ingoreStore === true;
+                    if(ignoreStore) {
+                        delete bsCalendarData.settings.ingoreStore;
+                    }
                     normalizeSettings(bsCalendarData.settings);
                 }
 
@@ -1080,13 +1086,15 @@
 
                 setBsCalendarData(wrapper, bsCalendarData);
 
-                if (bsCalendarData.settings.storeState) {
+                if (! ignoreStore && bsCalendarData.settings.storeState) {
                     const view = getFromLocalStorage(wrapper, 'view');
                     if (!$.bsCalendar.utils.isValueEmpty(view)) {
                         bsCalendarData.settings.startView = view;
                         updateSettings(wrapper, bsCalendarData.settings);
                     }
                 }
+
+
 
                 init(wrapper).then(() => {
                     onResize(wrapper, true);
@@ -1837,7 +1845,7 @@
                 normalizeSettings(newSettings);
 
                 // storeState nicht zwangsweise deaktivieren – nur übernehmen, was gesetzt ist
-                // newSettings.storeState = false;
+                newSettings.ingoreStore = true;
 
                 if (newSettings.debug) {
                     log('Settings before update:', settingsBefore);
