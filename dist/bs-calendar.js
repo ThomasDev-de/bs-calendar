@@ -1838,7 +1838,6 @@
                     options.startView = data.view;
                 }
 
-
                 const newSettings = $.extend(true, {}, settingsBefore, options || {});
 
                 // Normalisieren, damit z. B. views/startDate/hourSlots sauber gesetzt sind
@@ -1858,7 +1857,6 @@
                         tmpDiv.remove();
                     }
                 });
-
             }
         }
 
@@ -2611,8 +2609,9 @@
          * @return {void} The function performs navigation and updates the date in the wrapper object.
          */
         function navigateBack($wrapper) {
-            const view = getView($wrapper);
-            const date = getDate($wrapper);
+            const data = getBsCalendarData($wrapper);
+            const view = data.view;
+            const date = data.date;
             const newDate = new Date(date);
             switch (view) {
                 case 'month':
@@ -2635,7 +2634,8 @@
                     newDate.setDate(newDate.getDate() - 1);
                     break;
             }
-            setDate($wrapper, newDate);
+            data.date = newDate;
+            setBsCalendarData($wrapper, data);
             trigger($wrapper, 'navigate-back', view, date, newDate);
             buildByView($wrapper, false);
         }
@@ -2648,8 +2648,9 @@
          * @return {void} - This function does not return a value. It updates the calendar state directly.
          */
         function navigateForward($wrapper) {
-            const view = getView($wrapper);
-            const date = getDate($wrapper);
+            const data = getBsCalendarData($wrapper);
+            const view = data.view;
+            const date = data.date;
             const newDate = new Date(date);
             switch (view) {
                 case 'month':
@@ -2673,7 +2674,8 @@
                     break;
 
             }
-            setDate($wrapper, newDate);
+            data.date = newDate;
+            setBsCalendarData($wrapper, data);
             trigger($wrapper, 'navigate-forward', view, date, newDate);
             buildByView($wrapper, false);
         }
@@ -4970,9 +4972,10 @@
          * @return {void} - The function does not return any value; it dynamically manipulates the DOM to render the calendar view.
          */
         function buildMonthView($wrapper) {
+            const data = getBsCalendarData($wrapper);
             const container = getViewContainer($wrapper);
-            const settings = getSettings($wrapper);
-            const date = getDate($wrapper);
+            const settings = data.settings;
+            const date = data.date
 
             const {locale, startWeekOnSunday} = settings;
 
