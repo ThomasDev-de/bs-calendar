@@ -11,7 +11,7 @@
 <div id="calendar" data-sidebar-addons="#sidebarAddons" data-topbar-addons="#topbarAddons">
 
 </div>
-<div id="calendar2" class="mt-5"></div>
+<!--<div id="calendar2" class="mt-5"></div>-->
 <div id="sidebarAddons" class="mt-4 card">
     <div class="card-header">
         <h6 class="text-uppercase text-center mb-0">sidebar addons</h6>
@@ -146,7 +146,7 @@
             startWeekOnSunday: false,
             // showAddButton: false,
             // views: ["week", "day"],
-            rounded: 5,
+            rounded: 9,
             defaultColor: 'info',
             navigateOnWheel: true,
             holidays: {
@@ -167,7 +167,7 @@
         const modal = $('#exampleModal');
         const calendarElement = $('#calendar');
         calendarElement.bsCalendar();
-        $('#calendar2').bsCalendar();
+        // $('#calendar2').bsCalendar();
         calendarElement
             .on('change', '#selectUser', function () {
                 const val = $(this).val();
