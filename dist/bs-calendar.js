@@ -1832,8 +1832,12 @@
 
 
                 const newSettings = $.extend(true, {}, settingsBefore, options || {});
-                newSettings.storeState = false;
-                // Merge the old settings with the new ones
+
+                // Normalisieren, damit z. B. views/startDate/hourSlots sauber gesetzt sind
+                normalizeSettings(newSettings);
+
+                // storeState nicht zwangsweise deaktivieren – nur übernehmen, was gesetzt ist
+                // newSettings.storeState = false;
 
                 if (newSettings.debug) {
                     log('Settings before update:', settingsBefore);
