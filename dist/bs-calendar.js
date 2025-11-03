@@ -1723,7 +1723,7 @@
          * @param {jQuery} $wrapper - The jQuery-wrapped DOM element to be cleaned up and reset.
          * @return {void} Does not return a value.
          */
-        function destroy($wrapper) {
+        function destroy($wrappercallback = null) {
             const data = getBsCalendarData($wrapper);
             const settings = data.settings;
             $(globalCalendarElements.infoModal).modal("hide");
@@ -1773,6 +1773,9 @@
             }
             restoreWrapperState($wrapper);
             $wrapper.removeData("bsCalendar");
+            if (typeof callback === 'function') {
+                callback();
+            }
         }
 
         /**
@@ -1821,46 +1824,29 @@
                 }
 
                 // Store the current date and view
-                if (! options.hasOwnProperty('startDate')) {
+                if (!options.hasOwnProperty('startDate')) {
                     options.startDate = data.date;
                 }
-                if (! options.hasOwnProperty('startView')) {
+                if (!options.hasOwnProperty('startView')) {
                     options.startView = data.view;
                 }
-                const startDate = data.date;
-                const startView = data.view;
-                let viewChanged = false;
 
-                // Destroy the current calendar
 
-                const newSettings = $.extend(true, {}, $.bsCalendar.getDefaults(), $wrapper.data(), settingsBefore, options || {});
-
-                normalizeSettings(newSettings);
+                const newSettings = $.extend(true, {}, settingsBefore, options || {});
                 // Merge the old settings with the new ones
 
-                if (settingsBefore.debug) {
+                if (newSettings.debug) {
                     log('Settings before update:', settingsBefore);
                     log('Settings after update:', newSettings);
                 }
+                // Destroy the current calendar
+                destroy($wrapper, function(){
+                    $wrapper.bsCalendar(newSettings);
+                    if (tmpDiv) {
+                        tmpDiv.remove();
+                    }
+                });
 
-                destroy($wrapper);
-                $wrapper.bsCalendar(newSettings);
-
-                // updateSettings($wrapper, newSettings);
-                //
-                // // Reinitialize the calendar
-                // init($wrapper, false, false, viewChanged).then(() => {
-                //     // If a temporary container was used, reinsert the addons
-                //     if (tmpDiv) {
-                //         if (needsBackupTopbar) {
-                //             tmpDiv.find(addonsBeforeTopbar).appendTo($wrapper);
-                //         }
-                //         if (needsBackupSidebar) {
-                //             tmpDiv.find(addonsBeforeSidebar).appendTo($wrapper);
-                //         }
-                //         tmpDiv.remove();
-                //     }
-                // });
             }
         }
 
@@ -2131,7 +2117,7 @@
                         handleEvents($wrapper);
                     }
 
-                    const monthCalendarWrapper = $wrapper.find('#'+data.elements.wrapperSmallMonthCalendarId);
+                    const monthCalendarWrapper = $wrapper.find('#' + data.elements.wrapperSmallMonthCalendarId);
                     buildMonthSmallView($wrapper, getDate($wrapper), monthCalendarWrapper, false);
                     if (triggerEventInit) {
                         trigger($wrapper, 'init');
@@ -2541,8 +2527,8 @@
             const settings = data.settings;
             const date = data.date;
             const view = data.view;
-            const el =  $wrapper.find('#' + data.elements.wrapperViewContainerTitleId);
-            const elSmall = $wrapper.find('#' +data.elements.wrapperSmallMonthCalendarTitleId);
+            const el = $wrapper.find('#' + data.elements.wrapperViewContainerTitleId);
+            const elSmall = $wrapper.find('#' + data.elements.wrapperSmallMonthCalendarTitleId);
             const dayName = date.toLocaleDateString(settings.locale, {day: 'numeric'});
             const weekdayName = date.toLocaleDateString(settings.locale, {weekday: 'long'});
             const monthName = date.toLocaleDateString(settings.locale, {month: 'long'});
