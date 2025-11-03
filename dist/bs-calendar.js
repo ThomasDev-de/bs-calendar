@@ -1614,7 +1614,7 @@
         function prepareDate(date) {
             if (typeof object === "string") {
                 date = new Date(object);
-            } else if (object instanceof Date) {
+            } else if (date instanceof Date) {
                 date = object;
             }
             return date;
