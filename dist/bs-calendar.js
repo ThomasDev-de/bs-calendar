@@ -1044,7 +1044,6 @@
             const optionsGiven = typeof optionsOrMethod === 'object';
             const methodGiven = typeof optionsOrMethod === 'string';
 
-
             if (!isInitialized) {
                 const bsCalendarData = {
                     elements: {
@@ -1072,8 +1071,8 @@
                     }
                 };
 
-                if (bsCalendarData.dataBefore || optionsGiven) {
-                    bsCalendarData.settings = $.extend(true, {}, bsCalendarData.settings, bsCalendarData.dataBefore, optionsGiven ? optionsOrMethod : {});
+                if (optionsGiven) {
+                    bsCalendarData.settings = $.extend(true, {}, bsCalendarData.settings, optionsOrMethod);
                     normalizeSettings(bsCalendarData.settings);
                 }
 
@@ -1833,6 +1832,7 @@
 
 
                 const newSettings = $.extend(true, {}, settingsBefore, options || {});
+                newSettings.storeState = false;
                 // Merge the old settings with the new ones
 
                 if (newSettings.debug) {
@@ -2118,7 +2118,7 @@
                     }
 
                     const monthCalendarWrapper = $wrapper.find('#' + data.elements.wrapperSmallMonthCalendarId);
-                    buildMonthSmallView($wrapper, getDate($wrapper), monthCalendarWrapper, false);
+                    buildMonthSmallView($wrapper, data.date, monthCalendarWrapper, false);
                     if (triggerEventInit) {
                         trigger($wrapper, 'init');
                     }
