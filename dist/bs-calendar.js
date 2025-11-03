@@ -1821,47 +1821,46 @@
                 }
 
                 // Store the current date and view
+                if (! options.hasOwnProperty('startDate')) {
+                    options.startDate = data.date;
+                }
+                if (! options.hasOwnProperty('startView')) {
+                    options.startView = data.view;
+                }
                 const startDate = data.date;
                 const startView = data.view;
                 let viewChanged = false;
 
                 // Destroy the current calendar
-                destroy($wrapper);
+
                 const newSettings = $.extend(true, {}, $.bsCalendar.getDefaults(), $wrapper.data(), settingsBefore, options || {});
 
+                normalizeSettings(newSettings);
                 // Merge the old settings with the new ones
 
                 if (settingsBefore.debug) {
                     log('Settings before update:', settingsBefore);
                     log('Settings after update:', newSettings);
                 }
-                // Retain the date and view logic
-                if (!options.hasOwnProperty('startDate')) {
-                    newSettings.startDate = startDate;
-                }
-                if (!options.hasOwnProperty('startView')) {
-                    newSettings.startView = startView;
-                } else {
-                    viewChanged = options.startView !== startView;
-                }
 
-                normalizeSettings(newSettings);
+                destroy($wrapper);
+                $wrapper.bsCalendar(newSettings);
 
-                updateSettings($wrapper, newSettings);
-
-                // Reinitialize the calendar
-                init($wrapper, false, false, viewChanged).then(() => {
-                    // If a temporary container was used, reinsert the addons
-                    if (tmpDiv) {
-                        if (needsBackupTopbar) {
-                            tmpDiv.find(addonsBeforeTopbar).appendTo($wrapper);
-                        }
-                        if (needsBackupSidebar) {
-                            tmpDiv.find(addonsBeforeSidebar).appendTo($wrapper);
-                        }
-                        tmpDiv.remove();
-                    }
-                });
+                // updateSettings($wrapper, newSettings);
+                //
+                // // Reinitialize the calendar
+                // init($wrapper, false, false, viewChanged).then(() => {
+                //     // If a temporary container was used, reinsert the addons
+                //     if (tmpDiv) {
+                //         if (needsBackupTopbar) {
+                //             tmpDiv.find(addonsBeforeTopbar).appendTo($wrapper);
+                //         }
+                //         if (needsBackupSidebar) {
+                //             tmpDiv.find(addonsBeforeSidebar).appendTo($wrapper);
+                //         }
+                //         tmpDiv.remove();
+                //     }
+                // });
             }
         }
 
