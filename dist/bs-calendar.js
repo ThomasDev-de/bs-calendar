@@ -1723,7 +1723,7 @@
          * @param {jQuery} $wrapper - The jQuery-wrapped DOM element to be cleaned up and reset.
          * @return {void} Does not return a value.
          */
-        function destroy($wrappercallback = null) {
+        function destroy($wrapper, callback = null) {
             const data = getBsCalendarData($wrapper);
             const settings = data.settings;
             $(globalCalendarElements.infoModal).modal("hide");
@@ -1840,7 +1840,7 @@
                     log('Settings after update:', newSettings);
                 }
                 // Destroy the current calendar
-                destroy($wrapper, function(){
+                destroy($wrapper, function () {
                     $wrapper.bsCalendar(newSettings);
                     if (tmpDiv) {
                         tmpDiv.remove();
