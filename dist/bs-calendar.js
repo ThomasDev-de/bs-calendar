@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.2
- * @date 2025-11-01
+ * @version 2.0.3
+ * @date 2025-11-03
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -38,7 +38,7 @@
  * See the individual method and function documentation in this file for more details.
  *
  * @file bs-calendar.js
- * @date 2025-07-07
+ * @file bs-calendar.min.js
  *
  */
 
@@ -61,7 +61,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '1.2.7',
+            version: '2.0.3',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -1017,12 +1017,8 @@
             }
         };
 
-        const calendarElements = {
-            containerView: 'wc-calendar-view-container',
+        const globalCalendarElements = {
             infoModal: '#wcCalendarInfoWindowModal',
-            topNav: 'wc-calendar-top-nav',
-            sideNav: 'wc-calendar-left-nav',
-            topSearchNav: 'wc-calendar-top-search-nav',
         };
 
         const namespace = '.bs.calendar';
@@ -1044,28 +1040,52 @@
                 });
             }
             const wrapper = $(this);
-            const isInitialized = wrapper.data('initBsCalendar') === true;
+            const isInitialized = typeof wrapper.data('bsCalendar') === 'object';
             const optionsGiven = typeof optionsOrMethod === 'object';
             const methodGiven = typeof optionsOrMethod === 'string';
 
 
             if (!isInitialized) {
-                let settings = $.bsCalendar.getDefaults();
+                const bsCalendarData = {
+                    elements: {
+                        wrapperId: $.bsCalendar.utils.generateRandomString(8),
+                        wrapperSmallMonthCalendarId: $.bsCalendar.utils.generateRandomString(8),
+                        wrapperSmallMonthCalendarTitleId: $.bsCalendar.utils.generateRandomString(8),
+                        wrapperViewContainerId: $.bsCalendar.utils.generateRandomString(8),
+                        wrapperViewContainerTitleId: $.bsCalendar.utils.generateRandomString(8),
+                        wrapperTopNavId: $.bsCalendar.utils.generateRandomString(8),
+                        wrapperSideNavId: $.bsCalendar.utils.generateRandomString(8),
+                        wrapperSearchNavId: $.bsCalendar.utils.generateRandomString(8),
+                    },
+                    loading: false,
+                    loadingHolidays: false,
+                    settings: $.bsCalendar.getDefaults(),
+                    appointments: [],
+                    date: new Date(),
+                    lastView: null,
+                    view: null,
+                    dataBefore: snapshotWrapperState(wrapper),
+                    searchMode: false,
+                    searchPagination: null,
+                    xhrs: {
+                        appointments: null
+                    }
+                };
 
-                if (wrapper.data() || optionsGiven) {
-                    normalizeSettings(settings);
-                    settings = $.extend(true, {}, settings, wrapper.data() || {}, optionsGiven ? optionsOrMethod : {});
+                if (bsCalendarData.dataBefore || optionsGiven) {
+                    bsCalendarData.settings = $.extend(true, {}, bsCalendarData.settings, bsCalendarData.dataBefore, optionsGiven ? optionsOrMethod : {});
+                    normalizeSettings(bsCalendarData.settings);
                 }
 
-                settings.translations = $.extend(true, {}, settings.translations, $.bsCalendar.utils.getStandardizedUnits(settings.locale) || {});
+                bsCalendarData.settings.translations = $.extend(true, {}, bsCalendarData.settings.translations, $.bsCalendar.utils.getStandardizedUnits(bsCalendarData.settings.locale) || {});
 
-                setSettings(wrapper, settings);
+                setBsCalendarData(wrapper, bsCalendarData);
 
-                if (settings.storeState) {
+                if (bsCalendarData.settings.storeState) {
                     const view = getFromLocalStorage(wrapper, 'view');
                     if (!$.bsCalendar.utils.isValueEmpty(view)) {
-                        settings.startView = view;
-                        setSettings(wrapper, settings);
+                        bsCalendarData.settings.startView = view;
+                        updateSettings(wrapper, bsCalendarData.settings);
                     }
                 }
 
@@ -1107,11 +1127,208 @@
             return wrapper;
         }
 
+        /**
+         * Erzeugt einen Snapshot des aktuellen Wrapper-Zustands:
+         * - tiefe Kopie von jQuery .data()
+         * - DOM-Rohattribute: class, style, id
+         * - alle data-* Attribute (roh)
+         * - ausgewählte Zusatzattribute (title, role, aria-label, aria-describedby)
+         *
+         * @param {jQuery} $el
+         * @return {Object}
+         */
+        function snapshotWrapperState($el) {
+            // tiefe Kopie aller via jQuery .data() gesetzten Werte
+            var snap = $.extend(true, {}, $el.data());
+
+            // DOM-Metadaten
+            var dom = {
+                id: $el.attr('id') || null,
+                class: $el.attr('class') || '',
+                style: $el.attr('style') || ''
+            };
+
+            // alle rohen data-* Attribute einsammeln
+            var dataAttrs = {};
+            var node = $el.get(0);
+            if (node && node.attributes) {
+                $.each(node.attributes, function (_, attr) {
+                    if (attr && attr.name && attr.name.indexOf('data-') === 0) {
+                        dataAttrs[attr.name] = attr.value;
+                    }
+                });
+            }
+            dom.dataAttributes = dataAttrs;
+
+            // optional: normalisierte Map der data-* ohne 'data-' Prefix
+            // damit du später leichter vergleichen/zusammenführen kannst
+            var normalizedData = {};
+            Object.keys(dataAttrs).forEach(function (k) {
+                var nk = k.slice(5); // entfernt 'data-'
+                normalizedData[nk] = dataAttrs[k];
+            });
+            dom.normalizedData = normalizedData;
+
+            // ausgewählte Zusatzattribute
+            var keepAttrs = ['title', 'role', 'aria-label', 'aria-describedby'];
+            var extras = {};
+            for (var i = 0; i < keepAttrs.length; i++) {
+                var val = $el.attr(keepAttrs[i]);
+                if (typeof val !== 'undefined') {
+                    extras[keepAttrs[i]] = val;
+                }
+            }
+            dom.attributes = extras;
+
+            // Alles unter __dom__ ablegen
+            snap.__dom__ = dom;
+
+            // optional: eine kombinierte Sicht auf Daten (jQuery .data() hat Vorrang)
+            snap.__allData__ = $.extend({}, normalizedData, snap);
+
+            return snap;
+        }
+
+        /**
+         * Stellt den zuvor gesnapten Wrapper-Zustand wieder her:
+         * - class, style, id
+         * - data-* Attribute (vorher entfernen, dann aus Snapshot setzen)
+         * - ausgewählte Zusatzattribute (leeren/entfernen, dann aus Snapshot setzen)
+         * Hinweis: jQuery .data() wird absichtlich nicht zurückgeschrieben, da diese
+         *         Struktur die interne Plugin-State kollidieren könnte. Falls gewünscht,
+         *         gezielt Keys zurückspielen.
+         *
+         * @param {jQuery} $el
+         * @param {Object} snapshot
+         */
+        function restoreWrapperState($el, snapshot) {
+            if (!snapshot || !snapshot.__dom__) {
+                return;
+            }
+            var dom = snapshot.__dom__;
+
+            // Klassen und Inline-Styles
+            if (typeof dom.class === 'string') {
+                $el.attr('class', dom.class);
+            } else {
+                $el.removeAttr('class');
+            }
+            if (typeof dom.style === 'string') {
+                if (dom.style.length) {
+                    $el.attr('style', dom.style);
+                } else {
+                    $el.removeAttr('style');
+                }
+            } else {
+                $el.removeAttr('style');
+            }
+
+            // id (vorsichtig: konflikt mit existierenden IDs vermeiden)
+            if (dom.id) {
+                $el.attr('id', dom.id);
+            } else {
+                $el.removeAttr('id');
+            }
+
+            // existierende data-* Attribute entfernen
+            var node = $el.get(0);
+            if (node && node.attributes) {
+                var toRemove = [];
+                $.each(node.attributes, function (_, attr) {
+                    if (attr && attr.name && attr.name.indexOf('data-') === 0) {
+                        toRemove.push(attr.name);
+                    }
+                });
+                for (var r = 0; r < toRemove.length; r++) {
+                    $el.removeAttr(toRemove[r]);
+                }
+            }
+            // data-* aus Snapshot setzen
+            if (dom.dataAttributes && typeof dom.dataAttributes === 'object') {
+                Object.keys(dom.dataAttributes).forEach(function (k) {
+                    $el.attr(k, dom.dataAttributes[k]);
+                });
+            }
+
+            // ausgewählte Zusatzattribute zurücksetzen
+            var keepAttrs = ['title', 'role', 'aria-label', 'aria-describedby'];
+            for (var i = 0; i < keepAttrs.length; i++) {
+                $el.removeAttr(keepAttrs[i]);
+            }
+            if (dom.attributes && typeof dom.attributes === 'object') {
+                Object.keys(dom.attributes).forEach(function (k) {
+                    var v = dom.attributes[k];
+                    if (typeof v !== 'undefined' && v !== null) {
+                        $el.attr(k, v);
+                    }
+                });
+            }
+        }
+
+        function setBsCalendarData(wrapper, data) {
+            if (data.settings.debug) {
+                log('**************** setBsCalendarData', data);
+            }
+            wrapper.data('bsCalendar', data);
+        }
+
+        /**
+         * getBsCalendarData
+         * Returns the Bootstrap Calendar data object stored on the given jQuery wrapper element.
+         *
+         * @param {jQuery} wrapper - A jQuery-wrapped DOM element that holds the 'bsCalendar' data.
+         * @returns {*} The value associated with the 'bsCalendar' key on the wrapper, or undefined if not set.
+         */
+        function getBsCalendarData(wrapper) {
+            // Access the jQuery data store on the element and retrieve the 'bsCalendar' entry
+            return wrapper.data('bsCalendar');
+        }
+
+
+        /**
+         * setAppointments
+         * Updates the calendar data on the given wrapper with a new appointments array.
+         * - Reads current calendar data from the wrapper
+         * - Optionally logs for debugging
+         * - Stores the provided appointments (or an empty array) back into the data
+         * - Persists the updated data on the wrapper
+         */
+        function setAppointments(wrapper, appointments) {
+            // Access plugin/configuration data tied to this wrapper
+            const data = getBsCalendarData(wrapper);
+            // If debug mode is enabled, log the incoming appointments for troubleshooting
+            if (data.settings.debug) {
+                console.log('setAppointments', appointments);
+            }
+            // Normalize and assign appointments to data (fallback to empty array if falsy)
+            data.appointments = appointments || [];
+            // Persist the updated data back onto the wrapper element
+            setBsCalendarData(wrapper, data);
+        }
+
+        /**
+         * Retrieves the list of appointments associated with the provided wrapper element.
+         *
+         * @param {jQuery} $wrapper - The jQuery wrapper element containing the appointment data.
+         * @return {Array<Object>} The appointment data stored in the wrapper element, or undefined if no data is found.
+         */
+        function getAppointments($wrapper) {
+            const data = getBsCalendarData($wrapper);
+            return data.appointments || [];
+        }
+
         function normalizeSettings(settings) {
 
             // clamp helper
             const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
             const possibleViews = ['day', 'week', 'month', 'year'];
+
+            if (settings.hasOwnProperty('startDate')) {
+                if (typeof settings.startDate === 'string') {
+                    const date = $.bsCalendar.utils.normalizeDateTime(settings.startDate);
+                    settings.startDate = new Date(date);
+                }
+            }
 
             // Normalize `views` immediately after merging settings to avoid duplicates
             // coming from defaults, data-attributes or passed options.
@@ -1473,9 +1690,30 @@
             $wrapper.find('[data-role="holiday"]').remove();
             $wrapper.find('.tooltip').remove();
             if (removeAppointments) {
-                setAppointments($wrapper, []).then(_cleanedAppointments => {
+                checkAndSetAppointments($wrapper, []).then(_cleanedAppointments => {
                     void _cleanedAppointments; // Prevents the warning, but serves no purpose
                 });
+            }
+        }
+
+        function abortXhr(xhr) {
+            try {
+                if (xhr) {
+                    if (typeof xhr.abort === 'function') {
+                        // jqXHR or XHR-like
+                        xhr.abort();
+                    } else if (xhr instanceof AbortController) {
+                        xhr.abort();
+                    } else if (xhr.signal && typeof xhr.signal.aborted === 'boolean') {
+                        // nothing to do, already a fetch with signal; but try to call abort if controller stored
+                        if (typeof xhr.abort === 'function') {
+                            xhr.abort();
+                        }
+                    }
+                }
+                return true;
+            } catch (e) {
+                return false;
             }
         }
 
@@ -1486,7 +1724,9 @@
          * @return {void} Does not return a value.
          */
         function destroy($wrapper) {
-            $(calendarElements.infoModal).modal("hide");
+            const data = getBsCalendarData($wrapper);
+            const settings = data.settings;
+            $(globalCalendarElements.infoModal).modal("hide");
             methodClear($wrapper);
 
             // Remove namespaced event handlers to avoid duplicate bindings on re-init
@@ -1499,65 +1739,40 @@
                 // Defensive: also remove handlers that might have been bound without namespace
                 $wrapper.find('*').off();
             } catch (e) {
-                // defensive: if off fails for some reason, log in debug mode
-                const settings = getSettings($wrapper);
                 if (settings && settings.debug) {
                     log("Error while removing namespaced events during destroy:", e);
                 }
             }
 
             // If there is an active request stored, try to abort it (jqXHR or AbortController)
-            try {
-                const currentRequest = $wrapper.data('currentRequest');
-                if (currentRequest) {
-                    if (typeof currentRequest.abort === 'function') {
-                        // jqXHR or XHR-like
-                        currentRequest.abort();
-                    } else if (currentRequest instanceof AbortController) {
-                        currentRequest.abort();
-                    } else if (currentRequest.signal && typeof currentRequest.signal.aborted === 'boolean') {
-                        // nothing to do, already a fetch with signal; but try to call abort if controller stored
-                        if (typeof currentRequest.abort === 'function') {
-                            currentRequest.abort();
-                        }
-                    }
-                }
-            } catch (e) {
-                const settings = getSettings($wrapper);
-                if (settings && settings.debug) {
-                    log("Error while aborting currentRequest during destroy:", e);
-                }
+            const abortXHRAppointments = abortXhr(data.xhrs.appointments);
+
+            if (!abortXHRAppointments && settings.debug) {
+                log("Error while aborting xhrs.appointments during destroy:", e);
             }
 
-            // Remove stored data and classes
-            $wrapper.removeData("initBsCalendar");
-            $wrapper.removeData("settings");
-            $wrapper.removeData("view");
-            $wrapper.removeData("date");
-            $wrapper.removeData("appointments");
-            $wrapper.removeData("searchMode");
-            $wrapper.removeData("searchPagination");
-            $wrapper.removeData("currentRequest");
-            $wrapper.removeData("lastView");
+
             $wrapper.removeClass("position-relative bs-calendar overflow-hidden");
             // remove generated unique id attribute
             $wrapper.removeAttr('data-bs-calendar-id');
             $wrapper.empty();
 
             // Ensure any info modal DOM node is removed (cleanup)
-            if ($(calendarElements.infoModal).length) {
+            if ($(globalCalendarElements.infoModal).length) {
                 try {
                     // Dispose bootstrap modal instance (Bootstrap 5)
                     try {
-                        $(calendarElements.infoModal).modal('dispose');
+                        $(globalCalendarElements.infoModal).modal('dispose');
                     } catch (ignore) {
                         // fallback: ignore if dispose not available
                     }
-                    $(calendarElements.infoModal).remove();
+                    $(globalCalendarElements.infoModal).remove();
                 } catch (e) {
                     // ignore
                 }
             }
+            restoreWrapperState($wrapper);
+            $wrapper.removeData("bsCalendar");
         }
 
         /**
@@ -1569,7 +1784,8 @@
          */
         function methodUpdateOptions($wrapper, options) {
             if (typeof options === 'object') {
-                const settingsBefore = getSettings($wrapper);
+                const data = getBsCalendarData($wrapper);
+                const settingsBefore = data.settings;
 
                 // Retrieve the previous addons
                 const addonsBeforeTopbar = settingsBefore.topbarAddons;
@@ -1605,15 +1821,15 @@
                 }
 
                 // Store the current date and view
-                const startDate = getDate($wrapper);
-                const startView = getView($wrapper);
+                const startDate = data.date;
+                const startView = data.view;
                 let viewChanged = false;
 
                 // Destroy the current calendar
                 destroy($wrapper);
+                const newSettings = $.extend(true, {}, $.bsCalendar.getDefaults(), $wrapper.data(), settingsBefore, options || {});
 
                 // Merge the old settings with the new ones
-                const newSettings = $.extend(true, {}, $.bsCalendar.getDefaults(), $wrapper.data(), settingsBefore, options || {});
 
                 if (settingsBefore.debug) {
                     log('Settings before update:', settingsBefore);
@@ -1631,7 +1847,7 @@
 
                 normalizeSettings(newSettings);
 
-                setSettings($wrapper, newSettings);
+                updateSettings($wrapper, newSettings);
 
                 // Reinitialize the calendar
                 init($wrapper, false, false, viewChanged).then(() => {
@@ -1691,7 +1907,7 @@
             }
             if (changeSettings) {
                 // Save the updated settings if any changes were made.
-                setSettings($wrapper, settings);
+                updateSettings($wrapper, settings);
             }
 
             buildByView($wrapper, changeView);
@@ -1886,45 +2102,43 @@
         function init($wrapper, initEvents = true, triggerEventInit = true, triggerViewChange = true) {
             return new Promise((resolve, reject) => {
                 try {
-                    const settings = getSettings($wrapper);
+                    const data = getBsCalendarData($wrapper);
+                    const settings = data.settings;
                     $wrapper.addClass('position-relative bs-calendar overflow-hidden');
-                    const wrapperUniqueId = $.bsCalendar.utils.generateRandomString(8);
-                    $wrapper.attr('data-bs-calendar-id', wrapperUniqueId);
+                    $wrapper.attr('data-bs-calendar-id', data.elements.wrapperId);
 
-                    if (!settings.hasOwnProperty('views') || settings.views.length === 0) {
-                        settings.views = ['day', 'week', 'month', 'year'];
-                        setSettings($wrapper, settings);
+                    if (!data.settings.hasOwnProperty('views') || data.settings.views.length === 0) {
+                        data.settings.views = ['day', 'week', 'month', 'year'];
                     }
-                    if (!settings.hasOwnProperty('startView') || !settings.startView) {
-                        settings.startView = 'month';
-                        setSettings($wrapper, settings);
+                    if (!data.settings.hasOwnProperty('startView') || !data.settings.startView) {
+                        data.settings.startView = 'month';
                     }
-                    if (!settings.views.includes(settings.startView)) {
-                        settings.startView = settings.views[0];
-                        setSettings($wrapper, settings);
+                    if (!data.settings.views.includes(data.settings.startView)) {
+                        data.settings.startView = data.settings.views[0];
                     }
-                    setView($wrapper, settings.startView);
-                    setDate($wrapper, settings.startDate);
-                    setSearchMode($wrapper, false);
+                    data.view = settings.startView;
+                    data.date = settings.startDate;
+                    data.searchMode = false;
                     let searchObject =
                         settings.search &&
                         settings.search.hasOwnProperty('limit') &&
                         settings.search.hasOwnProperty('offset') ?
                             {limit: settings.search.limit, offset: settings.search.offset} :
                             null;
-                    setSearchPagination($wrapper, searchObject);
+                    data.searchPagination = searchObject;
+                    setBsCalendarData($wrapper, data);
                     buildFramework($wrapper);
                     if (initEvents) {
                         handleEvents($wrapper);
                     }
 
-                    buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
+                    const monthCalendarWrapper = $wrapper.find('#'+data.elements.wrapperSmallMonthCalendarId);
+                    buildMonthSmallView($wrapper, getDate($wrapper), monthCalendarWrapper, false);
                     if (triggerEventInit) {
                         trigger($wrapper, 'init');
                     }
                     buildByView($wrapper, triggerViewChange);
 
-                    $wrapper.data('initBsCalendar', true);
                     if (settings.debug) {
                         log('bsCalendar initialized');
                     }
@@ -1947,7 +2161,7 @@
          * @return {Promise<Array>} A Promise that resolves with the processed list of appointments if successful,
          *                          or rejects with an error if an issue occurs during the sorting or processing.
          */
-        async function setAppointments($wrapper, appointments) {
+        async function checkAndSetAppointments($wrapper, appointments) {
             const settings = getSettings($wrapper);
 
             // Return a Promise to manage asynchronous operations
@@ -1959,7 +2173,7 @@
                     appointments = [];
 
                     // Store the empty appointments list in the wrapper's data attribute
-                    $wrapper.data('appointments', appointments);
+                    setAppointments($wrapper, appointments);
 
                     // Resolve the Promise with an empty list of appointments
                     resolve(appointments);
@@ -1967,31 +2181,31 @@
                 }
 
                 // --- DEDUPLICATION: remove exact duplicates (by id if present, otherwise by start|end|title) ---
-                try {
-                    const seen = new Set();
-                    const deduped = [];
-                    for (const appt of appointments) {
-                        let key = null;
-                        if (appt && (appt.id !== undefined && appt.id !== null)) {
-                            key = `id:${appt.id}`;
-                        } else {
-                            // fallback key using important fields
-                            key = `k:${(appt.start || '')}|${(appt.end || '')}|${(appt.title || '')}`;
-                        }
-                        if (!seen.has(key)) {
-                            seen.add(key);
-                            deduped.push(appt);
-                        } else if (settings.debug) {
-                            log("Duplicate appointment removed by setAppointments:", appt);
-                        }
-                    }
-                    appointments = deduped;
-                } catch (e) {
-                    if (settings.debug) {
-                        log("Error during appointment deduplication:", e);
-                    }
-                    // fall through - still continue with original appointments if something fails
-                }
+                // try {
+                //     const seen = new Set();
+                //     const deduped = [];
+                //     for (const appt of appointments) {
+                //         let key = null;
+                //         if (appt && (appt.id !== undefined && appt.id !== null)) {
+                //             key = `id:${appt.id}`;
+                //         } else {
+                //             // fallback key using important fields
+                //             key = `k:${(appt.start || '')}|${(appt.end || '')}|${(appt.title || '')}`;
+                //         }
+                //         if (!seen.has(key)) {
+                //             seen.add(key);
+                //             deduped.push(appt);
+                //         } else if (settings.debug) {
+                //             log("Duplicate appointment removed by setAppointments:", appt);
+                //         }
+                //     }
+                //     appointments = deduped;
+                // } catch (e) {
+                //     if (settings.debug) {
+                //         log("Error during appointment deduplication:", e);
+                //     }
+                //     // fall through - still continue with original appointments if something fails
+                // }
                 // --- end deduplication ---
 
                 const view = getView($wrapper);
@@ -2011,7 +2225,7 @@
                             return appointment;
                         });
                     setAppointmentExtras($wrapper, processedAppointments);
-                    $wrapper.data('appointments', processedAppointments);
+                    setAppointments($wrapper, processedAppointments);
                     return resolve(processedAppointments);
                 }
 
@@ -2030,7 +2244,7 @@
                         setAppointmentExtras($wrapper, appointments);
 
                         // Store the processed appointments inside the wrapper's data attribute
-                        $wrapper.data('appointments', appointments);
+                        setAppointments($wrapper, appointments);
 
                         // Resolve the Promise successfully with the processed appointments
                         resolve(appointments);
@@ -2122,16 +2336,6 @@
         }
 
         /**
-         * Retrieves the list of appointments associated with the provided wrapper element.
-         *
-         * @param {jQuery} $wrapper - The jQuery wrapper element containing the appointment data.
-         * @return {Array<Object>} The appointment data stored in the wrapper element, or undefined if no data is found.
-         */
-        function getAppointments($wrapper) {
-            return $wrapper.data('appointments') || [];
-        }
-
-        /**
          * Builds a dynamic framework for a calendar application within the specified wrapper element.
          * This method initializes and structures the user interface by adding navigation components,
          * buttons, and view containers.
@@ -2140,8 +2344,9 @@
          * @return {void} Does not return a value; modifies the provided wrapper element directly.
          */
         function buildFramework($wrapper) {
+            const data = getBsCalendarData($wrapper);
             // get the settings
-            const settings = getSettings($wrapper);
+            const settings = data.settings;
             // Clear the wrapper first
             $wrapper.empty();
 
@@ -2154,7 +2359,8 @@
 
             // Create the wrapper for the upper navigation
             const topNav = $('<div>', {
-                class: `row align-items-center px-0 justify-content-between ${roundedClass} mb-3 ${calendarElements.topNav}`
+                id: data.elements.wrapperTopNavId,
+                class: `row align-items-center px-0 justify-content-between ${roundedClass} mb-3`
             }).appendTo(innerWrapper);
 
             // When an element has been set after the upper navigation, add it after navigation
@@ -2176,7 +2382,8 @@
             // If search is activated, add a search container
             if (settings.search) {
                 const topSearchNav = $('<div>', {
-                    class: `d-none align-items-center px-0 justify-content-center mb-3 ${roundedClass} ${calendarElements.topSearchNav}`,
+                    id: data.elements.wrapperSearchNavId,
+                    class: `d-none align-items-center px-0 justify-content-center mb-3 ${roundedClass}`,
                 }).insertAfter(topNav);
 
                 // add a search button to topNav
@@ -2247,7 +2454,7 @@
             $('<div>', {
                 class: 'd-flex ms-2 align-items-center justify-content-center wc-nav-view-wrapper flex-nowrap text-nowrap',
                 html: [
-                    '<strong class="wc-nav-view-name me-3"></strong>',
+                    `<strong class="me-3" id="${data.elements.wrapperViewContainerTitleId}"></strong>`,
                     `<a data-prev href="#"><i class="${settings.icons.prev}"></i></a>`,
                     `<a class="mx-2" data-next href="#"><i class="${settings.icons.next}"></i></a>`,
                 ].join('')
@@ -2290,21 +2497,22 @@
 
             // add the sidebar
             const sidebar = $('<div>', {
+                id: data.elements.wrapperSideNavId,
                 css: {
                     position: 'relative',
                 },
-                class: 'me-4 ' + calendarElements.sideNav,
+                class: 'me-4',
                 html: [
                     '<div class="pb-3">',
-                    '<div class="d-flex justify-content-between align-items-center">',
-                    '<span class="wc-nav-view-small-name me-3"></span>',
+                    '<div class="d-flex justify-content-between align-items-center gap-2">',
+                    `<span id="${data.elements.wrapperSmallMonthCalendarTitleId}"></span>`,
                     '<div>',
                     `<a data-prev href="#"><i class="${settings.icons.prev}"></i></a>`,
                     `<a class="ms-2" data-next href="#"><i class="${settings.icons.next}"></i></a>`,
                     '</div>',
                     '</div>',
                     '</div>',
-                    '<div class="wc-calendar-month-small"></div>'
+                    `<div id="${data.elements.wrapperSmallMonthCalendarId}"></div>`
                 ].join('')
             }).appendTo(container);
             sidebar.data('visible', true);
@@ -2316,7 +2524,8 @@
 
             // add the viewer
             $('<div>', {
-                class: `container-fluid ${calendarElements.containerView} ${roundedClass} pb-5 border-1 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`,
+                id: data.elements.wrapperViewContainerId,
+                class: `container-fluid ${roundedClass} pb-5 border-1 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`,
             }).appendTo(container);
 
             // done
@@ -2329,11 +2538,12 @@
          * @return {void} Does not return a value, directly updates the text content of the targeted elements with formatted date information.
          */
         function setCurrentDateName($wrapper) {
-            const settings = getSettings($wrapper);
-            const date = getDate($wrapper);
-            const view = getView($wrapper);
-            const el = $('.wc-nav-view-name');
-            const elSmall = $('.wc-nav-view-small-name');
+            const data = getBsCalendarData($wrapper);
+            const settings = data.settings;
+            const date = data.date;
+            const view = data.view;
+            const el =  $wrapper.find('#' + data.elements.wrapperViewContainerTitleId);
+            const elSmall = $wrapper.find('#' +data.elements.wrapperSmallMonthCalendarTitleId);
             const dayName = date.toLocaleDateString(settings.locale, {day: 'numeric'});
             const weekdayName = date.toLocaleDateString(settings.locale, {weekday: 'long'});
             const monthName = date.toLocaleDateString(settings.locale, {month: 'long'});
@@ -2480,9 +2690,10 @@
          * @return {void} This method does not return a value.
          */
         function toggleSearchBar($wrapper, status) {
+            const data = getBsCalendarData($wrapper);
             const input = getSearchElement($wrapper);
-            const topNav = $wrapper.find('.' + calendarElements.topNav);
-            const topSearchNav = $wrapper.find('.' + calendarElements.topSearchNav);
+            const topNav = $wrapper.find('#' + data.elements.wrapperTopNavId);
+            const topSearchNav = $wrapper.find('#' + data.elements.wrapperSearchNavId);
             if (status) {
                 topNav.removeClass('d-flex').addClass('d-none');
                 topSearchNav.removeClass('d-none').addClass('d-flex');
@@ -2503,9 +2714,10 @@
          * @return {void} This method does not return a value.
          */
         function toggleSearchMode($wrapper, status, rebuildView = true) {
-            const settings = getSettings($wrapper);
-            setSearchMode($wrapper, status);
-
+            const data = getBsCalendarData($wrapper);
+            const settings = data.settings;
+            data.searchMode = status;
+            setBsCalendarData($wrapper, data);
             if (status) {
                 buildByView($wrapper, false);
             } else {
@@ -2530,9 +2742,11 @@
          * @return {void} This function does not return a value.
          */
         function resetSearchPagination($wrapper) {
-            const settings = getSettings($wrapper);
+            const data = getBsCalendarData($wrapper);
+            const settings = data.settings;
             const search = {limit: settings.search.limit, offset: settings.search.offset};
-            setSearchPagination($wrapper, search);
+            data.searchPagination = search;
+            setBsCalendarData($wrapper, data);
         }
 
         /**
@@ -2543,8 +2757,10 @@
          * @return {void}
          */
         function setSearchPagination($wrapper, object) {
+            const data = getBsCalendarData($wrapper);
             const pagination = $.bsCalendar.utils.isValueEmpty(object) ? null : object;
-            $wrapper.data('searchPagination', pagination);
+            data.searchPagination = pagination;
+            setBsCalendarData($wrapper, data);
         }
 
         /**
@@ -2554,7 +2770,8 @@
          * @return {Object|undefined} The search pagination data associated with the wrapper element, or undefined if none is found.
          */
         function getSearchPagination($wrapper) {
-            return $wrapper.data('searchPagination');
+            const data = getBsCalendarData($wrapper);
+            return data.searchPagination;
         }
 
         /**
@@ -2565,7 +2782,9 @@
          * @return {void}
          */
         function setSearchMode($wrapper, status) {
-            $wrapper.data('searchMode', status);
+            const data = getBsCalendarData($wrapper);
+            data.searchMode = status;
+            setBsCalendarData($wrapper, data);
         }
 
         /**
@@ -2575,7 +2794,8 @@
          * @return {bool} The search mode value stored in the data attribute of the wrapper element.
          */
         function getSearchMode($wrapper) {
-            return $wrapper.data('searchMode') ?? false;
+            const data = getBsCalendarData($wrapper);
+            return data.searchMode;
         }
 
         /**
@@ -2588,7 +2808,8 @@
          * @return {void} This function does not return a value.
          */
         function handleSidebarVisibility($wrapper, forceClose = false, forceOpen = false) {
-            const $sidebar = $wrapper.find('.' + calendarElements.sideNav);
+            const data = getBsCalendarData($wrapper);
+            const $sidebar = $wrapper.find('#' + data.elements.wrapperSideNavId);
             const isVisible = $sidebar.data('visible'); // Current status of the sidebar
 
             // calculate target status
@@ -2633,47 +2854,47 @@
             });
 
             $('body')
-                .on('click' + namespace, calendarElements.infoModal + ' [data-edit]', function (e) {
+                .on('click' + namespace, globalCalendarElements.infoModal + ' [data-edit]', function (e) {
                     e.preventDefault();
-                    const modal = $(calendarElements.infoModal);
+                    const modal = $(globalCalendarElements.infoModal);
                     const wrapperId = modal.attr('data-bs-calendar-wrapper-id');
                     const wrapper = $(`.bs-calendar[data-bs-calendar-id="${wrapperId}"]`);
-                    const appointment = $(calendarElements.infoModal).data('appointment');
+                    const appointment = $(globalCalendarElements.infoModal).data('appointment');
                     const returnData = getAppointmentForReturn(appointment);
                     trigger(wrapper, 'edit', returnData.appointment, returnData.extras);
-                    $(calendarElements.infoModal).modal('hide');
+                    $(globalCalendarElements.infoModal).modal('hide');
 
                 })
-                .on('click' + namespace, calendarElements.infoModal + ' [data-remove]', function (e) {
+                .on('click' + namespace, globalCalendarElements.infoModal + ' [data-remove]', function (e) {
                     e.preventDefault();
-                    const modal = $(calendarElements.infoModal);
+                    const modal = $(globalCalendarElements.infoModal);
                     const wrapperId = modal.attr('data-bs-calendar-wrapper-id');
                     const wrapper = $(`.bs-calendar[data-bs-calendar-id="${wrapperId}"]`);
-                    const appointment = $(calendarElements.infoModal).data('appointment');
+                    const appointment = $(globalCalendarElements.infoModal).data('appointment');
                     const returnData = getAppointmentForReturn(appointment);
                     trigger(wrapper, 'delete', returnData.appointment, returnData.extras);
-                    $(calendarElements.infoModal).modal('hide');
+                    $(globalCalendarElements.infoModal).modal('hide');
                 })
                 .on('click' + namespace, function (e) {
                     const $target = $(e.target);
-                    const isInsideModal = $target.closest(calendarElements.infoModal).length > 0; // checks for modal or child elements
+                    const isInsideModal = $target.closest(globalCalendarElements.infoModal).length > 0; // checks for modal or child elements
                     const isTargetElement = $target.closest('[data-appointment]').length > 0; // checks for the target element with appointment data
 
                     // the modal only closes if the click was neither in the modal nor a target element
-                    if (!isInsideModal && !isTargetElement && $(calendarElements.infoModal).length) {
-                        $(calendarElements.infoModal).modal('hide');
+                    if (!isInsideModal && !isTargetElement && $(globalCalendarElements.infoModal).length) {
+                        $(globalCalendarElements.infoModal).modal('hide');
                     }
                 })
-                .on('hide.bs.modal', calendarElements.infoModal, function () {
-                    const modal = $(calendarElements.infoModal);
+                .on('hide.bs.modal', globalCalendarElements.infoModal, function () {
+                    const modal = $(globalCalendarElements.infoModal);
                     const wrapperId = modal.attr('data-bs-calendar-wrapper-id');
                     const wrapper = $(`.bs-calendar[data-bs-calendar-id="${wrapperId}"]`);
                     trigger(wrapper, 'hide-info-window');
                 })
-                .on('hidden.bs.modal', calendarElements.infoModal, function () {
+                .on('hidden.bs.modal', globalCalendarElements.infoModal, function () {
                     // removes the modal completely after it has been closed
-                    if ($(calendarElements.infoModal).length) {
-                        $(calendarElements.infoModal).remove();
+                    if ($(globalCalendarElements.infoModal).length) {
+                        $(globalCalendarElements.infoModal).remove();
                     }
                 });
 
@@ -3150,18 +3371,8 @@
          * @return {*} The value of the 'view' data attribute associated with the wrapper element.
          */
         function getView($wrapper) {
-            return $wrapper.data('view');
-        }
-
-        /**
-         * Sets the last view data attribute on the provided wrapper element.
-         *
-         * @param {jQuery} $wrapper - The jQuery object representing the DOM element to set the last view for.
-         * @param {string} view - The name of the last view to set.
-         * @return {void} This method does not return a value.
-         */
-        function setLastView($wrapper, view) {
-            $wrapper.data('lastView', view);
+            const data = getBsCalendarData($wrapper);
+            return data.view;
         }
 
         /**
@@ -3174,8 +3385,9 @@
          * @return {void}
          */
         function setView($wrapper, view) {
-            const settings = getSettings($wrapper);
-            const currentView = getView($wrapper);
+            const data = getBsCalendarData($wrapper);
+            const settings = data.settings;
+            const currentView = data.view;
 
             if (view !== 'search' && !['day', 'week', 'month', 'year'].includes(view)) {
                 if (settings.debug) {
@@ -3188,14 +3400,15 @@
             }
 
             if (currentView !== view) {
-                setLastView($wrapper, currentView);
+                data.lastView = currentView;
             }
 
             if (settings.debug) {
                 log('Set view to:', view);
             }
             saveToLocalStorage($wrapper, 'view', view);
-            $wrapper.data('view', view);
+            data.view = view;
+            setBsCalendarData($wrapper, data);
         }
 
         /**
@@ -3205,8 +3418,8 @@
          * @return {Date} The value associated with the 'date' key in the wrapper's data.
          */
         function getDate($wrapper) {
-            return $wrapper.data('date');
-
+            const data = getBsCalendarData($wrapper);
+            return data.date || new Date();
         }
 
         /**
@@ -3217,14 +3430,18 @@
          * @return {void} Does not return a value.
          */
         function setDate($wrapper, date) {
+            const data = getBsCalendarData($wrapper);
+
             const settings = getSettings($wrapper);
             if (typeof date === 'string') {
-                date = new Date(date);
+                data.date = new Date(date);
+            } else if (date instanceof Date) {
+                data.date = date;
             }
             if (settings.debug) {
-                log('Set date to:', date);
+                log('Set date to:', data.date);
             }
-            $wrapper.data('date', date);
+            setBsCalendarData($wrapper, data);
         }
 
         /**
@@ -3234,7 +3451,8 @@
          * @return {null|object} The settings data retrieved from the wrapper element.
          */
         function getSettings($wrapper) {
-            return $wrapper.data('settings') ?? null;
+            const data = getBsCalendarData($wrapper);
+            return data.settings;
         }
 
         /**
@@ -3244,11 +3462,13 @@
          * @param {Object} settings - An object containing the new settings to be applied to the wrapper.
          * @return {void} Does not return a value.
          */
-        function setSettings($wrapper, settings) {
-            if (settings.debug) {
+        function updateSettings($wrapper, settings) {
+            const data = getBsCalendarData($wrapper);
+            if (data.settings.debug) {
                 log('Set settings to:', settings);
             }
-            $wrapper.data('settings', settings);
+            data.settings = settings;
+            setBsCalendarData($wrapper, data);
         }
 
         /**
@@ -3258,7 +3478,8 @@
          * @return {jQuery} A jQuery object representing the view container element.
          */
         function getViewContainer($wrapper) {
-            return $wrapper.find('.' + calendarElements.containerView);
+            const data = getBsCalendarData($wrapper);
+            return $wrapper.find('#' + data.elements.wrapperViewContainerId);
         }
 
         /**
@@ -3269,13 +3490,14 @@
          * @return {void} This function does not return a value. It updates the DOM elements associated with the wrapper.
          */
         function buildByView($wrapper, triggerViewChanged = true) {
-            const settings = getSettings($wrapper);
-            const view = getView($wrapper);
+            const data = getBsCalendarData($wrapper);
+            const settings = data.settings
+            const view = data.view;
             if (settings.debug) {
                 log('Call buildByView with view:', view);
             }
 
-            if (getSearchMode($wrapper)) {
+            if (data.searchMode) {
                 buildSearchView($wrapper);
             } else {
                 switch (view) {
@@ -3297,7 +3519,8 @@
                 onResize($wrapper);
                 updateDropdownView($wrapper);
                 setCurrentDateName($wrapper);
-                buildMonthSmallView($wrapper, getDate($wrapper), $('.wc-calendar-month-small'));
+                const monthCalendarWrapper = $('#' + data.monthCalendarWrapper);
+                buildMonthSmallView($wrapper, getDate($wrapper), monthCalendarWrapper);
                 if (triggerViewChanged) {
                     trigger($wrapper, 'view', view);
                 }
@@ -3350,22 +3573,21 @@
          * @return {void} - This function does not return a value. It updates the DOM of the provided wrapper with the fetched appointments.
          */
         function fetchAppointments($wrapper) {
+            const bsCalendarData = getBsCalendarData($wrapper);
+            const settings = bsCalendarData.settings;
             // Prevent concurrent fetches for the same wrapper
-            if ($wrapper.data('bsCalendarLoading')) {
-                const settings = getSettings($wrapper);
+            if (bsCalendarData.loading) {
                 if (settings && settings.debug) {
                     log("fetchAppointments: already loading for wrapper, skipping duplicate call");
                 }
                 return;
             }
             // mark as loading
-            $wrapper.data('bsCalendarLoading', true);
+            bsCalendarData.loading = true;
+            setBsCalendarData($wrapper, bsCalendarData);
 
             // Clear previous data or states related to the wrapper
             methodClear($wrapper);
-
-            // Retrieve settings specific to this wrapper
-            const settings = getSettings($wrapper);
             let skipLoading = false;
 
             // Log debug information if debugging is enabled in settings
@@ -3387,7 +3609,7 @@
             // Prepare data for the AJAX request
             if (!inSearchMode) {
                 // Retrieve the current view type (e.g. day, week, month, year)
-                const view = getView($wrapper);
+                const view = bsCalendarData.view;
                 // Calculate the start and end date range based on the view
                 const period = getStartAndEndDateByView($wrapper);
                 if (view === 'year') {
@@ -3411,7 +3633,7 @@
                 // Check if the search value is empty to decide if loading should be skipped
                 skipLoading = $.bsCalendar.utils.isValueEmpty(search);
                 requestData = {
-                    ...getSearchPagination($wrapper), // Include pagination data
+                    ...bsCalendarData.searchPagination, // Include pagination data
                     search: search // The search string, if provided
                 };
             }
@@ -3455,13 +3677,14 @@
                     log('Skip loading appointments because search is empty');
                 }
                 // Update the appointment list with an empty array and re-build the default view
-                setAppointments($wrapper, []).then(_cleanedAppointments => {
+                checkAndSetAppointments($wrapper, []).then(_cleanedAppointments => {
                     trigger($wrapper, 'after-load', _cleanedAppointments);
                     void _cleanedAppointments;
                     buildAppointmentsForView($wrapper);
                 }).finally(() => {
                     // clear loading flag
-                    $wrapper.removeData('bsCalendarLoading');
+                    bsCalendarData.loading = false;
+                    setBsCalendarData($wrapper, bsCalendarData);
                 });
                 return; // Exit the function
             }
@@ -3490,13 +3713,13 @@
                         }
                         if (inSearchMode) {
                             // In search mode, process the rows and build the search-related views
-                            setAppointments($wrapper, appointments.rows).then(cleanedAppointments => {
+                            checkAndSetAppointments($wrapper, appointments.rows).then(cleanedAppointments => {
                                 trigger($wrapper, 'after-load', cleanedAppointments);
                                 buildAppointmentsForSearch($wrapper, cleanedAppointments, appointments.total);
                             });
                         } else {
                             // In normal mode, process appointments and build the main view
-                            setAppointments($wrapper, appointments).then(_cleanedAppointments => {
+                            checkAndSetAppointments($wrapper, appointments).then(_cleanedAppointments => {
                                 trigger($wrapper, 'after-load', _cleanedAppointments);
                                 void _cleanedAppointments;
                                 buildAppointmentsForView($wrapper);
@@ -3514,19 +3737,18 @@
                         // Always hide the loader, regardless of success or error
                         hideBSCalendarLoader($wrapper);
                         // remove loading flag
-                        $wrapper.removeData('bsCalendarLoading');
+                        bsCalendarData.loading = false;
+                        setBsCalendarData($wrapper, bsCalendarData);
                     });
 
             } else if (callAjax) {
                 // If the URL is a string, manage the current request
 
                 // Check if there's an ongoing request associated with the wrapper and abort it
-                const existingRequest = $wrapper.data('currentRequest');
+                // Cancel the previous AJAX request
+                abortXhr(bsCalendarData.xhrs.appointments);
+                bsCalendarData.xhrs.appointments = null;
 
-                if (existingRequest) {
-                    existingRequest.abort(); // Cancel the previous AJAX request
-                    $wrapper.data('currentRequest', null)
-                }
 
                 // Log the URL being called for debugging
                 if (settings.debug) {
@@ -3534,7 +3756,7 @@
                 }
 
                 // Send a new AJAX GET request with the prepared request data
-                const newRequest = $.ajax({
+                bsCalendarData.xhrs.appointments = $.ajax({
                     url: settings.url,
                     method: 'GET',
                     contentType: 'application/json', // Specify JSON content type
@@ -3542,13 +3764,13 @@
                     success: function (response) {
                         if (inSearchMode) {
                             // In search mode, handle the response rows and build the search views
-                            setAppointments($wrapper, response.rows).then(cleanedAppointments => {
+                            checkAndSetAppointments($wrapper, response.rows).then(cleanedAppointments => {
                                 trigger($wrapper, 'after-load', cleanedAppointments);
                                 buildAppointmentsForSearch($wrapper, cleanedAppointments, response.total);
                             });
                         } else {
                             // In normal mode, handle the response and build the default view
-                            setAppointments($wrapper, response).then(_cleanedAppointments => {
+                            checkAndSetAppointments($wrapper, response).then(_cleanedAppointments => {
                                 trigger($wrapper, 'after-load', _cleanedAppointments);
                                 void _cleanedAppointments;
                                 buildAppointmentsForView($wrapper);
@@ -3565,18 +3787,17 @@
                     },
                     complete: function () {
                         // Always remove the current request and hide the loader after the request ends
-                        $wrapper.removeData('currentRequest');
+                        bsCalendarData.xhrs.appointments = null;
                         hideBSCalendarLoader($wrapper);
                         // remove loading flag
-                        $wrapper.removeData('bsCalendarLoading');
+                        bsCalendarData.loading = false;
+                        setBsCalendarData($wrapper, bsCalendarData);
                     }
                 });
-
-                // Save the newly initiated request in the wrapper's data for management
-                $wrapper.data('currentRequest', newRequest);
             } else {
                 // No callFunction and no callAjax -> nothing to load, remove loading flag
-                $wrapper.removeData('bsCalendarLoading');
+                bsCalendarData.loading = false;
+                setBsCalendarData($wrapper, bsCalendarData);
             }
         }
 
@@ -4326,13 +4547,14 @@
          * @return {void} This function does not return a value.
          */
         function buildAppointmentsForView($wrapper) {
+            const data = getBsCalendarData($wrapper);
             methodClear($wrapper, false);
 
-            const settings = getSettings($wrapper);
-            const appointments = getAppointments($wrapper);
-            const isSearchMode = getSearchMode($wrapper);
+            const settings = data.settings;
+            const appointments = data.appointments;
+            const isSearchMode = data.searchMode;
 
-            const view = getView($wrapper);
+            const view = data.view;
             const container = getViewContainer($wrapper);
             if (settings.debug) {
                 log('Call renderData with view:', view);
@@ -4364,13 +4586,15 @@
          * @return {void} This function does not return a value. It fetches and renders holidays on the given wrapper element.
          */
         function loadHolidays($wrapper) {
+            const data = getBsCalendarData($wrapper);
             // Reentrancy-Guard: verhindert doppeltes Laden innerhalb eines Build-Zyklus
-            if ($wrapper.data('holidaysLoading')) {
+            if (data.loadingHolidays) {
                 return;
             }
-            $wrapper.data('holidaysLoading', true);
+            data.loadingHolidays = true;
+            setBsCalendarData($wrapper, data);
 
-            const settings = getSettings($wrapper);
+            const settings = data.settings;
             const period = getStartAndEndDateByView($wrapper);
             const locale = $.bsCalendar.utils.getLanguageAndCountry(settings.locale);
 
@@ -4468,7 +4692,8 @@
                         drawHolidays($wrapper, unique);
                     })
                     .finally(() => {
-                        $wrapper.removeData('holidaysLoading');
+                        data.loadingHolidays = false;
+                        setBsCalendarData($wrapper, data);
                     });
 
             } else if (typeof settings.holidays === 'function') {
@@ -4492,11 +4717,13 @@
                         drawHolidays($wrapper, holidays);
                     })
                     .finally(() => {
-                        $wrapper.removeData('holidaysLoading');
+                        data.loadingHolidays = false;
+                        setBsCalendarData($wrapper, data);
                     });
             } else {
-                // nichts zu laden → Flag aufräumen
-                $wrapper.removeData('holidaysLoading');
+                // nothing to load → clean up flag
+                data.loadingHolidays = false;
+                setBsCalendarData($wrapper, data);
             }
         }
 
@@ -4934,10 +5161,10 @@
          */
         function buildMonthSmallView($wrapper, forDate, $container, forYearView = false) {
             // Get container for a miniature view
-
-            const settings = getSettings($wrapper);
+            const data = getBsCalendarData($wrapper);
+            const settings = data.settings;
             const date = forDate; // Aktuelles Datum
-            const activeDate = getDate($wrapper);
+            const activeDate = data.date;
 
             const cellSize = forYearView ? 36 : 28;
             const fontSize = forYearView ? 12 : 10;
@@ -4968,20 +5195,15 @@
             $container.addClass('table-responsive');
 
             const table = $('<table>', {
-                class: 'wc-mini-calendar',
+                class: 'p-0 m-0 bg-transparent border-0 text-center',
                 css: {
                     width: `${cellSize * 7 + 20}px`,
                     fontSize: fontSize + 'px',
                     borderSpacing: '0',
                     borderCollapse: 'collapse',
                     tableLayout: 'fixed',
-                    textAlign: 'center',
                     verticalAlign: 'middle',
                     lineHeight: cellSize + 'px',
-                    padding: '0',
-                    margin: '0',
-                    backgroundColor: 'transparent',
-                    border: '0',
                 },
             }).appendTo($container);
 
@@ -5005,7 +5227,6 @@
             const weekDays = $.bsCalendar.utils.getShortWeekDayNames(settings.locale, settings.startWeekOnSunday);
             weekDays.forEach(day => {
                 $('<th>', {
-                    class: '',
                     text: day,
                     css: {width: `${cellSize}px`, height: cellSize + 'px'}
                 }).appendTo(weekdaysRow);
@@ -5625,7 +5846,7 @@
             const appointment = $targetElement.data('appointment');
 
             // Set a reference to the modal element using its ID.
-            let $modal = $(calendarElements.infoModal);
+            let $modal = $(globalCalendarElements.infoModal);
 
             const returnData = getAppointmentForReturn(appointment);
             trigger($wrapper, 'show-info-window', returnData.appointment, returnData.extras);
@@ -5637,7 +5858,7 @@
                     const roundedClass = 'rounded-' + settings.rounded;
                     // If the modal does not exist, create the modal's HTML structure and append it to the body.
                     const modalHtml = [
-                        `<div class="modal fade pe-none" id="${calendarElements.infoModal.substring(1)}" tabindex="-1" data-bs-backdrop="false">`,
+                        `<div class="modal fade pe-none" id="${globalCalendarElements.infoModal.substring(1)}" tabindex="-1" data-bs-backdrop="false">`,
                         `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto">`,
                         `<div class="modal-content border border-1 shadow ${roundedClass}">`,
                         `<div class="modal-body d-flex flex-column align-items-stretch pb-4">`,
@@ -5657,7 +5878,7 @@
                     $('body').append(modalHtml);
 
                     // Re-select the modal to get the updated reference.
-                    $modal = $(calendarElements.infoModal);
+                    $modal = $(globalCalendarElements.infoModal);
                     // save the calendar wrapper ID in the modal to find the wrapper again
                     $modal.attr('data-bs-calendar-wrapper-id', $wrapper.attr('data-bs-calendar-id'));
 

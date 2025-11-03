@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.3**](#version-203)
     * [**Version 2.0.2**](#version-202)
     * [**Version 2.0.0**](#version-200)
     * [**Version 1.2.12**](#version-1212)
@@ -12,6 +13,43 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+
+### Version 2.0.3
+Breaking/Structural
+- Introduced stable, per-instance element IDs under `data.elements` (e.g., `wrapperId`, , , , , , , ) and refactored DOM queries to use these IDs. This reduces selector collisions and improves multi-instance and re-init stability. `wrapperTopNavId``wrapperSideNavId``wrapperSearchNavId``wrapperViewContainerId``wrapperViewContainerTitleId``wrapperSmallMonthCalendarId``wrapperSmallMonthCalendarTitleId`
+
+Improvements
+- Re-initialization and state flow
+    - `init()` now writes/reads `view`, `date`, and `searchMode` through the central data object and assigns a unique `data-bs-calendar-id` from `data.elements.wrapperId`.
+    - `buildFramework()` constructs a deterministic layout using the new IDs and integrates / at explicit anchor points. `topbarAddons``sidebarAddons`
+    - `setCurrentDateName()` and `buildByView()` now update titles/containers via per-instance IDs for reliable rendering.
+
+- Safer destroy lifecycle
+    - Centralized modal selector via `globalCalendarElements.infoModal`.
+    - More defensive cleanup of namespaced events, aborting outstanding requests, removing classes/attributes, and disposing/removing the modal.
+    - Restores original wrapper attributes via `restoreWrapperState()` and clears plugin data to avoid leaks.
+
+- Search UX
+    - `toggleSearchBar()` now toggles instance-scoped elements by ID (prevents cross-instance interference).
+    - Search result rendering/pagination continues to work with instance-aware containers.
+
+- Mini month calendar
+    - `buildMonthSmallView()` renders into ID-scoped containers and highlights the active date from the central data object.
+    - Year view consistently delegates to the mini month builder per month and provides badge placeholders.
+
+- Debuggability
+    - Added structured logs in `init()`, `buildByView()`, `fetchAppointments()`, and week-range calculations.
+
+Fixes
+- View container targeting: `getViewContainer()` uses an instance ID, fixing collisions with multiple calendars on the same page.
+- Title/labels: `setCurrentDateName()` selects and updates the correct title nodes by ID; resolves inconsistent header updates.
+- Sidebar animation/resizing: `handleSidebarVisibility()` targets the per-instance sidebar by ID and updates layout in month view reliably.
+- Event containment: Namespaced body/document/window handlers combined with instance-aware selectors reduce cross-instance event handling.
+
+Developer Notes
+- If external code relied on class-based selectors inside the calendar, prefer instance-scoped selectors or the public API/events.
+- When injecting addons (, ), ensure the selectors resolve within the new, ID-based framework structure. `topbarAddons``sidebarAddons`
 
 #### **Version 2.0.2**
 

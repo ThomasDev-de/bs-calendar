@@ -11,7 +11,7 @@
 <div id="calendar" data-sidebar-addons="#sidebarAddons" data-topbar-addons="#topbarAddons">
 
 </div>
-
+<div id="calendar2" class="mt-5"></div>
 <div id="sidebarAddons" class="mt-4 card">
     <div class="card-header">
         <h6 class="text-uppercase text-center mb-0">sidebar addons</h6>
@@ -167,6 +167,7 @@
         const modal = $('#exampleModal');
         const calendarElement = $('#calendar');
         calendarElement.bsCalendar();
+        $('#calendar2').bsCalendar();
         calendarElement
             .on('change', '#selectUser', function () {
                 const val = $(this).val();
@@ -261,27 +262,33 @@
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
+        // Generates up to 500 day-buckets across the given year, summing counts per date
         function generateDates(year) {
-            // Number of entries to be generated: Randomly between 1 and 500
-            const entriesCount = Math.floor(Math.random() * 100) + 1;
+            // Number of entries to be generated: Randomly between 1 and 365
+            const entriesCount = Math.floor(Math.random() * 365) + 1;
 
-            // generate an array with random entries
-            return Array.from({length: entriesCount}, () => {
-                // random date within the specified year
+            // Bucket counts per date to avoid duplicates and reflect total per day
+            const buckets = new Map();
+
+            for (let i = 0; i < entriesCount; i++) {
+                // Random date within the specified year
                 const randomDate = new Date(
-                    year,                                // specified year
-                    Math.floor(Math.random() * 12),     // month: 0 (Jan) to 11 (Dec)
-                    Math.floor(Math.random() * 28) + 1  // Day: 1 to 28 (safe area)
+                    year,                             // specified year
+                    Math.floor(Math.random() * 12),   // month: 0 (Jan) to 11 (Dec)
+                    Math.floor(Math.random() * 28) + 1 // day: 1 to 28 (safe)
                 );
 
-                // Formatting of the date for 'YYYY-MM-DD'
-                const formattedDate = randomDate.toISOString().split('T')[0];
+                // Format date as 'YYYY-MM-DD'
+                const key = randomDate.toISOString().split('T')[0];
 
-                // random total value: 0 to 6
-                const total = Math.floor(Math.random() * 7);
+                // Increment total for that day (you can tweak increment range if needed)
+                const prev = buckets.get(key) || 0;
+                const increment = Math.floor(Math.random() * 7); // 0–6
+                buckets.set(key, prev + increment);
+            }
 
-                return {date: formattedDate, total: total};
-            });
+            // Convert buckets to array of { date, total }
+            return Array.from(buckets, ([date, total]) => ({ date, total }));
         }
 
         async function url(query) {
