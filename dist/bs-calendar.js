@@ -1331,7 +1331,7 @@
             const data = getBsCalendarData(wrapper);
             // If debug mode is enabled, log the incoming appointments for troubleshooting
             if (data.settings.debug) {
-                console.log('setAppointments', appointments);
+                log('setAppointments', appointments);
             }
             // Normalize and assign appointments to data (fallback to empty array if falsy)
             data.appointments = appointments || [];
@@ -5136,7 +5136,7 @@
          */
         function buildMonthSmallView($wrapper, forDate, $container, forYearView = false) {
             // Get container for a miniature view
-            console.log('buildMonthSmallView', forDate, $container.length, forYearView);
+            // console.log('buildMonthSmallView', forDate, $container.length, forYearView);
             const data = getBsCalendarData($wrapper);
             const mainColor = data.mainColor;
             const settings = data.settings;
@@ -5245,7 +5245,7 @@
                         dayStyleArray.push('background-image: ' + mainColor.backgroundImage);
                         dayStyleArray.push('color: ' + mainColor.color);
                     }
-                    console.log('buildMonthSmallView SELECTED', forDate, currentDate.toDateString(), activeDate.toDateString(), isSelected);
+                    // console.log('buildMonthSmallView SELECTED', forDate, currentDate.toDateString(), activeDate.toDateString(), isSelected);
                     if (isOtherMonth) {
                         dayClass += ' text-muted opacity-50';
                     }
@@ -5355,7 +5355,7 @@
 
 // DEBUG: Ausgabe des berechneten Wochenbereichs
             if (settings.debug) {
-                console.log(`bsCalendar DEBUG: buildWeekView - viewDate=${$.bsCalendar.utils.formatDateToDateString(date)}, startOfWeek=${$.bsCalendar.utils.formatDateToDateString(startOfWeek)}, endOfWeek=${$.bsCalendar.utils.formatDateToDateString(endOfWeek)}, startWeekOnSunday=${startWeekOnSunday}`);
+                log(`buildWeekView - viewDate=${$.bsCalendar.utils.formatDateToDateString(date)}, startOfWeek=${$.bsCalendar.utils.formatDateToDateString(startOfWeek)}, endOfWeek=${$.bsCalendar.utils.formatDateToDateString(endOfWeek)}, startWeekOnSunday=${startWeekOnSunday}`);
             }
 
             const wrappAllDay = $("<div>", {
