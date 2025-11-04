@@ -5453,57 +5453,64 @@
         }
 
         /**
-         * Build a daily overview with hourly labels and horizontal lines for each line.
+         * Build a daily overview with hourly labels and horizontal lines for each hour.
          *
-         * @param {jQuery} $wrapper - The wrapper element for the calendar.
-         * @param {Date} date - The current date.
-         * @param {jQuery} $container - The target element in which the content is inserted.
-         * @param {boolean} forWeekView
-         * @param {boolean} showLabels
+         * @param {jQuery} $wrapper - The wrapper element containing calendar settings and context.
+         * @param {Date} date - The date for which the day view is built.
+         * @param {jQuery} $container - The target element where the day content is appended.
+         * @param {boolean} forWeekView - If true, adapt layout for use inside a week view.
+         * @param {boolean} showLabels - If true, render hour labels on the left.
          */
         function buildDayViewContent($wrapper, date, $container, forWeekView = false, showLabels = true) {
-            // Call settings from the wrapper
+            // Read calendar settings from wrapper (e.g., hour range and row height)
             const settings = getSettings($wrapper);
+
+            // Check if provided date is today to optionally render current-time indicator
             const isToday = date.toDateString() === new Date().toDateString();
 
             if (!forWeekView) {
+                // Create an inner container with padding when not embedded in week view
                 $container = $('<div>', {
                     class: 'position-relative px-1 px-lg-5',
                 }).appendTo($container);
 
+                // Reserve space on the left for hour labels
                 $container = $('<div>', {
                     css: {paddingLeft: '40px'}
                 }).appendTo($container);
             }
 
-            $container.attr('data-weekday');
+            // Ensure consistent box sizing for layout precision
+            $container.attr('data-weekday'); // no value set: likely used as a hook or legacy artifact
             $container.css('boxSizing', 'border-box');
 
-            // Container for time slots. Here we need a match for the day of the week and the date
+            // Create the vertical stack that hosts all hour rows for the given day
             const timeSlots = $('<div>', {
-                "data-week-day": date.getDay(),
-                "data-date-local": $.bsCalendar.utils.formatDateToDateString(date),
+                "data-week-day": date.getDay(), // 0-6 (Sun-Sat) to identify weekday
+                "data-date-local": $.bsCalendar.utils.formatDateToDateString(date), // normalized local date
                 class: 'wc-day-view-time-slots d-flex flex-column position-relative'
             }).appendTo($container);
 
-            // present hours (from 0 to 23) with a horizontal line
+            // Render an hourly grid from configured start to end hour (inclusive)
             for (let hour = settings.hourSlots.start; hour <= settings.hourSlots.end; hour++) {
                 const isLast = hour === settings.hourSlots.end;
-                // line container for the hour
-                // Add heading about the daily view
+
+                // Last row acts as a boundary line; others get a fixed height
                 const height = isLast ? 0 : settings.hourSlots.height;
                 const css = isLast ? {} : {
                     boxSizing: 'border-box',
                     height: height + 'px',
-                    cursor: 'copy',
+                    cursor: 'copy', // indicates draggable/clone action when interacting
                 };
 
+                // One row per hour with a top border to form the grid
                 const row = $('<div>', {
                     'data-day-hour': hour,
                     css: css,
                     class: 'd-flex align-items-center border-top position-relative'
                 }).appendTo(timeSlots);
 
+                // Store contextual info for event handlers (e.g., click/drag)
                 row.data('details', {
                     hour: hour,
                     date: date,
@@ -5511,13 +5518,31 @@
                     isLast: isLast
                 });
 
+                // Half-hour dashed line: only when row-height is even and sufficiently tall (> 30px)
+                if (!isLast && Number.isFinite(height) && height > 30 && height % 2 === 0) {
+                    $('<div>', {
+                        class: 'position-absolute w-100',
+                        css: {
+                            // position slightly above the exact middle to account for border thickness
+                            top: Math.max(0, Math.floor(height / 2) - 1) + 'px',
+                            left: 0,
+                            borderTop: '1px dashed var(--bs-border-color, #dee2e6)',
+                            pointerEvents: 'none'
+                        },
+                        'aria-hidden': 'true'
+                    }).appendTo(row);
+                }
+
                 if (showLabels) {
+                    // Position label to the left of the row
                     const combinedCss = [
                         'left: -34px'
                     ].join(';');
 
-                    const hourDate = new Date(2023, 0, 1, hour); // 2023-01-01, Stunde = hour
+                    // Create a Date object for formatting the hour label
+                    const hourDate = new Date(2023, 0, 1, hour); // fixed date, hour varies
 
+                    // Render the hour label (e.g., 08:00) aligned to the row's top
                     $('<div>', {
                         class: 'wc-time-label ps-2 position-absolute top-0 translate-middle',
                         style: combinedCss,
@@ -5526,6 +5551,7 @@
                 }
             }
 
+            // If the view is for today, overlay a current-time indicator across the grid
             if (isToday) {
                 addCurrentTimeIndicator($wrapper, timeSlots)
             }
