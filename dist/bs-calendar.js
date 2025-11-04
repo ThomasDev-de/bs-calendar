@@ -1146,7 +1146,7 @@
          * @param {number} round - The round value to apply, which determines the level of rounding for the elements.
          * @return {void}
          */
-        function updateRounded($wrapper, round) {
+        function setRounded($wrapper, round) {
             // Try to use round as integer, fallback to the default value from Settings (3)
             // Values are limited to the allowed range [0, 5].
             const parsed = Number.isFinite(Number(round)) ? Math.floor(Number(round)) : NaN;
@@ -1818,165 +1818,44 @@
          * @returns {void} This method does not return any value.
          */
         function methodUpdateOptions($wrapper, options) {
-            if (typeof options === 'object') {
-                const data = getBsCalendarData($wrapper);
-                const settingsBefore = data.settings;
+            if (typeof options !== 'object' || !options) return;
 
-                // Retrieve the previous addons
-                const addonsBeforeTopbar = settingsBefore.topbarAddons;
-                const addonsBeforeSidebar = settingsBefore.sidebarAddons;
+            const data = getBsCalendarData($wrapper);
+            const prevSettings = data.settings || {};
+            const merged = $.extend(true, {}, prevSettings, options);
+            normalizeSettings(merged);
+            merged.ingoreStore = true;
 
-                // Check the new addons
-                const addonsAfterTopbar = options.topbarAddons || null;
-                const addonsAfterSidebar = options.sidebarAddons || null;
+            // Apply new settings
+            data.settings = merged;
+            setBsCalendarData($wrapper, data);
 
-                // Create a temporary container for backup if required
-                let tmpDiv = null;
+            // View change requested?
+            if (options.hasOwnProperty('startView') && merged.views.includes(merged.startView)) {
+                setView($wrapper, merged.startView);
+            }
 
-                // Check if a backup is necessary
-                const needsBackupTopbar = addonsBeforeTopbar && !addonsAfterTopbar;
-                const needsBackupSidebar = addonsBeforeSidebar && !addonsAfterSidebar;
+            // Date change requested?
+            if (options.hasOwnProperty('startDate')) {
+                setDate($wrapper, merged.startDate);
+            }
 
-                if (needsBackupTopbar || needsBackupSidebar) {
-                    tmpDiv = $('<div>', {
-                        css: {
-                            visibility: 'hidden'
-                        }
-                    }).insertAfter($wrapper);
+            // Title/rounded simple UI tweaks (no full rebuild needed)
+            if (typeof merged.title !== 'undefined') {
+                $wrapper.find('#' + data.elements.wrapperViewContainerTitleId)
+                    .html(merged.title || '');
+            }
+            if (typeof merged.rounded !== 'undefined') {
+                setRounded($wrapper, merged.rounded);
+            }
 
-                    // Backup `topbarAddons`
-                    if (needsBackupTopbar && $wrapper.find(addonsBeforeTopbar).length > 0) {
-                        $wrapper.find(addonsBeforeTopbar).appendTo(tmpDiv);
-                    }
+            // Rebuild view once
+            buildByView($wrapper, true);
+            onResize($wrapper, true);
 
-                    // Backup `sidebarAddons`
-                    if (needsBackupSidebar && $wrapper.find(addonsBeforeSidebar).length > 0) {
-                        $wrapper.find(addonsBeforeSidebar).appendTo(tmpDiv);
-                    }
-                }
-
-                // Store the current date and view
-                if (!options.hasOwnProperty('startDate')) {
-                    options.startDate = data.date;
-                }
-                if (!options.hasOwnProperty('startView')) {
-                    options.startView = data.view;
-                }
-
-                const newSettings = $.extend(true, {}, settingsBefore, options || {});
-
-                // Normalisieren, damit z. B. views/startDate/hourSlots sauber gesetzt sind
-                normalizeSettings(newSettings);
-
-                // storeState nicht zwangsweise deaktivieren – nur übernehmen, was gesetzt ist
-                newSettings.ingoreStore = true;
-
-                if (newSettings.debug) {
-                    log('Settings before update:', settingsBefore);
-                    log('Settings after update:', newSettings);
-                }
-
-                // --- IN-PLACE UPDATE (kein vollständiges Destroy/Reinit) ---
-                try {
-                    // Update data.settings and persist
-                    data.settings = newSettings;
-                    setBsCalendarData($wrapper, data);
-
-                    // Restore backed up addons into appropriate places (best-effort)
-                    if (tmpDiv) {
-                        try {
-                            // If new selectors are provided, prefer them, otherwise try to place back to topNav / sidebar
-                            if (needsBackupTopbar) {
-                                if (newSettings.topbarAddons && $(newSettings.topbarAddons).length) {
-                                    tmpDiv.children().appendTo($(newSettings.topbarAddons).first());
-                                } else {
-                                    tmpDiv.children().appendTo($wrapper.find('#' + data.elements.wrapperTopNavId).first().parent());
-                                }
-                            }
-                            if (needsBackupSidebar) {
-                                if (newSettings.sidebarAddons && $(newSettings.sidebarAddons).length) {
-                                    tmpDiv.children().appendTo($(newSettings.sidebarAddons).first());
-                                } else {
-                                    tmpDiv.children().appendTo($wrapper.find('#' + data.elements.wrapperSideNavId).first());
-                                }
-                            }
-                        } finally {
-                            tmpDiv.remove();
-                            tmpDiv = null;
-                        }
-                    }
-
-                    // Apply small DOM updates that don't require full rebuild
-                    const roundedClass = `rounded-${newSettings.rounded}`;
-                    $wrapper.find('.wc-round-me')
-                        .removeClass('rounded-0 rounded-1 rounded-2 rounded-3 rounded-4 rounded-5')
-                        .addClass(roundedClass);
-
-                    // Update title if changed
-                    if (typeof newSettings.title !== 'undefined') {
-                        $wrapper.find('#' + data.elements.wrapperViewContainerTitleId).html(newSettings.title || '');
-                    }
-
-                    // Update "today" button label
-                    const todayBtn = $wrapper.find('[data-today]').first();
-                    if (todayBtn.length && newSettings.translations && newSettings.translations.today) {
-                        todayBtn.html(newSettings.translations.today);
-                    }
-
-                    // Rebuild views dropdown only if views changed
-                    const dropDown = $wrapper.find('.wc-select-calendar-view').first();
-                    if (dropDown.length) {
-                        const ul = dropDown.find('ul').empty();
-                        (newSettings.views || []).forEach(view => {
-                            $('<li>', {
-                                html: `<a class="dropdown-item" data-view="${view}" href="#"><i class="${newSettings.icons?.[view] || ''} me-2"></i> ${newSettings.translations?.[view] || view}</a>`
-                            }).appendTo(ul);
-                        });
-                        updateDropdownView($wrapper);
-                    }
-
-                    // Replace or append addons if new selectors given
-                    if (newSettings.topbarAddons && $(newSettings.topbarAddons).length) {
-                        $(newSettings.topbarAddons).insertAfter($wrapper.find('#' + data.elements.wrapperTopNavId));
-                    }
-                    if (newSettings.sidebarAddons && $(newSettings.sidebarAddons).length) {
-                        $(newSettings.sidebarAddons).appendTo($wrapper.find('#' + data.elements.wrapperSideNavId));
-                    }
-
-                    // Persist settings if storeState enabled
-                    if (newSettings.storeState) {
-                        saveToLocalStorage($wrapper, 'settings', newSettings);
-                    }
-
-                    // Decide whether a structural rebuild is required
-                    const structuralKeys = ['views', 'hourSlots', 'startWeekOnSunday', 'locale', 'startView', 'rounded'];
-                    let structuralChange = false;
-                    structuralKeys.forEach(k => {
-                        if (options.hasOwnProperty(k)) structuralChange = true;
-                    });
-
-                    // Honor direct view request in options
-                    if (options.hasOwnProperty('view') && newSettings.views && newSettings.views.includes(options.view)) {
-                        setView($wrapper, options.view);
-                    }
-
-                    // Rebuild current view (cheaper than full init)
-                    buildByView($wrapper, true);
-                    onResize($wrapper, true);
-
-                    // If data-source changed, refresh appointments
-                    if (options.hasOwnProperty('url') || options.hasOwnProperty('queryParams')) {
-                        fetchAppointments($wrapper);
-                    }
-                } catch (err) {
-                    // Fallback: wenn inkrementelles Update scheitert, re-init als letzte Rettung
-                    if (newSettings.debug) {
-                        log('Error applying incremental update, falling back to full reinit:', err);
-                    }
-                    destroy($wrapper, function () {
-                        $wrapper.bsCalendar(newSettings);
-                    });
-                }
+            // Persist if enabled
+            if (merged.storeState) {
+                saveToLocalStorage($wrapper, 'settings', merged);
             }
         }
 
@@ -2611,7 +2490,7 @@
             // add the viewer
             $('<div>', {
                 id: data.elements.wrapperViewContainerId,
-                class: `container-fluid ${roundedClass}  wc-round-me  pb-5 border-1 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`,
+                class: `container-fluid ${roundedClass} wc-calendar-view-container wc-round-me  pb-5 border-1 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`,
             }).appendTo(container);
 
             // done
