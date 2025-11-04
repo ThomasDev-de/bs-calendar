@@ -124,7 +124,7 @@ available options, including their types, default values, and descriptions.
 | **search.offset**     | `number`                         | `0`                                              | Sets an offset for starting the search results.                                                                                                                                                                    |
 | **startDate**         | `Date`                           | `new Date()`                                     | The starting date for the calendar view.                                                                                                                                                                           |
 | **startView**         | `string`                         | `"month"`                                        | Defines the initial view of the calendar. Acceptable values include `"year"`, `"month"`, `"week"`, and `"day"`.                                                                                                    |
-| **defaultColor**      | `string`                         | `"primary"`                                      | The default color applied to calendar elements (e.g., events, highlights).                                                                                                                                         |
+| **mainColor**         | `string`                         | `"primary"`                                      | The main color applied to calendar elements (e.g., events, highlights). It can be a BS class, a hex, or rgb.                                                                                                       |
 | **views**             | `array`                          | `["year", "month", "week", "day"]`               | Lists the available viewing modes for the calendar.                                                                                                                                                                |
 | **holidays**          | `object` \| `null`               | See [options.holidays](#optionsHolidays)         | Data source for holiday display. Use an object for custom settings or `null` for no holidays.                                                                                                                      |
 | **translations**      | `object`                         | See [options.translations](#optionsTranslations) | Defines translations used for various textual content in the calendar.                                                                                                                                             |
@@ -152,7 +152,8 @@ available options, including their types, default values, and descriptions.
 
 ### options.url
 
-The `url` option controls how the calendar fetches appointment (and search) data. It accepts a `string`, a `function`, or `null`. If left as `null` (the default), the calendar will not attempt to load external appointment data.
+The `url` option controls how the calendar fetches appointment (and search) data. It accepts a `string`, a `function`,
+or `null`. If left as `null` (the default), the calendar will not attempt to load external appointment data.
 
 - Type: `string | function | null`
 - Default: `null`
@@ -161,7 +162,8 @@ The `url` option controls how the calendar fetches appointment (and search) data
 Usage patterns:
 
 1. Static URL (string)  
-   Provides a server endpoint that returns JSON in the expected structure. The plugin uses a GET request and passes query parameters describing the requested period or search parameters.
+   Provides a server endpoint that returns JSON in the expected structure. The plugin uses a GET request and passes
+   query parameters describing the requested period or search parameters.
 
    Example response formats:
     - For normal views (day / week / month): an array of appointment objects:
@@ -202,7 +204,9 @@ Usage patterns:
    ```
 
 2. Function (dynamic)  
-   Pass a function that receives a `requestData` object (same shape as above) and must return a Promise that resolves to the expected response (array for normal views, or `{ rows, total }` for search). This allows full control over how the data is fetched (e.g., using fetch, adding auth headers, POST requests, local filtering, etc.).
+   Pass a function that receives a `requestData` object (same shape as above) and must return a Promise that resolves to
+   the expected response (array for normal views, or `{ rows, total }` for search). This allows full control over how
+   the data is fetched (e.g., using fetch, adding auth headers, POST requests, local filtering, etc.).
 
    Example:
    ```js
@@ -217,13 +221,19 @@ Usage patterns:
    ```
 
 Important notes
-- If `url` is a string, the plugin uses jQuery.ajax GET requests. Any running request for the same calendar instance will be aborted when a new fetch is started.
-- If `url` is a function, it must return a Promise. The calendar will call it and expect a resolved value as described above.
-- Use `queryParams` (option) to append or override query parameters before the request is sent. `queryParams` is invoked with the prepared `requestData` and should return an object with extra key/value pairs to be merged into the request.
-- For search mode, the plugin sends `search`, `limit`, and `offset`. The server should return `{ rows: [...], total: <number> }`.
+
+- If `url` is a string, the plugin uses jQuery.ajax GET requests. Any running request for the same calendar instance
+  will be aborted when a new fetch is started.
+- If `url` is a function, it must return a Promise. The calendar will call it and expect a resolved value as described
+  above.
+- Use `queryParams` (option) to append or override query parameters before the request is sent. `queryParams` is invoked
+  with the prepared `requestData` and should return an object with extra key/value pairs to be merged into the request.
+- For search mode, the plugin sends `search`, `limit`, and `offset`. The server should return
+  `{ rows: [...], total: <number> }`.
 - Keep CORS and authentication in mind when calling external APIs from the browser.
 
 Examples serverside contract (summary)
+
 - GET /api/appointments?fromDate=2025-07-01&toDate=2025-07-31&view=month
   → JSON array of appointments
 - GET /api/appointments?search=john&limit=10&offset=0

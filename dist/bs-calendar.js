@@ -1029,19 +1029,26 @@
          *
          * @function
          * @name $.fn.bsCalendar
-         * @param {Object|undefined|string} optionsOrMethod - Configuration options for the calendar.
-         * @param {Object|undefined|string} params - Configuration options for the calendar.
+         * @param {Object|undefined|string} optionsOrMethod - Configuration options for the calendar or a method name.
+         * @param {Object|undefined} params - Optional parameters for methods.
          * @returns {jQuery} An instance of jQuery that allows for method chaining.
          */
         $.fn.bsCalendar = function (optionsOrMethod, params) {
-            if ($(this).length > 1) {
-                return $(this).each(function (i, e) {
+            // Support being called on a jQuery collection of elements.
+            // Use `this` directly (idiomatic, avoids re-wrapping).
+            if (this.length > 1) {
+                return this.each(function (i, e) {
                     return $(e).bsCalendar(optionsOrMethod, params);
                 });
             }
-            const wrapper = $(this);
-            const isInitialized = typeof wrapper.data('bsCalendar') === 'object';
-            const optionsGiven = typeof optionsOrMethod === 'object';
+
+            const wrapper = this; // jQuery instance wrapping a single element
+            // Robust initialization check
+            const existingData = wrapper.data('bsCalendar');
+            const isInitialized = !!existingData && typeof existingData === 'object';
+
+            // Distinguish between options object and method string (guard null)
+            const optionsGiven = optionsOrMethod !== null && optionsOrMethod !== undefined && typeof optionsOrMethod === 'object' && !Array.isArray(optionsOrMethod);
             const methodGiven = typeof optionsOrMethod === 'string';
 
             if (!isInitialized) {
@@ -1072,43 +1079,72 @@
                     mainColor: null,
                 };
 
-                let ignoreStore = false;
-
+                // Merge data-attributes (if any)
                 if (wrapper.data()) {
                     bsCalendarData.settings = $.extend(true, {}, bsCalendarData.settings, wrapper.data());
                 }
 
+                // Merge provided options (defensive)
                 if (optionsGiven) {
                     bsCalendarData.settings = $.extend(true, {}, bsCalendarData.settings, optionsOrMethod);
                 }
 
-                ignoreStore = bsCalendarData.settings.ingoreStore === true;
-                if (ignoreStore) {
+                // Backwards-compatible normalization for ignoreStore typo ("ingoreStore")
+                // Accept both 'ignoreStore' and legacy misspelling 'ingoreStore'
+                const ignoreStoreFlag =
+                    bsCalendarData.settings.ignoreStore === true ||
+                    bsCalendarData.settings.ingoreStore === true;
+
+                // Remove both possible keys to normalize settings object
+                if (bsCalendarData.settings.hasOwnProperty('ingoreStore')) {
                     delete bsCalendarData.settings.ingoreStore;
                 }
+                if (bsCalendarData.settings.hasOwnProperty('ignoreStore')) {
+                    delete bsCalendarData.settings.ignoreStore;
+                }
+
+                // Apply normalized flag
+                const ignoreStore = ignoreStoreFlag === true;
+
                 normalizeSettings(bsCalendarData.settings);
 
-
+                // Merge standardized translation units (locale-dependent)
                 bsCalendarData.settings.translations = $.extend(true, {}, bsCalendarData.settings.translations, $.bsCalendar.utils.getStandardizedUnits(bsCalendarData.settings.locale) || {});
 
+                // Resolve main color now (colors may depend on normalized settings)
                 bsCalendarData.mainColor = $.bsCalendar.utils.getColors(bsCalendarData.settings.mainColor, 'primary');
 
+                // Persist data object on element
                 setBsCalendarData(wrapper, bsCalendarData);
 
+                // Restore view from storage unless explicitly ignored
                 if (!ignoreStore && bsCalendarData.settings.storeState) {
-                    const view = getFromLocalStorage(wrapper, 'view');
-                    if (!$.bsCalendar.utils.isValueEmpty(view)) {
-                        bsCalendarData.settings.startView = view;
-                        updateSettings(wrapper, bsCalendarData.settings);
+                    try {
+                        const view = getFromLocalStorage(wrapper, 'view');
+                        if (!$.bsCalendar.utils.isValueEmpty(view)) {
+                            bsCalendarData.settings.startView = view;
+                            updateSettings(wrapper, bsCalendarData.settings);
+                        }
+                    } catch (e) {
+                        // don't fail initialization for storage read errors; log if debug
+                        if (bsCalendarData.settings && bsCalendarData.settings.debug) {
+                            log('Error reading view from storage during init:', e);
+                        }
                     }
                 }
 
-
+                // Initialize UI and events — handle promise rejection defensively
                 init(wrapper).then(() => {
                     onResize(wrapper, true);
+                }).catch(err => {
+                    // If init fails, clean up and rethrow in debug
+                    if (bsCalendarData.settings && bsCalendarData.settings.debug) {
+                        log('bsCalendar init failed:', err);
+                    }
                 });
             }
 
+            // Method-call path
             if (methodGiven) {
                 const inSearchMode = getSearchMode(wrapper);
                 switch (optionsOrMethod) {
@@ -1118,6 +1154,10 @@
                     case 'clear':
                         if (!inSearchMode) {
                             methodClear(wrapper);
+                        } else {
+                            if (getSettings(wrapper).debug) {
+                                log('Attempt to call clear() in search mode — ignored.');
+                            }
                         }
                         break;
                     case 'updateOptions':
@@ -1129,16 +1169,32 @@
                     case 'setDate':
                         if (!inSearchMode) {
                             methodSetDate(wrapper, params);
+                        } else {
+                            if (getSettings(wrapper).debug) {
+                                log('Attempt to call setDate() in search mode — ignored.');
+                            }
                         }
                         break;
                     case 'setToday':
                         if (!inSearchMode) {
                             setToday(wrapper, params);
+                        } else {
+                            if (getSettings(wrapper).debug) {
+                                log('Attempt to call setToday() in search mode — ignored.');
+                            }
+                        }
+                        break;
+                    default:
+                        // Unknown method → warn in debug mode to help detect typos
+                        const settings = getSettings(wrapper) || {};
+                        if (settings.debug) {
+                            console.warn(`bsCalendar: unknown method "${optionsOrMethod}" called.`);
                         }
                         break;
                 }
             }
 
+            // Support chaining
             return wrapper;
         }
 
@@ -1298,6 +1354,13 @@
             }
         }
 
+        /**
+         * Sets the calendar data for the provided wrapper element.
+         *
+         * @param {jQuery} wrapper - The DOM element or jQuery wrapper object where the calendar data is stored.
+         * @param {object} data - The data object containing settings and information to be stored in the wrapper.
+         * @return {void} Does not return a value.
+         */
         function setBsCalendarData(wrapper, data) {
             if (data.settings.debug) {
                 log('**************** setBsCalendarData', data);
@@ -1400,7 +1463,7 @@
 
                 // If parsed is not a finite integer, fallback to default (5)
                 if (!Number.isFinite(parsed) || !Number.isInteger(parsed)) {
-                    settings.rounded = 3;
+                    settings.rounded = $.bsCalendar.getDefaults().rounded;
                 } else {
                     settings.rounded = clamp(parsed, 0, 5);
                 }
