@@ -80,7 +80,7 @@
                 },
                 startDate: new Date(),
                 startView: 'month', // day, week, month, year
-                defaultColor: 'primary',
+                mainColor: 'primary',
                 views: ['year', 'month', 'week', 'day'],
                 holidays: null,
                 showAddButton: true,
@@ -1068,7 +1068,8 @@
                     searchPagination: null,
                     xhrs: {
                         appointments: null
-                    }
+                    },
+                    mainColor: null,
                 };
 
                 let ignoreStore = false;
@@ -1089,6 +1090,8 @@
 
 
                 bsCalendarData.settings.translations = $.extend(true, {}, bsCalendarData.settings.translations, $.bsCalendar.utils.getStandardizedUnits(bsCalendarData.settings.locale) || {});
+
+                bsCalendarData.mainColor = $.bsCalendar.utils.getColors(bsCalendarData.settings.mainColor, 'primary');
 
                 setBsCalendarData(wrapper, bsCalendarData);
 
@@ -2335,7 +2338,7 @@
 
             const leftCol = $('<div>', {class: 'col-auto col-lg-3 d-flex py-2 py-lg-0 flex-nowrap align-items-center flex-fill'}).appendTo(topNav);
             const middleCol = $('<div>', {class: 'col-auto col-lg-3 d-flex py-2 py-lg-0 justify-content-end justify-content-lg-center flex-fill flex-nowrap align-items-center'}).appendTo(topNav);
-            const rightCol = $('<div>', {class: 'col-auto col-lg-3 d-flex py-2 py-lg-0 justify-content-end flex-nowrap flex-fill align-items-center'}).appendTo(topNav);
+            const rightCol = $('<div>', {class: 'col-auto col-lg-3 d-flex py-2 py-lg-0 justify-content-end flex-wrap flex-lg-nowrap flex-fill align-items-center'}).appendTo(topNav);
 
             // Add a button to switch on and off the sidebar.
             $('<button>', {
@@ -2417,7 +2420,7 @@
 
             // navigation through the calendar depending on the view
             $('<div>', {
-                class: 'd-flex ms-2 align-items-center justify-content-center wc-nav-view-wrapper flex-nowrap text-nowrap',
+                class: 'd-flex ms-2 align-items-center justify-content-center wc-nav-view-wrapper flex-wrap flex-lg-nowrap text-nowrap',
                 html: [
                     `<strong class="me-3" id="${data.elements.wrapperViewContainerTitleId}"></strong>`,
                     `<a data-prev href="#"><i class="${settings.icons.prev}"></i></a>`,
@@ -3488,8 +3491,8 @@
                 onResize($wrapper);
                 updateDropdownView($wrapper);
                 setCurrentDateName($wrapper);
-                const monthCalendarWrapper = $('#' + data.monthCalendarWrapper);
-                buildMonthSmallView($wrapper, getDate($wrapper), monthCalendarWrapper);
+                const monthCalendarWrapper = $('#' + data.elements.wrapperSmallMonthCalendarId);
+                buildMonthSmallView($wrapper, data.date, monthCalendarWrapper);
                 if (triggerViewChanged) {
                     trigger($wrapper, 'view', view);
                 }
@@ -4156,7 +4159,7 @@
             const $appointmentContainer = $('<div>', {class: 'list-group list-group-flush mb-3'}).appendTo($container);
 
             visibleAppointments.forEach((appointment) => {
-                const borderLeftColor = appointment.color || settings.defaultColor;
+                const borderLeftColor = appointment.color || settings.mainColor;
                 const copy = getAppointmentForReturn(appointment)
                 const html = settings.formatter.search(copy.appointment, copy.extras);
 
@@ -4353,7 +4356,7 @@
                 appointments.forEach(appointment => {
                     const date = new Date(appointment.date);
                     appointment.extras = {
-                        colors: $.bsCalendar.utils.getColors(appointment.color || settings.defaultColor, settings.defaultColor),
+                        colors: $.bsCalendar.utils.getColors(appointment.color || settings.mainColor, settings.mainColor),
                         isToday: date.toDateString() === now.toDateString(),
                         isNow: date.getFullYear() === now.getFullYear()
                     };
@@ -4371,7 +4374,7 @@
                     const extras = {
                         locale: settings.locale,
                         icon: iconClass,
-                        colors: $.bsCalendar.utils.getColors(appointment.color, settings.defaultColor),
+                        colors: $.bsCalendar.utils.getColors(appointment.color, settings.mainColor),
                         start: {
                             date: $.bsCalendar.utils.formatDateToDateString(appointment.start),
                             time: isAllDay ? '00:00:00' : $.bsCalendar.utils.formatTime(appointment.start)
@@ -4763,7 +4766,7 @@
                             }).prependTo(container);
                             $(settings.formatter.holiday(holiday, view)).appendTo($holidayWrapper);
                         } else {
-                            container.addClass('text-primary');
+                            container.addClass('text-secondary');
                             container.attr('data-role', 'holiday');
                             container.tooltip({
                                 title: holiday.title,
@@ -4944,6 +4947,7 @@
          */
         function buildMonthView($wrapper) {
             const data = getBsCalendarData($wrapper);
+            const mainColor = data.mainColor;
             const container = getViewContainer($wrapper);
             const settings = data.settings;
             const date = data.date
@@ -4966,15 +4970,15 @@
                 calendarEnd.setDate(calendarEnd.getDate() + 1);
             }
 
-            // Container leeren und neue Struktur generieren
+            // Empty container and generate new structure
             container.empty();
 
-            // Dynamische Wochentagsnamen basierend auf der Lokalisierung und Startwochentag
+            // Dynamic weekday names based on localization and starting weekday
             const weekDays = $.bsCalendar.utils.getShortWeekDayNames(locale, startWeekOnSunday);
 
             // Tage rendern
             let currentDate = new Date(calendarStart);
-            let isFirstRow = true; // Prüft, ob es die erste Zeile ist
+            let isFirstRow = true; // Checks if it is the first line
 
             while (currentDate <= calendarEnd) {
                 const weekRow = $('<div>', {
@@ -5007,16 +5011,16 @@
                         'width: 24px',
                         'height: 24px',
                         'line-height: 24px',
-                        'font-size: 12px'
+                        'font-size: 12px',
+                        'cursor: pointer',
                     ];
                     if (isToday) {
-                        const dayColors = $.bsCalendar.utils.getColors('primary gradient', null);
-                        dayCss.push(`background-color: ${dayColors.backgroundColor}`);
-                        dayCss.push(`background-image: ${dayColors.backgroundImage}`);
-                        dayCss.push(`color: ${dayColors.color}`);
+                        dayCss.push(`background-color: ${mainColor.backgroundColor}`);
+                        dayCss.push(`background-image: ${mainColor.backgroundImage}`);
+                        dayCss.push(`color: ${mainColor.color}`);
                     }
 
-                    // Berechne Border-Klassen basierend auf der Position der Zelle
+                    // Calculate border classes based on cell position
                     const isLastRow = currentDate.getTime() === calendarEnd.getTime(); // Prüft genau, ob wir beim letzten Datum des Kalenders sind
 
                     const isLastColumn = i === 6;
@@ -5029,7 +5033,7 @@
                         borderClasses.push('border-end ');
                     }
 
-                    // Wenn es die erste Zeile ist, Wochentagsnamen hinzufügen
+                    // If it is the first line, add weekday names
                     const dayWrapper = $('<div>', {
                         'data-month-date': $.bsCalendar.utils.formatDateToDateString(currentDate),
                         class: `col ${borderClasses.join(' ')} px-1 flex-fill d-flex flex-column align-items-center justify-content-start ${
@@ -5041,7 +5045,7 @@
                         },
                     }).appendTo(weekRow);
 
-                    // Wochentagsnamen in der ersten Zeile hinzufügen
+                    // Add weekday names on the first line
                     if (isFirstRow) {
                         $('<small>', {
                             class: 'text-center text-uppercase fw-bold pt-1',
@@ -5049,11 +5053,11 @@
                                 lineHeight: '16px',
                                 fontSize: '10px',
                             },
-                            text: weekDays[i], // Holt den entsprechenden Wochentagsnamen
+                            text: weekDays[i], // Gets the corresponding weekday name
                         }).appendTo(dayWrapper);
                     }
 
-                    // Tageszahl hinzufügen
+                    // Add day number
                     $('<small>', {
                         'data-date': $.bsCalendar.utils.formatDateToDateString(currentDate),
                         class: `text-center my-1`,
@@ -5132,7 +5136,9 @@
          */
         function buildMonthSmallView($wrapper, forDate, $container, forYearView = false) {
             // Get container for a miniature view
+            console.log('buildMonthSmallView', forDate, $container.length, forYearView);
             const data = getBsCalendarData($wrapper);
+            const mainColor = data.mainColor;
             const settings = data.settings;
             const date = forDate; // Aktuelles Datum
             const activeDate = data.date;
@@ -5206,8 +5212,6 @@
             // create the content of the calendar
             const tbody = $('<tbody>').appendTo(table);
             let currentDate = new Date(calendarStart);
-            const defaultColor = 'primary gradient';
-            const defaultColors = $.bsCalendar.utils.getColors(defaultColor, null);
             while (currentDate <= calendarEnd) {
                 const weekRow = $('<tr>', {
                     css: {
@@ -5237,29 +5241,27 @@
                     const dayStyleArray = [];
                     let dayClass = '';
                     if (isToday) {
-                        dayStyleArray.push('background-color: ' + defaultColors.backgroundColor);
-                        dayStyleArray.push('background-image: ' + defaultColors.backgroundImage);
-                        dayStyleArray.push('color: ' + defaultColors.color);
+                        dayStyleArray.push('background-color: ' + mainColor.backgroundColor);
+                        dayStyleArray.push('background-image: ' + mainColor.backgroundImage);
+                        dayStyleArray.push('color: ' + mainColor.color);
                     }
-
+                    console.log('buildMonthSmallView SELECTED', forDate, currentDate.toDateString(), activeDate.toDateString(), isSelected);
                     if (isOtherMonth) {
                         dayClass += ' text-muted opacity-50';
                     }
 
-                    if (isSelected && !isToday) {
-                        dayClass += ' border border-warning';
+                    if (isSelected && ! isToday) {
+                        dayStyleArray.push('border: 1px solid ' + mainColor.backgroundColor);
+                        dayStyleArray.push('color: ' + mainColor.backgroundColor);
                     }
 
                     let badge = '';
                     if (forYearView) {
-                        const combinedCss = [
-                            'z-index: 1'
-                        ].join(';');
-
-                        badge = `<span class="js-badge badge position-absolute start-50 top-100 rounded-pill translate-middle" style="${combinedCss}"></span>`;
+                        badge = `<span class="js-badge badge position-absolute start-50 z-1 top-100 rounded-pill translate-middle"></span>`;
                     }
 
-                    const tdContent = [`<div style="${dayStyleArray.join(';')}" class="${dayClass} rounded-circle w-100 h-100 d-flex justify-content-center flex-column align-items-center">`,
+                    const tdContent = [
+                        `<div style="${dayStyleArray.join(';')}" class="${dayClass} rounded-circle w-100 h-100 d-flex justify-content-center flex-column align-items-center">`,
                         `<span>${currentDate.getDate()}</span>`,
                         badge,
                         `</div>`
@@ -5424,13 +5426,13 @@
          * @return {string} The constructed HTML string representing the day's header.
          */
         function buildHeaderForDay($wrapper, date, forWeekView = false) {
-            const settings = getSettings($wrapper);
+            const data = getBsCalendarData($wrapper);
+            const mainColor = data.mainColor;
+            const settings = data.settings;
             const day = date.toLocaleDateString(settings.locale, {day: 'numeric'})
             const shortWeekday = date.toLocaleDateString(settings.locale, {weekday: 'short'});
             const justify = forWeekView ? 'center' : 'start';
             const isToday = date.toDateString() === new Date().toDateString();
-            const todayColor = isToday ? 'text-primary' : '';
-            const colors = $.bsCalendar.utils.getColors('primary gradient', null);
             const circleCss = [
                 'width: 44px',
                 'height: 44px',
@@ -5439,12 +5441,12 @@
             const circleClasses = [];
             if (isToday) {
                 circleClasses.push('rounded-circle');
-                circleCss.push(`background-color: ${colors.backgroundColor}`);
-                circleCss.push(`background-image: ${colors.backgroundImage}`);
-                circleCss.push(`color: ${colors.color}`);
+                circleCss.push(`background-color: ${mainColor.backgroundColor}`);
+                circleCss.push(`background-image: ${mainColor.backgroundImage}`);
+                circleCss.push(`color: ${mainColor.color}`);
             }
             return [
-                `<div class="d-flex flex-column justify-content-center  w-100 p-2 align-items-${justify} ${todayColor}">`,
+                `<div class="d-flex flex-column justify-content-center w-100 p-2 align-items-${justify}">`,
                 `<div class="d-flex justify-content-center" style="width: 44px"><small>${shortWeekday}</small></div>`,
                 `<span style="${circleCss.join(';')}" class="h4 m-0 text-center ${circleClasses.join(' ')}">${day} </span>`,
                 `</div>`
@@ -5566,12 +5568,13 @@
          * @return {void} - This function does not return a value.
          */
         function addCurrentTimeIndicator($wrapper, $container) {
-
+            const data = getBsCalendarData($wrapper);
+            const mainColor = data.mainColor;
             // Helper functions to dynamically retrieve the current time as a Date object.
             const getDynamicNow = () => new Date();
 
             // Retrieve settings dynamically for the calendar (e.g., hour slots, start/end times).
-            const settings = getSettings($wrapper);
+            const settings = data.settings;
             if (settings === null) {
                 return; // Exit early if no settings are found for the calendar.
             }
@@ -5607,8 +5610,11 @@
              * This line is styled as a red indicator and appended to the target container.
              */
             const currentTimeIndicator = $('<div>', {
-                class: 'current-time-indicator position-absolute bg-danger', // Add CSS classes for styling.
+                class: 'current-time-indicator position-absolute', // Add CSS classes for styling.
                 css: {
+                    backgroundColor: mainColor.backgroundColor,
+                    backgroundImage: mainColor.backgroundImage,
+                    color: mainColor.color,
                     boxSizing: 'border-box', // Ensure consistent box sizing.
                     height: '1px',           // Indicator height is 1 px (horizontal line).
                     width: '100%',           // Full width of the container.
@@ -5625,9 +5631,9 @@
              * This small badge will display the current time in a readable format (e.g., HH:mm).
              */
             const combinedCss = [
-                'background-color: ' + badgeColor.backgroundColor, // Set the computed background color.
-                'background-image: ' + badgeColor.backgroundImage, // Set the computed gradient.
-                'color: ' + badgeColor.color,        // Set the computed font color.
+                'background-color: ' + mainColor.backgroundColor, // Set the computed background color.
+                'background-image: ' + mainColor.backgroundImage, // Set the computed gradient.
+                'color: ' + mainColor.color,        // Set the computed font color.
             ].join(';'); // Combine the rules into a single CSS string.
 
             /**
@@ -5643,6 +5649,9 @@
              * This is an additional visual marker for showing the exact current time.
              */
             const combinedCss2 = [
+                'background-color: ' + mainColor.backgroundColor, // Set the computed background color.
+                'background-image: ' + mainColor.backgroundImage, // Set the computed gradient.
+                'color: ' + mainColor.color,        // Set the computed font color.
                 'width: 10px',                        // Circle width.
                 'height: 10px',                       // Circle height.
             ].join(';'); // Combine the rules into a single CSS string.
@@ -5651,7 +5660,7 @@
              * Create and append a small circular marker to the time indicator.
              * This marker visually represents the current time.
              */
-            $(`<div class="position-absolute bg-danger start-100 top-50 rounded-circle translate-middle" style="${combinedCss2}"></div>`)
+            $(`<div class="position-absolute start-100 top-50 rounded-circle translate-middle" style="${combinedCss2}"></div>`)
                 .appendTo(currentTimeIndicator);
 
             /**
@@ -5780,6 +5789,7 @@
          */
         function buildYearView($wrapper) {
             const container = getViewContainer($wrapper);
+            // container.addClass('justify-content-center');
             const settings = getSettings($wrapper);
             const date = getDate($wrapper);
             const year = date.getFullYear();
@@ -5789,10 +5799,7 @@
 
             // Flex layout for all 12 monthly calendars
             const grid = $('<div>', {
-                class: 'd-flex flex-wrap p-3', // Flexbox for inline representation
-                css: {
-                    gap: '10px', // distance between calendars
-                },
+                class: 'd-flex flex-wrap gap-1 gap-lg-4 py-3', // Flexbox for inline representation
             }).appendTo(container);
 
             const roundedClass = `rounded-${settings.rounded}`;
@@ -5803,8 +5810,8 @@
                     'margin: 5px'
                 ]
                 const monthWrapper = $('<div>', {
-                    class: `d-flex p-2 flex-column align-items-start wc-year-month-container  wc-round-me  ${roundedClass}`, // Col-Layout für Titel und Kalender
-                    style: css.join(';'),
+                    class: `d-flex pb-3 pt-2 border flex-column align-items-center overflow-hidden wc-year-month-container wc-round-me ${roundedClass}`, // Col-Layout für Titel und Kalender
+                    // style: css.join(';'),
                 }).appendTo(grid);
 
                 // monthly name and year as the title (e.g. "January 2023")
@@ -5813,8 +5820,7 @@
                 );
                 $('<div>', {
                     'data-month': `${year}-${String(month + 1).padStart(2, '0')}-01`,
-                    class: 'w-bold',
-                    // text: `${monthName} ${year}`,
+                    class: 'w-bold ms-2',
                     text: `${monthName}`,
                     css: {
                         cursor: 'pointer',

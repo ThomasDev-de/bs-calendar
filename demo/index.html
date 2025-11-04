@@ -147,7 +147,7 @@
             // showAddButton: false,
             // views: ["week", "day"],
             rounded: 9,
-            defaultColor: 'info',
+            mainColor: '#e3ec0b',
             navigateOnWheel: true,
             holidays: {
                 federalState: 'BE',
@@ -288,7 +288,7 @@
             }
 
             // Convert buckets to array of { date, total }
-            return Array.from(buckets, ([date, total]) => ({ date, total }));
+            return Array.from(buckets, ([date, total]) => ({date, total}));
         }
 
         async function url(query) {

@@ -14,6 +14,18 @@
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
 
+### Version 2.0.4
+
+- Replaced `defaultColor` with `mainColor` for consistency in color settings.
+- Enhanced layout flexibility with updated `flex-wrap` classes in navigation and top bar elements.
+- Improved color application logic for holidays, appointments, and current-time indicators.
+- Standardized `mainColor` utilization for day and month view rendering.
+- Addressed minor layout inconsistencies in year view style definitions.
+- Improved parameter documentation in `buildDayViewContent`.
+- Enhanced layout handling with better defaults for hour labels and week view adjustments.
+- Implemented half-hour dashed lines for rows meeting height criteria.
+- Added clearer time slot metadata and consistent styling for grid rows.
+- Included current-time indicator logic for the 'today' view.
 
 ### Version 2.0.3
 Breaking/Structural
