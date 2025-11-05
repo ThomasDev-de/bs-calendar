@@ -1891,7 +1891,7 @@
             const merged = $.extend(true, {}, prevSettings, options);
             normalizeSettings(merged);
             merged.ingoreStore = true;
-
+            data.mainColor = $.bsCalendar.utils.getColors(merged.mainColor);
             // Apply new settings
             data.settings = merged;
             setBsCalendarData($wrapper, data);
@@ -5313,7 +5313,7 @@
                         dayClass += ' text-muted opacity-50';
                     }
 
-                    if (isSelected && ! isToday) {
+                    if (isSelected && !isToday) {
                         dayStyleArray.push('border: 1px solid ' + mainColor.backgroundColor);
                         dayStyleArray.push('color: ' + mainColor.backgroundColor);
                     }
