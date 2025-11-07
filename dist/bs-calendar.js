@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.3
- * @date 2025-11-03
+ * @version 2.0.4
+ * @date 2025-11-07
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -61,7 +61,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.3',
+            version: '2.0.4',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
