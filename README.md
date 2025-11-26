@@ -5,7 +5,7 @@
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[changelog](changelog.md#version-204)
+[changelog](changelog.md#version-205)
 
 > [!WARNING]
 > As of version 2, Bootstrap 4 is no longer supported.   
@@ -664,6 +664,20 @@ $.bsCalendar.utils.openHolidayApi.getPublicHolidays(
     .then(publicHolidays => {
         console.log(publicHolidays);
     })
+
+// Convert ICS string to appointments
+const icsString = `BEGIN:VCALENDAR
+    VERSION:2.0
+    BEGIN:VEVENT
+    SUMMARY:Team Meeting
+    DTSTART:20251126T090000
+    DTEND:20251126T100000
+    DESCRIPTION:Discussing the Q4 roadmap.
+    END:VEVENT
+    END:VCALENDAR`;
+
+const appointmentsFromIcs = $.bsCalendar.utils.convertIcsToAppointments(icsString);
+console.log(appointmentsFromIcs);
 ```
 
 ---

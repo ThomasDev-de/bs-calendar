@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.5**](#version-205)
     * [**Version 2.0.3**](#version-203)
     * [**Version 2.0.2**](#version-202)
     * [**Version 2.0.0**](#version-200)
@@ -13,6 +14,14 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+  ### Version 2.0.5
+
+    - Added: New utility function `convertIcsToAppointments(icsData)` to parse raw ICS strings into calendar-compatible appointment objects.
+        - Supports standard properties: `SUMMARY` (mapped to `title`), `DESCRIPTION`, `LOCATION`, `UID`, `DTSTART`, `DTEND`.
+        - Supports extended properties: `URL` (mapped to `link`), `CATEGORIES`, `STATUS`, `ORGANIZER`, and `ATTENDEE` (as array).
+        - Automatically handles line unfolding (for long descriptions or broken lines).
+        - Parses dates exactly as defined in the ICS string.
 
 ### Version 2.0.4
 
@@ -28,18 +37,27 @@
 - Included current-time indicator logic for the 'today' view.
 
 ### Version 2.0.3
+
 Breaking/Structural
-- Introduced stable, per-instance element IDs under `data.elements` (e.g., `wrapperId`, , , , , , , ) and refactored DOM queries to use these IDs. This reduces selector collisions and improves multi-instance and re-init stability. `wrapperTopNavId``wrapperSideNavId``wrapperSearchNavId``wrapperViewContainerId``wrapperViewContainerTitleId``wrapperSmallMonthCalendarId``wrapperSmallMonthCalendarTitleId`
+
+- Introduced stable, per-instance element IDs under `data.elements` (e.g., `wrapperId`, , , , , , , ) and refactored DOM
+  queries to use these IDs. This reduces selector collisions and improves multi-instance and re-init stability.
+  `wrapperTopNavId``wrapperSideNavId``wrapperSearchNavId``wrapperViewContainerId``wrapperViewContainerTitleId``wrapperSmallMonthCalendarId``wrapperSmallMonthCalendarTitleId`
 
 Improvements
+
 - Re-initialization and state flow
-    - `init()` now writes/reads `view`, `date`, and `searchMode` through the central data object and assigns a unique `data-bs-calendar-id` from `data.elements.wrapperId`.
-    - `buildFramework()` constructs a deterministic layout using the new IDs and integrates / at explicit anchor points. `topbarAddons``sidebarAddons`
-    - `setCurrentDateName()` and `buildByView()` now update titles/containers via per-instance IDs for reliable rendering.
+    - `init()` now writes/reads `view`, `date`, and `searchMode` through the central data object and assigns a unique
+      `data-bs-calendar-id` from `data.elements.wrapperId`.
+    - `buildFramework()` constructs a deterministic layout using the new IDs and integrates / at explicit anchor points.
+      `topbarAddons``sidebarAddons`
+    - `setCurrentDateName()` and `buildByView()` now update titles/containers via per-instance IDs for reliable
+      rendering.
 
 - Safer destroy lifecycle
     - Centralized modal selector via `globalCalendarElements.infoModal`.
-    - More defensive cleanup of namespaced events, aborting outstanding requests, removing classes/attributes, and disposing/removing the modal.
+    - More defensive cleanup of namespaced events, aborting outstanding requests, removing classes/attributes, and
+      disposing/removing the modal.
     - Restores original wrapper attributes via `restoreWrapperState()` and clears plugin data to avoid leaks.
 
 - Search UX
@@ -47,45 +65,58 @@ Improvements
     - Search result rendering/pagination continues to work with instance-aware containers.
 
 - Mini month calendar
-    - `buildMonthSmallView()` renders into ID-scoped containers and highlights the active date from the central data object.
+    - `buildMonthSmallView()` renders into ID-scoped containers and highlights the active date from the central data
+      object.
     - Year view consistently delegates to the mini month builder per month and provides badge placeholders.
 
 - Debuggability
     - Added structured logs in `init()`, `buildByView()`, `fetchAppointments()`, and week-range calculations.
 
 Fixes
-- View container targeting: `getViewContainer()` uses an instance ID, fixing collisions with multiple calendars on the same page.
-- Title/labels: `setCurrentDateName()` selects and updates the correct title nodes by ID; resolves inconsistent header updates.
-- Sidebar animation/resizing: `handleSidebarVisibility()` targets the per-instance sidebar by ID and updates layout in month view reliably.
-- Event containment: Namespaced body/document/window handlers combined with instance-aware selectors reduce cross-instance event handling.
+
+- View container targeting: `getViewContainer()` uses an instance ID, fixing collisions with multiple calendars on the
+  same page.
+- Title/labels: `setCurrentDateName()` selects and updates the correct title nodes by ID; resolves inconsistent header
+  updates.
+- Sidebar animation/resizing: `handleSidebarVisibility()` targets the per-instance sidebar by ID and updates layout in
+  month view reliably.
+- Event containment: Namespaced body/document/window handlers combined with instance-aware selectors reduce
+  cross-instance event handling.
 
 Developer Notes
-- If external code relied on class-based selectors inside the calendar, prefer instance-scoped selectors or the public API/events.
-- When injecting addons (, ), ensure the selectors resolve within the new, ID-based framework structure. `topbarAddons``sidebarAddons`
+
+- If external code relied on class-based selectors inside the calendar, prefer instance-scoped selectors or the public
+  API/events.
+- When injecting addons (, ), ensure the selectors resolve within the new, ID-based framework structure.
+  `topbarAddons``sidebarAddons`
 
 #### **Version 2.0.2**
 
 - Fix: week/period calculation (week view)
-  - Fixed a bug where the calculated end date of the week was determined incorrectly (too far into the following month)
-  at the change of month.
-  - Cause: endDate was incorrectly modified based on the originally set Date object instead of being recalculated as a
-  copy of startDate. As a result, weeks that protrude into the previous month resulted in a "rolling" of the day (e.g.
-  27.10. => 03.12.).
-  - Fix: endDate is now explicitly copied from startDate and then added +6 days (endDate = new Date(
-  startDate.getTime()); endDate.setDate(startDate.getDate() + 6)).
+    - Fixed a bug where the calculated end date of the week was determined incorrectly (too far into the following
+      month)
+      at the change of month.
+    - Cause: endDate was incorrectly modified based on the originally set Date object instead of being recalculated as a
+      copy of startDate. As a result, weeks that protrude into the previous month resulted in a "rolling" of the day (
+      e.g.
+      27.10. => 03.12.).
+    - Fix: endDate is now explicitly copied from startDate and then added +6 days (endDate = new Date(
+      startDate.getTime()); endDate.setDate(startDate.getDate() + 6)).
 
 - Fix: Protection against unintentional overwriting of period parameters by queryParams
-  - When merging the values returned by settings.queryParams, period-related keys (fromDate, toDate, year, view) are now
-  protected by default and not overwritten.
-  - This keeps the UI calculation of the visible period consistent with the data queries.
+    - When merging the values returned by settings.queryParams, period-related keys (fromDate, toDate, year, view) are
+      now
+      protected by default and not overwritten.
+    - This keeps the UI calculation of the visible period consistent with the data queries.
 
 - Improvement: Defensive Copies & Debug Logs
-  - getStartAndEndDateByView now always uses copies of the internal date (avoiding side effects due to reference
-  mutations).
-  - Additional debug logs have been added (computed start/end data, requestData before/after queryParams) to make it
-  easier to find errors when determining the query periods.
+    - getStartAndEndDateByView now always uses copies of the internal date (avoiding side effects due to reference
+      mutations).
+    - Additional debug logs have been added (computed start/end data, requestData before/after queryParams) to make it
+      easier to find errors when determining the query periods.
 
 -Result:
+
 - Appointments are now correctly placed within the rendered week, even at the change of month.
 - Fewer error messages such as "Full-width container ... not found".
 - Better debugging for future time period and request issues.
@@ -137,7 +168,7 @@ Developer Notes
   Example (in table format):
 
   | **Property** | **Type**   | **Params**                  | **Description**                                                       | 
-        |--------------|------------|-----------------------------|-----------------------------------------------------------------------|
+          |--------------|------------|-----------------------------|-----------------------------------------------------------------------|
   | **allDay**   | `function` | (appointment, extras, view) | Customizes the rendering of the all-day area in weekly or daily view. |
 
 #### **Version 1.2.4**

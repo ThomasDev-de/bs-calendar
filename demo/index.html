@@ -110,6 +110,8 @@
     </div>
 </div>
 
+<div id="calendarICS"></div>
+
 <script src="../vendor/components/jquery/jquery.min.js"></script>
 
 <script src="../vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
@@ -525,6 +527,59 @@
                 const theme = htmlElement.attr('data-bs-theme') === 'light' ? 'dark' : 'light';
                 htmlElement.attr('data-bs-theme', theme);
             });
+
+        // Generiere das heutige Datum im Format YYYYMMDD für den ICS-String
+        const now = new Date();
+        const y = now.getFullYear();
+        const m = String(now.getMonth() + 1).padStart(2, '0');
+        const d = String(now.getDate()).padStart(2, '0');
+        const today = `${y}${m}${d}`;
+
+        const icsString = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+SUMMARY:Team Meeting
+DTSTART:${today}T090000
+DTEND:${today}T100000
+DESCRIPTION:Discussing the Q4 roadmap and milestones.
+LOCATION:Conference Room B
+URL:https://meet.google.com/abc-defg-hij
+CATEGORIES:Work,Internal
+STATUS:CONFIRMED
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Lunch with Client
+DTSTART:${today}T123000
+DTEND:${today}T133000
+DESCRIPTION:Discussing new contract terms.
+LOCATION:Italian Restaurant 'Luigi'
+CATEGORIES:Business,Lunch
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Project Review
+DTSTART:${today}T140000
+DTEND:${today}T153000
+DESCRIPTION:Reviewing the latest deployment.
+LOCATION:Office 305
+ORGANIZER:CN=Project Lead:mailto:boss@example.com
+ATTENDEE;CN=John Doe:mailto:john@example.com
+UID:1234567890
+END:VEVENT
+BEGIN:VEVENT
+SUMMARY:Daily Standup
+DTSTART:${today}T160000
+DTEND:${today}T163000
+DESCRIPTION:Quick sync on daily tasks.
+URL:https://zoom.us/j/987654321
+CATEGORIES:Agile,Daily
+END:VEVENT
+END:VCALENDAR`;
+        const appointments = $.bsCalendar.utils.convertIcsToAppointments(icsString);
+
+        // Dann in den Kalender laden (Beispiel: via refresh oder init)
+        $('#calendarICS').bsCalendar({
+            url: () => Promise.resolve(appointments)
+        });
     });
 </script>
 </body>

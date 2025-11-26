@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.4
- * @date 2025-11-07
+ * @version 2.0.5
+ * @date 2025-11-26
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -61,7 +61,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.4',
+            version: '2.0.5',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -137,6 +137,144 @@
                 debug: true
             },
             utils: {
+                /**
+                 * Converts an ICS (iCalendar) string into an array of appointment objects compatible with bsCalendar.
+                 *
+                 * @param {string} icsData - The raw ICS string data.
+                 * @return {Array<Object>} An array of appointment objects.
+                 */
+                convertIcsToAppointments: (icsData) => {
+                    const appointments = [];
+
+                    // 1. Unfold lines (handle multi-line values starting with space or tab)
+                    const lines = icsData.replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+                    const unfoldedLines = [];
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        if (/^[ \t]/.test(line) && unfoldedLines.length > 0) {
+                            unfoldedLines[unfoldedLines.length - 1] += line.slice(1);
+                        } else {
+                            unfoldedLines.push(line.trim());
+                        }
+                    }
+
+                    let currentEvent = null;
+
+                    // Helper: Simple ICS date parser (YYYYMMDD or YYYYMMDDTHHmmss[Z])
+                    const parseIcsDate = (val) => {
+                        // Strip TZID etc., grab the value part (after last colon)
+                        const cleanVal = val.split(':').pop().replace('Z', '');
+                        const isAllDay = cleanVal.length === 8;
+
+                        // Extract date components from the ICS string
+                        const y = cleanVal.substring(0, 4);
+                        const m = cleanVal.substring(4, 6);
+                        const d = cleanVal.substring(6, 8);
+
+                        if (isAllDay) {
+                            return {
+                                dateStr: `${y}-${m}-${d} 00:00:00`,
+                                allDay: true
+                            };
+                        }
+
+                        // Extract time from ICS value (YYYYMMDDTHHmmss)
+                        // Index 9 is where T starts usually, so 9-11 is Hour, 11-13 Minute, 13-15 Second
+                        const h = cleanVal.substring(9, 11);
+                        const min = cleanVal.substring(11, 13);
+                        const s = cleanVal.substring(13, 15) || '00';
+
+                        return {
+                            dateStr: `${y}-${m}-${d} ${h}:${min}:${s}`,
+                            allDay: false
+                        };
+                    };
+
+                    // Helper: Unescape chars (\, \n, \;)
+                    const unescapeText = (text) => {
+                        return text
+                            .replace(/\\n/gi, '\n')
+                            .replace(/\\N/gi, '\n')
+                            .replace(/\\,/g, ',')
+                            .replace(/\\;/g, ';')
+                            .replace(/\\\\/g, '\\');
+                    };
+
+                    for (const line of unfoldedLines) {
+                        if (line.trim() === 'BEGIN:VEVENT') {
+                            currentEvent = {
+                                ATTENDEES: []
+                            };
+                            continue;
+                        }
+                        if (line.trim() === 'END:VEVENT') {
+                            if (currentEvent) {
+                                // Build appointment
+                                // Ensure DTSTART exists, otherwise skip or default
+                                const startRaw = currentEvent.DTSTART || '';
+                                const endRaw = currentEvent.DTEND || null;
+
+                                if (startRaw) {
+                                    const startData = parseIcsDate(startRaw);
+                                    let endData = endRaw ? parseIcsDate(endRaw) : null;
+
+                                    // Fallback if no end date
+                                    if (!endData) {
+                                        endData = { dateStr: startData.dateStr, allDay: startData.allDay };
+                                    }
+
+                                    const appt = {
+                                        title: unescapeText(currentEvent.SUMMARY || 'No Title'),
+                                        description: unescapeText(currentEvent.DESCRIPTION || ''),
+                                        location: unescapeText(currentEvent.LOCATION || ''),
+
+                                        // Mapping extra fields
+                                        link: currentEvent.URL || null,
+                                        categories: currentEvent.CATEGORIES ? unescapeText(currentEvent.CATEGORIES) : null,
+                                        status: currentEvent.STATUS || null,
+                                        organizer: currentEvent.ORGANIZER || null,
+                                        attendees: currentEvent.ATTENDEES.length > 0 ? currentEvent.ATTENDEES : null,
+
+                                        start: startData.dateStr,
+                                        end: endData.dateStr,
+                                        allDay: startData.allDay
+                                    };
+
+                                    if (currentEvent.UID) {
+                                        appt.id = currentEvent.UID;
+                                    }
+
+                                    appointments.push(appt);
+                                }
+                            }
+                            currentEvent = null;
+                            continue;
+                        }
+
+                        if (currentEvent) {
+                            const colonIndex = line.indexOf(':');
+                            if (colonIndex > -1) {
+                                const keyPart = line.substring(0, colonIndex);
+                                const valuePart = line.substring(colonIndex + 1);
+
+                                // Extract main key name (split by ; to remove parameters like VALUE=DATE)
+                                const mainKey = keyPart.split(';')[0];
+
+                                if (['SUMMARY', 'DESCRIPTION', 'LOCATION', 'UID', 'URL', 'CATEGORIES', 'STATUS', 'ORGANIZER'].includes(mainKey)) {
+                                    currentEvent[mainKey] = valuePart;
+                                } else if (mainKey === 'ATTENDEE') {
+                                    currentEvent.ATTENDEES.push(valuePart);
+                                } else if (mainKey === 'DTSTART') {
+                                    currentEvent.DTSTART = line; // keep full line to parse params if needed later
+                                } else if (mainKey === 'DTEND') {
+                                    currentEvent.DTEND = line;
+                                }
+                            }
+                        }
+                    }
+
+                    return appointments;
+                },
                 openHolidayApi: {
                     /**
                      * Fetches subdivision data from an external API based on a given language ISO code.
