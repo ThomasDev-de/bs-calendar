@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.6**](#version-206)
     * [**Version 2.0.5**](#version-205)
     * [**Version 2.0.3**](#version-203)
     * [**Version 2.0.2**](#version-202)
@@ -14,6 +15,17 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+  ### Version 2.0.6
+
+    - **UI Overhaul**: Redesigned the calendar list in the sidebar to use a modern "Active Stripe" layout.
+        - Active calendars are highlighted with a colored left border and a subtle background gradient using `color-mix`.
+        - Inactive calendars fade out but show a visual preview on hover.
+    - **Logic**: The `active` state of calendars is now fully interactive. Clicking a calendar in the sidebar toggles its state and triggers a view refresh.
+    - **Data Fetching**: Added `calendarIds` (an array of currently active calendar IDs) to the `requestData` object in `fetchAppointments`.
+        - This allows backend endpoints or the `url` callback function to filter appointments based on the active calendars.
+    - **Persistence**: Calendar active states are now persisted to `localStorage` (if `storeState` is enabled) and correctly restored upon initialization.
+    - **Normalization**: Improved validation for `settings.calendars`. It now robustly handles defaults for `title`, `color`, and sets `active` to `true` if undefined.
 
   ### Version 2.0.5
 

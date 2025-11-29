@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.5
+ * @version 2.0.6
  * @date 2025-11-26
  * @license MIT
  * @requires "jQuery" ^3
@@ -61,7 +61,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.5',
+            version: '2.0.6',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -121,6 +121,26 @@
                     start: 0, // starting hour as integer
                     end: 24 // ending hour as integer
                 },
+                calendars: [
+                    {
+                        id: 'example-calendar-1',
+                        title: 'Personal',
+                        color: 'primary',
+                        active: true
+                    },
+                    {
+                        id: 'example-calendar-2',
+                        title: 'Work',
+                        color: 'danger',
+                        active: false
+                    },
+                    {
+                        id: 'example-calendar-3',
+                        title: 'Sports',
+                        color: 'success',
+                        active: true
+                    }
+                ],
                 onAll: null,
                 onInit: null,
                 onAdd: null,
@@ -220,7 +240,7 @@
 
                                     // Fallback if no end date
                                     if (!endData) {
-                                        endData = { dateStr: startData.dateStr, allDay: startData.allDay };
+                                        endData = {dateStr: startData.dateStr, allDay: startData.allDay};
                                     }
 
                                     const appt = {
@@ -1199,6 +1219,7 @@
                         wrapperViewContainerTitleId: $.bsCalendar.utils.generateRandomString(8),
                         wrapperTopNavId: $.bsCalendar.utils.generateRandomString(8),
                         wrapperSideNavId: $.bsCalendar.utils.generateRandomString(8),
+                        wrapperCalendarsId: $.bsCalendar.utils.generateRandomString(8),
                         wrapperSearchNavId: $.bsCalendar.utils.generateRandomString(8),
                     },
                     loading: false,
@@ -1561,6 +1582,40 @@
                 if (typeof settings.startDate === 'string') {
                     const date = $.bsCalendar.utils.normalizeDateTime(settings.startDate);
                     settings.startDate = new Date(date);
+                }
+            }
+            if (settings.hasOwnProperty('calendars')) {
+                if (Array.isArray(settings.calendars)) {
+                    let i = 1;
+                    // Filter: Calendar must have an ID
+                    settings.calendars = settings.calendars.filter(c => c && typeof c === 'object' && c.hasOwnProperty('id') && c.id);
+
+                    settings.calendars.forEach(calendar => {
+                        // Title fallback
+                        if (!calendar.hasOwnProperty('title') || typeof calendar.title !== 'string' || calendar.title.trim() === '') {
+                            calendar.title = 'Calendar ' + i;
+                        }
+
+                        // Color fallback: Normalize to style object using getColors
+                        let color = null;
+                        if (calendar.hasOwnProperty('color') && typeof calendar.color === 'string') {
+                            color = calendar.color;
+                        }
+                        calendar.color = $.bsCalendar.utils.getColors(color, settings.mainColor);
+
+                        // Active fallback
+                        if (!calendar.hasOwnProperty('active') || typeof calendar.active !== 'boolean') {
+                            calendar.active = true;
+                        }
+
+                        i++;
+                    });
+
+                    if (settings.calendars.length === 0) {
+                        settings.calendars = null;
+                    }
+                } else {
+                    settings.calendars = null;
                 }
             }
 
@@ -2681,15 +2736,59 @@
                     '</div>',
                     '</div>',
                     '</div>',
-                    `<div id="${data.elements.wrapperSmallMonthCalendarId}"></div>`
+                    `<div id="${data.elements.wrapperSmallMonthCalendarId}"></div>`,
+                    `<div id="${data.elements.wrapperCalendarsId}"></div>`,
                 ].join('')
             }).appendTo(container);
             sidebar.data('visible', true);
+
+            if (settings.calendars && Array.isArray(settings.calendars) && settings.calendars.length > 0) {
+
+                // Container: Vertikal, etwas Luft, modern
+                const calendarWrapper = $('<div>', {
+                    class: 'd-flex flex-column gap-2 mt-3 px-2'
+                }).appendTo('#' + data.elements.wrapperCalendarsId);
+
+                settings.calendars.forEach(calendar => {
+                    const color = calendar.color.backgroundColor;
+                    const itemContainer = $('<a>', {
+                        href: '#',
+                        class: `d-flex align-items-center py12 px-3 rounded-end text-decoration-none user-select-none transition-base`,
+                        css: {
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease-in-out',
+                            ...getStyleCalendarButton(calendar)
+                        },
+                        'data-calendar-toggle': calendar.id
+                    }).appendTo(calendarWrapper);
+                    itemContainer.data('calendar', calendar);
+
+                    // Titel
+                    $('<span>', {
+                        class: 'text-truncate flex-fill',
+                        css: {fontSize: '0.9rem'},
+                        text: calendar.title
+                    }).appendTo(itemContainer);
+
+                    // Optional: Ein kleiner Dot am Ende für visuellen Balance, wenn aktiv
+                    const statusDot = $('<span>', {
+                        class: 'rounded-circle ms-2 js-calendar-dot',
+                        css: {
+                            width: '6px',
+                            height: '6px',
+                            backgroundColor: color,
+                            opacity: calendar.active ? 1 : 0,
+                            transition: 'opacity 0.2s'
+                        }
+                    }).appendTo(itemContainer);
+                });
+            }
 
             // If more addons are to be invited, add them to the sidebar
             if (settings.sidebarAddons && $(settings.sidebarAddons).length > 0) {
                 $(settings.sidebarAddons).appendTo(sidebar);
             }
+
 
             // add the viewer
             $('<div>', {
@@ -2699,6 +2798,41 @@
 
             // done
         }
+
+        /**
+         * Retrieves the IDs of all currently active calendars.
+         *
+         * @param {jQuery} $wrapper - The wrapper element of the calendar instance.
+         * @return {string[]} An array of strings containing the IDs of active calendars.
+         *                    Returns an empty array if no calendars are defined or none are active.
+         */
+        function getActiveCalendarsIds ($wrapper) {
+            const settings = getSettings($wrapper);
+            if (!settings || !settings.calendars || !Array.isArray(settings.calendars)) {
+                return [];
+            }
+
+            return settings.calendars
+                .filter(calendar => calendar.active === true)
+                .map(calendar => calendar.id);
+        }
+
+        function getStyleCalendarButton(calendar) {
+            const color = calendar.color.backgroundColor;
+            return calendar.active ? {
+                borderLeft: `4px solid ${color}`,
+                background: `linear-gradient(90deg, ${color}1A 0%, transparent 100%)`, // 1A = ca. 10% Opacity Hex
+                color: 'var(--bs-body-color)',
+                fontWeight: '600',
+                opacity: 1
+            } : {
+                borderLeft: `4px solid transparent`,
+                background: 'transparent',
+                color: 'var(--bs-secondary-color)',
+                fontWeight: '400',
+                opacity: 0.7
+            };
+        };
 
         /**
          * Updates the elements displaying the current date information based on the provided wrapper's settings, date, and view.
@@ -3088,6 +3222,82 @@
             }
 
             $wrapper
+                .off('mouseenter mouseleave', '[data-calendar-toggle]')
+                .on('mouseenter mouseleave', '[data-calendar-toggle]', function (e) {
+                    const item = $(e.currentTarget);
+                    const cal = item.data('calendar');
+
+                    if (cal && !cal.active) {
+                        const color = cal.color.backgroundColor;
+
+                        if (e.type === 'mouseenter') {
+                            // Hover IN:
+                            // 1. Farbe etwas kräftiger (85% transparent statt 90%)
+                            const fadeColor = `color-mix(in srgb, ${color}, transparent 85%)`;
+
+                            item.css({
+                                // Zeige den farbigen Balken links als Vorschau
+                                'border-left-color': color,
+                                // Hintergrundverlauf
+                                'background': `linear-gradient(90deg, ${fadeColor} 0%, transparent 100%)`,
+                                // Text dunkler machen (wie aktiv)
+                                'color': 'var(--bs-body-color)',
+                                // Element voll sichtbar machen
+                                'opacity': 1
+                            });
+                        } else {
+                            // Hover OUT: Zurücksetzen auf "Ghost"-Modus
+                            item.css({
+                                'border-left-color': 'transparent',
+                                'background': 'transparent',
+                                'color': 'var(--bs-secondary-color)',
+                                'opacity': 0.7
+                            });
+                        }
+                    }
+                })
+                .off('click', '[data-calendar-toggle]')
+                .on('click', '[data-calendar-toggle]', function (e) {
+                    e.preventDefault();
+                    const item = $(e.currentTarget);
+                    const id = item.attr('data-calendar-toggle');
+                    const dot = item.find('.js-calendar-dot');
+
+                    // 1. Zentrale Daten holen
+                    const data = getBsCalendarData($wrapper);
+
+                    // 2. Kalender im Settings-Array suchen
+                    if (data.settings.calendars && Array.isArray(data.settings.calendars)) {
+                        const calendar = data.settings.calendars.find(c => c.id == id);
+
+                        if (calendar) {
+                            // 3. Status ändern
+                            calendar.active = !calendar.active;
+
+                            // 4. WICHTIG: Daten explizit aktualisieren und zurückschreiben
+                            setBsCalendarData($wrapper, data);
+
+                            // 5. Speichern (Persistence)
+                            if (data.settings.storeState) {
+                                const activeCalendarIds = getActiveCalendarsIds($wrapper);
+                                saveToLocalStorage($wrapper, 'calendars', activeCalendarIds);
+                            }
+
+                            // 6. Visuelles Update (Button)
+                            // Hinweis: Da item.data('calendar') evtl. veraltet ist, nutzen wir das aktuelle 'calendar' Objekt
+                            // Item-Data updaten, damit Hover-Effekte sofort den neuen Status kennen
+                            item.data('calendar', calendar);
+
+                            const newStyle = getStyleCalendarButton(calendar);
+                            item.css(newStyle);
+                            dot.css('opacity', calendar.active ? 1 : 0);
+
+                            // 7. Event & Rebuild
+                            trigger($wrapper, 'calendar-toggle', calendar);
+                            buildByView($wrapper, false);
+                        }
+                    }
+                })
                 .off('wheel', '.wc-calendar-view-container')
                 .on('wheel', '.wc-calendar-view-container', debounce(function (e) {
                     const settings = getSettings($wrapper);
@@ -3768,7 +3978,7 @@
                 try {
                     log('fetchAppointments called for wrapper:', $wrapper.attr('data-bs-calendar-id') || $wrapper.attr('id') || $wrapper);
                     // optional stack to see caller:
-                    log('Stack:', (new Error()).stack.split('\n').slice(2, 8).join('\n'));
+                    // log('Stack:', (new Error()).stack.split('\n').slice(2, 8).join('\n'));
                 } catch (e) {
                     // ignore
                 }
@@ -3811,6 +4021,21 @@
                 };
             }
 
+            // ----------------------------------------------------------------
+            // INJECT ACTIVE CALENDAR IDS
+            // ----------------------------------------------------------------
+            // This ensures that 'calendarIds' is always present in the request,
+            // regardless of mode (search/view) or transport (ajax/function).
+            let activeCalendarIds = [];
+            if (settings.calendars && Array.isArray(settings.calendars)) {
+                activeCalendarIds = settings.calendars
+                    .filter(c => c.active === true)
+                    .map(c => c.id);
+            }
+            // Always attach the array (empty or filled)
+            requestData.calendarIds = activeCalendarIds;
+            // ----------------------------------------------------------------
+
             // If queryParams is a function in settings, enrich the request data dynamically
             if (typeof settings.queryParams === "function") {
                 if (settings.debug) {
@@ -3819,7 +4044,7 @@
                 // call user-provided function
                 const queryParams = settings.queryParams(requestData);
 
-                // Defensive merge: verhindern, dass basic period-keys aus Versehen überschrieben werden
+                // Defensive merge: prevent accidental overwrite of basic keys
                 const protectedKeys = new Set(["fromDate", "toDate", "year", "view"]);
 
                 if (queryParams && typeof queryParams === "object") {

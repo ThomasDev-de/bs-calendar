@@ -1,11 +1,11 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.0.4-blue)
+![Version](https://img.shields.io/badge/version-2.0.6-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[changelog](changelog.md#version-205)
+[changelog](changelog.md#version-206)
 
 > [!WARNING]
 > As of version 2, Bootstrap 4 is no longer supported.   
@@ -28,6 +28,7 @@ highly customizable design, you can tailor it to fit your specific use case effo
     * [Key Features](#key-features)
     * [Example Usage](#example-usage)
     * [Options](#options)
+        + [options.calendars](#optionscalendars) 
         + [options.url](#optionsurl)
         + [options.formatter](#optionsformatter)
             - [Properties](#properties)
@@ -135,7 +136,7 @@ available options, including their types, default values, and descriptions.
 | **sidebarAddons**     | `function` \| `null`             | `null`                                           | Allows injecting additional custom content in the side navigation panel.                                                                                                                                           |
 | **formatter**         | `object`                         | See [options.formatter](#optionsFormatter)       | Defines formatters to customize the display or structure of specific calendar views.                                                                                                                               |
 | **hourSlots**         | `object`                         | `{height: 30, start: 0, end: 24}`                | Customizes time slots in the day or week view with detailed configurations (e.g., slot height, starting hour, ending hour).                                                                                        |
-| **onAll**             | `function(eventName, ...params)` | `null`                                           | Global handler that triggers on all events. Receives the event name and additional parameters as arguments.                                                                                                        |
+| **calendars**         | `array` \| `null`                | `null`                                           | Defines a list of calendar objects (id, title, color) used to categorize and filter appointments via the sidebar.                                                                                                  || **onAll**             | `function(eventName, ...params)` | `null`                                           | Global handler that triggers on all events. Receives the event name and additional parameters as arguments.                                                                                                        |
 | **onInit**            | `function()`                     | `null`                                           | Called after the calendar is fully initialized. Use this for any required setup operations.                                                                                                                        |
 | **onAdd**             | `function(data)`                 | `null`                                           | Triggered when the "Add" button is clicked or when a time grid is clicked in the day/week view. Provides an object with view-specific details.                                                                     |
 | **onEdit**            | `function(appointment, extras)`  | `null`                                           | Triggered when editing an appointment. The first argument is the appointment being edited, and the second provides additional context.                                                                             |
@@ -149,6 +150,23 @@ available options, including their types, default values, and descriptions.
 | **onNavigateBack**    | `function(view, from, to)`       | `null`                                           | Triggered when navigating backward within the calendar. Similar to `onNavigateForward`, providing the current view, and the starting/ending dates of the period.                                                   |
 | **storeState**        | `boolean`                        | `false`                                          | When enabled (`true`), the current calendar state (e.g., selected view) is saved to `localStorage` and restored on the next page load.                                                                             |
 | **debug**             | `boolean`                        | `false`                                          | Enables debug mode for development purposes. Logs additional information on various calendar operations.                                                                                                           |
+
+### options.calendars
+
+Defines a list of calendar categories displayed in the sidebar. This allows users to toggle the visibility of specific
+appointment groups interactively.
+
+- **Type**: `Array<Object>` | `null`
+- **Default**: `null`
+
+#### Configuration Structure per Calendar Object
+
+| Attribute  | Type               | Required | Default              | Description                                                                                   |
+|:-----------|:-------------------|:--------:|:---------------------|:----------------------------------------------------------------------------------------------|
+| **id**     | `string`\|`number` | **Yes**  | -                    | Unique identifier. This ID is passed to the backend/fetch function to filter appointments.    |
+| **title**  | `string`           |    No    | `"Calendar {i}"`     | The display name shown in the sidebar list.                                                   |
+| **color**  | `string`           |    No    | `settings.mainColor` | The visual color indicator. Supports Bootstrap classes (e.g., `primary`), Hex, or RGB values. |
+| **active** | `boolean`          |    No    | `true`               | The initial visibility state. Users can toggle this interactively.                            |
 
 ### options.url
 
@@ -191,10 +209,12 @@ Usage patterns:
         - `view`: one of `"day"`, `"week"`, `"month"`, `"year"`
         - If `view === "year"`: `year` (numeric)
         - Otherwise: `fromDate` (YYYY-MM-DD), `toDate` (YYYY-MM-DD)
+        - `calendarIds`: Array of active calendar IDs (e.g., `['1', '2']`).
     - Search mode:
         - `search`: the search string
         - `limit`: page size (from `options.search.limit`)
         - `offset`: pagination offset (from `options.search.offset`)
+        - `calendarIds`: Array of active calendar IDs.
 
    Example configuration:
    ```js
@@ -213,6 +233,7 @@ Usage patterns:
    $('#calendar').bsCalendar({
      url: (requestData) => {
        // requestData contains fromDate/toDate or search pagination depending on mode
+       // requestData.calendarIds contains the list of active calendar IDs
        return fetch('/api/appointments?' + new URLSearchParams(requestData), {
          headers: { 'Authorization': 'Bearer ...' }
        }).then(r => r.json());
@@ -228,15 +249,14 @@ Important notes
   above.
 - Use `queryParams` (option) to append or override query parameters before the request is sent. `queryParams` is invoked
   with the prepared `requestData` and should return an object with extra key/value pairs to be merged into the request.
-- For search mode, the plugin sends `search`, `limit`, and `offset`. The server should return
-  `{ rows: [...], total: <number> }`.
+- For search mode, the plugin sends `search`, `limit`, `offset`, and `calendarIds`. The server should return `{ rows: [...], total: <number> }`.
 - Keep CORS and authentication in mind when calling external APIs from the browser.
 
 Examples serverside contract (summary)
 
-- GET /api/appointments?fromDate=2025-07-01&toDate=2025-07-31&view=month
+- GET /api/appointments?fromDate=2025-07-01&toDate=2025-07-31&view=month&calendarIds[]=1&calendarIds[]=2
   → JSON array of appointments
-- GET /api/appointments?search=john&limit=10&offset=0
+- GET /api/appointments?search=john&limit=10&offset=0&calendarIds[]=1
   → { "rows": [ ... ], "total": 123 }
 
 ### options.formatter
