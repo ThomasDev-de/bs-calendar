@@ -1983,6 +1983,20 @@
         function methodClear($wrapper, removeAppointments = true) {
             $wrapper.find('[data-appointment]').remove();
             $wrapper.find('[data-role="holiday"]').remove();
+
+            // Clean up holidays in year view (preserve the day element, just remove styling)
+            $wrapper.find('.wc-holiday-marked').each(function () {
+                $(this).removeClass('text-secondary wc-holiday-marked');
+                try {
+                    $(this).tooltip('dispose');
+                } catch (e) {
+                    // ignore
+                }
+            });
+
+            // Reset badges in year view
+            $wrapper.find('.js-badge').text('').removeAttr('style');
+
             $wrapper.find('.tooltip').remove();
             if (removeAppointments) {
                 checkAndSetAppointments($wrapper, []).then(_cleanedAppointments => {
@@ -3301,7 +3315,6 @@
                             dot.css('opacity', calendar.active ? 1 : 0);
 
                             // 7. Event & Rebuild
-                            trigger($wrapper, 'calendar-toggle', calendar);
                             buildByView($wrapper, false);
                         }
                     }
@@ -3894,15 +3907,18 @@
                 // OPTIMIZATION: Check if the view needs to be rebuilt
                 // Calculate the start and end of the currently requested view
                 const period = getStartAndEndDateByView($wrapper);
-                const renderState = data.renderState || {view: null, start: null, end: null};
+                const renderState = data.renderState || {view: null, start: null, end: null, selectedDate: null};
+                const currentSelectedDate = $.bsCalendar.utils.formatDateToDateString(data.date);
 
                 // We only rebuild the DOM structure if:
                 // 1. The view type has changed (e.g. month -> week)
                 // 2. The start date of the view has changed
                 // 3. The end date of the view has changed
+                // 4. Special case 'year': The selected date is highlighted, so we must rebuild if it changes
                 const needsRebuild = renderState.view !== view ||
                     renderState.start !== period.start ||
-                    renderState.end !== period.end;
+                    renderState.end !== period.end ||
+                    (view === 'year' && renderState.selectedDate !== currentSelectedDate);
 
                 if (needsRebuild) {
                     switch (view) {
@@ -3927,7 +3943,8 @@
                     data.renderState = {
                         view: view,
                         start: period.start,
-                        end: period.end
+                        end: period.end,
+                        selectedDate: currentSelectedDate
                     };
                     setBsCalendarData($wrapper, data);
                 } else {
@@ -5227,8 +5244,8 @@
                             }).prependTo(container);
                             $(settings.formatter.holiday(holiday, view)).appendTo($holidayWrapper);
                         } else {
-                            container.addClass('text-secondary');
-                            container.attr('data-role', 'holiday');
+                            // Year view: Mark the existing day container instead of adding a removable element
+                            container.addClass('text-secondary wc-holiday-marked');
                             container.tooltip({
                                 title: holiday.title,
                                 container: $wrapper
@@ -5352,11 +5369,12 @@
                     break;
                 }
                 case "year":
-                case "search":
+                case "search": {
                     startDate.setMonth(0);
                     startDate.setDate(1);
                     endDate.setMonth(11);
                     endDate.setDate(31);
+                }
                     break;
                 default:
                     if (settings.debug) {
@@ -5603,6 +5621,7 @@
             const settings = data.settings;
             const date = forDate; // Aktuelles Datum
             const activeDate = data.date;
+            const { startWeekOnSunday } = settings;
 
             const cellSize = forYearView ? 36 : 28;
             const fontSize = forYearView ? 12 : 10;
@@ -5617,13 +5636,13 @@
 
             // Start on Monday before the start of the month
             let calendarStart = new Date(firstDayOfMonth);
-            while (calendarStart.getDay() !== 1) {
+            while (calendarStart.getDay() !== (startWeekOnSunday ? 0 : 1)) {
                 calendarStart.setDate(calendarStart.getDate() - 1);
             }
 
             // end with the Sunday after the end of the month
             let calendarEnd = new Date(lastDayOfMonth);
-            while (calendarEnd.getDay() !== 0) {
+            while (calendarEnd.getDay() !== (startWeekOnSunday ? 6 : 0)) {
                 calendarEnd.setDate(calendarEnd.getDate() + 1);
             }
 

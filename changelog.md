@@ -26,6 +26,9 @@
 - **Styling**: Added `border` property to customize the thickness of element borders.
     - Values are limited to the range `[0, 5]`.
     - Defaults to `1`.
+- **Bugfix**: Fixed an issue in the `year` view where refreshing appointments (e.g., toggling a calendar) would inadvertently remove the day cells from the DOM due to aggressive cleanup in `methodClear`.
+    - The logic now correctly identifies and resets holiday markers and badges without destroying the underlying day structure.
+
 ### Version 2.0.6
 
 - **UI Overhaul**: Redesigned the calendar list in the sidebar to use a modern "Active Stripe" layout.
