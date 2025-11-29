@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.6
- * @date 2025-11-26
+ * @version 2.0.7
+ * @date 2025-11-29
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -61,7 +61,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.6',
+            version: '2.0.7',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -3864,23 +3864,51 @@
             if (data.searchMode) {
                 buildSearchView($wrapper);
             } else {
-                switch (view) {
-                    case 'month':
-                        buildMonthView($wrapper);
-                        break;
-                    case 'week':
-                        buildWeekView($wrapper);
-                        break;
-                    case 'year':
-                        buildYearView($wrapper);
-                        break;
-                    case 'day':
-                        buildDayView($wrapper);
-                        break;
-                    default:
-                        break;
+                // OPTIMIZATION: Check if the view needs to be rebuilt
+                // Calculate the start and end of the currently requested view
+                const period = getStartAndEndDateByView($wrapper);
+                const renderState = data.renderState || {view: null, start: null, end: null};
+
+                // We only rebuild the DOM structure if:
+                // 1. The view type has changed (e.g. month -> week)
+                // 2. The start date of the view has changed
+                // 3. The end date of the view has changed
+                const needsRebuild = renderState.view !== view ||
+                    renderState.start !== period.start ||
+                    renderState.end !== period.end;
+
+                if (needsRebuild) {
+                    switch (view) {
+                        case 'month':
+                            buildMonthView($wrapper);
+                            break;
+                        case 'week':
+                            buildWeekView($wrapper);
+                            break;
+                        case 'year':
+                            buildYearView($wrapper);
+                            break;
+                        case 'day':
+                            buildDayView($wrapper);
+                            break;
+                        default:
+                            break;
+                    }
+                    onResize($wrapper);
+
+                    // Save the current state to prevent unnecessary rebuilds next time
+                    data.renderState = {
+                        view: view,
+                        start: period.start,
+                        end: period.end
+                    };
+                    setBsCalendarData($wrapper, data);
+                } else {
+                    if (settings.debug) {
+                        log('Skipping DOM rebuild for view (content unchanged).');
+                    }
                 }
-                onResize($wrapper);
+
                 updateDropdownView($wrapper);
                 setCurrentDateName($wrapper);
                 const monthCalendarWrapper = $('#' + data.elements.wrapperSmallMonthCalendarId);
@@ -3892,7 +3920,6 @@
 
             fetchAppointments($wrapper);
         }
-
         function executeFunction(functionOrName, ...args) {
             if (functionOrName) {
                 // Direct Function Reference

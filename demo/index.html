@@ -147,15 +147,35 @@
             locale: 'de-DE',
             startWeekOnSunday: false,
             mainColor: '#e3ec0b',
-            navigateOnWheel: true,
+            navigateOnWheel: false,
             holidays: {
                 federalState: 'BE',
             },
             hourSlots: {
-                start: 8,
-                end: 16,
+                start: 0,
+                end: 24,
                 height: 60
             },
+            calendars: [
+                {
+                    id: 'example-calendar-1',
+                    title: 'Personal',
+                    color: 'primary',
+                    active: true
+                },
+                {
+                    id: 'example-calendar-2',
+                    title: 'Work',
+                    color: 'danger',
+                    active: false
+                },
+                {
+                    id: 'example-calendar-3',
+                    title: 'Sports',
+                    color: 'success',
+                    active: true
+                }
+            ],
             url: url,
             debug: true,
             storeState: true,

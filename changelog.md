@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.7**](#version-207)
     * [**Version 2.0.6**](#version-206)
     * [**Version 2.0.5**](#version-205)
     * [**Version 2.0.3**](#version-203)
@@ -16,24 +17,31 @@
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
 
-  ### Version 2.0.6
+### Version 2.0.7
 
-    - **UI Overhaul**: Redesigned the calendar list in the sidebar to use a modern "Active Stripe" layout.
-        - Active calendars are highlighted with a colored left border and a subtle background gradient using `color-mix`.
-        - Inactive calendars fade out but show a visual preview on hover.
-    - **Logic**: The `active` state of calendars is now fully interactive. Clicking a calendar in the sidebar toggles its state and triggers a view refresh.
-    - **Data Fetching**: Added `calendarIds` (an array of currently active calendar IDs) to the `requestData` object in `fetchAppointments`.
-        - This allows backend endpoints or the `url` callback function to filter appointments based on the active calendars.
-    - **Persistence**: Calendar active states are now persisted to `localStorage` (if `storeState` is enabled) and correctly restored upon initialization.
-    - **Normalization**: Improved validation for `settings.calendars`. It now robustly handles defaults for `title`, `color`, and sets `active` to `true` if undefined.
+- **Performance Optimization**: The `buildByView` function now includes a state check to avoid redundant DOM rebuilds.
+    - **Smart Rendering**: The calendar view (DOM structure) is only rebuilt if the view type (e.g. month, week) or the visible date range has changed.
+    - **State Tracking**: Introduced internal `renderState` to track the currently rendered view context.
+    - **Efficiency**: Actions like refreshing appointments or toggling categories now skip the heavy DOM construction phase if the view context remains the same, resulting in smoother interactions.
 
-  ### Version 2.0.5
+### Version 2.0.6
 
-    - Added: New utility function `convertIcsToAppointments(icsData)` to parse raw ICS strings into calendar-compatible appointment objects.
-        - Supports standard properties: `SUMMARY` (mapped to `title`), `DESCRIPTION`, `LOCATION`, `UID`, `DTSTART`, `DTEND`.
-        - Supports extended properties: `URL` (mapped to `link`), `CATEGORIES`, `STATUS`, `ORGANIZER`, and `ATTENDEE` (as array).
-        - Automatically handles line unfolding (for long descriptions or broken lines).
-        - Parses dates exactly as defined in the ICS string.
+- **UI Overhaul**: Redesigned the calendar list in the sidebar to use a modern "Active Stripe" layout.
+    - Active calendars are highlighted with a colored left border and a subtle background gradient using `color-mix`.
+    - Inactive calendars fade out but show a visual preview on hover.
+- **Logic**: The `active` state of calendars is now fully interactive. Clicking a calendar in the sidebar toggles its state and triggers a view refresh.
+- **Data Fetching**: Added `calendarIds` (an array of currently active calendar IDs) to the `requestData` object in `fetchAppointments`.
+    - This allows backend endpoints or the `url` callback function to filter appointments based on the active calendars.
+- **Persistence**: Calendar active states are now persisted to `localStorage` (if `storeState` is enabled) and correctly restored upon initialization.
+- **Normalization**: Improved validation for `settings.calendars`. It now robustly handles defaults for `title`, `color`, and sets `active` to `true` if undefined.
+
+### Version 2.0.5
+
+- Added: New utility function `convertIcsToAppointments(icsData)` to parse raw ICS strings into calendar-compatible appointment objects.
+    - Supports standard properties: `SUMMARY` (mapped to `title`), `DESCRIPTION`, `LOCATION`, `UID`, `DTSTART`, `DTEND`.
+    - Supports extended properties: `URL` (mapped to `link`), `CATEGORIES`, `STATUS`, `ORGANIZER`, and `ATTENDEE` (as array).
+    - Automatically handles line unfolding (for long descriptions or broken lines).
+    - Parses dates exactly as defined in the ICS string.
 
 ### Version 2.0.4
 
@@ -180,7 +188,7 @@ Developer Notes
   Example (in table format):
 
   | **Property** | **Type**   | **Params**                  | **Description**                                                       | 
-          |--------------|------------|-----------------------------|-----------------------------------------------------------------------|
+              |--------------|------------|-----------------------------|-----------------------------------------------------------------------|
   | **allDay**   | `function` | (appointment, extras, view) | Customizes the rendering of the all-day area in weekly or daily view. |
 
 #### **Version 1.2.4**

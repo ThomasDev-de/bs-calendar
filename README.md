@@ -1,11 +1,11 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.0.6-blue)
+![Version](https://img.shields.io/badge/version-2.0.7-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[changelog](changelog.md#version-206)
+[changelog](changelog.md#version-207)
 
 > [!WARNING]
 > As of version 2, Bootstrap 4 is no longer supported.   
