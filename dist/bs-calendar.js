@@ -121,26 +121,7 @@
                     start: 0, // starting hour as integer
                     end: 24 // ending hour as integer
                 },
-                calendars: [
-                    {
-                        id: 'example-calendar-1',
-                        title: 'Personal',
-                        color: 'primary',
-                        active: true
-                    },
-                    {
-                        id: 'example-calendar-2',
-                        title: 'Work',
-                        color: 'danger',
-                        active: false
-                    },
-                    {
-                        id: 'example-calendar-3',
-                        title: 'Sports',
-                        color: 'success',
-                        active: true
-                    }
-                ],
+                calendars: null,
                 onAll: null,
                 onInit: null,
                 onAdd: null,
