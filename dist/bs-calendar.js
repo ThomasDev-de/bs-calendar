@@ -2606,7 +2606,7 @@
 
             // Add a button to switch on and off the sidebar.
             $('<button>', {
-                class: `btn ${borderClass} me-2 ${roundedClass}`,
+                class: `btn ${borderClass} wc-round-me me-2 ${roundedClass}`,
                 html: `<i class="${settings.icons.menu}"></i>`,
                 'data-bs-toggle': 'sidebar'
             }).appendTo(leftCol);
