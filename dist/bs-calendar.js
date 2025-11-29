@@ -3907,18 +3907,21 @@
                 // OPTIMIZATION: Check if the view needs to be rebuilt
                 // Calculate the start and end of the currently requested view
                 const period = getStartAndEndDateByView($wrapper);
-                const renderState = data.renderState || {view: null, start: null, end: null, selectedDate: null};
+                const renderState = data.renderState || {view: null, start: null, end: null, selectedDate: null, hourSlots: null};
                 const currentSelectedDate = $.bsCalendar.utils.formatDateToDateString(data.date);
+                const currentHourSlots = JSON.stringify(settings.hourSlots);
 
                 // We only rebuild the DOM structure if:
                 // 1. The view type has changed (e.g. month -> week)
                 // 2. The start date of the view has changed
                 // 3. The end date of the view has changed
                 // 4. Special case 'year': The selected date is highlighted, so we must rebuild if it changes
+                // 5. Hour slots configuration changed (affects day/week view grid)
                 const needsRebuild = renderState.view !== view ||
                     renderState.start !== period.start ||
                     renderState.end !== period.end ||
-                    (view === 'year' && renderState.selectedDate !== currentSelectedDate);
+                    (view === 'year' && renderState.selectedDate !== currentSelectedDate) ||
+                    ( (view === 'day' || view === 'week') && renderState.hourSlots !== currentHourSlots);
 
                 if (needsRebuild) {
                     switch (view) {
@@ -3944,7 +3947,8 @@
                         view: view,
                         start: period.start,
                         end: period.end,
-                        selectedDate: currentSelectedDate
+                        selectedDate: currentSelectedDate,
+                        hourSlots: currentHourSlots
                     };
                     setBsCalendarData($wrapper, data);
                 } else {

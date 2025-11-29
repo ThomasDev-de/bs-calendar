@@ -22,6 +22,7 @@
 - **Performance Optimization**: The `buildByView` function now includes a state check to avoid redundant DOM rebuilds.
     - **Smart Rendering**: The calendar view (DOM structure) is only rebuilt if the view type (e.g. month, week) or the visible date range has changed.
     - **State Tracking**: Introduced internal `renderState` to track the currently rendered view context.
+    - **Configuration Awareness**: The state check now also accounts for changes in `hourSlots` (start, end, height), ensuring the day and week views are correctly rebuilt when these settings are updated.
     - **Efficiency**: Actions like refreshing appointments or toggling categories now skip the heavy DOM construction phase if the view context remains the same, resulting in smoother interactions.
 - **Styling**: Added `border` property to customize the thickness of element borders.
     - Values are limited to the range `[0, 5]`.
