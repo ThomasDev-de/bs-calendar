@@ -23,7 +23,9 @@
     - **Smart Rendering**: The calendar view (DOM structure) is only rebuilt if the view type (e.g. month, week) or the visible date range has changed.
     - **State Tracking**: Introduced internal `renderState` to track the currently rendered view context.
     - **Efficiency**: Actions like refreshing appointments or toggling categories now skip the heavy DOM construction phase if the view context remains the same, resulting in smoother interactions.
-
+- **Styling**: Added `border` property to customize the thickness of element borders.
+    - Values are limited to the range `[0, 5]`.
+    - Defaults to `1`.
 ### Version 2.0.6
 
 - **UI Overhaul**: Redesigned the calendar list in the sidebar to use a modern "Active Stripe" layout.

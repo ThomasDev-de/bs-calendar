@@ -74,6 +74,7 @@
                 startWeekOnSunday: true,
                 navigateOnWheel: true,
                 rounded: 5, // 1-5
+                border: 1, // 0-5
                 search: {
                     limit: 10,
                     offset: 0
@@ -1355,6 +1356,16 @@
                 .removeClass('rounded-0 rounded-1 rounded-2 rounded-3 rounded-4 rounded-5')
                 .addClass(`rounded-${normalized}`);
         }
+        function setBorder($wrapper, border) {
+            // Try to use round as integer, fallback to the default value from Settings (3)
+            // Values are limited to the allowed range [0, 5].
+            const parsed = Number.isFinite(Number(border)) ? Math.floor(Number(border)) : NaN;
+            const normalized = Number.isNaN(parsed) ? 3 : Math.min(Math.max(parsed, 0), 5);
+
+            $wrapper.find('.wc-round-me')
+                .removeClass('border-0 border-1 border-2 border-3 border-4 roubordernded-5')
+                .addClass(`border-${normalized}`);
+        }
 
         /**
          * Erzeugt einen Snapshot des aktuellen Wrapper-Zustands:
@@ -1640,6 +1651,18 @@
                     settings.rounded = $.bsCalendar.getDefaults().rounded;
                 } else {
                     settings.rounded = clamp(parsed, 0, 5);
+                }
+            }
+            // Validate `border` -> must be an integer between 0 and 5
+            if (settings.hasOwnProperty('border')) {
+                // Try to coerce to number
+                const parsed = Number(settings.border);
+
+                // If parsed is not a finite integer, fallback to default (5)
+                if (!Number.isFinite(parsed) || !Number.isInteger(parsed)) {
+                    settings.border = $.bsCalendar.getDefaults().border;
+                } else {
+                    settings.border = clamp(parsed, 0, 5);
                 }
             }
 
@@ -2087,6 +2110,9 @@
             }
             if (typeof merged.rounded !== 'undefined') {
                 setRounded($wrapper, merged.rounded);
+            }
+            if (typeof merged.border !== 'undefined') {
+                setBorder($wrapper, merged.border);
             }
 
             // Rebuild view once
@@ -2561,6 +2587,7 @@
             }).appendTo($wrapper);
 
             const roundedClass = 'rounded-' + settings.rounded;
+            const borderClass = 'border border-' + settings.border;
 
             // Create the wrapper for the upper navigation
             const topNav = $('<div>', {
@@ -2579,7 +2606,7 @@
 
             // Add a button to switch on and off the sidebar.
             $('<button>', {
-                class: `btn border me-2 ${roundedClass}`,
+                class: `btn ${borderClass} me-2 ${roundedClass}`,
                 html: `<i class="${settings.icons.menu}"></i>`,
                 'data-bs-toggle': 'sidebar'
             }).appendTo(leftCol);
@@ -2593,7 +2620,7 @@
 
                 // add a search button to topNav
                 const showSearchbar = $('<button>', {
-                    class: `btn border js-btn-search me-2  wc-round-me  ${roundedClass}`,
+                    class: `btn ${borderClass} js-btn-search me-2  wc-round-me  ${roundedClass}`,
                     html: `<i class="${settings.icons.search}"></i>`
                 }).appendTo(leftCol);
 
@@ -2607,7 +2634,7 @@
                 $('<input>', {
                     type: 'search',
                     style: inputCss,
-                    class: `form-control border ${roundedClass}  wc-round-me `,
+                    class: `form-control ${borderClass} ${roundedClass}  wc-round-me `,
                     placeholder: settings.translations.search || 'search',
                     'data-search-input': true
                 }).appendTo(topSearchNav);
@@ -2631,7 +2658,7 @@
             // add a button to create appointments
             if (settings.showAddButton) {
                 $('<button>', {
-                    class: `btn border me-2 ${roundedClass}  wc-round-me `,
+                    class: `btn ${borderClass} me-2 ${roundedClass}  wc-round-me `,
                     html: `<i class="${settings.icons.add}"></i>`,
                     'data-add-appointment': true
                 }).appendTo(leftCol);
@@ -2668,7 +2695,7 @@
 
             // Add a button today to activate the current date in the calendar
             $('<button>', {
-                class: `btn ms-2 border ${roundedClass}  wc-round-me `,
+                class: `btn ms-2 ${borderClass} ${roundedClass}  wc-round-me `,
                 html: settings.translations.today,
                 'data-today': true
             }).appendTo(rightCol);
@@ -2678,7 +2705,7 @@
                 const dropDownView = $('<div>', {
                     class: 'dropdown dropdown-center wc-select-calendar-view ms-2',
                     html: [
-                        `<a class="btn dropdown-toggle border  wc-round-me  ${roundedClass}" data-dropdown-text href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">`,
+                        `<a class="btn dropdown-toggle ${borderClass}  wc-round-me  ${roundedClass}" data-dropdown-text href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">`,
                         '</a>',
                         '<ul class="dropdown-menu">',
                         '</ul>',
@@ -2774,7 +2801,7 @@
             // add the viewer
             $('<div>', {
                 id: data.elements.wrapperViewContainerId,
-                class: `container-fluid ${roundedClass} wc-calendar-view-container wc-round-me  pb-5 border-1 flex-fill border overflow-hidden  d-flex flex-column align-items-stretch`,
+                class: `container-fluid ${roundedClass} wc-calendar-view-container wc-round-me  pb-5 ${borderClass} flex-fill overflow-hidden  d-flex flex-column align-items-stretch`,
             }).appendTo(container);
 
             // done
@@ -6237,6 +6264,7 @@
             }).appendTo(container);
 
             const roundedClass = `rounded-${settings.rounded}`;
+            const borderClass = `border border-${settings.border}`;
             // render a small calendar for each month
             for (let month = 0; month < 12; month++) {
                 // Create a wrapper for every monthly calendar
@@ -6244,7 +6272,7 @@
                     'margin: 5px'
                 ]
                 const monthWrapper = $('<div>', {
-                    class: `d-flex pb-3 pt-2 border flex-column align-items-center overflow-hidden wc-year-month-container wc-round-me ${roundedClass}`, // Col-Layout für Titel und Kalender
+                    class: `d-flex pb-3 pt-2 ${borderClass} flex-column align-items-center overflow-hidden wc-year-month-container wc-round-me ${roundedClass}`, // Col-Layout für Titel und Kalender
                     // style: css.join(';'),
                 }).appendTo(grid);
 
@@ -6293,11 +6321,12 @@
                 const modalExists = $modal.length > 0;
                 if (!modalExists) {
                     const roundedClass = 'rounded-' + settings.rounded;
+                    const borderClass = 'rounded-' + settings.border;
                     // If the modal does not exist, create the modal's HTML structure and append it to the body.
                     const modalHtml = [
                         `<div class="modal fade pe-none" id="${globalCalendarElements.infoModal.substring(1)}" tabindex="-1" data-bs-backdrop="false">`,
                         `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto">`,
-                        `<div class="modal-content border border-1 shadow ${roundedClass}  wc-round-me ">`,
+                        `<div class="modal-content ${borderClass} shadow ${roundedClass}  wc-round-me ">`,
                         `<div class="modal-body d-flex flex-column align-items-stretch pb-4">`,
                         `<div class="d-flex justify-content-end align-items-center" data-modal-options>`,
                         `<button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i></button>`,
