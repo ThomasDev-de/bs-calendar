@@ -18,15 +18,16 @@
     * [**Version 1.2.2**](#version-122)
 
 ### Version 2.0.7
-
+- **Design Update**: Complete modernization of the calendar UI ("Technisches Dashboard" style).
+    - Introduced a new "Floating Toolbar" for navigation and actions.
+    - Redesigned buttons to be neutral and adaptable to both light and dark themes.
+    - Optimized the month view grid for better readability and stability.
+    - **Removed**: The `rounded` option has been deprecated and removed in favor of the new, cohesive design system.
 - **Performance Optimization**: The `buildByView` function now includes a state check to avoid redundant DOM rebuilds.
     - **Smart Rendering**: The calendar view (DOM structure) is only rebuilt if the view type (e.g. month, week) or the visible date range has changed.
     - **State Tracking**: Introduced internal `renderState` to track the currently rendered view context.
     - **Configuration Awareness**: The state check now also accounts for changes in `hourSlots` (start, end, height), ensuring the day and week views are correctly rebuilt when these settings are updated.
     - **Efficiency**: Actions like refreshing appointments or toggling categories now skip the heavy DOM construction phase if the view context remains the same, resulting in smoother interactions.
-- **Styling**: Added `border` property to customize the thickness of element borders.
-    - Values are limited to the range `[0, 5]`.
-    - Defaults to `1`.
 - **Bugfix**: Fixed an issue in the `year` view where refreshing appointments (e.g., toggling a calendar) would inadvertently remove the day cells from the DOM due to aggressive cleanup in `methodClear`.
     - The logic now correctly identifies and resets holiday markers and badges without destroying the underlying day structure.
 

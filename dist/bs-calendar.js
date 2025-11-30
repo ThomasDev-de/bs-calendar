@@ -74,7 +74,7 @@
                 startWeekOnSunday: true,
                 navigateOnWheel: true,
                 rounded: 5, // 1-5
-                border: 1, // 0-5
+                border: "border border-0 rounded-0 shadow",
                 search: {
                     limit: 10,
                     offset: 0
@@ -95,7 +95,7 @@
                     month: 'bi bi-calendar-month',
                     year: 'bi bi-calendar4',
                     add: 'bi bi-plus-lg',
-                    menu: 'bi bi-list',
+                    menu: 'bi bi-layout-sidebar-inset',
                     search: 'bi bi-search',
                     prev: 'bi bi-chevron-left',
                     next: 'bi bi-chevron-right',
@@ -1158,8 +1158,11 @@
         };
 
         const globalCalendarElements = {
+            wrapper: '.bs-calendar-wrapper',
             infoModal: '#wcCalendarInfoWindowModal',
         };
+
+        let globalEventsInitialized = false;
 
         const namespace = '.bs.calendar';
 
@@ -1192,6 +1195,7 @@
             const methodGiven = typeof optionsOrMethod === 'string';
 
             if (!isInitialized) {
+                wrapper.addClass(globalCalendarElements.wrapper.substring(1));
                 const bsCalendarData = {
                     elements: {
                         wrapperId: $.bsCalendar.utils.generateRandomString(8),
@@ -1218,6 +1222,7 @@
                         appointments: null
                     },
                     mainColor: null,
+                    borderBefore: null,
                 };
 
                 // Merge data-attributes (if any)
@@ -1242,6 +1247,9 @@
                 }
                 if (bsCalendarData.settings.hasOwnProperty('ignoreStore')) {
                     delete bsCalendarData.settings.ignoreStore;
+                }
+                if (bsCalendarData.settings.hasOwnProperty('border')) {
+                    bsCalendarData.borderBefore = bsCalendarData.settings.border;
                 }
 
                 // Apply normalized flag
@@ -1356,15 +1364,19 @@
                 .removeClass('rounded-0 rounded-1 rounded-2 rounded-3 rounded-4 rounded-5')
                 .addClass(`rounded-${normalized}`);
         }
+
         function setBorder($wrapper, border) {
+            const data = getBsCalendarData(wrapper);
             // Try to use round as integer, fallback to the default value from Settings (3)
             // Values are limited to the allowed range [0, 5].
             const parsed = Number.isFinite(Number(border)) ? Math.floor(Number(border)) : NaN;
             const normalized = Number.isNaN(parsed) ? 3 : Math.min(Math.max(parsed, 0), 5);
 
             $wrapper.find('.wc-round-me')
-                .removeClass('border-0 border-1 border-2 border-3 border-4 roubordernded-5')
-                .addClass(`border-${normalized}`);
+                .removeClass(data.borderBefore)
+                .addClass(border);
+            data.borderBefore = border;
+            setBsCalendarData(wrapper, data);
         }
 
         /**
@@ -1651,18 +1663,6 @@
                     settings.rounded = $.bsCalendar.getDefaults().rounded;
                 } else {
                     settings.rounded = clamp(parsed, 0, 5);
-                }
-            }
-            // Validate `border` -> must be an integer between 0 and 5
-            if (settings.hasOwnProperty('border')) {
-                // Try to coerce to number
-                const parsed = Number(settings.border);
-
-                // If parsed is not a finite integer, fallback to default (5)
-                if (!Number.isFinite(parsed) || !Number.isInteger(parsed)) {
-                    settings.border = $.bsCalendar.getDefaults().border;
-                } else {
-                    settings.border = clamp(parsed, 0, 5);
                 }
             }
 
@@ -2597,30 +2597,31 @@
 
             // initial wrapper and put it at a 100% height and width
             const innerWrapper = $('<div>', {
-                class: 'd-flex flex-column align-items-stretch h-100 w-100'
+                class: 'd-flex flex-column align-items-stretch h-100 w-100 rounded-2 gap-3 pb-3'
             }).appendTo($wrapper);
 
             const roundedClass = 'rounded-' + settings.rounded;
-            const borderClass = 'border border-' + settings.border;
+            const borderClass = settings.border;
 
             // Create the wrapper for the upper navigation
+            // Design-Change: "Floating Toolbar" Style (bg-body-tertiary, subtle shadow, no hard borders)
             const topNav = $('<div>', {
                 id: data.elements.wrapperTopNavId,
-                class: `row align-items-center px-0 justify-content-between wc-round-me ${roundedClass} mb-3`
+                class: `d-flex flex-wrap w-100 g-2 align-items-center justify-content-between bg-body-tertiary border-0 shadow-sm p-2 rounded-2`
             }).appendTo(innerWrapper);
-
             // When an element has been set after the upper navigation, add it after navigation
             if (settings.topbarAddons && $(settings.topbarAddons).length > 0) {
                 $(settings.topbarAddons).insertAfter(topNav);
             }
 
-            const leftCol = $('<div>', {class: 'col-auto col-lg-3 d-flex py-2 py-lg-0 flex-nowrap align-items-center flex-fill'}).appendTo(topNav);
-            const middleCol = $('<div>', {class: 'col-auto col-lg-3 d-flex py-2 py-lg-0 justify-content-end justify-content-lg-center flex-fill flex-nowrap align-items-center'}).appendTo(topNav);
-            const rightCol = $('<div>', {class: 'col-auto col-lg-3 d-flex py-2 py-lg-0 justify-content-end flex-wrap flex-lg-nowrap flex-fill align-items-center'}).appendTo(topNav);
+            const leftCol = $('<div>', {class: 'col-auto col-lg-4 d-flex flex-nowrap align-items-center flex-fill'}).appendTo(topNav);
+            const middleCol = $('<div>', {class: 'col-auto col-lg-4 d-flex justify-content-center flex-fill flex-nowrap align-items-center'}).appendTo(topNav);
+            const rightCol = $('<div>', {class: 'col-auto col-lg-4 d-flex justify-content-end flex-wrap flex-lg-nowrap flex-fill align-items-center gap-2'}).appendTo(topNav);
 
             // Add a button to switch on and off the sidebar.
+            // Style: Neutral "Ghost" Button (text-body, no border, no shadow)
             $('<button>', {
-                class: `btn ${borderClass} wc-round-me me-2 ${roundedClass}`,
+                class: `btn border-0 text-body shadow-none me-2`,
                 html: `<i class="${settings.icons.menu}"></i>`,
                 'data-bs-toggle': 'sidebar'
             }).appendTo(leftCol);
@@ -2629,12 +2630,13 @@
             if (settings.search) {
                 const topSearchNav = $('<div>', {
                     id: data.elements.wrapperSearchNavId,
-                    class: `d-none align-items-center px-0 justify-content-center mb-3  wc-round-me  ${roundedClass}`,
+                    // Matches TopNav Style
+                    class: `d-none align-items-center justify-content-center bg-body-tertiary border-0 shadow-sm p-2 mb-3 wc-round-me`,
                 }).insertAfter(topNav);
 
                 // add a search button to topNav
                 const showSearchbar = $('<button>', {
-                    class: `btn ${borderClass} js-btn-search me-2  wc-round-me  ${roundedClass}`,
+                    class: `btn border-0 text-body shadow-none js-btn-search me-2 wc-round-me`,
                     html: `<i class="${settings.icons.search}"></i>`
                 }).appendTo(leftCol);
 
@@ -2644,18 +2646,19 @@
                 });
 
                 // add the search input to the top search bar
+                // Style: Clean Input (bg-body for contrast against tertiary bar, no border)
                 const inputCss = 'max-width: 400px;';
                 $('<input>', {
                     type: 'search',
                     style: inputCss,
-                    class: `form-control ${borderClass} ${roundedClass}  wc-round-me `,
+                    class: `form-control border-0 bg-body text-body shadow-none ${roundedClass} wc-round-me`,
                     placeholder: settings.translations.search || 'search',
                     'data-search-input': true
                 }).appendTo(topSearchNav);
 
                 // add a close button
                 const btnCloseSearch = $('<button>', {
-                    class: `btn p-2 ms-2 js-btn-close-search ${roundedClass}  wc-round-me `,
+                    class: `btn border-0 text-body shadow-none p-2 ms-2 js-btn-close-search ${roundedClass} wc-round-me`,
                     html: `<i class="bi bi-x-lg mx-2"></i>`,
                     "aria-label": "Close"
                 }).appendTo(topSearchNav);
@@ -2672,7 +2675,7 @@
             // add a button to create appointments
             if (settings.showAddButton) {
                 $('<button>', {
-                    class: `btn ${borderClass} me-2 ${roundedClass}  wc-round-me `,
+                    class: `btn border-0 text-body shadow-none me-2 ${roundedClass} wc-round-me`,
                     html: `<i class="${settings.icons.add}"></i>`,
                     'data-add-appointment': true
                 }).appendTo(leftCol);
@@ -2682,7 +2685,7 @@
             if (settings.title) {
                 $('<div>', {
                     html: settings.title,
-                    class: 'mb-0 me-2'
+                    class: 'mb-0 fw-bold text-uppercase text-body'
                 }).appendTo(middleCol);
             }
 
@@ -2690,26 +2693,29 @@
             $('<div>', {
                 class: 'spinner-border me-auto me-2 text-secondary wc-calendar-spinner',
                 css: {
-                    display: 'none'
+                    display: 'none',
+                    width: '1.5rem',
+                    height: '1.5rem'
                 },
                 role: 'status',
                 html: '<span class="visually-hidden">Loading...</span>'
             }).appendTo(leftCol);
 
             // navigation through the calendar depending on the view
+            // Style: Capsule Look (bg-body inside tertiary bar)
             $('<div>', {
-                class: 'd-flex ms-2 align-items-center justify-content-center wc-nav-view-wrapper flex-wrap flex-lg-nowrap text-nowrap',
+                class: `d-flex align-items-center py-1 ps-3 justify-content-center wc-nav-view-wrapper flex-wrap flex-lg-nowrap text-nowrap bg-body rounded-pill shadow-sm`,
                 html: [
-                    `<strong class="me-3" id="${data.elements.wrapperViewContainerTitleId}"></strong>`,
-                    `<a data-prev href="#"><i class="${settings.icons.prev}"></i></a>`,
-                    `<a class="mx-2" data-next href="#"><i class="${settings.icons.next}"></i></a>`,
+                    `<strong class="me-3 user-select-none text-body" id="${data.elements.wrapperViewContainerTitleId}"></strong>`,
+                    `<a data-prev href="#" class="text-decoration-none text-body d-flex align-items-center justify-content-center" style="width:24px; height:24px;"><i class="${settings.icons.prev}"></i></a>`,
+                    `<a class="mx-2 text-decoration-none text-body d-flex align-items-center justify-content-center" data-next href="#" style="width:24px; height:24px;"><i class="${settings.icons.next}"></i></a>`,
                 ].join('')
             }).appendTo(rightCol);
 
 
             // Add a button today to activate the current date in the calendar
             $('<button>', {
-                class: `btn ms-2 ${borderClass} ${roundedClass}  wc-round-me `,
+                class: `btn border-0 text-body shadow-none ms-2 ${roundedClass} wc-round-me fw-bold`,
                 html: settings.translations.today,
                 'data-today': true
             }).appendTo(rightCol);
@@ -2719,9 +2725,9 @@
                 const dropDownView = $('<div>', {
                     class: 'dropdown dropdown-center wc-select-calendar-view ms-2',
                     html: [
-                        `<a class="btn dropdown-toggle ${borderClass}  wc-round-me  ${roundedClass}" data-dropdown-text href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">`,
+                        `<a class="btn dropdown-toggle border-0 text-body shadow-none wc-round-me ${roundedClass}" data-dropdown-text href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">`,
                         '</a>',
-                        '<ul class="dropdown-menu">',
+                        '<ul class="dropdown-menu shadow border-0 mt-1">',
                         '</ul>',
                     ].join('')
                 }).appendTo(rightCol);
@@ -2738,7 +2744,7 @@
 
             // The head was completed, creates a container for Sidebar and the view
             const container = $('<div>', {
-                class: 'd-flex flex-fill wc-calendar-container'
+                class: 'd-flex flex-fill wc-calendar-container gap-3'
             }).appendTo(innerWrapper);
 
             // add the sidebar
@@ -2747,14 +2753,14 @@
                 css: {
                     position: 'relative',
                 },
-                class: 'me-4',
+                class: ' py-4 px-4 bg-body-tertiary rounded-2',
                 html: [
                     '<div class="pb-3">',
                     '<div class="d-flex justify-content-between align-items-center gap-2">',
-                    `<span id="${data.elements.wrapperSmallMonthCalendarTitleId}"></span>`,
+                    `<span id="${data.elements.wrapperSmallMonthCalendarTitleId}" class="fw-bold text-body"></span>`,
                     '<div>',
-                    `<a data-prev href="#"><i class="${settings.icons.prev}"></i></a>`,
-                    `<a class="ms-2" data-next href="#"><i class="${settings.icons.next}"></i></a>`,
+                    `<a data-prev href="#" class="text-decoration-none text-body me-2"><i class="${settings.icons.prev}"></i></a>`,
+                    `<a data-next href="#" class="text-decoration-none text-body"><i class="${settings.icons.next}"></i></a>`,
                     '</div>',
                     '</div>',
                     '</div>',
@@ -2768,7 +2774,7 @@
 
                 // Container: Vertikal, etwas Luft, modern
                 const calendarWrapper = $('<div>', {
-                    class: 'd-flex flex-column gap-2 mt-3 px-2'
+                    class: 'd-flex flex-column gap-2 mt-3 p-2 rounded-2 bg-body'
                 }).appendTo('#' + data.elements.wrapperCalendarsId);
 
                 settings.calendars.forEach(calendar => {
@@ -2813,11 +2819,18 @@
 
 
             // add the viewer
-            $('<div>', {
-                id: data.elements.wrapperViewContainerId,
-                class: `container-fluid ${roundedClass} wc-calendar-view-container wc-round-me  pb-5 ${borderClass} flex-fill overflow-hidden  d-flex flex-column align-items-stretch`,
+            // FIX: Wir erstellen einen "Design-Wrapper", der das Padding und den Hintergrund hält.
+            const viewWrapper = $('<div>', {
+                class: `w-100 bg-body-tertiary rounded-2 shadow-sm p-3 p-lg-4 flex-fill d-flex flex-column overflow-hidden`
             }).appendTo(container);
 
+            // Der eigentliche View-Container (den JS resized) kommt da rein.
+            // WICHTIG: Kein Padding, kein Border, kein Hintergrund hier drauf!
+            // Er füllt einfach den verfügbaren Platz im Wrapper aus (100% - Padding).
+            $('<div>', {
+                id: data.elements.wrapperViewContainerId,
+                class: `wc-calendar-view-container w-100 flex-fill d-flex flex-column align-items-stretch`,
+            }).appendTo(viewWrapper);
             // done
         }
 
@@ -2828,7 +2841,7 @@
          * @return {string[]} An array of strings containing the IDs of active calendars.
          *                    Returns an empty array if no calendars are defined or none are active.
          */
-        function getActiveCalendarsIds ($wrapper) {
+        function getActiveCalendarsIds($wrapper) {
             const settings = getSettings($wrapper);
             if (!settings || !settings.calendars || !Array.isArray(settings.calendars)) {
                 return [];
@@ -3165,6 +3178,10 @@
             });
         }
 
+        function getAllCalendarWrappers() {
+            return $('body').find(globalCalendarElements.wrapper);
+        }
+
         /**
          * Attaches event listeners to a given wrapper element to handle user interactions with the calendar interface.
          *
@@ -3174,13 +3191,20 @@
          */
         function handleEvents($wrapper) {
             let resizeTimer;
-            $(window).off("resize" + namespace);
-            $(window).on("resize" + namespace, function () {
-                clearTimeout(resizeTimer);
-                resizeTimer = setTimeout(function () {
-                    onResize($wrapper, true);
-                }, 100);
-            });
+            if (!globalEventsInitialized) {
+                $(window).off("resize" + namespace);
+                $(window).on("resize" + namespace, function () {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(function () {
+                        const allWrappers = getAllCalendarWrappers();
+                        allWrappers.each(function (i, w) {
+                            onResize($(w), true);
+                        });
+
+                    }, 100);
+                });
+                globalEventsInitialized = true;
+            }
 
             $('body')
                 .on('click' + namespace, globalCalendarElements.infoModal + ' [data-edit]', function (e) {
@@ -3907,7 +3931,13 @@
                 // OPTIMIZATION: Check if the view needs to be rebuilt
                 // Calculate the start and end of the currently requested view
                 const period = getStartAndEndDateByView($wrapper);
-                const renderState = data.renderState || {view: null, start: null, end: null, selectedDate: null, hourSlots: null};
+                const renderState = data.renderState || {
+                    view: null,
+                    start: null,
+                    end: null,
+                    selectedDate: null,
+                    hourSlots: null
+                };
                 const currentSelectedDate = $.bsCalendar.utils.formatDateToDateString(data.date);
                 const currentHourSlots = JSON.stringify(settings.hourSlots);
 
@@ -3921,7 +3951,7 @@
                     renderState.start !== period.start ||
                     renderState.end !== period.end ||
                     (view === 'year' && renderState.selectedDate !== currentSelectedDate) ||
-                    ( (view === 'day' || view === 'week') && renderState.hourSlots !== currentHourSlots);
+                    ((view === 'day' || view === 'week') && renderState.hourSlots !== currentHourSlots);
 
                 if (needsRebuild) {
                     switch (view) {
@@ -3940,7 +3970,6 @@
                         default:
                             break;
                     }
-                    onResize($wrapper);
 
                     // Save the current state to prevent unnecessary rebuilds next time
                     data.renderState = {
@@ -3957,6 +3986,7 @@
                     }
                 }
 
+                onResize($wrapper);
                 updateDropdownView($wrapper);
                 setCurrentDateName($wrapper);
                 const monthCalendarWrapper = $('#' + data.elements.wrapperSmallMonthCalendarId);
@@ -3968,6 +3998,7 @@
 
             fetchAppointments($wrapper);
         }
+
         function executeFunction(functionOrName, ...args) {
             if (functionOrName) {
                 // Direct Function Reference
@@ -5267,12 +5298,47 @@
          * @param {Array<Object>} appointments - An array of appointment objects, where each object contains details like date, total, and extra styling information.
          * @return {void} This function does not return any value.
          */
+        /**
+         * Renders and displays appointments for an entire year by updating the DOM with appointment details.
+         */
         function drawAppointmentsForYear($wrapper, appointments) {
             const $container = getViewContainer($wrapper);
             appointments.forEach(appointment => {
-                const badge = $container.find(`[data-date="${appointment.date}"] .js-badge`);
-                setAppointmentStyles(badge, appointment.extras.colors);
-                badge.text(appointment.total);
+                const $badge = $container.find(`[data-date="${appointment.date}"] .js-badge`);
+
+                // 1. Farben setzen
+                const bg = appointment.extras.colors.backgroundColor;
+                $badge.css({
+                    backgroundColor: bg,
+                    color: '#ffffff',
+                    borderColor: 'var(--bs-body-bg)'
+                });
+
+                // 2. Styles erzwingen (Sichtbarkeit, Flexbox, Größe)
+                $badge.css({
+                    'width': '8px',
+                    'height': '8px',
+                    'font-size': '9px',
+                    'font-weight': 'bold',
+                    'display': 'flex',
+                    'justify-content': 'center',
+                    'align-items': 'center',
+                    'border-radius': '50%',
+                    'border-style': 'solid',
+                    'border-width': '2px',
+                    'box-sizing': 'border-box',
+                    'overflow': 'hidden',
+                    'line-height': '1'
+                });
+
+                // 3. Wert setzen
+                $badge.text(appointment.total);
+
+                // FIX: Tooltip korrekt initialisieren
+                // Wir setzen den Title auf das Parent-Div (den Tag-Kreis), nicht auf den Badge.
+                $badge.closest('div')
+                    .attr('title', appointment.total) // Title auf das Div!
+                    .tooltip();                       // Tooltip auf das Div!
             })
         }
 
@@ -5433,7 +5499,7 @@
             const mainColor = data.mainColor;
             const container = getViewContainer($wrapper);
             const settings = data.settings;
-            const date = data.date
+            const date = data.date;
 
             const {locale, startWeekOnSunday} = settings;
 
@@ -5453,42 +5519,69 @@
                 calendarEnd.setDate(calendarEnd.getDate() + 1);
             }
 
-            // Empty container and generate new structure
             container.empty();
 
-            // Dynamic weekday names based on localization and starting weekday
             const weekDays = $.bsCalendar.utils.getShortWeekDayNames(locale, startWeekOnSunday);
 
-            // Tage rendern
+            // --- TABLE STRUCTURE ---
+            // border-collapse: collapse ist wichtig, damit Border-Logiken sauber greifen (keine doppelten Linien)
+            const table = $('<table>', {
+                class: 'table m-0 p-0  w-100',
+                css: {
+                    tableLayout: 'fixed',
+                    borderCollapse: 'collapse',
+                    borderSpacing: '0'
+                }
+            }).appendTo(container);
+
+            const tbody = $('<tbody>').appendTo(table);
+
+            // --- BODY RENDERING ---
             let currentDate = new Date(calendarStart);
-            let isFirstRow = true; // Checks if it is the first line
+            let isFirstRow = true;
 
             while (currentDate <= calendarEnd) {
-                const weekRow = $('<div>', {
-                    class: 'row border-top d-flex flex-nowrap flex-fill wc-calendar-content',
-                });
+                // Exakte Prüfung für die letzte Zeile (für border-bottom)
+                const checkDate = new Date(currentDate);
+                checkDate.setDate(checkDate.getDate() + 6);
+                const isLastRow = checkDate.getTime() >= (calendarEnd.getTime() - 43200000);
 
-                // Kalenderwoche berechnen und hinzufügen
+                const tr = $('<tr>', {
+                    class: 'wc-calendar-content'
+                }).appendTo(tbody);
+
+                // --- Kalenderwoche (1. Spalte) ---
                 const calendarWeek = $.bsCalendar.utils.getCalendarWeek(currentDate);
-                const paddingTop = isFirstRow ? '1.75rem' : '.75rem';
-                const weekRowCss = [
-                    `padding-top:` + paddingTop,
-                    'font-size: 12px',
-                    'width: 24px',
-                    'max-width: 24px',
-                    'min-width: 24px'
-                ].join(';');
-                weekRow.append(
-                    $('<div>', {
-                        class: `col px-1 d-flex align-items-start pt-${paddingTop} fw-bold justify-content-center bg-body-tertiary`,
-                        style: weekRowCss,
-                        html: `<small>${calendarWeek}</small>`,
-                    })
-                );
 
+                // Padding-Logik aus dem Original: 1. Zeile hat mehr Padding oben, um den Wochentagsnamen auszugleichen
+                const paddingTop = isFirstRow ? '1.75rem' : '.15rem';
+
+                // Borders für KW: Immer Oben und Links. Unten nur bei der letzten Zeile.
+                // border-collapse kümmert sich darum, dass es nicht doppelt wird.
+                let kwClasses = 'align-top bg-body-tertiary text-muted fw-bold text-center border-top border-start';
+                if (isLastRow) kwClasses += ' border-bottom';
+
+                $('<td>', {
+                    class: kwClasses,
+                    css: {
+                        verticalAlign: 'top',
+                        paddingTop: paddingTop,
+                        width: '30px' // Minimale Breite
+                    },
+                    html: `<small>${calendarWeek}</small>`
+                }).appendTo(tr);
+
+                // --- Die 7 Tage ---
                 for (let i = 0; i < 7; i++) {
                     const isToday = currentDate.toDateString() === new Date().toDateString();
                     const isOtherMonth = currentDate.getMonth() !== month;
+                    const isLastColumn = i === 6;
+
+                    // Border Logik
+                    let borderClasses = ['border-top', 'border-start'];
+                    if (isLastColumn) borderClasses.push('border-end');
+                    if (isLastRow) borderClasses.push('border-bottom');
+
                     let dayCss = [
                         'border-radius: 50%',
                         'width: 24px',
@@ -5503,68 +5596,55 @@
                         dayCss.push(`color: ${mainColor.color}`);
                     }
 
-                    // Calculate border classes based on cell position
-                    const isLastRow = currentDate.getTime() === calendarEnd.getTime(); // Prüft genau, ob wir beim letzten Datum des Kalenders sind
-
-                    const isLastColumn = i === 6;
-                    let borderClasses = [];
-                    if (isLastRow) {
-                        borderClasses.push('border-bottom');
-                    }
-                    borderClasses.push('border-start');
-                    if (isLastColumn) {
-                        borderClasses.push('border-end ');
-                    }
-
-                    // If it is the first line, add weekday names
-                    const dayWrapper = $('<div>', {
+                    // Die Zelle (TD)
+                    const td = $('<td>', {
                         'data-month-date': $.bsCalendar.utils.formatDateToDateString(currentDate),
-                        class: `col ${borderClasses.join(' ')} px-1 flex-fill d-flex flex-column align-items-center justify-content-start ${
-                            isOtherMonth ? 'text-muted' : ''
-                        } ${isToday ? '' : ''}`,
+                        class: `align-top px-1 py-0 ${borderClasses.join(' ')} ${
+                            isOtherMonth ? 'text-muted bg-body-tertiary' : 'bg-body'
+                        }`,
                         css: {
-                            maxHeight: '100%',
-                            overflowY: 'auto',
-                        },
-                    }).appendTo(weekRow);
+                            verticalAlign: 'top',
+                            overflow: 'hidden',
+                            position: 'relative' // Wichtig für absolute Positionierung darin, falls nötig
+                        }
+                    }).appendTo(tr);
 
-                    // Add weekday names on the first line
+                    // Wrapper für den Inhalt der Zelle
+                    const contentWrapper = $('<div>', {
+                        class: 'd-flex flex-column w-100 h-100'
+                    }).appendTo(td);
+
+                    // 1. Wochentags-Name (Nur in der ersten Zeile, IN der Zelle)
                     if (isFirstRow) {
-                        $('<small>', {
-                            class: 'text-center text-uppercase fw-bold pt-1',
-                            css: {
-                                lineHeight: '16px',
-                                fontSize: '10px',
-                            },
-                            text: weekDays[i], // Gets the corresponding weekday name
-                        }).appendTo(dayWrapper);
+                        $('<div>', {
+                            class: 'text-center text-uppercase fw-bold text-body-secondary small pt-1',
+                            css: {lineHeight: '16px', fontSize: '10px'},
+                            text: weekDays[i]
+                        }).appendTo(contentWrapper);
                     }
 
-                    // Add day number
+                    // 2. Tag-Nummer
                     $('<small>', {
                         'data-date': $.bsCalendar.utils.formatDateToDateString(currentDate),
-                        class: `text-center my-1`,
+                        class: `text-center my-1 align-self-center`,
                         style: dayCss.join(';'),
                         text: currentDate.getDate(),
-                    }).appendTo(dayWrapper);
+                    }).appendTo(contentWrapper);
 
-
-                    // inner wrapper
+                    // 3. Innerer Container für Termine
                     $('<div>', {
-                        class: 'd-flex flex-column w-100 h-100',
+                        class: 'd-flex flex-column w-100 flex-fill',
                         'data-role': 'day-wrapper',
                         css: {
                             overflowY: 'auto',
+                            minHeight: 0
                         }
-                    }).appendTo(dayWrapper);
+                    }).appendTo(contentWrapper);
 
-                    // Zum nächsten Tag wechseln
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
 
-                isFirstRow = false; // Nur für die erste Zeile Wochentagsnamen hinzufügen
-                // onResize($wrapper); // Höhe & Breite anpassen
-                container.append(weekRow);
+                isFirstRow = false;
             }
         }
 
@@ -5576,7 +5656,8 @@
          * @return {void} This function does not return any value.
          */
         function onResize($wrapper, handleSidebar = false) {
-            const view = getView($wrapper);
+            const data = getBsCalendarData($wrapper);
+            const view = data.view;
             const windowWidth = $(window).width();
             const lgBreakPoint = 992;
             const calendarContainer = getViewContainer($wrapper);
@@ -5618,159 +5699,133 @@
          * @return {void} Does not return a value; renders the small view calendar into the specified container.
          */
         function buildMonthSmallView($wrapper, forDate, $container, forYearView = false) {
-            // Get container for a miniature view
-            // console.log('buildMonthSmallView', forDate, $container.length, forYearView);
             const data = getBsCalendarData($wrapper);
             const mainColor = data.mainColor;
             const settings = data.settings;
-            const date = forDate; // Aktuelles Datum
+            const date = forDate;
             const activeDate = data.date;
-            const { startWeekOnSunday } = settings;
+            const {startWeekOnSunday} = settings;
 
             const cellSize = forYearView ? 36 : 28;
-            const fontSize = forYearView ? 12 : 10;
-            const weekRowWidth = 20;
-            // calculation of the monthly data
+            const fontSize = forYearView ? 13 : 11;
+            const weekRowWidth = 24;
+
             const year = date.getFullYear();
             const month = date.getMonth();
-
-            // 1st day and last day of the month
             const firstDayOfMonth = new Date(year, month, 1);
             const lastDayOfMonth = new Date(year, month + 1, 0);
 
-            // Start on Monday before the start of the month
             let calendarStart = new Date(firstDayOfMonth);
             while (calendarStart.getDay() !== (startWeekOnSunday ? 0 : 1)) {
                 calendarStart.setDate(calendarStart.getDate() - 1);
             }
 
-            // end with the Sunday after the end of the month
             let calendarEnd = new Date(lastDayOfMonth);
             while (calendarEnd.getDay() !== (startWeekOnSunday ? 6 : 0)) {
                 calendarEnd.setDate(calendarEnd.getDate() + 1);
             }
 
-            // Empty the container and prepare a miniature calendar
             $container.empty();
-            $container.css('overflow', 'visible');
-            $container.addClass('table-responsive');
+            $container.addClass('d-flex justify-content-center');
+
+            const totalWidth = (cellSize * 7) + weekRowWidth;
 
             const table = $('<table>', {
-                class: 'p-0 m-0 bg-transparent border-0 text-center',
+                class: 'table table-borderless m-0 p-0 text-center user-select-none',
                 css: {
-                    width: `${cellSize * 7 + 20}px`,
+                    width: `${totalWidth}px`,
+                    minWidth: `${totalWidth}px`,
                     fontSize: fontSize + 'px',
-                    borderSpacing: '0',
                     borderCollapse: 'collapse',
                     tableLayout: 'fixed',
-                    verticalAlign: 'middle',
                     lineHeight: cellSize + 'px',
+                    margin: '0 auto'
                 },
             }).appendTo($container);
 
-            // Create a header for weekdays
             const thead = $('<thead>').appendTo(table);
-            const weekdaysRow = $('<tr>', {
-                class: '',
-                css: {
-                    height: `${cellSize}px`
-                }
-            }).appendTo(thead);
+            const weekdaysRow = $('<tr>', { css: { height: `${cellSize}px` } }).appendTo(thead);
 
-            // First column (CW)
-            $('<th>', {
-                class: '',
-                css: {width: weekRowWidth + 'px', height: cellSize + 'px'},
-                text: ''
-            }).appendTo(weekdaysRow);
+            $('<th>', { class: 'p-0', css: { width: weekRowWidth + 'px' }, text: '' }).appendTo(weekdaysRow);
 
-            // Add weekly days (Mon, Tue, Wed, ...)
             const weekDays = $.bsCalendar.utils.getShortWeekDayNames(settings.locale, settings.startWeekOnSunday);
             weekDays.forEach(day => {
                 $('<th>', {
-                    text: day,
-                    css: {width: `${cellSize}px`, height: cellSize + 'px'}
+                    text: day.substring(0, 2),
+                    class: 'text-body-secondary fw-normal p-0',
+                    css: { width: `${cellSize}px`, verticalAlign: 'middle' }
                 }).appendTo(weekdaysRow);
             });
 
-            // create the content of the calendar
             const tbody = $('<tbody>').appendTo(table);
             let currentDate = new Date(calendarStart);
+
             while (currentDate <= calendarEnd) {
-                const weekRow = $('<tr>', {
-                    css: {
-                        fontSize: `${fontSize}px`,
-                    }
-                }).appendTo(tbody);
+                const weekRow = $('<tr>', { css: { height: `${cellSize}px` } }).appendTo(tbody);
 
-                // calculate calendar week
                 const calendarWeek = $.bsCalendar.utils.getCalendarWeek(currentDate);
-                const weekRowCss = [
-                    `font-size: ${fontSize}px`,
-                    `width: ${weekRowWidth}px`,
-                    `height: ${cellSize}px`,
-                ].join(';');
                 $('<td>', {
-                    style: weekRowCss,
-                    class: 'px-1 text-center bg-body-tertiary',
+                    class: 'text-body-tertiary p-0 align-middle small',
+                    css: { fontSize: (fontSize - 3) + 'px', width: weekRowWidth + 'px' },
                     text: calendarWeek,
-                }).appendTo(weekRow); // insert cw into the first column of the line
+                }).appendTo(weekRow);
 
-
-                // days of the week (Mon-Sun) add
                 for (let i = 0; i < 7; i++) {
                     const isToday = currentDate.toDateString() === new Date().toDateString();
                     const isOtherMonth = currentDate.getMonth() !== month;
                     const isSelected = currentDate.toDateString() === activeDate.toDateString();
-                    const dayStyleArray = [];
-                    let dayClass = '';
+
+                    let dayClass = 'rounded-circle d-inline-flex align-items-center justify-content-center transition-base';
+                    let dayStyles = {
+                        width: (cellSize - 4) + 'px',
+                        height: (cellSize - 4) + 'px',
+                        margin: '2px auto',
+                        position: 'relative'
+                    };
+
                     if (isToday) {
-                        dayStyleArray.push('background-color: ' + mainColor.backgroundColor);
-                        dayStyleArray.push('background-image: ' + mainColor.backgroundImage);
-                        dayStyleArray.push('color: ' + mainColor.color);
-                    }
-                    // console.log('buildMonthSmallView SELECTED', forDate, currentDate.toDateString(), activeDate.toDateString(), isSelected);
-                    if (isOtherMonth) {
-                        dayClass += ' text-muted opacity-50';
+                        dayStyles.backgroundColor = mainColor.backgroundColor;
+                        dayStyles.backgroundImage = mainColor.backgroundImage;
+                        dayStyles.color = mainColor.color;
+                        dayStyles.fontWeight = '600';
+                        dayClass += ' shadow-sm';
+                    } else if (isSelected) {
+                        dayStyles.boxShadow = `inset 0 0 0 2px ${mainColor.backgroundColor}`;
+                        dayStyles.color = 'var(--bs-body-color)';
+                        dayStyles.fontWeight = '600';
+                    } else if (isOtherMonth) {
+                        dayClass += ' text-body-tertiary opacity-50';
+                    } else {
+                        dayClass += ' hover-bg-body-secondary';
                     }
 
-                    if (isSelected && !isToday) {
-                        dayStyleArray.push('border: 1px solid ' + mainColor.backgroundColor);
-                        dayStyleArray.push('color: ' + mainColor.backgroundColor);
-                    }
-
-                    let badge = '';
+                    const $cellContent = $('<div>', {
+                        class: dayClass,
+                        css: dayStyles,
+                        html: `<span>${currentDate.getDate()}</span>`
+                    });
                     if (forYearView) {
-                        badge = `<span class="js-badge badge position-absolute start-50 z-1 top-100 rounded-pill translate-middle"></span>`;
+                        $('<span>', {
+                            // Nur Positionierung, KEINE Border, KEINE Badge-Klasse hier!
+                            class: 'js-badge position-absolute top-100 start-50 translate-middle z-2',
+                            css: {
+                                display: 'none' // Garantiert unsichtbar
+                            }
+                        }).appendTo($cellContent);
                     }
-
-                    const tdContent = [
-                        `<div style="${dayStyleArray.join(';')}" class="${dayClass} rounded-circle w-100 h-100 d-flex justify-content-center flex-column align-items-center">`,
-                        `<span>${currentDate.getDate()}</span>`,
-                        badge,
-                        `</div>`
-                    ].join('')
 
                     $('<td>', {
                         'data-date': $.bsCalendar.utils.formatDateToDateString(currentDate),
-                        class: `position-relative`,
-                        css: {
-                            cursor: 'pointer',
-                            fontSize: `${fontSize}px`,
-                            width: `${cellSize}px`,
-                            height: `${cellSize}px`,
-                            lineHeight: `${cellSize / 2}px`,
-                            verticalAlign: 'middle',
-                            textAlign: 'center',
-                        },
-                        html: tdContent,
-                    }).appendTo(weekRow);
+                        class: 'p-0 align-middle position-relative',
+                        css: { cursor: 'pointer' }
+                    }).append($cellContent).appendTo(weekRow);
 
-                    // jump to the next day
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
             }
         }
+
+
 
         /**
          * Constructs and initializes the day view content within the provided wrapper element.
@@ -6273,7 +6328,6 @@
          */
         function buildYearView($wrapper) {
             const container = getViewContainer($wrapper);
-            // container.addClass('justify-content-center');
             const settings = getSettings($wrapper);
             const date = getDate($wrapper);
             const year = date.getFullYear();
@@ -6282,34 +6336,38 @@
             container.empty();
 
             // Flex layout for all 12 monthly calendars
+            // DESIGN UPDATE: justify-content-center für mittige Ausrichtung, größeres Gap
             const grid = $('<div>', {
-                class: 'd-flex flex-wrap gap-1 gap-lg-4 py-3', // Flexbox for inline representation
+                class: 'd-flex flex-wrap justify-content-center gap-3 py-4',
             }).appendTo(container);
 
             const roundedClass = `rounded-${settings.rounded}`;
-            const borderClass = `border border-${settings.border}`;
+
             // render a small calendar for each month
             for (let month = 0; month < 12; month++) {
                 // Create a wrapper for every monthly calendar
-                const css = [
-                    'margin: 5px'
-                ]
+                // DESIGN UPDATE: Card-Style (bg-body, shadow-sm, p-3)
                 const monthWrapper = $('<div>', {
-                    class: `d-flex pb-3 pt-2 ${borderClass} flex-column align-items-center overflow-hidden wc-year-month-container wc-round-me ${roundedClass}`, // Col-Layout für Titel und Kalender
-                    // style: css.join(';'),
+                    class: `d-flex flex-column align-items-center wc-year-month-container wc-round-me bg-body shadow-sm p-3 ${roundedClass}`,
+                    css: {
+                        minWidth: '260px' // Mindestbreite für stabile Optik
+                    }
                 }).appendTo(grid);
 
-                // monthly name and year as the title (e.g. "January 2023")
+                // monthly name and year as the title
                 const monthName = new Intl.DateTimeFormat(settings.locale, {month: 'long'}).format(
                     new Date(year, month)
                 );
+
+                // DESIGN UPDATE: Modern Typography (Uppercase, smaller, spaced)
                 $('<div>', {
                     'data-month': `${year}-${String(month + 1).padStart(2, '0')}-01`,
-                    class: 'w-bold ms-2',
+                    class: 'fw-bold text-uppercase text-body-secondary mb-3',
                     text: `${monthName}`,
                     css: {
                         cursor: 'pointer',
-                        marginBottom: '10px',
+                        letterSpacing: '1px',
+                        fontSize: '0.85rem'
                     },
                 }).appendTo(monthWrapper);
 
@@ -6344,12 +6402,12 @@
                 const modalExists = $modal.length > 0;
                 if (!modalExists) {
                     const roundedClass = 'rounded-' + settings.rounded;
-                    const borderClass = 'rounded-' + settings.border;
+                    const borderClass = settings.border;
                     // If the modal does not exist, create the modal's HTML structure and append it to the body.
                     const modalHtml = [
                         `<div class="modal fade pe-none" id="${globalCalendarElements.infoModal.substring(1)}" tabindex="-1" data-bs-backdrop="false">`,
                         `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto">`,
-                        `<div class="modal-content ${borderClass} shadow ${roundedClass}  wc-round-me ">`,
+                        `<div class="modal-content ${borderClass} wc-round-me ">`,
                         `<div class="modal-body d-flex flex-column align-items-stretch pb-4">`,
                         `<div class="d-flex justify-content-end align-items-center" data-modal-options>`,
                         `<button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i></button>`,
