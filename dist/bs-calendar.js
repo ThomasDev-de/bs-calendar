@@ -2105,6 +2105,7 @@
             data.mainColor = $.bsCalendar.utils.getColors(merged.mainColor);
             // Apply new settings
             data.settings = merged;
+            data.renderState = null;
             setBsCalendarData($wrapper, data);
 
             // View change requested?
@@ -2122,16 +2123,9 @@
                 $wrapper.find('#' + data.elements.wrapperViewContainerTitleId)
                     .html(merged.title || '');
             }
-            if (typeof merged.rounded !== 'undefined') {
-                setRounded($wrapper, merged.rounded);
-            }
-            if (typeof merged.border !== 'undefined') {
-                setBorder($wrapper, merged.border);
-            }
 
             // Rebuild view once
             buildByView($wrapper, true);
-            onResize($wrapper, true);
 
             // Persist if enabled
             if (merged.storeState) {
