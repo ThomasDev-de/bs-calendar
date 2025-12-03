@@ -30,6 +30,7 @@
     - **Efficiency**: Actions like refreshing appointments or toggling categories now skip the heavy DOM construction phase if the view context remains the same, resulting in smoother interactions.
 - **Bugfix**: Fixed an issue in the `year` view where refreshing appointments (e.g., toggling a calendar) would inadvertently remove the day cells from the DOM due to aggressive cleanup in `methodClear`.
     - The logic now correctly identifies and resets holiday markers and badges without destroying the underlying day structure.
+- **New Feature**: Calendar week numbers can now also be clicked, as long as the view is activated for it. Calendar weeks are displayed in the month and year views, as well as in the small month view.
 
 ### Version 2.0.6
 

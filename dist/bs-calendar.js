@@ -2768,7 +2768,7 @@
 
                 // Container: Vertikal, etwas Luft, modern
                 const calendarWrapper = $('<div>', {
-                    class: 'd-flex flex-column gap-2 mt-3 p-2 rounded-2 bg-body'
+                    class: 'd-flex flex-column gap-2 mt-3 p-2 bg-body'
                 }).appendTo('#' + data.elements.wrapperCalendarsId);
 
                 settings.calendars.forEach(calendar => {
@@ -3512,6 +3512,22 @@
                     e.preventDefault();
                     const element = $(e.currentTarget);
                     showInfoWindow($wrapper, element);
+                })
+                .off('click' + namespace, '[data-week-date]')
+                .on('click' + namespace, '[data-week-date]', function (e) {
+                    e.preventDefault();
+                    const settings = getSettings($wrapper);
+                    const viewBefore = getView($wrapper);
+                    const inSearchMode = getSearchMode($wrapper);
+                    if (inSearchMode) {
+                        toggleSearchMode($wrapper, false, false);
+                    }
+                    if (settings.views.includes('week')) {
+                        const date = new Date($(e.currentTarget).attr('data-week-date'));
+                        setView($wrapper, 'week');
+                        setDate($wrapper, date);
+                        buildByView($wrapper, viewBefore !== 'week');
+                    }
                 })
                 .off('click' + namespace, '[data-date]')
                 .on('click' + namespace, '[data-date]', function (e) {
@@ -5555,15 +5571,22 @@
                 let kwClasses = 'align-top bg-body-tertiary text-muted fw-bold text-center border-top border-start';
                 if (isLastRow) kwClasses += ' border-bottom';
 
-                $('<td>', {
+                const weekColumn = $('<td>', {
                     class: kwClasses,
                     css: {
                         verticalAlign: 'top',
                         paddingTop: paddingTop,
                         width: '30px' // Minimale Breite
                     },
-                    html: `<small>${calendarWeek}</small>`
+                    html: `<small>${calendarWeek}</small>`,
                 }).appendTo(tr);
+
+                // If "week" is allowed in the views, make the column clickable
+                if (settings.views.includes('week')) {
+                    weekColumn
+                        .attr('data-week-date', $.bsCalendar.utils.formatDateToDateString(currentDate))
+                        .css('cursor', 'pointer');
+                }
 
                 // --- Die 7 Tage ---
                 for (let i = 0; i < 7; i++) {
@@ -5720,7 +5743,7 @@
             }
 
             $container.empty();
-            $container.addClass('d-flex justify-content-center');
+            $container.addClass('d-flex justify-content-center p-1 bg-body');
 
             const totalWidth = (cellSize * 7) + weekRowWidth;
 
@@ -5758,11 +5781,18 @@
                 const weekRow = $('<tr>', { css: { height: `${cellSize}px` } }).appendTo(tbody);
 
                 const calendarWeek = $.bsCalendar.utils.getCalendarWeek(currentDate);
-                $('<td>', {
+                const weekColumn = $('<td>', {
                     class: 'text-body-tertiary p-0 align-middle small',
                     css: { fontSize: (fontSize - 3) + 'px', width: weekRowWidth + 'px' },
                     text: calendarWeek,
                 }).appendTo(weekRow);
+
+                // If "week" is allowed in the views, make the column clickable
+                if (settings.views.includes('week')) {
+                    weekColumn
+                        .attr('data-week-date', $.bsCalendar.utils.formatDateToDateString(currentDate))
+                        .css('cursor', 'pointer');
+                }
 
                 for (let i = 0; i < 7; i++) {
                     const isToday = currentDate.toDateString() === new Date().toDateString();
