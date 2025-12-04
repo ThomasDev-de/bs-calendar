@@ -2808,7 +2808,11 @@
 
             // If more addons are to be invited, add them to the sidebar
             if (settings.sidebarAddons && $(settings.sidebarAddons).length > 0) {
-                $(settings.sidebarAddons).appendTo(sidebar);
+                // Container: Vertikal, etwas Luft, modern
+                const sidebarAddonWrapper = $('<div>', {
+                    class: 'd-flex flex-column gap-2 mt-3 p-2 bg-body'
+                }).appendTo('#' + data.elements.wrapperCalendarsId);
+                $(settings.sidebarAddons).appendTo(sidebarAddonWrapper);
             }
 
 
@@ -5931,6 +5935,7 @@
                 const col = $('<div>', {
                     class: 'flex-grow-1 d-flex flex-column jusify-content-center align-items-center flex-fill position-relative overflow-hidden',
                     css: {
+                        // minHeight:'133px',
                         width: (100 / 7) + '%' // Fixe Breite für 7 Spalten
                     }
 
@@ -5943,7 +5948,11 @@
                 }).appendTo(col);
                 headline.attr('data-date', $.bsCalendar.utils.formatDateToDateString(currentDate)).css('cursor', 'pointer');
                 $('<div>', {
-                    'data-all-day': currentDate.getDay(),
+                    css: {
+                        minHeight:'45px',
+                        // width: (100 / 7) + '%' // Fixe Breite für 7 Spalten
+                    },
+                        'data-all-day': currentDate.getDay(),
                     'data-date-local': $.bsCalendar.utils.formatDateToDateString(currentDate),
                     class: 'd-flex flex-column align-items-stretch flex-fill w-100',
                 }).appendTo(col);
