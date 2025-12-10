@@ -7,6 +7,131 @@
 
 [changelog](changelog.md#version-207)
 
+---
+
+## Repository Guide
+
+This section provides a practical, up‑to‑date overview of the repository with stack details, installation, local demo setup, scripts, environment variables, tests, project structure, and licensing. It complements the detailed API docs that follow below.
+
+### Overview
+
+`bs-calendar` is a lightweight jQuery plugin that renders a responsive calendar UI for Bootstrap 5 with day, week, month, and year views. It ships as a browser‑side JavaScript library (no build step required) and includes a demo you can run locally. Distribution is via Composer (mainly to bundle Bootstrap, Bootstrap Icons, and jQuery for the demo) and via direct script tags/CDNs.
+
+Key entry points:
+- `dist/bs-calendar.js` — unminified browser script
+- `dist/bs-calendar.min.js` — minified browser script
+- Demo: `demo/index.html` (references assets from `vendor/` and `dist/`)
+
+### Requirements
+
+- Browser runtime with:
+  - jQuery `^3`
+  - Bootstrap `^5` (CSS + JS bundle)
+  - Bootstrap Icons `^1`
+- For running the local demo and installing vendor assets: PHP `>=8.0` (recommended) with Composer
+
+Note: No Node.js toolchain is required for usage; this project ships prebuilt assets in `dist/`.
+
+### Installation
+
+You can use the plugin either via CDN or by installing it through Composer and serving it from `vendor/`.
+
+1) CDN/script tags (quick start)
+
+```html
+<!-- CSS dependencies -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
+<!-- Your calendar container -->
+<div id="calendar"></div>
+
+<!-- JS dependencies -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- bs-calendar (use the minified build in production) -->
+<script src="/path/to/dist/bs-calendar.min.js"></script>
+<script>
+  $(function(){
+    $('#calendar').bsCalendar();
+  });
+</script>
+```
+
+2) Composer (PHP projects, or to run the demo)
+
+```bash
+composer require webcito/bs-calendar
+```
+
+After installation, the browser script will be available under `vendor/webcito/bs-calendar/dist/bs-calendar.min.js`. Include Bootstrap, Bootstrap Icons, and jQuery as well (installed under `vendor/`).
+
+### Setup and Run (Local Demo)
+
+This repository contains a demo page at `demo/index.html` that loads assets from `vendor/` and `dist/` using relative paths.
+
+Steps:
+- Install dependencies:
+  - `composer install`
+- Start a simple local server with the project root as the document root so that `/vendor` and `/demo` are both accessible:
+  - PHP built‑in server:
+    - `php -S localhost:8000 -t .`
+- Open the demo:
+  - http://localhost:8000/demo/index.html
+
+If you prefer another static server, ensure the server’s document root is the project root so `/vendor/...` paths used by the demo resolve correctly.
+
+### Scripts
+
+- Composer scripts: none defined in `composer.json`.
+- NPM scripts: not used.
+
+### Environment Variables
+
+- None required by the library or demo.
+- If you integrate holiday APIs or remote data sources in your application, manage your own keys/config in your host app. The library itself does not read env vars.
+
+### Tests
+
+- No automated tests are present in the repository at this time.  
+- TODO: Add unit/integration tests and document how to run them.
+
+### Project Structure
+
+High‑level structure (key folders only):
+
+```
+.
+├── LICENSE
+├── README.md
+├── changelog.md
+├── composer.json
+├── composer.lock
+├── dist/
+│   ├── bs-calendar.js
+│   └── bs-calendar.min.js
+├── demo/
+│   ├── index.html
+│   └── img/
+└── vendor/            # Installed by Composer (jQuery, Bootstrap, Bootstrap Icons, etc.)
+```
+
+### License
+
+This repository includes an MIT license (see `LICENSE`).
+
+Note: `composer.json` currently lists the license as `proprietary`, which conflicts with `LICENSE` (MIT).  
+TODO: Align `composer.json` with the MIT license to avoid distribution/packaging issues.
+
+### Changelog and Support
+
+- Changelog: `changelog.md`
+- Issues: https://github.com/ThomasDev-de/bs-calendar/issues
+- Docs/homepage: https://github.webcito.de/#bs-calendar
+
+---
+
 > [!WARNING]
 > As of version 2, Bootstrap 4 is no longer supported.   
 > To use the plugin in **Bootstrap 4**, use version **^1.** .
