@@ -50,8 +50,8 @@ You can use the plugin either via CDN or by installing it through Composer and s
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- bs-calendar (use the minified build in production) -->
-<script src="/path/to/dist/bs-calendar.min.js"></script>
+<!-- bs-calendar via jsDelivr (version 2.0.7) -->
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.7/dist/bs-calendar.min.js"></script>
 <script>
   $(function(){
     $('#calendar').bsCalendar();
@@ -119,10 +119,7 @@ High‑level structure (key folders only):
 
 ### License
 
-This repository includes an MIT license (see `LICENSE`).
-
-Note: `composer.json` currently lists the license as `proprietary`, which conflicts with `LICENSE` (MIT).  
-TODO: Align `composer.json` with the MIT license to avoid distribution/packaging issues.
+This repository includes an MIT license (see `LICENSE`). `composer.json` is aligned to `MIT`.
 
 ### Changelog and Support
 

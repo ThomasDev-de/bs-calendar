@@ -3,10 +3,12 @@
   "description": "A jQuery-based Bootstrap calendar plugin with day/week/month/year views.",
   "version": "2.0.7",
   "type": "library",
-  "license": "proprietary",
+  "license": "MIT",
   "keywords": [
     "calendar",
     "bootstrap",
+    "bootstrap5",
+    "bootstrap-icons",
     "jquery",
     "plugin",
     "ui",
@@ -18,7 +20,8 @@
     "email": "t.kirsch@webcito.de",
     "issues": "https://github.com/ThomasDev-de/bs-calendar/issues",
     "source": "https://github.com/ThomasDev-de/bs-calendar",
-    "docs": "https://github.webcito.de/#bs-calendar"
+    "docs": "https://github.webcito.de/#bs-calendar",
+    "security": "mailto:t.kirsch@webcito.de"
   },
   "authors": [
     {
@@ -34,6 +37,14 @@
   },
   "require-dev": {
     "roave/security-advisories": "dev-latest"
+  },
+  "archive": {
+    "exclude": [
+      "demo/",
+      "vendor/",
+      ".github/",
+      ".gitignore"
+    ]
   },
   "minimum-stability": "stable",
   "prefer-stable": true
