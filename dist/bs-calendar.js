@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.7
+ * @version 2.0.8
  * @date 2025-11-29
  * @license MIT
  * @requires "jQuery" ^3
@@ -61,7 +61,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.7',
+            version: '2.0.8',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -136,7 +136,7 @@
                 onNavigateForward: null,
                 onNavigateBack: null,
                 storeState: false,
-                debug: true
+                debug: false
             },
             utils: {
                 /**
@@ -4294,9 +4294,20 @@
                     }
                 });
             } else {
-                // No callFunction and no callAjax -> nothing to load, remove loading flag
-                bsCalendarData.loading = false;
-                setBsCalendarData($wrapper, bsCalendarData);
+                // No callFunction and no callAjax -> No appointments to load from remote
+                // But we still want to trigger the workflow to e.g. load holidays
+                if (settings.debug) {
+                    log('No URL provided, skipping appointment fetch but continuing with local workflow');
+                }
+                checkAndSetAppointments($wrapper, []).then(_cleanedAppointments => {
+                    trigger($wrapper, 'after-load', _cleanedAppointments);
+                    void _cleanedAppointments;
+                    buildAppointmentsForView($wrapper);
+                }).finally(() => {
+                    // clear loading flag
+                    bsCalendarData.loading = false;
+                    setBsCalendarData($wrapper, bsCalendarData);
+                });
             }
         }
 

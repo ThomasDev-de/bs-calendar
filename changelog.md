@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.8**](#version-208)
     * [**Version 2.0.7**](#version-207)
     * [**Version 2.0.6**](#version-206)
     * [**Version 2.0.5**](#version-205)
@@ -16,6 +17,10 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.0.8
+- **Bugfix**: Fixed an issue where holidays were not loaded if no `url` (string or function) was provided in the settings.
+    - The `fetchAppointments` function now continues the internal workflow with an empty appointment list instead of aborting, ensuring that `loadHolidays` is triggered.
 
 ### Version 2.0.7
 - **Design Update**: Complete modernization of the calendar UI ("Technisches Dashboard" style).
