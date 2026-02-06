@@ -20,8 +20,8 @@
     * [**Version 1.2.2**](#version-122)
 
 ### Version 2.0.9
-- Enhancement: Persistenz der Kalenderaktivitäten (active/inactive) wird beim Initialisieren aus `localStorage` geladen, wenn `storeState` aktiviert ist und Kalender eindeutige `id` besitzen.
-- Docs: `README.md` aktualisiert (Beschreibung von `storeState`, Badge und CDN-Link).
+- Enhancement: Persistence of calendar activities (active/inactive) is loaded from `localStorage` during initialization if `storeState` is activated and calendars have unique `id`.
+- Docs: `README.md` updated (description of `storeState`, badge and CDN link).
 
 ### Version 2.0.8
 - **Bugfix**: Fixed an issue where holidays were not loaded if no `url` (string or function) was provided in the settings.
