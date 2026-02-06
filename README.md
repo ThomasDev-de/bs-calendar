@@ -11,13 +11,17 @@
 
 ## Repository Guide
 
-This section provides a practical, up‑to‑date overview of the repository with stack details, installation, local demo setup, scripts, environment variables, tests, project structure, and licensing. It complements the detailed API docs that follow below.
+This section provides a practical, up‑to‑date overview of the repository with stack details, installation, local demo setup, scripts,
+environment variables, tests, project structure, and licensing. It complements the detailed API docs that follow below.
 
 ### Overview
 
-`bs-calendar` is a lightweight jQuery plugin that renders a responsive calendar UI for Bootstrap 5 with day, week, month, and year views. It ships as a browser‑side JavaScript library (no build step required) and includes a demo you can run locally. Distribution is via Composer (mainly to bundle Bootstrap, Bootstrap Icons, and jQuery for the demo) and via direct script tags/CDNs.
+`bs-calendar` is a lightweight jQuery plugin that renders a responsive calendar UI for Bootstrap 5 with day, week, month, and year views. It
+ships as a browser‑side JavaScript library (no build step required) and includes a demo you can run locally. Distribution is via Composer (
+mainly to bundle Bootstrap, Bootstrap Icons, and jQuery for the demo) and via direct script tags/CDNs.
 
 Key entry points:
+
 - `dist/bs-calendar.js` — unminified browser script
 - `dist/bs-calendar.min.js` — minified browser script
 - Demo: `demo/index.html` (references assets from `vendor/` and `dist/`)
@@ -25,9 +29,9 @@ Key entry points:
 ### Requirements
 
 - Browser runtime with:
-  - jQuery `^3`
-  - Bootstrap `^5` (CSS + JS bundle)
-  - Bootstrap Icons `^1`
+    - jQuery `^3`
+    - Bootstrap `^5` (CSS + JS bundle)
+    - Bootstrap Icons `^1`
 - For running the local demo and installing vendor assets: PHP `>=8.0` (recommended) with Composer
 
 Note: No Node.js toolchain is required for usage; this project ships prebuilt assets in `dist/`.
@@ -53,9 +57,9 @@ You can use the plugin either via CDN or by installing it through Composer and s
 <!-- bs-calendar via jsDelivr (version 2.0.9) -->
 <script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.9/dist/bs-calendar.min.js"></script>
 <script>
-  $(function(){
-    $('#calendar').bsCalendar();
-  });
+    $(function () {
+        $('#calendar').bsCalendar();
+    });
 </script>
 ```
 
@@ -65,22 +69,25 @@ You can use the plugin either via CDN or by installing it through Composer and s
 composer require webcito/bs-calendar
 ```
 
-After installation, the browser script will be available under `vendor/webcito/bs-calendar/dist/bs-calendar.min.js`. Include Bootstrap, Bootstrap Icons, and jQuery as well (installed under `vendor/`).
+After installation, the browser script will be available under `vendor/webcito/bs-calendar/dist/bs-calendar.min.js`. Include Bootstrap,
+Bootstrap Icons, and jQuery as well (installed under `vendor/`).
 
 ### Setup and Run (Local Demo)
 
 This repository contains a demo page at `demo/index.html` that loads assets from `vendor/` and `dist/` using relative paths.
 
 Steps:
-- Install dependencies:
-  - `composer install`
-- Start a simple local server with the project root as the document root so that `/vendor` and `/demo` are both accessible:
-  - PHP built‑in server:
-    - `php -S localhost:8000 -t .`
-- Open the demo:
-  - http://localhost:8000/demo/index.html
 
-If you prefer another static server, ensure the server’s document root is the project root so `/vendor/...` paths used by the demo resolve correctly.
+- Install dependencies:
+    - `composer install`
+- Start a simple local server with the project root as the document root so that `/vendor` and `/demo` are both accessible:
+    - PHP built‑in server:
+        - `php -S localhost:8000 -t .`
+- Open the demo:
+    - http://localhost:8000/demo/index.html
+
+If you prefer another static server, ensure the server’s document root is the project root so `/vendor/...` paths used by the demo resolve
+correctly.
 
 ### Scripts
 
@@ -90,11 +97,12 @@ If you prefer another static server, ensure the server’s document root is the 
 ### Environment Variables
 
 - None required by the library or demo.
-- If you integrate holiday APIs or remote data sources in your application, manage your own keys/config in your host app. The library itself does not read env vars.
+- If you integrate holiday APIs or remote data sources in your application, manage your own keys/config in your host app. The library itself
+  does not read env vars.
 
 ### Tests
 
-- No automated tests are present in the repository at this time.  
+- No automated tests are present in the repository at this time.
 - TODO: Add unit/integration tests and document how to run them.
 
 ### Project Structure
@@ -150,7 +158,7 @@ highly customizable design, you can tailor it to fit your specific use case effo
     * [Key Features](#key-features)
     * [Example Usage](#example-usage)
     * [Options](#options)
-        + [options.calendars](#optionscalendars) 
+        + [options.calendars](#optionscalendars)
         + [options.url](#optionsurl)
         + [options.formatter](#optionsformatter)
             - [Properties](#properties)
@@ -234,45 +242,45 @@ many options available, you don’t need to configure them all—the default val
 Adjust the options as needed to better fit your specific requirements. Below is a detailed overview of all
 available options, including their types, default values, and descriptions.
 
-| **Option**            | **Type**                         | **Default Value**                                | **Description**                                                                                                                                                                                                    |
-|-----------------------|----------------------------------|--------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **locale**            | `string`                         | `"en-GB"`                                        | Specifies the language and country format to be used. Determines the displayed text for months and days of the week based on the language.                                                                         |
-| **title**             | `string`                         | `null`                                           | The title displayed at the top-center of the calendar. Can be a string or HTML.                                                                                                                                    |
-| **startWeekOnSunday** | `boolean`                        | `true`                                           | Indicates whether the week starts on Sunday. If set to `false`, the week starts on Monday.                                                                                                                         |
-| **showAddButton**     | `boolean`                        | `true`                                           | Should a button for adding an appointment be displayed in the top navbar.                                                                                                                                          |
-| **navigateOnWheel**   | `boolean`                        | `true`                                           | Enables navigation through days, weeks, months, or years using the mouse wheel if set to `true`.                                                                                                                   |
-| **rounded**           | `number`                         | `5`                                              | Specifies the border rounding of elements in pixels, enhancing the visual presentation.                                                                                                                            |
-| **border**           | `number`                         | `1`                                              | Specifies the border width of elements in pixels, enhancing the visual presentation.                                                                                                                               |
-| **search**            | `object` \| `null`               | `{limit: 10, offset: 0}`                         | Activates search. Set the option to zero to disable searching.                                                                                                                                                     |
-| **search.limit**      | `number`                         | `10`                                             | Sets a maximum number of search results to be returned.                                                                                                                                                            |
-| **search.offset**     | `number`                         | `0`                                              | Sets an offset for starting the search results.                                                                                                                                                                    |
-| **startDate**         | `Date`                           | `new Date()`                                     | The starting date for the calendar view.                                                                                                                                                                           |
-| **startView**         | `string`                         | `"month"`                                        | Defines the initial view of the calendar. Acceptable values include `"year"`, `"month"`, `"week"`, and `"day"`.                                                                                                    |
-| **mainColor**         | `string`                         | `"primary"`                                      | The main color applied to calendar elements (e.g., events, highlights). It can be a BS class, a hex, or rgb.                                                                                                       |
-| **views**             | `array`                          | `["year", "month", "week", "day"]`               | Lists the available viewing modes for the calendar.                                                                                                                                                                |
-| **holidays**          | `object` \| `null`               | See [options.holidays](#optionsHolidays)         | Data source for holiday display. Use an object for custom settings or `null` for no holidays.                                                                                                                      |
-| **translations**      | `object`                         | See [options.translations](#optionsTranslations) | Defines translations used for various textual content in the calendar.                                                                                                                                             |
-| **icons**             | `object`                         | See [options.icons](#optionsIcons)               | Specifies icons for different controls and actions in the calendar (e.g., next, back, add).                                                                                                                        |
-| **url**               | `string` \| `function` \| `null` | See [options.url](#optionsUrl)                   | Specifies the base URL for fetching external data like holidays or events. Can be a fixed string URL or a dynamic function that generates the URL. `null` disables external requests.                              |
-| **queryParams**       | `function` \| `null`             | `null`                                           | A function to dynamically define query parameters for external requests. Receives existing request data as input and returns additional key-value pairs for the request. If `null`, no extra parameters are added. |
-| **topbarAddons**      | `function` \| `null`             | `null`                                           | Allows injecting additional custom content in the top navigation bar of the calendar.                                                                                                                              |
-| **sidebarAddons**     | `function` \| `null`             | `null`                                           | Allows injecting additional custom content in the side navigation panel.                                                                                                                                           |
-| **formatter**         | `object`                         | See [options.formatter](#optionsFormatter)       | Defines formatters to customize the display or structure of specific calendar views.                                                                                                                               |
-| **hourSlots**         | `object`                         | `{height: 30, start: 0, end: 24}`                | Customizes time slots in the day or week view with detailed configurations (e.g., slot height, starting hour, ending hour).                                                                                        |
-| **calendars**         | `array` \| `null`                | `null`                                           | Defines a list of calendar objects (id, title, color) used to categorize and filter appointments via the sidebar.                                                                                                  || **onAll**             | `function(eventName, ...params)` | `null`                                           | Global handler that triggers on all events. Receives the event name and additional parameters as arguments.                                                                                                        |
-| **onInit**            | `function()`                     | `null`                                           | Called after the calendar is fully initialized. Use this for any required setup operations.                                                                                                                        |
-| **onAdd**             | `function(data)`                 | `null`                                           | Triggered when the "Add" button is clicked or when a time grid is clicked in the day/week view. Provides an object with view-specific details.                                                                     |
-| **onEdit**            | `function(appointment, extras)`  | `null`                                           | Triggered when editing an appointment. The first argument is the appointment being edited, and the second provides additional context.                                                                             |
-| **onDelete**          | `function(appointment, extras)`  | `null`                                           | Triggered when deleting an appointment. The first argument is the appointment being deleted, and the second provides additional context.                                                                           |
-| **onView**            | `function(view)`                 | `null`                                           | Triggered when the calendar view changes. The new view is passed as an argument.                                                                                                                                   |
-| **onBeforeLoad**      | `function(requestData)`          | `null`                                           | Invoked prior to retrieving appointments. Receives contextual information, such as the current view, time span, and search term, if any.                                                                           |
-| **onAfterLoad**       | `function(appointments)`         | `null`                                           | Triggers after the appointments have been loaded and gives them as parameters.                                                                                                                                     |
-| **onShowInfoWindow**  | `function(appointment, extras)`  | `null`                                           | Triggered when an information dialog (info window) is displayed. The appointment and supplemental context are passed as parameters.                                                                                |
-| **onHideInfoWindow**  | `function()`                     | `null`                                           | Triggered when an information dialog (info window) is closed.                                                                                                                                                      |
-| **onNavigateForward** | `function(view, from, to)`       | `null`                                           | Triggered when navigating forward within the calendar. Provides the current view, and the starting and ending dates of the period.                                                                                 |
-| **onNavigateBack**    | `function(view, from, to)`       | `null`                                           | Triggered when navigating backward within the calendar. Similar to `onNavigateForward`, providing the current view, and the starting/ending dates of the period.                                                   |
+| **Option**            | **Type**                         | **Default Value**                                | **Description**                                                                                                                                                                                                                                                                       |
+|-----------------------|----------------------------------|--------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **locale**            | `string`                         | `"en-GB"`                                        | Specifies the language and country format to be used. Determines the displayed text for months and days of the week based on the language.                                                                                                                                            |
+| **title**             | `string`                         | `null`                                           | The title displayed at the top-center of the calendar. Can be a string or HTML.                                                                                                                                                                                                       |
+| **startWeekOnSunday** | `boolean`                        | `true`                                           | Indicates whether the week starts on Sunday. If set to `false`, the week starts on Monday.                                                                                                                                                                                            |
+| **showAddButton**     | `boolean`                        | `true`                                           | Should a button for adding an appointment be displayed in the top navbar.                                                                                                                                                                                                             |
+| **navigateOnWheel**   | `boolean`                        | `true`                                           | Enables navigation through days, weeks, months, or years using the mouse wheel if set to `true`.                                                                                                                                                                                      |
+| **rounded**           | `number`                         | `5`                                              | Specifies the border rounding of elements in pixels, enhancing the visual presentation.                                                                                                                                                                                               |
+| **border**            | `number`                         | `1`                                              | Specifies the border width of elements in pixels, enhancing the visual presentation.                                                                                                                                                                                                  |
+| **search**            | `object` \| `null`               | `{limit: 10, offset: 0}`                         | Activates search. Set the option to zero to disable searching.                                                                                                                                                                                                                        |
+| **search.limit**      | `number`                         | `10`                                             | Sets a maximum number of search results to be returned.                                                                                                                                                                                                                               |
+| **search.offset**     | `number`                         | `0`                                              | Sets an offset for starting the search results.                                                                                                                                                                                                                                       |
+| **startDate**         | `Date`                           | `new Date()`                                     | The starting date for the calendar view.                                                                                                                                                                                                                                              |
+| **startView**         | `string`                         | `"month"`                                        | Defines the initial view of the calendar. Acceptable values include `"year"`, `"month"`, `"week"`, and `"day"`.                                                                                                                                                                       |
+| **mainColor**         | `string`                         | `"primary"`                                      | The main color applied to calendar elements (e.g., events, highlights). It can be a BS class, a hex, or rgb.                                                                                                                                                                          |
+| **views**             | `array`                          | `["year", "month", "week", "day"]`               | Lists the available viewing modes for the calendar.                                                                                                                                                                                                                                   |
+| **holidays**          | `object` \| `null`               | See [options.holidays](#optionsHolidays)         | Data source for holiday display. Use an object for custom settings or `null` for no holidays.                                                                                                                                                                                         |
+| **translations**      | `object`                         | See [options.translations](#optionsTranslations) | Defines translations used for various textual content in the calendar.                                                                                                                                                                                                                |
+| **icons**             | `object`                         | See [options.icons](#optionsIcons)               | Specifies icons for different controls and actions in the calendar (e.g., next, back, add).                                                                                                                                                                                           |
+| **url**               | `string` \| `function` \| `null` | See [options.url](#optionsUrl)                   | Specifies the base URL for fetching external data like holidays or events. Can be a fixed string URL or a dynamic function that generates the URL. `null` disables external requests.                                                                                                 |
+| **queryParams**       | `function` \| `null`             | `null`                                           | A function to dynamically define query parameters for external requests. Receives existing request data as input and returns additional key-value pairs for the request. If `null`, no extra parameters are added.                                                                    |
+| **topbarAddons**      | `function` \| `null`             | `null`                                           | Allows injecting additional custom content in the top navigation bar of the calendar.                                                                                                                                                                                                 |
+| **sidebarAddons**     | `function` \| `null`             | `null`                                           | Allows injecting additional custom content in the side navigation panel.                                                                                                                                                                                                              |
+| **formatter**         | `object`                         | See [options.formatter](#optionsFormatter)       | Defines formatters to customize the display or structure of specific calendar views.                                                                                                                                                                                                  |
+| **hourSlots**         | `object`                         | `{height: 30, start: 0, end: 24}`                | Customizes time slots in the day or week view with detailed configurations (e.g., slot height, starting hour, ending hour).                                                                                                                                                           |
+| **calendars**         | `array` \| `null`                | `null`                                           | Defines a list of calendar objects (id, title, color) used to categorize and filter appointments via the sidebar.                                                                                                                                                                     || **onAll**             | `function(eventName, ...params)` | `null`                                           | Global handler that triggers on all events. Receives the event name and additional parameters as arguments.                                                                                                        |
+| **onInit**            | `function()`                     | `null`                                           | Called after the calendar is fully initialized. Use this for any required setup operations.                                                                                                                                                                                           |
+| **onAdd**             | `function(data)`                 | `null`                                           | Triggered when the "Add" button is clicked or when a time grid is clicked in the day/week view. Provides an object with view-specific details.                                                                                                                                        |
+| **onEdit**            | `function(appointment, extras)`  | `null`                                           | Triggered when editing an appointment. The first argument is the appointment being edited, and the second provides additional context.                                                                                                                                                |
+| **onDelete**          | `function(appointment, extras)`  | `null`                                           | Triggered when deleting an appointment. The first argument is the appointment being deleted, and the second provides additional context.                                                                                                                                              |
+| **onView**            | `function(view)`                 | `null`                                           | Triggered when the calendar view changes. The new view is passed as an argument.                                                                                                                                                                                                      |
+| **onBeforeLoad**      | `function(requestData)`          | `null`                                           | Invoked prior to retrieving appointments. Receives contextual information, such as the current view, time span, and search term, if any.                                                                                                                                              |
+| **onAfterLoad**       | `function(appointments)`         | `null`                                           | Triggers after the appointments have been loaded and gives them as parameters.                                                                                                                                                                                                        |
+| **onShowInfoWindow**  | `function(appointment, extras)`  | `null`                                           | Triggered when an information dialog (info window) is displayed. The appointment and supplemental context are passed as parameters.                                                                                                                                                   |
+| **onHideInfoWindow**  | `function()`                     | `null`                                           | Triggered when an information dialog (info window) is closed.                                                                                                                                                                                                                         |
+| **onNavigateForward** | `function(view, from, to)`       | `null`                                           | Triggered when navigating forward within the calendar. Provides the current view, and the starting and ending dates of the period.                                                                                                                                                    |
+| **onNavigateBack**    | `function(view, from, to)`       | `null`                                           | Triggered when navigating backward within the calendar. Similar to `onNavigateForward`, providing the current view, and the starting/ending dates of the period.                                                                                                                      |
 | **storeState**        | `boolean`                        | `false`                                          | When enabled (`true`), the current calendar state (e.g., selected view) is saved to `localStorage` and restored on the next page load. Additionally, if `options.calendars` contains items with unique `id` values, the active/inactive state per calendar is persisted and restored. |
-| **debug**             | `boolean`                        | `false`                                          | Enables debug mode for development purposes. Logs additional information on various calendar operations.                                                                                                           |
+| **debug**             | `boolean`                        | `false`                                          | Enables debug mode for development purposes. Logs additional information on various calendar operations.                                                                                                                                                                              |
 
 ### options.calendars
 
@@ -373,7 +381,8 @@ Important notes
   above.
 - Use `queryParams` (option) to append or override query parameters before the request is sent. `queryParams` is invoked
   with the prepared `requestData` and should return an object with extra key/value pairs to be merged into the request.
-- For search mode, the plugin sends `search`, `limit`, `offset`, and `calendarIds`. The server should return `{ rows: [...], total: <number> }`.
+- For search mode, the plugin sends `search`, `limit`, `offset`, and `calendarIds`. The server should return
+  `{ rows: [...], total: <number> }`.
 - Keep CORS and authentication in mind when calling external APIs from the browser.
 
 Examples serverside contract (summary)
