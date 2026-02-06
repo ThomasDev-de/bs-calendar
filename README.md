@@ -1,11 +1,11 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.0.8-blue)
+![Version](https://img.shields.io/badge/version-2.0.9-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[changelog](changelog.md#version-208)
+[changelog](changelog.md#version-209)
 
 ---
 
@@ -50,8 +50,8 @@ You can use the plugin either via CDN or by installing it through Composer and s
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- bs-calendar via jsDelivr (version 2.0.8) -->
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.8/dist/bs-calendar.min.js"></script>
+<!-- bs-calendar via jsDelivr (version 2.0.9) -->
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.9/dist/bs-calendar.min.js"></script>
 <script>
   $(function(){
     $('#calendar').bsCalendar();
@@ -271,7 +271,7 @@ available options, including their types, default values, and descriptions.
 | **onHideInfoWindow**  | `function()`                     | `null`                                           | Triggered when an information dialog (info window) is closed.                                                                                                                                                      |
 | **onNavigateForward** | `function(view, from, to)`       | `null`                                           | Triggered when navigating forward within the calendar. Provides the current view, and the starting and ending dates of the period.                                                                                 |
 | **onNavigateBack**    | `function(view, from, to)`       | `null`                                           | Triggered when navigating backward within the calendar. Similar to `onNavigateForward`, providing the current view, and the starting/ending dates of the period.                                                   |
-| **storeState**        | `boolean`                        | `false`                                          | When enabled (`true`), the current calendar state (e.g., selected view) is saved to `localStorage` and restored on the next page load.                                                                             |
+| **storeState**        | `boolean`                        | `false`                                          | When enabled (`true`), the current calendar state (e.g., selected view) is saved to `localStorage` and restored on the next page load. Additionally, if `options.calendars` contains items with unique `id` values, the active/inactive state per calendar is persisted and restored. |
 | **debug**             | `boolean`                        | `false`                                          | Enables debug mode for development purposes. Logs additional information on various calendar operations.                                                                                                           |
 
 ### options.calendars

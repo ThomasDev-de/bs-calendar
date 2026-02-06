@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.8
+ * @version 2.0.9
  * @date 2025-11-29
  * @license MIT
  * @requires "jQuery" ^3
@@ -61,7 +61,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.8',
+            version: '2.0.9',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -1266,18 +1266,32 @@
                 // Persist data object on element
                 setBsCalendarData(wrapper, bsCalendarData);
 
-                // Restore view from storage unless explicitly ignored
+                // Restore view and calendar states from storage unless explicitly ignored
                 if (!ignoreStore && bsCalendarData.settings.storeState) {
                     try {
+                        // Restore last view
                         const view = getFromLocalStorage(wrapper, 'view');
                         if (!$.bsCalendar.utils.isValueEmpty(view)) {
                             bsCalendarData.settings.startView = view;
                             updateSettings(wrapper, bsCalendarData.settings);
                         }
+
+                        // Restore active calendars if available
+                        const storedActiveIds = getFromLocalStorage(wrapper, 'calendars');
+                        if (Array.isArray(storedActiveIds) &&
+                            bsCalendarData.settings.calendars && Array.isArray(bsCalendarData.settings.calendars)) {
+                            bsCalendarData.settings.calendars.forEach(c => {
+                                if (c && c.id !== undefined && c.id !== null) {
+                                    c.active = storedActiveIds.includes(String(c.id)) || storedActiveIds.includes(c.id);
+                                }
+                            });
+                            // persist updated settings on wrapper
+                            updateSettings(wrapper, bsCalendarData.settings);
+                        }
                     } catch (e) {
                         // don't fail initialization for storage read errors; log if debug
                         if (bsCalendarData.settings && bsCalendarData.settings.debug) {
-                            log('Error reading view from storage during init:', e);
+                            log('Error reading view/calendars from storage during init:', e);
                         }
                     }
                 }

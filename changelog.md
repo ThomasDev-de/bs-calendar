@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.9**](#version-209)
     * [**Version 2.0.8**](#version-208)
     * [**Version 2.0.7**](#version-207)
     * [**Version 2.0.6**](#version-206)
@@ -17,6 +18,10 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.0.9
+- Enhancement: Persistenz der Kalenderaktivitäten (active/inactive) wird beim Initialisieren aus `localStorage` geladen, wenn `storeState` aktiviert ist und Kalender eindeutige `id` besitzen.
+- Docs: `README.md` aktualisiert (Beschreibung von `storeState`, Badge und CDN-Link).
 
 ### Version 2.0.8
 - **Bugfix**: Fixed an issue where holidays were not loaded if no `url` (string or function) was provided in the settings.

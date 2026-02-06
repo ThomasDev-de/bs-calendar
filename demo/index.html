@@ -122,6 +122,7 @@
             locale: 'de-DE',
             startWeekOnSunday: false,
             navigateOnWheel: false,
+            storeState: true,
             holidays: {
                 federalState: 'BE',
                 country: 'DE',
@@ -195,7 +196,9 @@
         });
         const modal = $('#exampleModal');
         const calendarElement = $('#calendar');
-        calendarElement.bsCalendar();
+        calendarElement.bsCalendar({
+            storeState: true,
+        });
         // $('#calendar2').bsCalendar();
         calendarElement
             .on('change', '#selectUser', function () {
@@ -608,6 +611,7 @@ END:VCALENDAR`;
 
         // Dann in den Kalender laden (Beispiel: via refresh oder init)
         $('#calendarICS').bsCalendar({
+            storeState: true,
             url: () => Promise.resolve(appointments)
         });
     });
