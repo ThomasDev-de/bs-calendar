@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.9.1**](#version-2091)
     * [**Version 2.0.9**](#version-209)
     * [**Version 2.0.8**](#version-208)
     * [**Version 2.0.7**](#version-207)
@@ -18,6 +19,9 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.0.9.1
+- add class `modal-dialog-scrollable` to modal-dialog for long content
 
 ### Version 2.0.9
 - Enhancement: Persistence of calendar activities (active/inactive) is loaded from `localStorage` during initialization if `storeState` is activated and calendars have unique `id`.

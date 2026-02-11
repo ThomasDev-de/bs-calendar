@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.9
+ * @version 2.0.9.1
  * @date 2025-11-29
  * @license MIT
  * @requires "jQuery" ^3
@@ -61,7 +61,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.9',
+            version: '2.0.9.1',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -6464,7 +6464,7 @@
                     // If the modal does not exist, create the modal's HTML structure and append it to the body.
                     const modalHtml = [
                         `<div class="modal fade pe-none" id="${globalCalendarElements.infoModal.substring(1)}" tabindex="-1" data-bs-backdrop="false">`,
-                        `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto">`,
+                        `<div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down position-absolute pe-auto">`,
                         `<div class="modal-content ${borderClass} wc-round-me ">`,
                         `<div class="modal-body d-flex flex-column align-items-stretch pb-4">`,
                         `<div class="d-flex justify-content-end align-items-center" data-modal-options>`,
