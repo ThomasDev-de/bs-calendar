@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.9.1
+ * @version 2.0.9.2
  * @date 2025-11-29
  * @license MIT
  * @requires "jQuery" ^3
@@ -61,7 +61,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.9.1',
+            version: '2.0.9.2',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -6504,18 +6504,18 @@
                 const deleteable = appointment.hasOwnProperty('deleteable') ? appointment.deleteable : true;
                 const editable = appointment.hasOwnProperty('editable') ? appointment.editable : true;
                 if (editable) {
-                    if (!$modal.find('[data-edit]').length) {
+                    if (!modalOptions.find('[data-edit]').length) {
                         $(`<button type="button" data-edit class="btn"><i class="bi bi-pen"></i></button>`).prependTo(modalOptions);
                     }
                 } else {
-                    $modal.find('[data-edit]').remove();
+                    modalOptions.find('[data-edit]').remove();
                 }
                 if (deleteable) {
-                    if (!$modal.find('[data-remove]').length) {
+                    if (!modalOptions.find('[data-remove]').length) {
                         $(`<button type="button" data-remove data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i></button>`).prependTo(modalOptions);
                     }
                 } else {
-                    $modal.find('[data-remove]').remove();
+                    modalOptions.find('[data-remove]').remove();
                 }
 
                 // Get relevant dimensions and positioning of the modal and target element.

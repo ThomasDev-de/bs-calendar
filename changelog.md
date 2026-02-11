@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.9.2**](#version-2092)
     * [**Version 2.0.9.1**](#version-2091)
     * [**Version 2.0.9**](#version-209)
     * [**Version 2.0.8**](#version-208)
@@ -20,42 +21,60 @@
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
 
+### Version 2.0.9.2
+
+- Refactor modal option handling to replace `$modal` with `modalOptions` for consistency
+
 ### Version 2.0.9.1
+
 - add class `modal-dialog-scrollable` to modal-dialog for long content
 
 ### Version 2.0.9
-- Enhancement: Persistence of calendar activities (active/inactive) is loaded from `localStorage` during initialization if `storeState` is activated and calendars have unique `id`.
+
+- Enhancement: Persistence of calendar activities (active/inactive) is loaded from `localStorage` during initialization if `storeState` is
+  activated and calendars have unique `id`.
 - Docs: `README.md` updated (description of `storeState`, badge and CDN link).
 
 ### Version 2.0.8
+
 - **Bugfix**: Fixed an issue where holidays were not loaded if no `url` (string or function) was provided in the settings.
-    - The `fetchAppointments` function now continues the internal workflow with an empty appointment list instead of aborting, ensuring that `loadHolidays` is triggered.
+    - The `fetchAppointments` function now continues the internal workflow with an empty appointment list instead of aborting, ensuring that
+      `loadHolidays` is triggered.
 
 ### Version 2.0.7
+
 - **Design Update**: Complete modernization of the calendar UI ("Technisches Dashboard" style).
     - Introduced a new "Floating Toolbar" for navigation and actions.
     - Redesigned buttons to be neutral and adaptable to both light and dark themes.
     - Optimized the month view grid for better readability and stability.
     - **Removed**: The `rounded` option has been deprecated and removed in favor of the new, cohesive design system.
 - **Performance Optimization**: The `buildByView` function now includes a state check to avoid redundant DOM rebuilds.
-    - **Smart Rendering**: The calendar view (DOM structure) is only rebuilt if the view type (e.g. month, week) or the visible date range has changed.
+    - **Smart Rendering**: The calendar view (DOM structure) is only rebuilt if the view type (e.g. month, week) or the visible date range
+      has changed.
     - **State Tracking**: Introduced internal `renderState` to track the currently rendered view context.
-    - **Configuration Awareness**: The state check now also accounts for changes in `hourSlots` (start, end, height), ensuring the day and week views are correctly rebuilt when these settings are updated.
-    - **Efficiency**: Actions like refreshing appointments or toggling categories now skip the heavy DOM construction phase if the view context remains the same, resulting in smoother interactions.
-- **Bugfix**: Fixed an issue in the `year` view where refreshing appointments (e.g., toggling a calendar) would inadvertently remove the day cells from the DOM due to aggressive cleanup in `methodClear`.
+    - **Configuration Awareness**: The state check now also accounts for changes in `hourSlots` (start, end, height), ensuring the day and
+      week views are correctly rebuilt when these settings are updated.
+    - **Efficiency**: Actions like refreshing appointments or toggling categories now skip the heavy DOM construction phase if the view
+      context remains the same, resulting in smoother interactions.
+- **Bugfix**: Fixed an issue in the `year` view where refreshing appointments (e.g., toggling a calendar) would inadvertently remove the day
+  cells from the DOM due to aggressive cleanup in `methodClear`.
     - The logic now correctly identifies and resets holiday markers and badges without destroying the underlying day structure.
-- **New Feature**: Calendar week numbers can now also be clicked, as long as the view is activated for it. Calendar weeks are displayed in the month and year views, as well as in the small month view.
+- **New Feature**: Calendar week numbers can now also be clicked, as long as the view is activated for it. Calendar weeks are displayed in
+  the month and year views, as well as in the small month view.
 
 ### Version 2.0.6
 
 - **UI Overhaul**: Redesigned the calendar list in the sidebar to use a modern "Active Stripe" layout.
     - Active calendars are highlighted with a colored left border and a subtle background gradient using `color-mix`.
     - Inactive calendars fade out but show a visual preview on hover.
-- **Logic**: The `active` state of calendars is now fully interactive. Clicking a calendar in the sidebar toggles its state and triggers a view refresh.
+- **Logic**: The `active` state of calendars is now fully interactive. Clicking a calendar in the sidebar toggles its state and triggers a
+  view refresh.
 - **Data Fetching**: Added `calendarIds` (an array of currently active calendar IDs) to the `requestData` object in `fetchAppointments`.
     - This allows backend endpoints or the `url` callback function to filter appointments based on the active calendars.
-- **Persistence**: Calendar active states are now persisted to `localStorage` (if `storeState` is enabled) and correctly restored upon initialization.
-- **Normalization**: Improved validation for `settings.calendars`. It now robustly handles defaults for `title`, `color`, and sets `active` to `true` if undefined.
+- **Persistence**: Calendar active states are now persisted to `localStorage` (if `storeState` is enabled) and correctly restored upon
+  initialization.
+- **Normalization**: Improved validation for `settings.calendars`. It now robustly handles defaults for `title`, `color`, and sets `active`
+  to `true` if undefined.
 
 ### Version 2.0.5
 
@@ -210,7 +229,7 @@ Developer Notes
   Example (in table format):
 
   | **Property** | **Type**   | **Params**                  | **Description**                                                       | 
-              |--------------|------------|-----------------------------|-----------------------------------------------------------------------|
+                |--------------|------------|-----------------------------|-----------------------------------------------------------------------|
   | **allDay**   | `function` | (appointment, extras, view) | Customizes the rendering of the all-day area in weekly or daily view. |
 
 #### **Version 1.2.4**
