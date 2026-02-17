@@ -2242,6 +2242,7 @@
             const defaultTarget = "_blank";
             const defaultRel = "noopener noreferrer";
             const defaultDisabled = false;
+            const defaultColor = "danger";
 
             if (typeof link === "string") {
                 // treatment as a simple string
@@ -2255,10 +2256,16 @@
                 const rel = link.rel || defaultRel;
                 const disabled = link.disabled || defaultDisabled;
                 const disabledClass = disabled ? "disabled" : "";
+                const color =  $.bsCalendar.utils.getColors(link.color || defaultColor);
+                const combinedCss = [
+                    'background-color: ' + color.backgroundColor, // Set the computed background color.
+                    'background-image: ' + color.backgroundImage, // Set the computed gradient.
+                    'color: ' + color.color,        // Set the computed font color.
+                ].join(';');
 
                 // When HTML content is defined, this is used
                 const content = link.html || text;
-                return `<a class="btn btn-primary px-5 rounded-pill ${disabledClass}" href="${link.href}" target="${target}" rel="${rel}">${content}</a>`;
+                return `<a class="btn px-5 rounded-pill ${disabledClass}" href="${link.href}" style="${combinedCss}" target="${target}" rel="${rel}">${content}</a>`;
             }
 
             // If neither a string nor a correct object is available, return empty.
