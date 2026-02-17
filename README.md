@@ -235,6 +235,52 @@ interactive scheduling solution!
 
 ---
 
+## Color Handling
+
+The plugin offers a flexible and powerful way to handle colors. Whether you want to use predefined Bootstrap styles, custom color codes, or modern CSS variables, `bs-calendar` handles the heavy lifting—including automatic text color contrast for better accessibility.
+
+### Supported Color Formats
+
+You can define colors in several formats across the plugin (e.g., for `mainColor`, `calendars[].color`, or `appointment.color`):
+
+1.  **Bootstrap Theme Colors**: Use standard names like `primary`, `success`, `danger`, `warning`, `info`, `dark`, or `light`. The plugin automatically maps these to Bootstrap's utility classes (e.g., `text-bg-primary`).
+2.  **Hexadecimal Codes**: Standard hex strings like `#ff5733` or shorthand like `#f00`.
+3.  **RGB/RGBA**: Functional notation like `rgb(255, 0, 0)` or `rgba(0, 255, 0, 0.5)`.
+4.  **CSS Variables**: Modern CSS variables such as `var(--bs-primary)` or any custom variable defined in your stylesheets.
+5.  **Named Colors**: Standard HTML color names like `red`, `blue`, or `steelblue`.
+
+### Smart Features
+
+*   **Automatic Contrast**: When you provide a direct color (Hex, RGB, or CSS variable), the plugin automatically calculates the brightness and sets the text color to either white or black to ensure readability.
+*   **Bootstrap Integration**: When using Bootstrap classes, it leverages `text-bg-*` utilities to maintain consistency with your Bootstrap theme.
+*   **Opacity Support**: If you use RGBA or colors with opacity classes, the plugin correctly computes the resulting background.
+
+---
+
+### Programmatic usage (public API)
+
+You can also use the color computation helper directly from code. The function is part of the public API:
+
+```js
+// signature
+$.bsCalendar.utils.getColors(color, fallbackColor);
+
+// examples
+const fromHex = $.bsCalendar.utils.getColors('#ff5733');
+const fromBootstrap = $.bsCalendar.utils.getColors('primary');
+const fromCssVar = $.bsCalendar.utils.getColors('var(--bs-primary)', 'primary');
+
+// Returned object (shape)
+// {
+//   origin: <input>,
+//   backgroundColor: <resolved bg>,
+//   backgroundImage: <resolved bg-image or 'none'>,
+//   color: <auto-contrasted text color>
+// }
+```
+
+---
+
 ## Options
 
 The calendar provides a wide range of configuration options to customize its behavior and appearance. While there are
