@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.10**](#version-2010)
     * [**Version 2.0.9.2**](#version-2092)
     * [**Version 2.0.9.1**](#version-2091)
     * [**Version 2.0.9**](#version-209)
@@ -20,6 +21,11 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.0.10
+
+- Enhancement: `appointment.link` can now be either a `string` (simple URL) or an `object` with attributes (`href`, `text`, `target`, `rel`, `disabled`, `html`).
+- Docs: `README.md` expanded (examples and defaults for link object); Updated Badge/CDN/Changelog reference to 2.0.10.
 
 ### Version 2.0.9.2
 

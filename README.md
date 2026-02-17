@@ -1,11 +1,11 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.0.9.2-blue)
+![Version](https://img.shields.io/badge/version-2.0.10-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[changelog](changelog.md#version-2092)
+[changelog](changelog.md#version-2010)
 
 ---
 
@@ -54,8 +54,8 @@ You can use the plugin either via CDN or by installing it through Composer and s
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- bs-calendar via jsDelivr (version 2.0.9) -->
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.9/dist/bs-calendar.min.js"></script>
+<!-- bs-calendar via jsDelivr (version 2.0.10) -->
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.10/dist/bs-calendar.min.js"></script>
 <script>
     $(function () {
         $('#calendar').bsCalendar();
@@ -602,6 +602,34 @@ By default, icons are defined using the Bootstrap Icons library.
 5. **`link`**
     - **Description**: A link associated with the appointment (e.g., an external reference or more details).
     - **Example**: `"https://example.com"`
+
+    - **Extended (Object or String)**:
+        - `string`: simple URL. A standard button with default values is created (`text: "Link"`, `target: "_blank"`, `rel: "noopener noreferrer"`).
+          Example:
+          ```json
+          "https://example.com"
+          ```
+        - `object`: extended link object with attributes:
+          - `href` (required): Destination URL
+          - `text` (optional, default: `"Link"`)
+          - `target` (optional, default: `"_blank"`)
+          - `rel` (optional, default: `"noopener noreferrer"`)
+          - `disabled` (optional, default: `false`) – if `true`, adds class `disabled`
+          - `html` (optional): if set, this HTML content will be used instead of `text`
+          Example:
+          ```json
+          {
+            "href": "https://example.com",
+            "text": "Learn more",
+            "target": "_self",
+            "rel": "nofollow",
+            "disabled": false
+          }
+          ```
+    - **Generated markup (simplified)**:
+      ```html
+      <a class="btn btn-primary px-5 rounded-pill [disabled]" href="..." target="..." rel="...">[html|text]</a>
+      ```
 
 6. **`location`**
     - **Description**: The location of the appointment. It can be:
