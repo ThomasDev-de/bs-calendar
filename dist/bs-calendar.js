@@ -821,6 +821,10 @@
                  */
                 computeColor: (inputColor) => {
                     if ($.bsCalendar.utils.isDirectColorValid(inputColor)) {
+                        if (inputColor.startsWith("var(--")) {
+                            return $.bsCalendar.utils.getComputedStyles(inputColor);
+                        }
+
                         // dissolve the color into a valid format (e.g., hex)
                         const resolvedColor = $.bsCalendar.utils.resolveColor(inputColor);
                         const isDark = $.bsCalendar.utils.isDarkColor(resolvedColor);
@@ -849,8 +853,11 @@
                  * - `origin` {string}: The original input class names string.
                  */
                 getComputedStyles: (inputClassNames) => {
+                    // Check if input is a CSS variable
+                    const isVar = inputClassNames.startsWith("var(--");
+
                     // Vereinfachte Implementierung: nur Bootstrap 5+ wird unterstützt.
-                    const classList = inputClassNames.split(" ").map(className => {
+                    const classList = isVar ? [] : inputClassNames.split(" ").map(className => {
                         if (className.includes("opacity") || className.includes("gradient")) {
                             return className.startsWith("bg-") ? className : `bg-${className}`;
                         } else {
@@ -866,16 +873,32 @@
                     tempElement.style.position = "absolute";
                     document.body.appendChild(tempElement);
 
-                    classList.forEach(className => {
-                        tempElement.classList.add(className);
-                    });
+                    if (isVar) {
+                        tempElement.style.backgroundColor = inputClassNames;
+                        // For CSS variables, we might need to set a default text color if the variable only defines background
+                        // But getComputedStyle will return whatever is inherited or default.
+                        // To be safe and consistent with Bootstrap's text-bg-*, we could try to determine contrast
+                    } else {
+                        classList.forEach(className => {
+                            tempElement.classList.add(className);
+                        });
+                    }
 
                     const computedStyles = window.getComputedStyle(tempElement);
 
                     const backgroundColor = computedStyles.backgroundColor || "rgba(0, 0, 0, 0)";
                     const backgroundImage = computedStyles.backgroundImage || "none";
                     // Bei Bootstrap 5 kann die Textfarbe direkt aus den berechneten Styles genommen werden.
-                    const color = computedStyles.color || "#000000";
+                    let color = computedStyles.color || "#000000";
+
+                    if (isVar) {
+                        // If it's a variable, we check if the computed color is actually different from default (often black)
+                        // Or we just calculate the contrast ourselves to be sure.
+                        const resolvedBg = backgroundColor;
+                        const isDark = $.bsCalendar.utils.isDarkColor(resolvedBg);
+                        color = isDark ? "#FFFFFF" : "#000000";
+                    }
+
                     const opacity = computedStyles.opacity || "1";
 
                     document.body.removeChild(tempElement);
@@ -909,9 +932,10 @@
 
                     const hexPattern = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
                     const rgbPattern = /^rgba?\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})(?:,\s*(0|0?\.\d+|1))?\s*\)$/;
+                    const varPattern = /^var\(--.*\)$/;
 
                     // check whether input is a valid hex/RGB value or a defined color name
-                    return hexPattern.test(inputColor) || rgbPattern.test(inputColor) || inputColor.toLowerCase() in $.bsCalendar.utils.colorNameToHex;
+                    return hexPattern.test(inputColor) || rgbPattern.test(inputColor) || varPattern.test(inputColor) || inputColor.toLowerCase() in $.bsCalendar.utils.colorNameToHex;
                 },
                 /**
                  * Resolves the input color by converting color names to their hexadecimal representation

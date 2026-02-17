@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.11**](#version-2011)
     * [**Version 2.0.10**](#version-2010)
     * [**Version 2.0.9.2**](#version-2092)
     * [**Version 2.0.9.1**](#version-2091)
@@ -21,6 +22,11 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.0.11
+
+- Enhancement: `getColors` and `computeColor` now support CSS variables (`var(--...)`).
+- Docs: Updated `README.md` and `changelog.md` to reflect version 2.0.11.
 
 ### Version 2.0.10
 

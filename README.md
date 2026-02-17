@@ -1,11 +1,11 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.0.10-blue)
+![Version](https://img.shields.io/badge/version-2.0.11-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[changelog](changelog.md#version-2010)
+[changelog](changelog.md#version-2011)
 
 ---
 
@@ -54,8 +54,8 @@ You can use the plugin either via CDN or by installing it through Composer and s
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- bs-calendar via jsDelivr (version 2.0.10) -->
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.10/dist/bs-calendar.min.js"></script>
+<!-- bs-calendar via jsDelivr (version 2.0.11) -->
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.11/dist/bs-calendar.min.js"></script>
 <script>
     $(function () {
         $('#calendar').bsCalendar();
@@ -256,7 +256,7 @@ available options, including their types, default values, and descriptions.
 | **search.offset**     | `number`                         | `0`                                              | Sets an offset for starting the search results.                                                                                                                                                                                                                                       |
 | **startDate**         | `Date`                           | `new Date()`                                     | The starting date for the calendar view.                                                                                                                                                                                                                                              |
 | **startView**         | `string`                         | `"month"`                                        | Defines the initial view of the calendar. Acceptable values include `"year"`, `"month"`, `"week"`, and `"day"`.                                                                                                                                                                       |
-| **mainColor**         | `string`                         | `"primary"`                                      | The main color applied to calendar elements (e.g., events, highlights). It can be a BS class, a hex, or rgb.                                                                                                                                                                          |
+| **mainColor**         | `string`                         | `"primary"`                                      | The main color applied to calendar elements (e.g., events, highlights). It can be a BS class, a hex, rgb, or a CSS variable.                                                                                                                                                          |
 | **views**             | `array`                          | `["year", "month", "week", "day"]`               | Lists the available viewing modes for the calendar.                                                                                                                                                                                                                                   |
 | **holidays**          | `object` \| `null`               | See [options.holidays](#optionsHolidays)         | Data source for holiday display. Use an object for custom settings or `null` for no holidays.                                                                                                                                                                                         |
 | **translations**      | `object`                         | See [options.translations](#optionsTranslations) | Defines translations used for various textual content in the calendar.                                                                                                                                                                                                                |
@@ -292,12 +292,12 @@ appointment groups interactively.
 
 #### Configuration Structure per Calendar Object
 
-| Attribute  | Type               | Required | Default              | Description                                                                                   |
-|:-----------|:-------------------|:--------:|:---------------------|:----------------------------------------------------------------------------------------------|
-| **id**     | `string`\|`number` | **Yes**  | -                    | Unique identifier. This ID is passed to the backend/fetch function to filter appointments.    |
-| **title**  | `string`           |    No    | `"Calendar {i}"`     | The display name shown in the sidebar list.                                                   |
-| **color**  | `string`           |    No    | `settings.mainColor` | The visual color indicator. Supports Bootstrap classes (e.g., `primary`), Hex, or RGB values. |
-| **active** | `boolean`          |    No    | `true`               | The initial visibility state. Users can toggle this interactively.                            |
+| Attribute  | Type               | Required | Default              | Description                                                                                                  |
+|:-----------|:-------------------|:--------:|:---------------------|:-------------------------------------------------------------------------------------------------------------|
+| **id**     | `string`\|`number` | **Yes**  | -                    | Unique identifier. This ID is passed to the backend/fetch function to filter appointments.                   |
+| **title**  | `string`           |    No    | `"Calendar {i}"`     | The display name shown in the sidebar list.                                                                  |
+| **color**  | `string`           |    No    | `settings.mainColor` | The visual color indicator. Supports Bootstrap classes (e.g., `primary`), Hex, RGB values, or CSS variables. |
+| **active** | `boolean`          |    No    | `true`               | The initial visibility state. Users can toggle this interactively.                                           |
 
 ### options.url
 
@@ -595,28 +595,29 @@ By default, icons are defined using the Bootstrap Icons library.
     - **Example**: `true` or `false`
 
 4. **`color`**
-    - **Description**: The color associated with the appointment. It can be a predefined class (`Bootstrap classes`) or
-      a color code (e.g., HEX).
-    - **Example**: `"primary"`, `"danger"`, or `"#FF5733"`
+    - **Description**: The color associated with the appointment. It can be a predefined class (`Bootstrap classes`),
+      a color code (e.g., HEX) or a CSS variable.
+    - **Example**: `"primary"`, `"danger"`, `"#FF5733"`, or `"var(--bs-primary)"`
 
 5. **`link`**
     - **Description**: A link associated with the appointment (e.g., an external reference or more details).
     - **Example**: `"https://example.com"`
 
     - **Extended (Object or String)**:
-        - `string`: simple URL. A standard button with default values is created (`text: "Link"`, `target: "_blank"`, `rel: "noopener noreferrer"`).
+        - `string`: simple URL. A standard button with default values is created (`text: "Link"`, `target: "_blank"`,
+          `rel: "noopener noreferrer"`).
           Example:
           ```json
           "https://example.com"
           ```
         - `object`: extended link object with attributes:
-          - `href` (required): Destination URL
-          - `text` (optional, default: `"Link"`)
-          - `target` (optional, default: `"_blank"`)
-          - `rel` (optional, default: `"noopener noreferrer"`)
-          - `disabled` (optional, default: `false`) – if `true`, adds class `disabled`
-          - `html` (optional): if set, this HTML content will be used instead of `text`
-          Example:
+            - `href` (required): Destination URL
+            - `text` (optional, default: `"Link"`)
+            - `target` (optional, default: `"_blank"`)
+            - `rel` (optional, default: `"noopener noreferrer"`)
+            - `disabled` (optional, default: `false`) – if `true`, adds class `disabled`
+            - `html` (optional): if set, this HTML content will be used instead of `text`
+              Example:
           ```json
           {
             "href": "https://example.com",
