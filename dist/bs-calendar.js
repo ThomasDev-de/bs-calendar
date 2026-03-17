@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.9.2
+ * @version 2.0.12
  * @date 2025-11-29
  * @license MIT
  * @requires "jQuery" ^3
@@ -61,7 +61,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.9.2',
+            version: '2.0.12',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -538,6 +538,50 @@
                     }
                 },
                 /**
+                 * Parses date input in a timezone-safe way.
+                 * - `YYYY-MM-DD` is interpreted as a local date (not UTC).
+                 * - `YYYY-MM-DD HH:mm[:ss]` and `YYYY-MM-DDTHH:mm[:ss]` are interpreted as local date-time.
+                 * - Strings with timezone info (e.g. `Z` or `+02:00`) are delegated to native parsing.
+                 *
+                 * @param {Date|string|number} input
+                 * @returns {Date}
+                 */
+                parseDateInput: (input) => {
+                    if (input instanceof Date) {
+                        return new Date(input.getTime());
+                    }
+                    if (typeof input === 'number') {
+                        return new Date(input);
+                    }
+                    if (typeof input !== 'string') {
+                        return new Date(input);
+                    }
+
+                    const value = input.trim();
+                    const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                    if (dateOnlyMatch) {
+                        const year = parseInt(dateOnlyMatch[1], 10);
+                        const month = parseInt(dateOnlyMatch[2], 10) - 1;
+                        const day = parseInt(dateOnlyMatch[3], 10);
+                        return new Date(year, month, day, 0, 0, 0, 0);
+                    }
+
+                    const localDateTimeMatch = value.match(
+                        /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?$/
+                    );
+                    if (localDateTimeMatch) {
+                        const year = parseInt(localDateTimeMatch[1], 10);
+                        const month = parseInt(localDateTimeMatch[2], 10) - 1;
+                        const day = parseInt(localDateTimeMatch[3], 10);
+                        const hour = parseInt(localDateTimeMatch[4], 10);
+                        const minute = parseInt(localDateTimeMatch[5], 10);
+                        const second = parseInt(localDateTimeMatch[6] || '0', 10);
+                        return new Date(year, month, day, hour, minute, second, 0);
+                    }
+
+                    return new Date(value);
+                },
+                /**
                  * Formats a given Date object or date string into a time string.
                  *
                  * @param {Date|string} date - The date object or a valid date string to format. If a string is provided, it will be parsed into a Date object.
@@ -546,7 +590,7 @@
                  */
                 formatTime: (date, withSeconds = true) => {
                     if (typeof date === 'string') {
-                        date = new Date(date);
+                        date = $.bsCalendar.utils.parseDateInput(date);
                     }
 
                     // Überprüfen, ob das Datum ungültig ist
@@ -625,7 +669,7 @@
                  * @return {string} A string representation of the date in the SQL date format (YYYY-MM-DD).
                  */
                 formatDateToDateString: (date) => {
-                    const dateObj = typeof date === 'string' ? new Date(date) : date;
+                    const dateObj = typeof date === 'string' ? $.bsCalendar.utils.parseDateInput(date) : date;
                     const year = dateObj.getFullYear();
                     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
                     const day = String(dateObj.getDate()).padStart(2, '0');
@@ -1038,7 +1082,7 @@
                  */
                 formatDateByLocale: (date, locale) => {
                     if (typeof date === 'string') {
-                        date = new Date(date);
+                        date = $.bsCalendar.utils.parseDateInput(date);
                     }
                     // formatting options
                     const options = {weekday: 'long', month: 'long', day: 'numeric'};
@@ -1623,7 +1667,7 @@
             if (settings.hasOwnProperty('startDate')) {
                 if (typeof settings.startDate === 'string') {
                     const date = $.bsCalendar.utils.normalizeDateTime(settings.startDate);
-                    settings.startDate = new Date(date);
+                    settings.startDate = $.bsCalendar.utils.parseDateInput(date);
                 }
             }
             if (settings.hasOwnProperty('calendars')) {
@@ -1945,10 +1989,10 @@
          * @return {Date} The prepared Date object.
          */
         function prepareDate(date) {
-            if (typeof object === "string") {
-                date = new Date(object);
+            if (typeof date === "string") {
+                date = $.bsCalendar.utils.parseDateInput(date);
             } else if (date instanceof Date) {
-                date = object;
+                date = new Date(date.getTime());
             }
             return date;
         }
@@ -1960,7 +2004,7 @@
             let view = null;
             let viewChanged = false;
             if (typeof object === "string") {
-                date = new Date(object);
+                date = $.bsCalendar.utils.parseDateInput(object);
             } else if (object instanceof Date) {
                 date = object;
             } else if (typeof object === "object") {
@@ -2565,8 +2609,8 @@
 
                 if (appointment.allDay) {
                     // Clean up start and end times when the appointment is all-day
-                    const startDate = new Date(appointment.start);
-                    const endDate = new Date(appointment.end);
+                    const startDate = $.bsCalendar.utils.parseDateInput(appointment.start);
+                    const endDate = $.bsCalendar.utils.parseDateInput(appointment.end);
 
                     // Set the beginning and end of the whole day
                     appointment.start = new Date(
@@ -3924,7 +3968,7 @@
 
             const settings = getSettings($wrapper);
             if (typeof date === 'string') {
-                data.date = new Date(date);
+                data.date = $.bsCalendar.utils.parseDateInput(date);
             } else if (date instanceof Date) {
                 data.date = date;
             }
@@ -4147,7 +4191,7 @@
                 if (view === 'year') {
                     // If the view is yearly, prepare request data specific to the year
                     requestData = {
-                        year: new Date(period.date).getFullYear(),
+                        year: $.bsCalendar.utils.parseDateInput(period.date).getFullYear(),
                         view: view // 'year'
                     };
                 } else {
@@ -4940,7 +4984,7 @@
 
             if (view === 'year') {
                 appointments.forEach(appointment => {
-                    const date = new Date(appointment.date);
+                    const date = $.bsCalendar.utils.parseDateInput(appointment.date);
                     appointment.extras = {
                         colors: $.bsCalendar.utils.getColors(appointment.color || settings.mainColor, settings.mainColor),
                         isToday: date.toDateString() === now.toDateString(),
@@ -5314,13 +5358,13 @@
                     log('Draw holiday:', holiday);
                 }
                 // Parse the start and end dates of the holiday
-                const startDate = new Date(holiday.startDate);
-                const endDate = new Date(holiday.endDate);
+                const startDate = $.bsCalendar.utils.parseDateInput(holiday.startDate);
+                const endDate = $.bsCalendar.utils.parseDateInput(holiday.endDate);
 
                 // Loop through each date from startDate to endDate
                 for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
-                    // Format the current date as "YYYY-MM-DD" (ISO string without time part)
-                    const formattedDate = date.toISOString().split('T')[0];
+                    // Format the current date as local "YYYY-MM-DD" (timezone-safe)
+                    const formattedDate = $.bsCalendar.utils.formatDateToDateString(date);
                     let container;
 
 

@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.12**](#version-2012)
     * [**Version 2.0.11**](#version-2011)
     * [**Version 2.0.10**](#version-2010)
     * [**Version 2.0.9.2**](#version-2092)
@@ -22,6 +23,13 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.0.12
+
+- Bugfix: Fixed date-shift issues in negative timezones (e.g. US) caused by parsing `YYYY-MM-DD` via native UTC interpretation.
+- Improvement: Added timezone-safe date parsing for date-only and local date-time strings and applied it across core date handling paths (`setDate`, `startDate`, holidays, all-day normalization, formatting).
+- Improvement: Holiday rendering now uses local date formatting instead of `toISOString().split('T')[0]` to avoid off-by-one day rendering.
+- Docs: Updated `README.md` and `changelog.md` to reflect version 2.0.12.
 
 ### Version 2.0.11
 
