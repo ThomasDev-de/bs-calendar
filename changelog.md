@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.12.1**](#version-20121)
     * [**Version 2.0.12**](#version-2012)
     * [**Version 2.0.11**](#version-2011)
     * [**Version 2.0.10**](#version-2010)
@@ -23,6 +24,11 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.0.12.1
+
+- Bugfix: Fixed weekday label generation in month/small-month views for US and other negative timezones.
+- Docs: Updated `README.md` and `changelog.md` to reflect version 2.0.12.1.
 
 ### Version 2.0.12
 

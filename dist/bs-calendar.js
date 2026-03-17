@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.12
+ * @version 2.0.12.1
  * @date 2025-11-29
  * @license MIT
  * @requires "jQuery" ^3
@@ -61,7 +61,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.12',
+            version: '2.0.12.1',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -649,11 +649,10 @@
                     const formatter = new Intl.DateTimeFormat(locale, {weekday: 'short'});
 
                     // Generate an array of all weekdays (0 = Sunday, 1 = Monday, ..., 6 = Saturday).
-                    // Use Date.UTC to ensure consistent results in all environments (ignoring local time zones).
+                    // Use local noon to avoid timezone rollovers (e.g. US timezones showing previous day).
                     const weekDays = [...Array(7).keys()].map(day =>
-                        // Add 1 to the day index to represent the day of the month.
-                        // Example: '2023-01-01' for Sunday, '2023-01-02' for Monday, and so on.
-                        formatter.format(new Date(Date.UTC(2023, 0, day + 1)))
+                        // Use a fixed local date at 12:00 to keep weekday names stable across time zones.
+                        formatter.format(new Date(2023, 0, day + 1, 12, 0, 0, 0))
                     );
 
                     // If the week should start on Sunday, return the weekdays as is.
@@ -1897,7 +1896,7 @@
          * @return {string} A formatted HTML string representing the appointment.
          */
         function formatterMonth(appointment, extras) {
-            const startTime = new Date(appointment.start).toLocaleTimeString(extras.locale, {
+            const startTime = $.bsCalendar.utils.parseDateInput(appointment.start).toLocaleTimeString(extras.locale, {
                 hour: '2-digit',
                 minute: '2-digit'
             });
@@ -1933,8 +1932,9 @@
                 `width: 60px`,
             ].join(';');
             const link = buildLink(appointment.link);
-            const day = new Date(appointment.start).getDate();
-            const date = new Date(appointment.start).toLocaleDateString(extras.locale, {
+            const appointmentStart = $.bsCalendar.utils.parseDateInput(appointment.start);
+            const day = appointmentStart.getDate();
+            const date = appointmentStart.toLocaleDateString(extras.locale, {
                 month: 'short',
                 year: 'numeric',
                 weekday: 'short'
@@ -1942,7 +1942,7 @@
 
             return [
                 `<div class="d-flex align-items-center justify-content-start g-3 py-1">`,
-                `<div class="day fw-bold text-center" style="${firstCollStyle}" data-date="${$.bsCalendar.utils.formatDateToDateString(new Date(appointment.start))}">`,
+                `<div class="day fw-bold text-center" style="${firstCollStyle}" data-date="${$.bsCalendar.utils.formatDateToDateString(appointmentStart)}">`,
                 `${day}`,
                 `</div>`,
                 `<div class="text-muted" style="width: 150px;">`,
@@ -3619,7 +3619,7 @@
                         toggleSearchMode($wrapper, false, false);
                     }
                     if (settings.views.includes('week')) {
-                        const date = new Date($(e.currentTarget).attr('data-week-date'));
+                        const date = $.bsCalendar.utils.parseDateInput($(e.currentTarget).attr('data-week-date'));
                         setView($wrapper, 'week');
                         setDate($wrapper, date);
                         buildByView($wrapper, viewBefore !== 'week');
@@ -3635,7 +3635,7 @@
                         toggleSearchMode($wrapper, false, false);
                     }
                     if (settings.views.includes('day')) {
-                        const date = new Date($(e.currentTarget).attr('data-date'));
+                        const date = $.bsCalendar.utils.parseDateInput($(e.currentTarget).attr('data-date'));
                         setView($wrapper, 'day');
                         setDate($wrapper, date);
                         buildByView($wrapper, viewBefore !== 'day');
@@ -3647,7 +3647,7 @@
                     const settings = getSettings($wrapper);
                     const viewBefore = getView($wrapper);
                     if (settings.views.includes('month')) {
-                        const date = new Date($(e.currentTarget).attr('data-month'));
+                        const date = $.bsCalendar.utils.parseDateInput($(e.currentTarget).attr('data-month'));
                         setView($wrapper, 'month');
                         setDate($wrapper, date);
                         buildByView($wrapper, viewBefore !== 'month');
@@ -4993,8 +4993,8 @@
                 });
             } else {
                 appointments.forEach(appointment => {
-                    const start = new Date(appointment.start);
-                    const end = new Date(appointment.end);
+                    const start = $.bsCalendar.utils.parseDateInput(appointment.start);
+                    const end = $.bsCalendar.utils.parseDateInput(appointment.end);
                     const isAllDay = appointment.allDay;
 
                     let iconClass = !isAllDay ? settings.icons.appointment : settings.icons.appointmentAllDay;
