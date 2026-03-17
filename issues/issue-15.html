@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en" data-bs-theme="dark">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Bootstrap Calendar Demo</title>
+    <link href="../vendor/twbs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="../vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+</head>
+<body class="p-1 p-lg-5">
+<div id="calendar"></div>
+
+<script src="../vendor/components/jquery/jquery.min.js"></script>
+<script src="../vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+<script src="../dist/bs-calendar.min.js"></script>
+<script>
+    $(function () {
+        $('#calendar').bsCalendar({
+            title: "Leave Calendar",
+            startWeekOnSunday: true,
+            showAddButton: false,
+            navigateOnWheel: false,
+            search: false,
+            debug: true
+        });
+    });
+</script>
+</body>
+</html>
