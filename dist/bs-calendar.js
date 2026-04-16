@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.12.1
+ * @version 2.0.13
  * @date 2025-11-29
  * @license MIT
  * @requires "jQuery" ^3
@@ -61,7 +61,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.12.1',
+            version: '2.0.13',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -2056,6 +2056,31 @@
         }
 
         /**
+         * Disposes calendar-owned Bootstrap tooltip instances and removes any rendered tooltip nodes.
+         *
+         * @param {jQuery} $wrapper - The wrapper element that owns the calendar instance.
+         * @return {void}
+         */
+        function destroyCalendarTooltips($wrapper) {
+            const $tooltipOwners = $wrapper.find('[data-bs-calendar-tooltip], .wc-holiday-marked, [data-bs-original-title]');
+
+            $tooltipOwners.each(function () {
+                const $el = $(this);
+                try {
+                    $el.tooltip('hide');
+                    $el.tooltip('dispose');
+                } catch (e) {
+                    // ignore
+                }
+                $el.removeAttr('aria-describedby');
+            });
+
+            // Remove rendered tooltip DOM nodes that may have survived rapid view/date switches.
+            $wrapper.find('.tooltip').remove();
+            $('body > .tooltip.wc-calendar-tooltip').remove();
+        }
+
+        /**
          * Clears specific elements within a given wrapper and optionally removes associated appointments.
          *
          * @param {jQuery} $wrapper - The wrapper element where the elements will be cleared.
@@ -2063,23 +2088,19 @@
          * @return {void} This function does not return a value.
          */
         function methodClear($wrapper, removeAppointments = true) {
+            destroyCalendarTooltips($wrapper);
+
             $wrapper.find('[data-appointment]').remove();
             $wrapper.find('[data-role="holiday"]').remove();
 
             // Clean up holidays in year view (preserve the day element, just remove styling)
             $wrapper.find('.wc-holiday-marked').each(function () {
                 $(this).removeClass('text-secondary wc-holiday-marked');
-                try {
-                    $(this).tooltip('dispose');
-                } catch (e) {
-                    // ignore
-                }
             });
 
             // Reset badges in year view
             $wrapper.find('.js-badge').text('').removeAttr('style');
 
-            $wrapper.find('.tooltip').remove();
             if (removeAppointments) {
                 checkAndSetAppointments($wrapper, []).then(_cleanedAppointments => {
                     void _cleanedAppointments; // Prevents the warning, but serves no purpose
@@ -4027,6 +4048,7 @@
             const data = getBsCalendarData($wrapper);
             const settings = data.settings
             const view = data.view;
+            destroyCalendarTooltips($wrapper);
             if (settings.debug) {
                 log('Call buildByView with view:', view);
             }
@@ -5398,9 +5420,11 @@
                         } else {
                             // Year view: Mark the existing day container instead of adding a removable element
                             container.addClass('text-secondary wc-holiday-marked');
+                            container.attr('data-bs-calendar-tooltip', '1');
                             container.tooltip({
                                 title: holiday.title,
-                                container: $wrapper
+                                container: $wrapper,
+                                customClass: 'wc-calendar-tooltip'
                             });
                         }
                     }
@@ -5454,8 +5478,12 @@
                 // FIX: Tooltip korrekt initialisieren
                 // Wir setzen den Title auf das Parent-Div (den Tag-Kreis), nicht auf den Badge.
                 $badge.closest('div')
+                    .attr('data-bs-calendar-tooltip', '1')
                     .attr('title', appointment.total) // Title auf das Div!
-                    .tooltip();                       // Tooltip auf das Div!
+                    .tooltip({
+                        container: $wrapper,
+                        customClass: 'wc-calendar-tooltip'
+                    }); // Tooltip auf das Div!
             })
         }
 
