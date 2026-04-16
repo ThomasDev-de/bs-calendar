@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Bootstrap Calendar Demo</title>
     <link href="../vendor/twbs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link id="bootswatch-theme" rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/darkly/bootstrap.min.css">
     <link href="../vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
     <style>
         /*.bs-calendar-border-style {*/
@@ -20,6 +22,8 @@
 <!--<div id="calendar2" class="mt-5"></div>-->
 <div id="sidebarAddons" class="">
     <div class="card-body d-flex flex-column">
+        <label class="form-label mb-1" for="selectBootswatchTheme">Bootswatch theme</label>
+        <select class="form-select form-select-sm mb-3" id="selectBootswatchTheme"></select>
         <div class="form-check form-switch mb-3">
             <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckTheme">
             <label class="form-check-label" for="flexSwitchCheckTheme">light / dark</label>
@@ -557,6 +561,49 @@
                 const theme = htmlElement.attr('data-bs-theme') === 'light' ? 'dark' : 'light';
                 htmlElement.attr('data-bs-theme', theme);
             });
+
+        const bootswatchVersion = '5.3.8';
+        const bootswatchThemes = [
+            'default', 'cerulean', 'cosmo', 'cyborg', 'darkly', 'flatly', 'journal', 'litera',
+            'lumen', 'lux', 'materia', 'minty', 'morph', 'pulse', 'quartz', 'sandstone',
+            'simplex', 'sketchy', 'slate', 'solar', 'spacelab', 'superhero', 'united', 'vapor',
+            'yeti', 'zephyr'
+        ];
+        const bootswatchLink = $('#bootswatch-theme');
+        const bootswatchSelect = $('#selectBootswatchTheme');
+        const STORAGE_KEY_BOOTSWATCH = 'bsCalendar.demo.bootswatchTheme';
+
+        function toThemeLabel(themeName) {
+            if (themeName === 'default') {
+                return 'Bootstrap (default)';
+            }
+            return themeName.charAt(0).toUpperCase() + themeName.slice(1);
+        }
+
+        function applyBootswatchTheme(themeName) {
+            if (!themeName || themeName === 'default') {
+                bootswatchLink.prop('disabled', true).attr('href', '');
+                return;
+            }
+            const href = `https://cdn.jsdelivr.net/npm/bootswatch@${bootswatchVersion}/dist/${themeName}/bootstrap.min.css`;
+            bootswatchLink.prop('disabled', false).attr('href', href);
+        }
+
+        bootswatchThemes.forEach(themeName => {
+            bootswatchSelect.append(
+                `<option value="${themeName}">${toThemeLabel(themeName)}</option>`
+            );
+        });
+
+        const initialTheme = localStorage.getItem(STORAGE_KEY_BOOTSWATCH) || 'darkly';
+        bootswatchSelect.val(initialTheme);
+        applyBootswatchTheme(initialTheme);
+
+        bootswatchSelect.on('change', function () {
+            const selectedTheme = $(this).val();
+            applyBootswatchTheme(selectedTheme);
+            localStorage.setItem(STORAGE_KEY_BOOTSWATCH, selectedTheme);
+        });
 
         // Generiere das heutige Datum im Format YYYYMMDD für den ICS-String
         const now = new Date();
