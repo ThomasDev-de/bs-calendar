@@ -7,11 +7,12 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.13
- * @date 2025-11-29
+ * @version 2.0.13.1
+ * @date 2026-04-15
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
+ * @requires "Bootstrap Icons" ^v1
  *
  * @description
  * This file defines a jQuery plugin `bsCalendar` that can be used to instantiate and manage a Bootstrap-based calendar
@@ -61,11 +62,11 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.13',
-            setDefaults: function (options) {
+            version: '2.0.13.1',
+            setDefaults(options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
-            getDefaults: function () {
+            getDefaults() {
                 return this.DEFAULTS;
             },
             DEFAULTS: {
@@ -1430,7 +1431,7 @@
 
         /**
          * Updates the rounded class on elements within the given wrapper based on the provided round value.
-         *
+         * @deprecated
          * @param {Object} $wrapper - The wrapper element containing the elements to update.
          * @param {number} round - The round value to apply, which determines the level of rounding for the elements.
          * @return {void}
@@ -1441,11 +1442,19 @@
             const parsed = Number.isFinite(Number(round)) ? Math.floor(Number(round)) : NaN;
             const normalized = Number.isNaN(parsed) ? 3 : Math.min(Math.max(parsed, 0), 5);
 
-            $wrapper.find('.wc-round-me')
+            $wrapper.find('.bs-calendar-border-style')
                 .removeClass('rounded-0 rounded-1 rounded-2 rounded-3 rounded-4 rounded-5')
                 .addClass(`rounded-${normalized}`);
         }
 
+        /**
+         * Sets the border style for the given wrapper element.
+         *
+         * @deprecated
+         * @param {jQuery} $wrapper - The wrapper element on which the border adjustment is applied.
+         * @param {string|number} border - The desired border value. If it is not a finite number, it defaults to 3. The value is clamped to the range [0, 5].
+         * @return {void} Does not return a value.
+         */
         function setBorder($wrapper, border) {
             const data = getBsCalendarData(wrapper);
             // Try to use round as integer, fallback to the default value from Settings (3)
@@ -1453,7 +1462,7 @@
             const parsed = Number.isFinite(Number(border)) ? Math.floor(Number(border)) : NaN;
             const normalized = Number.isNaN(parsed) ? 3 : Math.min(Math.max(parsed, 0), 5);
 
-            $wrapper.find('.wc-round-me')
+            $wrapper.find('.bs-calendar-border-style')
                 .removeClass(data.borderBefore)
                 .addClass(border);
             data.borderBefore = border;
@@ -2728,7 +2737,7 @@
             // Add a button to switch on and off the sidebar.
             // Style: Neutral "Ghost" Button (text-body, no border, no shadow)
             $('<button>', {
-                class: `btn border-0 text-body shadow-none me-2`,
+                class: `btn border-0 text-body shadow-none me-2 bs-calendar-border-style`,
                 html: `<i class="${settings.icons.menu}"></i>`,
                 'data-bs-toggle': 'sidebar'
             }).appendTo(leftCol);
@@ -2738,12 +2747,12 @@
                 const topSearchNav = $('<div>', {
                     id: data.elements.wrapperSearchNavId,
                     // Matches TopNav Style
-                    class: `d-none align-items-center justify-content-center bg-body-tertiary border-0 shadow-sm p-2 mb-3 wc-round-me`,
+                    class: `d-none align-items-center justify-content-center bg-body-tertiary border-0 shadow-sm p-2 mb-3 bs-calendar-border-style`,
                 }).insertAfter(topNav);
 
                 // add a search button to topNav
                 const showSearchbar = $('<button>', {
-                    class: `btn border-0 text-body shadow-none js-btn-search me-2 wc-round-me`,
+                    class: `btn border-0 text-body shadow-none js-btn-search me-2 bs-calendar-border-style`,
                     html: `<i class="${settings.icons.search}"></i>`
                 }).appendTo(leftCol);
 
@@ -2758,14 +2767,14 @@
                 $('<input>', {
                     type: 'search',
                     style: inputCss,
-                    class: `form-control border-0 bg-body text-body shadow-none ${roundedClass} wc-round-me`,
+                    class: `form-control border-0 bg-body text-body shadow-none ${roundedClass} bs-calendar-border-style`,
                     placeholder: settings.translations.search || 'search',
                     'data-search-input': true
                 }).appendTo(topSearchNav);
 
                 // add a close button
                 const btnCloseSearch = $('<button>', {
-                    class: `btn border-0 text-body shadow-none p-2 ms-2 js-btn-close-search ${roundedClass} wc-round-me`,
+                    class: `btn border-0 text-body shadow-none p-2 ms-2 js-btn-close-search ${roundedClass} bs-calendar-border-style`,
                     html: `<i class="bi bi-x-lg mx-2"></i>`,
                     "aria-label": "Close"
                 }).appendTo(topSearchNav);
@@ -2782,7 +2791,7 @@
             // add a button to create appointments
             if (settings.showAddButton) {
                 $('<button>', {
-                    class: `btn border-0 text-body shadow-none me-2 ${roundedClass} wc-round-me`,
+                    class: `btn border-0 text-body shadow-none me-2 ${roundedClass} bs-calendar-border-style`,
                     html: `<i class="${settings.icons.add}"></i>`,
                     'data-add-appointment': true
                 }).appendTo(leftCol);
@@ -2811,7 +2820,7 @@
             // navigation through the calendar depending on the view
             // Style: Capsule Look (bg-body inside tertiary bar)
             $('<div>', {
-                class: `d-flex align-items-center py-1 ps-3 justify-content-center wc-nav-view-wrapper flex-wrap flex-lg-nowrap text-nowrap bg-body rounded-pill shadow-sm`,
+                class: `d-flex align-items-center py-1 ps-3 justify-content-center wc-nav-view-wrapper flex-wrap flex-lg-nowrap text-nowrap bg-body rounded-pill shadow-sm bs-calendar-border-style`,
                 html: [
                     `<strong class="me-3 user-select-none text-body" id="${data.elements.wrapperViewContainerTitleId}"></strong>`,
                     `<a data-prev href="#" class="text-decoration-none text-body d-flex align-items-center justify-content-center" style="width:24px; height:24px;"><i class="${settings.icons.prev}"></i></a>`,
@@ -2822,7 +2831,7 @@
 
             // Add a button today to activate the current date in the calendar
             $('<button>', {
-                class: `btn border-0 text-body shadow-none ms-2 ${roundedClass} wc-round-me fw-bold`,
+                class: `btn border-0 text-body shadow-none ms-2 ${roundedClass} bs-calendar-border-style fw-bold`,
                 html: settings.translations.today,
                 'data-today': true
             }).appendTo(rightCol);
@@ -2832,7 +2841,7 @@
                 const dropDownView = $('<div>', {
                     class: 'dropdown dropdown-center wc-select-calendar-view ms-2',
                     html: [
-                        `<a class="btn dropdown-toggle border-0 text-body shadow-none wc-round-me ${roundedClass}" data-dropdown-text href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">`,
+                        `<a class="btn dropdown-toggle border-0 text-body shadow-none bs-calendar-border-style ${roundedClass}" data-dropdown-text href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">`,
                         '</a>',
                         '<ul class="dropdown-menu shadow border-0 mt-1">',
                         '</ul>',
@@ -5451,22 +5460,21 @@
                 const bg = appointment.extras.colors.backgroundColor;
                 $badge.css({
                     backgroundColor: bg,
-                    color: '#ffffff',
-                    borderColor: 'var(--bs-body-bg)'
+                    color: '#ffffff'
                 });
 
                 // 2. Styles erzwingen (Sichtbarkeit, Flexbox, Größe)
                 $badge.css({
-                    'width': '8px',
-                    'height': '8px',
+                    'width': '14px',
+                    'height': '14px',
+                    // 'z-index': '13',
                     'font-size': '9px',
-                    'font-weight': 'bold',
                     'display': 'flex',
                     'justify-content': 'center',
                     'align-items': 'center',
                     'border-radius': '50%',
                     'border-style': 'solid',
-                    'border-width': '2px',
+                    'border-width': '0px',
                     'box-sizing': 'border-box',
                     'overflow': 'hidden',
                     'line-height': '1'
@@ -5953,7 +5961,7 @@
                         dayStyles.color = 'var(--bs-body-color)';
                         dayStyles.fontWeight = '600';
                     } else if (isOtherMonth) {
-                        dayClass += ' text-body-tertiary opacity-50';
+                        dayClass += ' text-body-tertiary'; // opacity-50 removed
                     } else {
                         dayClass += ' hover-bg-body-secondary';
                     }
@@ -5966,7 +5974,7 @@
                     if (forYearView) {
                         $('<span>', {
                             // Nur Positionierung, KEINE Border, KEINE Badge-Klasse hier!
-                            class: 'js-badge position-absolute top-100 start-50 translate-middle z-2',
+                            class: 'js-badge position-absolute top-100 start-50 translate-middle z-1',
                             css: {
                                 display: 'none' // Garantiert unsichtbar
                             }
@@ -6512,7 +6520,7 @@
                 // Create a wrapper for every monthly calendar
                 // DESIGN UPDATE: Card-Style (bg-body, shadow-sm, p-3)
                 const monthWrapper = $('<div>', {
-                    class: `d-flex flex-column align-items-center wc-year-month-container wc-round-me bg-body shadow-sm p-3 ${roundedClass}`,
+                    class: `d-flex flex-column align-items-center wc-year-month-container bs-calendar-border-style bg-body shadow-sm p-3 ${roundedClass}`,
                     css: {
                         minWidth: '260px' // Mindestbreite für stabile Optik
                     }
@@ -6571,7 +6579,7 @@
                     const modalHtml = [
                         `<div class="modal fade pe-none" id="${globalCalendarElements.infoModal.substring(1)}" tabindex="-1" data-bs-backdrop="false">`,
                         `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto overflow-y-auto" style="max-height: calc(100% - var(--bs-modal-margin) * 2);">`,
-                        `<div class="modal-content ${borderClass} wc-round-me ">`,
+                        `<div class="modal-content ${borderClass} bs-calendar-border-style ">`,
                         `<div class="modal-body d-flex flex-column align-items-stretch pb-4">`,
                         `<div class="d-flex justify-content-end align-items-center" data-modal-options>`,
                         `<button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i></button>`,

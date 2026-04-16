@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.13.1**](#version-20131)
     * [**Version 2.0.13**](#version-2013)
     * [**Version 2.0.12.1**](#version-20121)
     * [**Version 2.0.12**](#version-2012)
@@ -25,6 +26,11 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.0.13.1
+
+- Improvement: Removed `opacity-50` from out-of-month day cells in year-view small month tables to improve badge visibility/readability.
+- Docs: Updated `README.md` and `changelog.md` to reflect version 2.0.13.1.
 
 ### Version 2.0.13
 
