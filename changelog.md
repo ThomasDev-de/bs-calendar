@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.14**](#version-2014)
     * [**Version 2.0.13.1**](#version-20131)
     * [**Version 2.0.13**](#version-2013)
     * [**Version 2.0.12.1**](#version-20121)
@@ -26,6 +27,12 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.0.14
+
+- Feature: Added new `showAbout` option. If enabled, an About dropdown is rendered at the top-right of the toolbar.
+- Improvement: About dropdown content is generated from `$.bsCalendar.about` and automatically renders links/email as clickable entries.
+- Docs: Updated `README.md` and `changelog.md` to reflect version 2.0.14.
 
 ### Version 2.0.13.1
 

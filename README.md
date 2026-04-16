@@ -1,11 +1,11 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.0.13.1-blue)
+![Version](https://img.shields.io/badge/version-2.0.14-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[changelog](changelog.md#version-20131)
+[changelog](changelog.md#version-2014)
 
 ---
 
@@ -54,8 +54,8 @@ You can use the plugin either via CDN or by installing it through Composer and s
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- bs-calendar via jsDelivr (version 2.0.13.1) -->
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.13.1/dist/bs-calendar.min.js"></script>
+<!-- bs-calendar via jsDelivr (version 2.0.14) -->
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.14/dist/bs-calendar.min.js"></script>
 <script>
     $(function () {
         $('#calendar').bsCalendar();
@@ -294,6 +294,7 @@ available options, including their types, default values, and descriptions.
 | **title**             | `string`                         | `null`                                           | The title displayed at the top-center of the calendar. Can be a string or HTML.                                                                                                                                                                                                       |
 | **startWeekOnSunday** | `boolean`                        | `true`                                           | Indicates whether the week starts on Sunday. If set to `false`, the week starts on Monday.                                                                                                                                                                                            |
 | **showAddButton**     | `boolean`                        | `true`                                           | Should a button for adding an appointment be displayed in the top navbar.                                                                                                                                                                                                             |
+| **showAbout**         | `boolean`                        | `true`                                           | Controls the About dropdown in the top-right toolbar. When enabled, it shows values from `$.bsCalendar.about`.                                                                                                                                                                       |
 | **navigateOnWheel**   | `boolean`                        | `true`                                           | Enables navigation through days, weeks, months, or years using the mouse wheel if set to `true`.                                                                                                                                                                                      |
 | **rounded**           | `number`                         | `5`                                              | Specifies the border rounding of elements in pixels, enhancing the visual presentation.                                                                                                                                                                                               |
 | **border**            | `number`                         | `1`                                              | Specifies the border width of elements in pixels, enhancing the visual presentation.                                                                                                                                                                                                  |
@@ -592,6 +593,7 @@ By default, icons are defined using the Bootstrap Icons library.
 | **week**              | `"bi bi-kanban"`             | Icon for the week view.                           |
 | **month**             | `"bi bi-calendar-month"`     | Icon for the month view.                          |
 | **year**              | `"bi bi-calendar4"`          | Icon for the year view.                           |
+| **about**             | `"bi bi-info-circle"`        | Icon for the About dropdown button.               |
 | **add**               | `"bi bi-plus-lg"`            | Icon for the add button.                          |
 | **menu**              | `"bi bi-list"`               | Icon for the menu button.                         |
 | **search**            | `"bi bi-search"`             | Icon displayed in the search functionality.       |

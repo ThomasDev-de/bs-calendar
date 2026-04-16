@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.13.1
- * @date 2026-04-15
+ * @version 2.0.14
+ * @date 2026-04-16
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -62,7 +62,18 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.13.1',
+            version: '2.0.14',
+            about: {
+                version: '2.0.14',
+                releaseDate: '2026-04-16',
+                developer: 'Thomas Kirsch',
+                developerEmail: 't.kirsch@webcito.de',
+                project: 'https://github.com/ThomasDev-de/bs-calendar/',
+                issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
+                releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
+                readme: 'https://github.com/ThomasDev-de/bs-calendar/blob/main/README.md',
+                changelog: 'https://github.com/ThomasDev-de/bs-calendar/blob/main/changelog.md',
+            },
             setDefaults(options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -70,6 +81,7 @@
                 return this.DEFAULTS;
             },
             DEFAULTS: {
+                showAbout: true,
                 locale: 'en-GB', // language and country
                 title: null,
                 startWeekOnSunday: true,
@@ -95,6 +107,7 @@
                     week: 'bi bi-kanban',
                     month: 'bi bi-calendar-month',
                     year: 'bi bi-calendar4',
+                    about: 'bi bi-info-circle',
                     add: 'bi bi-plus-lg',
                     menu: 'bi bi-layout-sidebar-inset',
                     search: 'bi bi-search',
@@ -2855,6 +2868,93 @@
                     $('<li>', {
                         html: `<a class="dropdown-item" data-view="${view}" href="#"><i class="${settings.icons[view]} me-2"></i> ${settings.translations[view]}</a>`
                     }).appendTo(dropDownView.find('ul'));
+                });
+            }
+
+            if (settings.showAbout && $.bsCalendar.about && typeof $.bsCalendar.about === 'object') {
+                const about = $.bsCalendar.about;
+                const aboutDropdown = $('<div>', {
+                    class: 'dropdown dropdown-end wc-about-dropdown'
+                }).appendTo(rightCol);
+
+                $('<button>', {
+                    type: 'button',
+                    class: `btn border-0 text-body shadow-none bs-calendar-border-style ${roundedClass}`,
+                    'data-bs-toggle': 'dropdown',
+                    'aria-expanded': 'false',
+                    'aria-label': 'About bs-calendar',
+                    html: `<i class="${settings.icons.about || 'bi bi-info-circle'}"></i>`
+                }).appendTo(aboutDropdown);
+
+                const menu = $('<div>', {
+                    class: 'dropdown-menu dropdown-menu-end shadow border-0 mt-1 p-2',
+                    css: {
+                        minWidth: '280px',
+                        maxWidth: '360px'
+                    }
+                }).appendTo(aboutDropdown);
+
+                $('<div>', {
+                    class: 'fw-bold text-uppercase text-body-secondary px-2 py-1 mb-1',
+                    text: 'About'
+                }).appendTo(menu);
+
+                const compactRows = [];
+                if (about.version) {
+                    compactRows.push({label: 'Version', value: String(about.version)});
+                }
+                if (about.releaseDate) {
+                    compactRows.push({label: 'Release', value: String(about.releaseDate)});
+                }
+                if (about.developer || about.developerEmail) {
+                    // const devText = [about.developer, about.developerEmail ? `<${about.developerEmail}>` : null]
+                    const devText = [about.developer]
+                        .filter(Boolean)
+                        .join(' ');
+                    compactRows.push({label: 'Developer', value: devText});
+                }
+
+                compactRows.forEach(row => {
+                    const line = $('<div>', {
+                        class: 'px-2 py-1 d-flex align-items-center justify-content-between gap-2'
+                    }).appendTo(menu);
+                    $('<small>', {
+                        class: 'text-body-secondary fw-semibold',
+                        text: row.label
+                    }).appendTo(line);
+                    $('<small>', {
+                        class: 'text-body text-end text-break',
+                        text: row.value
+                    }).appendTo(line);
+                });
+
+                const linkRows = [
+                    {key: 'project', label: 'Repository', text: ''},
+                    {key: 'issues', label: 'Issues', text: ''},
+                    {key: 'releases', label: 'Releases', text: ''},
+                    {key: 'readme', label: 'Readme', text: ''},
+                    {key: 'changelog', label: 'Changelog', text: ''}
+                ];
+
+                linkRows.forEach(linkRow => {
+                    const href = about[linkRow.key];
+                    if (!href) {
+                        return;
+                    }
+                    const line = $('<div>', {
+                        class: 'px-2 py-1 d-flex align-items-center justify-content-between gap-2'
+                    }).appendTo(menu);
+                    $('<small>', {
+                        class: 'text-body-secondary fw-semibold',
+                        text: linkRow.label
+                    }).appendTo(line);
+                    $('<a>', {
+                        class: 'small text-decoration-none',
+                        href: String(href),
+                        target: '_blank',
+                        rel: 'noopener noreferrer',
+                        html: `${linkRow.text} <i class="bi bi-box-arrow-up-right ms-1"></i>`
+                    }).appendTo(line);
                 });
             }
 
