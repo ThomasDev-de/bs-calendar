@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.14
+ * @version 2.0.14.1
  * @date 2026-04-16
  * @license MIT
  * @requires "jQuery" ^3
@@ -62,17 +62,16 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.14',
+            version: '2.0.14.1',
             about: {
-                version: '2.0.14',
+                version: '2.0.14.1',
                 releaseDate: '2026-04-16',
-                developer: 'Thomas Kirsch',
-                developerEmail: 't.kirsch@webcito.de',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
                 releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
                 readme: 'https://github.com/ThomasDev-de/bs-calendar/blob/main/README.md',
                 changelog: 'https://github.com/ThomasDev-de/bs-calendar/blob/main/changelog.md',
+                license: 'MIT'
             },
             setDefaults(options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
@@ -2907,11 +2906,13 @@
                     compactRows.push({label: 'Release', value: String(about.releaseDate)});
                 }
                 if (about.developer || about.developerEmail) {
-                    // const devText = [about.developer, about.developerEmail ? `<${about.developerEmail}>` : null]
-                    const devText = [about.developer]
+                    const devText = [about.developer, about.developerEmail ? `<${about.developerEmail}>` : null]
                         .filter(Boolean)
                         .join(' ');
                     compactRows.push({label: 'Developer', value: devText});
+                }
+                if (about.license) {
+                    compactRows.push({label: 'License', value: String(about.license)});
                 }
 
                 compactRows.forEach(row => {
@@ -2956,6 +2957,13 @@
                         html: `${linkRow.text} <i class="bi bi-box-arrow-up-right ms-1"></i>`
                     }).appendTo(line);
                 });
+
+                $('<div>', {
+                    class: 'px-2 py-1 mt-2 border-top small text-body-secondary',
+                    'data-about-debug': '1'
+                }).appendTo(menu);
+
+                updateAboutDebugInfo($wrapper);
             }
 
             // The head was completed, creates a container for Sidebar and the view
@@ -3201,6 +3209,7 @@
             setBsCalendarData($wrapper, data);
             trigger($wrapper, 'navigate-back', view, date, newDate);
             buildByView($wrapper, false);
+            updateAboutDebugInfo($wrapper);
         }
 
         /**
@@ -3241,6 +3250,7 @@
             setBsCalendarData($wrapper, data);
             trigger($wrapper, 'navigate-forward', view, date, newDate);
             buildByView($wrapper, false);
+            updateAboutDebugInfo($wrapper);
         }
 
         /**
@@ -4028,6 +4038,26 @@
             dropdown.find('[data-dropdown-text]').html(activeItem.html());
         }
 
+        function getAboutDebugText($wrapper) {
+            const settings = getSettings($wrapper);
+            const locale = settings?.locale || '-';
+            const view = getView($wrapper) || '-';
+            const currentDate = getDate($wrapper);
+            let dateText = '-';
+            if (currentDate instanceof Date && !isNaN(currentDate.getTime())) {
+                dateText = $.bsCalendar.utils.formatDateToDateString(currentDate);
+            }
+            return `Locale: ${locale}<br>Current view: ${view}<br>Current date: ${dateText}`;
+        }
+
+        function updateAboutDebugInfo($wrapper) {
+            const hint = $wrapper.find('[data-about-debug="1"]');
+            if (!hint.length) {
+                return;
+            }
+            hint.html(getAboutDebugText($wrapper));
+        }
+
         /**
          * Retrieves the 'view' data attribute from the given wrapper element.
          *
@@ -4073,6 +4103,7 @@
             saveToLocalStorage($wrapper, 'view', view);
             data.view = view;
             setBsCalendarData($wrapper, data);
+            updateAboutDebugInfo($wrapper);
         }
 
         /**
@@ -4106,6 +4137,7 @@
                 log('Set date to:', data.date);
             }
             setBsCalendarData($wrapper, data);
+            updateAboutDebugInfo($wrapper);
         }
 
         /**
@@ -4226,6 +4258,7 @@
                 onResize($wrapper);
                 updateDropdownView($wrapper);
                 setCurrentDateName($wrapper);
+                updateAboutDebugInfo($wrapper);
                 const monthCalendarWrapper = $('#' + data.elements.wrapperSmallMonthCalendarId);
                 buildMonthSmallView($wrapper, data.date, monthCalendarWrapper);
                 if (triggerViewChanged) {

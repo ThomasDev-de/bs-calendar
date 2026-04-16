@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.14.1**](#version-20141)
     * [**Version 2.0.14**](#version-2014)
     * [**Version 2.0.13.1**](#version-20131)
     * [**Version 2.0.13**](#version-2013)
@@ -27,6 +28,13 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.0.14.1
+
+- Improvement: Refined About dropdown structure and content rendering.
+- Improvement: Developer and developer email are shown in one line in the About section.
+- Improvement: About links use compact action text (`Open`) instead of raw URL labels.
+- Docs: Updated `README.md` and `changelog.md` to reflect version 2.0.14.1.
 
 ### Version 2.0.14
 
