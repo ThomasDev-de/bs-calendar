@@ -923,3 +923,9 @@ Your support and ideas are greatly appreciated!
 ## Explore More Projects
 
 Feel free to explore my other repositories: [ThomasDev-de on GitHub](https://github.com/ThomasDev-de?tab=repositories)
+
+## Support this project
+
+If this project helps you, feel free to support its development:
+
+[☕ Buy me a coffee via PayPal](https://paypal.me/thomaskirsch1529)
