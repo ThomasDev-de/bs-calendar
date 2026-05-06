@@ -1,11 +1,11 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.0.14.1-blue)
+![Version](https://img.shields.io/badge/version-2.0.14.2-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[changelog](changelog.md#version-20141)
+[changelog](changelog.md#version-20142)
 
 ---
 
@@ -54,8 +54,8 @@ You can use the plugin either via CDN or by installing it through Composer and s
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- bs-calendar via jsDelivr (version 2.0.14.1) -->
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.14.1/dist/bs-calendar.min.js"></script>
+<!-- bs-calendar via jsDelivr (version 2.0.14.2) -->
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.14.2/dist/bs-calendar.min.js"></script>
 <script>
     $(function () {
         $('#calendar').bsCalendar();
@@ -810,6 +810,7 @@ supported methods with their usage:
 3. **`updateOptions`**
     - **Description**: Updates the calendar's configuration options at runtime.
     - **Parameters**: An object containing options to update.
+    - **Note**: Structural toolbar/sidebar options (e.g. `showAddButton`, `search`, `views`, `icons`, `translations`) are now applied immediately at runtime.
     - **Usage**:
       ```javascript
       $('#calendar').bsCalendar('updateOptions', {

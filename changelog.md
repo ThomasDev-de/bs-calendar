@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.14.2**](#version-20142)
     * [**Version 2.0.14.1**](#version-20141)
     * [**Version 2.0.14**](#version-2014)
     * [**Version 2.0.13.1**](#version-20131)
@@ -28,6 +29,12 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.0.14.2
+
+- Bugfix: `updateOptions` now rebuilds framework-level UI when structural options change (e.g. `showAddButton`, `search`, `views`, `icons`, `translations`), so toolbar updates are applied immediately.
+- Improvement: Search-mode UI state is preserved more safely during framework rebuilds triggered by `updateOptions`.
+- Docs: Updated `README.md` and `changelog.md` to reflect version 2.0.14.2.
 
 ### Version 2.0.14.1
 

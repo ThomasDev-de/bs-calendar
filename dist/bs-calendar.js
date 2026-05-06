@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.14.1
- * @date 2026-04-16
+ * @version 2.0.14.2
+ * @date 2026-05-06
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -62,10 +62,10 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.14.1',
+            version: '2.0.14.2',
             about: {
-                version: '2.0.14.1',
-                releaseDate: '2026-04-16',
+                version: '2.0.14.2',
+                releaseDate: '2026-05-06',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
                 releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
@@ -2224,6 +2224,24 @@
             const data = getBsCalendarData($wrapper);
             const prevSettings = data.settings || {};
             const merged = $.extend(true, {}, prevSettings, options);
+            const frameworkSensitiveOptionKeys = new Set([
+                'border',
+                'calendars',
+                'icons',
+                'rounded',
+                'search',
+                'showAbout',
+                'showAddButton',
+                'sidebarAddons',
+                'title',
+                'topbarAddons',
+                'translations',
+                'views'
+            ]);
+            const shouldRebuildFramework = Object.keys(options).some(key => frameworkSensitiveOptionKeys.has(key));
+            const wasSearchMode = !!data.searchMode;
+            const previousSearchValue = wasSearchMode ? (getSearchElement($wrapper)?.val() ?? '') : '';
+
             normalizeSettings(merged);
             merged.ingoreStore = true;
             data.mainColor = $.bsCalendar.utils.getColors(merged.mainColor);
@@ -2246,6 +2264,22 @@
             if (typeof merged.title !== 'undefined') {
                 $wrapper.find('#' + data.elements.wrapperViewContainerTitleId)
                     .html(merged.title || '');
+            }
+
+            if (shouldRebuildFramework) {
+                buildFramework($wrapper);
+                if (wasSearchMode && merged.search) {
+                    data.searchMode = true;
+                    setBsCalendarData($wrapper, data);
+                    const searchElement = getSearchElement($wrapper);
+                    if (searchElement && searchElement.length > 0) {
+                        searchElement.val(previousSearchValue);
+                    }
+                    toggleSearchBar($wrapper, true);
+                } else {
+                    data.searchMode = false;
+                    setBsCalendarData($wrapper, data);
+                }
             }
 
             // Rebuild view once
