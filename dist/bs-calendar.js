@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.14.2
+ * @version 2.0.15
  * @date 2026-05-06
  * @license MIT
  * @requires "jQuery" ^3
@@ -62,10 +62,10 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.14.2',
+            version: '2.0.15',
             about: {
-                version: '2.0.14.2',
-                releaseDate: '2026-05-06',
+                version: '2.0.15',
+                releaseDate: '2026-05-07',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
                 releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
@@ -1308,11 +1308,17 @@
                 // Merge data-attributes (if any)
                 if (wrapper.data()) {
                     bsCalendarData.settings = $.extend(true, {}, bsCalendarData.settings, wrapper.data());
+                    if (Object.prototype.hasOwnProperty.call(wrapper.data(), 'views')) {
+                        bsCalendarData.settings.views = Array.isArray(wrapper.data().views) ? [...wrapper.data().views] : wrapper.data().views;
+                    }
                 }
 
                 // Merge provided options (defensive)
                 if (optionsGiven) {
                     bsCalendarData.settings = $.extend(true, {}, bsCalendarData.settings, optionsOrMethod);
+                    if (Object.prototype.hasOwnProperty.call(optionsOrMethod, 'views')) {
+                        bsCalendarData.settings.views = Array.isArray(optionsOrMethod.views) ? [...optionsOrMethod.views] : optionsOrMethod.views;
+                    }
                 }
 
                 // Backwards-compatible normalization for ignoreStore typo ("ingoreStore")
@@ -1753,6 +1759,12 @@
                     // Fallback to sensible default when views is invalid
                     settings.views = ['day', 'week', 'month', 'year'];
                 }
+            }
+
+            if (Array.isArray(settings.views) && settings.views.length === 1) {
+                settings.startView = settings.views[0];
+            } else if (!settings.hasOwnProperty('startView') || !possibleViews.includes(settings.startView) || !settings.views.includes(settings.startView)) {
+                settings.startView = settings.views[0];
             }
 
             // Validate `rounded` -> must be an integer between 0 and 5
@@ -2224,6 +2236,9 @@
             const data = getBsCalendarData($wrapper);
             const prevSettings = data.settings || {};
             const merged = $.extend(true, {}, prevSettings, options);
+            if (Object.prototype.hasOwnProperty.call(options, 'views')) {
+                merged.views = Array.isArray(options.views) ? [...options.views] : options.views;
+            }
             const frameworkSensitiveOptionKeys = new Set([
                 'border',
                 'calendars',
@@ -4116,6 +4131,7 @@
             const data = getBsCalendarData($wrapper);
             const settings = data.settings;
             const currentView = data.view;
+            const allowedViews = Array.isArray(settings.views) ? settings.views : [];
 
             if (view !== 'search' && !['day', 'week', 'month', 'year'].includes(view)) {
                 if (settings.debug) {
@@ -4125,6 +4141,13 @@
                     );
                 }
                 view = 'month';
+            }
+
+            if (view !== 'search' && allowedViews.length > 0 && !allowedViews.includes(view)) {
+                if (settings.debug) {
+                    log('View switch blocked because the view is not enabled in settings.views:', view);
+                }
+                return;
             }
 
             if (currentView !== view) {

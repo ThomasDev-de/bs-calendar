@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.15**](#version-2015)
     * [**Version 2.0.14.2**](#version-20142)
     * [**Version 2.0.14.1**](#version-20141)
     * [**Version 2.0.14**](#version-2014)
@@ -29,6 +30,13 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.0.15
+
+- Bugfix: View switching is now strictly limited to entries configured in `views`.
+- Bugfix: Fixed `views` merging in initialization and `updateOptions` so arrays are replaced (not index-merged), preventing hidden fallback views from remaining active.
+- Improvement: If exactly one view is configured in `views`, `startView` is now forced to that view.
+- Docs: Updated `README.md` and `changelog.md` to reflect version 2.0.15.
 
 ### Version 2.0.14.2
 
