@@ -7,6 +7,13 @@
 
 [changelog](changelog.md#version-2015)
 
+
+---
+
+> [!WARNING]
+> As of version 2, Bootstrap 4 is no longer supported.   
+> To use the plugin in **Bootstrap 4**, use version **^1.** .
+
 ---
 
 ## Repository Guide
@@ -135,11 +142,7 @@ This repository includes an MIT license (see `LICENSE`). `composer.json` is alig
 - Issues: https://github.com/ThomasDev-de/bs-calendar/issues
 - Docs/homepage: https://github.webcito.de/#bs-calendar
 
----
 
-> [!WARNING]
-> As of version 2, Bootstrap 4 is no longer supported.   
-> To use the plugin in **Bootstrap 4**, use version **^1.** .
 
 | Day                      | Week                       | Month                        | Year                       |
 |--------------------------|----------------------------|------------------------------|----------------------------|
