@@ -1,11 +1,11 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-1.2.12-blue)
+![Version](https://img.shields.io/badge/version-1.3.0-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v4%20%7C%20v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[changelog](changelog.md#version-123)
+[changelog](changelog.md#version-130)
 
 | Day                      | Week                       | Month                        | Year                       |
 |--------------------------|----------------------------|------------------------------|----------------------------|
@@ -399,8 +399,8 @@ By default, icons are defined using the Bootstrap Icons library.
     - **Example**: `"primary"`, `"danger"`, or `"#FF5733"`
 
 5. **`link`**
-    - **Description**: A link associated with the appointment (e.g. an external reference or more details).
-    - **Example**: `"https://example.com"`
+    - **Description**: A link associated with the appointment. It can be a URL string or an object with `href`, `text`, `target`, `rel`, `html`, and `disabled`.
+    - **Example**: `"https://example.com"` or `{"href": "https://example.com", "text": "Open", "disabled": false}`
 
 6. **`location`**
     - **Description**: The location of the appointment. It can be:

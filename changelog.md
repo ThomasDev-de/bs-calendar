@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 1.3.0**](#version-130)
     * [**Version 1.2.12**](#version-1212)
     * [**Version 1.2.11**](#version-1211)
     * [**Version 1.2.9**](#version-129)
@@ -10,6 +11,19 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+#### **Version 1.3.0**
+
+- Added `$.bsCalendar.utils.convertIcsToAppointments(icsData)` for converting ICS/iCalendar data into bs-calendar appointments.
+- Fixed date-only and local date-time parsing to avoid timezone-related day shifts in negative timezones.
+- Fixed weekday label generation for month and small-month views in negative timezones.
+- Fixed holiday rendering when no appointment `url` is configured.
+- Fixed year-view holiday cleanup so day cells are not removed during refreshes.
+- Improved Bootstrap tooltip cleanup during clear, refresh, view changes, and destroy.
+- Improved `views` handling: comma-separated strings are accepted, invalid views are filtered, duplicate entries are removed, and a single configured view is respected.
+- Added `disabled` support for object-style appointment links.
+- Improved Bootstrap 4 detection for color utility handling.
+- Added CSS variable support for direct colors such as `var(--bs-primary)`.
 
 #### **Version 1.2.12**
 

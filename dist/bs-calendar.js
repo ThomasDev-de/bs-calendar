@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 1.2.12
- * @date 2025-10-28
+ * @version 1.3.0
+ * @date 2026-05-07
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v4 | ^v5
@@ -61,7 +61,7 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '1.2.7',
+            version: '1.3.0',
             setDefaults: function (options) {
                 this.DEFAULTS = $.extend(true, {}, this.DEFAULTS, options || {});
             },
@@ -134,9 +134,131 @@
                 onNavigateForward: null,
                 onNavigateBack: null,
                 storeState: false,
-                debug: true
+                debug: false
             },
             utils: {
+                /**
+                 * Converts an ICS (iCalendar) string into appointment objects compatible with bsCalendar.
+                 *
+                 * @param {string} icsData - The raw ICS string data.
+                 * @return {Array<Object>} An array of appointment objects.
+                 */
+                convertIcsToAppointments: (icsData) => {
+                    const appointments = [];
+                    const lines = String(icsData || '').replace(/\r\n/g, "\n").replace(/\r/g, "\n").split("\n");
+                    const unfoldedLines = [];
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const line = lines[i];
+                        if (/^[ \t]/.test(line) && unfoldedLines.length > 0) {
+                            unfoldedLines[unfoldedLines.length - 1] += line.slice(1);
+                        } else {
+                            unfoldedLines.push(line.trim());
+                        }
+                    }
+
+                    let currentEvent = null;
+
+                    const parseIcsDate = (val) => {
+                        const cleanVal = val.split(':').pop().replace('Z', '');
+                        const isAllDay = cleanVal.length === 8;
+                        const y = cleanVal.substring(0, 4);
+                        const m = cleanVal.substring(4, 6);
+                        const d = cleanVal.substring(6, 8);
+
+                        if (isAllDay) {
+                            return {
+                                dateStr: `${y}-${m}-${d} 00:00:00`,
+                                allDay: true
+                            };
+                        }
+
+                        const h = cleanVal.substring(9, 11);
+                        const min = cleanVal.substring(11, 13);
+                        const s = cleanVal.substring(13, 15) || '00';
+
+                        return {
+                            dateStr: `${y}-${m}-${d} ${h}:${min}:${s}`,
+                            allDay: false
+                        };
+                    };
+
+                    const unescapeText = (text) => {
+                        return String(text || '')
+                            .replace(/\\n/gi, '\n')
+                            .replace(/\\N/gi, '\n')
+                            .replace(/\\,/g, ',')
+                            .replace(/\\;/g, ';')
+                            .replace(/\\\\/g, '\\');
+                    };
+
+                    for (const line of unfoldedLines) {
+                        if (line.trim() === 'BEGIN:VEVENT') {
+                            currentEvent = {
+                                ATTENDEES: []
+                            };
+                            continue;
+                        }
+
+                        if (line.trim() === 'END:VEVENT') {
+                            if (currentEvent) {
+                                const startRaw = currentEvent.DTSTART || '';
+                                const endRaw = currentEvent.DTEND || null;
+
+                                if (startRaw) {
+                                    const startData = parseIcsDate(startRaw);
+                                    const endData = endRaw ? parseIcsDate(endRaw) : {
+                                        dateStr: startData.dateStr,
+                                        allDay: startData.allDay
+                                    };
+
+                                    const appointment = {
+                                        title: unescapeText(currentEvent.SUMMARY || 'No Title'),
+                                        description: unescapeText(currentEvent.DESCRIPTION || ''),
+                                        location: unescapeText(currentEvent.LOCATION || ''),
+                                        link: currentEvent.URL || null,
+                                        categories: currentEvent.CATEGORIES ? unescapeText(currentEvent.CATEGORIES) : null,
+                                        status: currentEvent.STATUS || null,
+                                        organizer: currentEvent.ORGANIZER || null,
+                                        attendees: currentEvent.ATTENDEES.length > 0 ? currentEvent.ATTENDEES : null,
+                                        start: startData.dateStr,
+                                        end: endData.dateStr,
+                                        allDay: startData.allDay
+                                    };
+
+                                    if (currentEvent.UID) {
+                                        appointment.id = currentEvent.UID;
+                                    }
+
+                                    appointments.push(appointment);
+                                }
+                            }
+                            currentEvent = null;
+                            continue;
+                        }
+
+                        if (currentEvent) {
+                            const colonIndex = line.indexOf(':');
+                            if (colonIndex > -1) {
+                                const keyPart = line.substring(0, colonIndex);
+                                const valuePart = line.substring(colonIndex + 1);
+                                const mainKey = keyPart.split(';')[0];
+
+                                if (['SUMMARY', 'DESCRIPTION', 'LOCATION', 'UID', 'URL', 'CATEGORIES', 'STATUS', 'ORGANIZER'].includes(mainKey)) {
+                                    currentEvent[mainKey] = valuePart;
+                                } else if (mainKey === 'ATTENDEE') {
+                                    currentEvent.ATTENDEES.push(valuePart);
+                                } else if (mainKey === 'DTSTART') {
+                                    currentEvent.DTSTART = line;
+                                } else if (mainKey === 'DTEND') {
+                                    currentEvent.DTEND = line;
+                                }
+                            }
+                        }
+                    }
+
+                    return appointments;
+                },
                 openHolidayApi: {
                     /**
                      * Fetches subdivision data from an external API based on a given language ISO code.
@@ -404,9 +526,42 @@
                  * @param {boolean} [withSeconds=true] - Indicates whether the formatted string should include seconds or not.
                  * @return {string|null} The formatted time string in "HH:mm:ss" or "HH:mm" format, or null if the provided date is invalid.
                  */
+                parseDateInput: (input) => {
+                    if (input instanceof Date) {
+                        return new Date(input.getTime());
+                    }
+                    if (typeof input === 'number') {
+                        return new Date(input);
+                    }
+                    if (typeof input !== 'string') {
+                        return new Date(input);
+                    }
+
+                    const value = input.trim();
+                    const dateOnlyMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                    if (dateOnlyMatch) {
+                        const year = parseInt(dateOnlyMatch[1], 10);
+                        const month = parseInt(dateOnlyMatch[2], 10) - 1;
+                        const day = parseInt(dateOnlyMatch[3], 10);
+                        return new Date(year, month, day, 0, 0, 0, 0);
+                    }
+
+                    const localDateTimeMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?$/);
+                    if (localDateTimeMatch) {
+                        const year = parseInt(localDateTimeMatch[1], 10);
+                        const month = parseInt(localDateTimeMatch[2], 10) - 1;
+                        const day = parseInt(localDateTimeMatch[3], 10);
+                        const hour = parseInt(localDateTimeMatch[4], 10);
+                        const minute = parseInt(localDateTimeMatch[5], 10);
+                        const second = parseInt(localDateTimeMatch[6] || '0', 10);
+                        return new Date(year, month, day, hour, minute, second, 0);
+                    }
+
+                    return new Date(value);
+                },
                 formatTime: (date, withSeconds = true) => {
                     if (typeof date === 'string') {
-                        date = new Date(date);
+                        date = $.bsCalendar.utils.parseDateInput(date);
                     }
 
                     // Überprüfen, ob das Datum ungültig ist
@@ -465,11 +620,11 @@
                     const formatter = new Intl.DateTimeFormat(locale, {weekday: 'short'});
 
                     // Generate an array of all weekdays (0 = Sunday, 1 = Monday, ..., 6 = Saturday).
-                    // Use Date.UTC to ensure consistent results in all environments (ignoring local time zones).
+                    // Use a local noon to avoid date shifts in negative timezones.
                     const weekDays = [...Array(7).keys()].map(day =>
                         // Add 1 to the day index to represent the day of the month.
                         // Example: '2023-01-01' for Sunday, '2023-01-02' for Monday, and so on.
-                        formatter.format(new Date(Date.UTC(2023, 0, day + 1)))
+                        formatter.format(new Date(2023, 0, day + 1, 12, 0, 0, 0))
                     );
 
                     // If the week should start on Sunday, return the weekdays as is.
@@ -485,7 +640,7 @@
                  * @return {string} A string representation of the date in the SQL date format (YYYY-MM-DD).
                  */
                 formatDateToDateString: (date) => {
-                    const dateObj = typeof date === 'string' ? new Date(date) : date;
+                    const dateObj = typeof date === 'string' ? $.bsCalendar.utils.parseDateInput(date) : date;
                     const year = dateObj.getFullYear();
                     const month = String(dateObj.getMonth() + 1).padStart(2, '0');
                     const day = String(dateObj.getDate()).padStart(2, '0');
@@ -514,9 +669,10 @@
                     if (typeof bootstrap !== 'undefined' && typeof bootstrap.Modal?.VERSION === 'string') {
                         // Major Version direkt extrahieren und zurückgeben
                         return parseInt(bootstrap.Modal.VERSION.split('.')[0], 10);
+                    } else if (typeof $ === 'function' && typeof $.fn.modal === 'function' && $.fn.modal.Constructor?.VERSION) {
+                        return parseInt($.fn.modal.Constructor.VERSION.split('.')[0], 10);
                     } else if (typeof $ === 'function' && typeof $().modal === 'function') {
-                        // Bootstrap 3 erkennen über jQuery
-                        return 3;
+                        return 4;
                     }
                     return null; // Bootstrap nicht geladen oder nicht erkannt
                 },
@@ -696,6 +852,10 @@
                  */
                 computeColor: (inputColor) => {
                     if ($.bsCalendar.utils.isDirectColorValid(inputColor)) {
+                        if (inputColor.startsWith("var(--")) {
+                            return $.bsCalendar.utils.getComputedStyles(inputColor);
+                        }
+
                         // dissolve the color into a valid format (e.g. hex)
                         const resolvedColor = $.bsCalendar.utils.resolveColor(inputColor);
                         const isDark = $.bsCalendar.utils.isDarkColor(resolvedColor);
@@ -725,7 +885,8 @@
                  */
                 getComputedStyles: (inputClassNames) => {
                     const bsV = $.bsCalendar.utils.getBootstrapVersion();
-                    const classList = inputClassNames.split(" ").map(className => {
+                    const isVar = inputClassNames.startsWith("var(--");
+                    const classList = isVar ? [] : inputClassNames.split(" ").map(className => {
                         if (className.includes("opacity") || className.includes("gradient")) {
                             return className.startsWith("bg-") ? className : `bg-${className}`;
                         } else {
@@ -752,15 +913,20 @@
                     tempElement.style.position = "absolute";
                     document.body.appendChild(tempElement);
 
-                    classList.forEach(className => {
-                        tempElement.classList.add(className);
-                    });
+                    if (isVar) {
+                        tempElement.style.backgroundColor = inputClassNames;
+                    } else {
+                        classList.forEach(className => {
+                            tempElement.classList.add(className);
+                        });
+                    }
 
                     const computedStyles = window.getComputedStyle(tempElement);
 
                     const backgroundColor = computedStyles.backgroundColor || "rgba(0, 0, 0, 0)";
                     const backgroundImage = computedStyles.backgroundImage || "none";
-                    const color = bsV > 4 ? (computedStyles.color || "#000000")
+                    const color = isVar ? ($.bsCalendar.utils.isDarkColor(backgroundColor) ? "#ffffff" : "#000000")
+                        : bsV > 4 ? (computedStyles.color || "#000000")
                         : ($.bsCalendar.utils.isDarkColor(backgroundColor) ? "#ffffff" : "#000000");
                     const opacity = computedStyles.opacity || "1";
 
@@ -793,11 +959,12 @@
                         return false;
                     }
 
+                    const varPattern = /^var\(--[A-Za-z0-9_-]+\)$/;
                     const hexPattern = /^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/;
                     const rgbPattern = /^rgba?\(\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})\s*,\s*([0-9]{1,3})(?:,\s*(0|0?\.\d+|1))?\s*\)$/;
 
                     // check whether input is a valid hex/RGB value or a defined color name
-                    return hexPattern.test(inputColor) || rgbPattern.test(inputColor) || inputColor.toLowerCase() in $.bsCalendar.utils.colorNameToHex;
+                    return varPattern.test(inputColor) || hexPattern.test(inputColor) || rgbPattern.test(inputColor) || inputColor.toLowerCase() in $.bsCalendar.utils.colorNameToHex;
                 },
                 /**
                  * Resolves the input color by converting color names to their hexadecimal representation
@@ -900,7 +1067,7 @@
                  */
                 formatDateByLocale: (date, locale) => {
                     if (typeof date === 'string') {
-                        date = new Date(date);
+                        date = $.bsCalendar.utils.parseDateInput(date);
                     }
                     // formatting options
                     const options = {weekday: 'long', month: 'long', day: 'numeric'};
@@ -1087,6 +1254,47 @@
 
         const namespace = '.bs.calendar';
 
+        function normalizeViews(views) {
+            const possibleViews = ['year', 'month', 'week', 'day'];
+
+            if (typeof views === 'string') {
+                views = views.split(',').map(v => v.trim()).filter(Boolean);
+            }
+
+            if (!Array.isArray(views)) {
+                return possibleViews.slice();
+            }
+
+            const seen = new Set();
+            const normalized = [];
+            views.forEach(view => {
+                if (possibleViews.includes(view) && !seen.has(view)) {
+                    seen.add(view);
+                    normalized.push(view);
+                }
+            });
+
+            return normalized.length ? normalized : possibleViews.slice();
+        }
+
+        function normalizeSettings(settings) {
+            settings.views = normalizeViews(settings.views);
+
+            if (typeof settings.startDate === 'string') {
+                settings.startDate = $.bsCalendar.utils.parseDateInput(settings.startDate);
+            }
+
+            if (!settings.startView || !settings.views.includes(settings.startView)) {
+                settings.startView = settings.views[0];
+            }
+
+            if (settings.views.length === 1) {
+                settings.startView = settings.views[0];
+            }
+
+            return settings;
+        }
+
 
         /**
          * The `bs4migration` object provides CSS rule mappings for migrating or aligning styles
@@ -1186,26 +1394,7 @@
 
                 settings.translations = $.extend(true, {}, settings.translations, $.bsCalendar.utils.getStandardizedUnits(settings.locale) || {});
 
-                // Normalize `views` immediately after merging settings to avoid duplicates
-                // coming from defaults, data-attributes or passed options.
-                if (settings.hasOwnProperty('views')) {
-                    // Accept comma separated string as well (defensive)
-                    if (typeof settings.views === 'string') {
-                        settings.views = settings.views.split(',').map(v => v.trim()).filter(Boolean);
-                    }
-                    if (Array.isArray(settings.views)) {
-                        // Keep original order while removing duplicates
-                        const seen = new Set();
-                        settings.views = settings.views.filter(v => {
-                            if (seen.has(v)) return false;
-                            seen.add(v);
-                            return true;
-                        });
-                    } else {
-                        // Fallback to sensible default when views is invalid
-                        settings.views = ['day', 'week', 'month', 'year'];
-                    }
-                }
+                normalizeSettings(settings);
 
                 setSettings(wrapper, settings);
 
@@ -1356,7 +1545,7 @@
          * @return {string} A formatted HTML string representing the appointment.
          */
         function formatterMonth(appointment, extras) {
-            const startTime = new Date(appointment.start).toLocaleTimeString(extras.locale, {
+            const startTime = $.bsCalendar.utils.parseDateInput(appointment.start).toLocaleTimeString(extras.locale, {
                 hour: '2-digit',
                 minute: '2-digit'
             });
@@ -1393,8 +1582,9 @@
             ].join(';');
             const roundedCss = $.bsCalendar.utils.getBorderRadiusCss(5);
             const link = buildLink(appointment.link, roundedCss);
-            const day = new Date(appointment.start).getDate();
-            const date = new Date(appointment.start).toLocaleDateString(extras.locale, {
+            const appointmentStart = $.bsCalendar.utils.parseDateInput(appointment.start);
+            const day = appointmentStart.getDate();
+            const date = appointmentStart.toLocaleDateString(extras.locale, {
                 month: 'short',
                 year: 'numeric',
                 weekday: 'short'
@@ -1402,7 +1592,7 @@
 
             return [
                 `<div class="d-flex align-items-center justify-content-start g-3 py-1">`,
-                `<div class="day fw-bold text-center" style="${firstCollStyle}" data-date="${$.bsCalendar.utils.formatDateToDateString(new Date(appointment.start))}">`,
+                `<div class="day fw-bold text-center" style="${firstCollStyle}" data-date="${$.bsCalendar.utils.formatDateToDateString(appointmentStart)}">`,
                 `${day}`,
                 `</div>`,
                 `<div class="text-muted" style="width: 150px;">`,
@@ -1454,15 +1644,15 @@
             const settings = getSettings($wrapper);
             let date = null;
             if (typeof object === "string") {
-                date = new Date(object);
+                date = $.bsCalendar.utils.parseDateInput(object);
             } else if (object instanceof Date) {
-                date = object;
+                date = new Date(object.getTime());
             } else if (typeof object === "object") {
                 if (object.hasOwnProperty('date')) {
                     if (typeof object.date === "string") {
-                        date = new Date(object.date);
+                        date = $.bsCalendar.utils.parseDateInput(object.date);
                     } else if (object.date instanceof Date) {
-                        date = object.date;
+                        date = new Date(object.date.getTime());
                     }
                 }
                 if (object.hasOwnProperty('view') && settings.views.includes(object.view)) {
@@ -1487,10 +1677,32 @@
          * @param {boolean} [removeAppointments=true] - Determines whether the appointments should also be removed.
          * @return {void} This function does not return a value.
          */
+        function destroyCalendarTooltips($wrapper) {
+            const $tooltipOwners = $wrapper.find('[data-bs-calendar-tooltip], .wc-holiday-marked, [data-original-title], [data-bs-original-title]');
+
+            $tooltipOwners.each(function () {
+                const $el = $(this);
+                try {
+                    $el.tooltip('hide');
+                    $el.tooltip('dispose');
+                } catch (e) {
+                    // ignore cleanup errors from partially initialized tooltips
+                }
+                $el.removeAttr('aria-describedby data-original-title data-bs-original-title');
+            });
+
+            $wrapper.find('.tooltip').remove();
+            $('body > .tooltip.wc-calendar-tooltip').remove();
+        }
+
         function methodClear($wrapper, removeAppointments = true) {
+            destroyCalendarTooltips($wrapper);
             $wrapper.find('[data-appointment]').remove();
             $wrapper.find('[data-role="holiday"]').remove();
-            $wrapper.find('.tooltip').remove();
+            $wrapper.find('.wc-holiday-marked').each(function () {
+                $(this).removeClass('text-primary wc-holiday-marked').removeAttr('data-bs-calendar-tooltip title');
+            });
+            $wrapper.find('.js-badge').text('').removeAttr('style');
             if (removeAppointments) {
                 setAppointments($wrapper, []).then(_cleanedAppointments => {
                     void _cleanedAppointments; // Verhindert die Warnung, aber erfüllt keinen Zweck
@@ -1506,6 +1718,7 @@
          */
         function destroy($wrapper) {
             $(calendarElements.infoModal).modal('hide');
+            methodClear($wrapper, false);
             $wrapper.removeData('initBsCalendar');
             $wrapper.removeData('settings');
             $wrapper.removeData('view');
@@ -1571,6 +1784,9 @@
 
                 // Merge the old settings with the new ones
                 const newSettings = $.extend(true, {}, $.bsCalendar.getDefaults(), $wrapper.data(), settingsBefore, options || {});
+                if (Object.prototype.hasOwnProperty.call(options, 'views')) {
+                    newSettings.views = Array.isArray(options.views) ? options.views.slice() : options.views;
+                }
 
                 // Retain the date and view logic
                 if (!options.hasOwnProperty('startDate')) {
@@ -1580,6 +1796,7 @@
                     newSettings.startView = startView;
                 }
 
+                normalizeSettings(newSettings);
                 setSettings($wrapper, newSettings);
 
                 // Reinitialize the calendar
@@ -1679,6 +1896,7 @@
          *   - `target` (string): Specifies where to open the linked document. Defaults to "_blank".
          *   - `rel` (string): Specifies the relationship between the current document and the linked document.
          *   Defaults to "noopener noreferrer".
+         *   - `disabled` (boolean): Adds the disabled class and removes navigation when true.
          * @param {string} [style=""] - Optional style string applied to the `style` attribute of the anchor tag.
          * @return {string} An HTML string representing an anchor tag. Returns an empty string if `link` is invalid.
          */
@@ -1702,10 +1920,14 @@
                 const text = link.text || defaultText;
                 const target = link.target || defaultTarget;
                 const rel = link.rel || defaultRel;
+                const disabled = link.disabled === true || link.disabled === 'true';
+                const disabledClass = disabled ? ' disabled' : '';
+                const href = disabled ? '#' : link.href;
+                const ariaDisabled = disabled ? ' aria-disabled="true" tabindex="-1"' : '';
 
                 // When HTML content is defined, this is used
                 const content = link.html || text;
-                return `<a class="btn btn-primary px-5" style="${style}" href="${link.href}" target="${target}" rel="${rel}">${content}</a>`;
+                return `<a class="btn btn-primary px-5${disabledClass}" style="${style}" href="${href}" target="${target}" rel="${rel}"${ariaDisabled}>${content}</a>`;
             }
 
             // If neither a string nor a correct object is available, return empty.
@@ -1838,19 +2060,8 @@
                     $wrapper.addClass('position-relative bs-calendar');
                     const wrapperUniqueId = $.bsCalendar.utils.generateRandomString(8);
                     $wrapper.attr('data-bs-calendar-id', wrapperUniqueId);
-
-                    if (!settings.hasOwnProperty('views') || settings.views.length === 0) {
-                        settings.views = ['day', 'week', 'month', 'year'];
-                        setSettings($wrapper, settings);
-                    }
-                    if (!settings.hasOwnProperty('startView') || !settings.startView) {
-                        settings.startView = 'month';
-                        setSettings($wrapper, settings);
-                    }
-                    if (!settings.views.includes(settings.startView)) {
-                        settings.startView = settings.views[0];
-                        setSettings($wrapper, settings);
-                    }
+                    normalizeSettings(settings);
+                    setSettings($wrapper, settings);
                     setView($wrapper, settings.startView);
                     setDate($wrapper, settings.startDate);
                     setSearchMode($wrapper, false);
@@ -1916,7 +2127,7 @@
                     const processedAppointments = appointments
                         .filter(appointment => {
                             // check whether `date` is available and is valid
-                            const isValidDate = appointment.hasOwnProperty('date') && !isNaN(Date.parse(appointment.date));
+                            const isValidDate = appointment.hasOwnProperty('date') && !isNaN($.bsCalendar.utils.parseDateInput(appointment.date).getTime());
                             // check whether `total` is present and is larger than 0
                             const isValidTotal = appointment.hasOwnProperty('total') && parseInt(appointment.total) > 0;
                             // only take over if both exams are successful
@@ -1977,13 +2188,17 @@
             appointments.forEach(appointment => {
 
                 // Ensure start and end times are properly normalized
-                appointment.start = $.bsCalendar.utils.normalizeDateTime(appointment.start.trim());
-                appointment.end = $.bsCalendar.utils.normalizeDateTime(appointment.end.trim());
+                if (typeof appointment.start === 'string') {
+                    appointment.start = $.bsCalendar.utils.normalizeDateTime(appointment.start.trim());
+                }
+                if (typeof appointment.end === 'string') {
+                    appointment.end = $.bsCalendar.utils.normalizeDateTime(appointment.end.trim());
+                }
 
                 if (appointment.allDay) {
                     // Clean up start and end times when the appointment is all-day
-                    const startDate = new Date(appointment.start);
-                    const endDate = new Date(appointment.end);
+                    const startDate = $.bsCalendar.utils.parseDateInput(appointment.start);
+                    const endDate = $.bsCalendar.utils.parseDateInput(appointment.end);
 
                     // Set the beginning and end of the whole day
                     appointment.start = new Date(
@@ -1991,14 +2206,14 @@
                         startDate.getMonth(),
                         startDate.getDate(),
                         0, 0, 0 // midnight
-                    ).toISOString();
+                    );
 
                     appointment.end = new Date(
                         endDate.getFullYear(),
                         endDate.getMonth(),
                         endDate.getDate(),
                         23, 59, 59 // end of the day
-                    ).toISOString();
+                    );
                 }
             });
         }
@@ -2029,7 +2244,7 @@
                         }
 
                         // sort within the same category by start date
-                        return new Date(a.start) - new Date(b.start);
+                        return $.bsCalendar.utils.parseDateInput(a.start) - $.bsCalendar.utils.parseDateInput(b.start);
                     });
 
                     resolve(appointments); // Give back the sorted array
@@ -2698,7 +2913,7 @@
                     if (settings.debug) {
                         log('Day hour clicked:', details);
                     }
-                    const start = new Date(`${$.bsCalendar.utils.formatDateToDateString(details.date)} ${String(details.hour).padStart(2, '0')}:00:00`);
+                    const start = $.bsCalendar.utils.parseDateInput(`${$.bsCalendar.utils.formatDateToDateString(details.date)} ${String(details.hour).padStart(2, '0')}:00:00`);
                     const end = new Date(start);
                     end.setMinutes(end.getMinutes() + 30);
 
@@ -2726,7 +2941,7 @@
                     const dateAttribute = dayWrapper.attr('data-month-date'); // Hole das Datum aus dem Attribut
 
                     const currentTime = new Date(); // Aktuelle Zeit
-                    const start = new Date(`${$.bsCalendar.utils.formatDateToDateString(dateAttribute)} ${String(currentTime.getHours()).padStart(2, '0')}:${String(currentTime.getMinutes()).padStart(2, '0')}:${String(currentTime.getSeconds()).padStart(2, '0')}`);
+                    const start = $.bsCalendar.utils.parseDateInput(`${$.bsCalendar.utils.formatDateToDateString(dateAttribute)} ${String(currentTime.getHours()).padStart(2, '0')}:${String(currentTime.getMinutes()).padStart(2, '0')}:${String(currentTime.getSeconds()).padStart(2, '0')}`);
                     const end = new Date(start); // Erstelle eine Kopie des Startzeitpunkts (kann für andere Zwecke genutzt werden)
 
 
@@ -2808,7 +3023,7 @@
                         toggleSearchMode($wrapper, false, false);
                     }
                     if (settings.views.includes('day')) {
-                        const date = new Date($(e.currentTarget).attr('data-date'));
+                        const date = $.bsCalendar.utils.parseDateInput($(e.currentTarget).attr('data-date'));
                         setView($wrapper, 'day');
                         setDate($wrapper, date);
                         buildByView($wrapper);
@@ -2819,7 +3034,7 @@
                     e.preventDefault();
                     const settings = getSettings($wrapper);
                     if (settings.views.includes('month')) {
-                        const date = new Date($(e.currentTarget).attr('data-month'));
+                        const date = $.bsCalendar.utils.parseDateInput($(e.currentTarget).attr('data-month'));
                         setView($wrapper, 'month');
                         setDate($wrapper, date);
                         buildByView($wrapper);
@@ -3102,14 +3317,14 @@
             const settings = getSettings($wrapper);
             const currentView = getView($wrapper);
 
-            if (view !== 'search' && !['day', 'week', 'month', 'year'].includes(view)) {
+            if (view !== 'search' && !settings.views.includes(view)) {
                 if (settings.debug) {
                     console.error(
-                        'Invalid view type provided. Defaulting to month view.',
+                        'Invalid or disabled view type provided. Defaulting to the first configured view.',
                         'Provided view:', view
                     );
                 }
-                view = 'month';
+                view = settings.views[0] || 'month';
             }
 
             if (currentView !== view) {
@@ -3144,7 +3359,9 @@
         function setDate($wrapper, date) {
             const settings = getSettings($wrapper);
             if (typeof date === 'string') {
-                date = new Date(date);
+                date = $.bsCalendar.utils.parseDateInput(date);
+            } else if (date instanceof Date) {
+                date = new Date(date.getTime());
             }
             if (settings.debug) {
                 log('Set date to:', date);
@@ -3299,7 +3516,7 @@
                 if (view === 'year') {
                     // If the view is yearly, prepare request data specific to the year
                     requestData = {
-                        year: new Date(period.date).getFullYear(),
+                        year: $.bsCalendar.utils.parseDateInput(period.date).getFullYear(),
                         view: view // 'year'
                     };
                 } else {
@@ -3449,6 +3666,11 @@
 
                 // Save the newly initiated request in the wrapper's data for management
                 $wrapper.data('currentRequest', newRequest);
+            } else if (!inSearchMode) {
+                setAppointments($wrapper, []).then(_cleanedAppointments => {
+                    trigger($wrapper, 'after-load', _cleanedAppointments);
+                    buildAppointmentsForView($wrapper);
+                });
             }
         }
 
@@ -3476,8 +3698,8 @@
                     }
 
                     // Use explicit construction of date and time:
-                    const slotStart = new Date(`${obj.date}T${obj.times.start}`);
-                    const slotEnd = new Date(`${obj.date}T${obj.times.end}`);
+                    const slotStart = $.bsCalendar.utils.parseDateInput(`${obj.date}T${obj.times.start}`);
+                    const slotEnd = $.bsCalendar.utils.parseDateInput(`${obj.date}T${obj.times.end}`);
 
                     // calculate the weekday correctly
                     const weekday = slotStart.getDay();
@@ -3578,7 +3800,7 @@
                     log(">>>> All-Day Appointment displayDates:", appointment.extras.displayDates);
                 }
                 appointment.extras.displayDates.forEach((obj) => {
-                    const fakeStart = new Date(obj.date);
+                    const fakeStart = $.bsCalendar.utils.parseDateInput(obj.date);
                     const allDayWrapper = $viewContainer.find('[data-all-day="' + fakeStart.getDay() + '"][data-date-local="' + $.bsCalendar.utils.formatDateToDateString(fakeStart) + '"]');
                     if (allDayWrapper.length) {
                         allDayWrapper.addClass('pb-3');
@@ -3610,8 +3832,8 @@
                         const appointment = slotData.appointment;
 
                         // check whether slotdata.start and slotdata.
-                        const startDate = new Date(slotData.start);
-                        const endDate = new Date(slotData.end);
+                        const startDate = $.bsCalendar.utils.parseDateInput(slotData.start);
+                        const endDate = $.bsCalendar.utils.parseDateInput(slotData.end);
 
                         if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
                             console.warn(`Invalid date in Appointment: ${appointment?.title || 'unknown'}`);
@@ -3638,7 +3860,7 @@
                             .slice(columnIndex + 1)
                             .every(nextColumn =>
                                 nextColumn.every(slot =>
-                                    endDate <= new Date(slot.start) || startDate >= new Date(slot.end)
+                                    endDate <= $.bsCalendar.utils.parseDateInput(slot.start) || startDate >= $.bsCalendar.utils.parseDateInput(slot.end)
                                 )
                             );
 
@@ -3697,7 +3919,7 @@
                 fullWidth.forEach((slotData) => {
                     const appointment = slotData.appointment;
 
-                    const startDate = new Date(slotData.start);
+                    const startDate = $.bsCalendar.utils.parseDateInput(slotData.start);
 
                     // appointments that take the whole width
                     const appointmentWidthPercent = 100; // full width
@@ -4032,7 +4254,7 @@
 
             if (view === 'year') {
                 appointments.forEach(appointment => {
-                    const date = new Date(appointment.date);
+                    const date = $.bsCalendar.utils.parseDateInput(appointment.date);
                     appointment.extras = {
                         colors: $.bsCalendar.utils.getColors(appointment.color || settings.defaultColor, settings.defaultColor),
                         isToday: date.toDateString() === now.toDateString(),
@@ -4041,8 +4263,8 @@
                 });
             } else {
                 appointments.forEach(appointment => {
-                    const start = new Date(appointment.start);
-                    const end = new Date(appointment.end);
+                    const start = $.bsCalendar.utils.parseDateInput(appointment.start);
+                    const end = $.bsCalendar.utils.parseDateInput(appointment.end);
                     const isAllDay = appointment.allDay;
 
                     let iconClass = !isAllDay ? settings.icons.appointment : settings.icons.appointmentAllDay;
@@ -4346,13 +4568,13 @@
             // Iterate through each holiday object
             holidays.forEach(holiday => {
                 // Parse the start and end dates of the holiday
-                const startDate = new Date(holiday.startDate);
-                const endDate = new Date(holiday.endDate);
+                const startDate = $.bsCalendar.utils.parseDateInput(holiday.startDate);
+                const endDate = $.bsCalendar.utils.parseDateInput(holiday.endDate);
 
                 // Loop through each date from startDate to endDate
                 for (let date = new Date(startDate); date <= endDate; date.setDate(date.getDate() + 1)) {
-                    // Format the current date as "YYYY-MM-DD" (ISO string without time part)
-                    const formattedDate = date.toISOString().split('T')[0];
+                    // Format the current date as local "YYYY-MM-DD" to avoid timezone shifts.
+                    const formattedDate = $.bsCalendar.utils.formatDateToDateString(date);
                     let container;
 
 
@@ -4384,11 +4606,12 @@
                             }).prependTo(container);
                             $(settings.formatter.holiday(holiday, view)).appendTo($holidayWrapper);
                         } else {
-                            container.addClass('text-primary');
-                            container.attr('data-role', 'holiday');
+                            container.addClass('text-primary wc-holiday-marked');
+                            container.attr('data-bs-calendar-tooltip', '1');
                             container.tooltip({
                                 title: holiday.title,
-                                container: $wrapper
+                                container: $wrapper,
+                                customClass: 'wc-calendar-tooltip'
                             });
                         }
                     }
@@ -5328,12 +5551,12 @@
 
             // Convert `startDate` to a Date object if it's a string representation of a date.
             if (typeof startDate === 'string') {
-                startDate = new Date(startDate);
+                startDate = $.bsCalendar.utils.parseDateInput(startDate);
             }
 
             // Convert `endDate` to a Date object if it's a string representation of a date (optional).
             if (typeof endDate === 'string') {
-                endDate = new Date(endDate);
+                endDate = $.bsCalendar.utils.parseDateInput(endDate);
             }
 
             // Extract hours and minutes from the startDate.
