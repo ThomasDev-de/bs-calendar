@@ -1,6 +1,6 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.1.1-blue)
+![Version](https://img.shields.io/badge/version-2.1.2-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -61,8 +61,8 @@ You can use the plugin either via CDN or by installing it through Composer and s
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- bs-calendar via jsDelivr (version 2.1.1) -->
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.1.1/dist/bs-calendar.min.js"></script>
+<!-- bs-calendar via jsDelivr (version 2.1.2) -->
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.1.2/dist/bs-calendar.min.js"></script>
 <script>
     $(function () {
         $('#calendar').bsCalendar();
@@ -321,8 +321,8 @@ available options, including their types, default values, and descriptions.
 | **calendars**         | `array` \| `null`                | `null`                                           | Defines a list of calendar objects (id, title, color) used to categorize and filter appointments via the sidebar.                                                                                                                                                                     |
 | **onAll**             | `function(eventName, ...params)` | `null`                                           | Global handler that triggers on all events. Receives the event name and additional parameters as arguments.                                                                                                                                                                           |
 | **onInit**            | `function()`                     | `null`                                           | Called after the calendar is fully initialized. Use this for any required setup operations.                                                                                                                                                                                           |
-| **onAdd**             | `function(data, dragExtras)`     | `null`                                           | Triggered when the "Add" button is clicked or when a time grid is clicked/dragged in the day/week view. Drag-create passes `dragExtras` with recalculated drag context as a second argument.                                                                                          |
-| **onEdit**            | `function(appointment, extras, dragExtras)` | `null`                                  | Triggered when editing an appointment. Drag-move keeps the original `appointment` and `extras` unchanged and passes recalculated drag context as `dragExtras`.                                                                                                                        |
+| **onAdd**             | `function(data, dragExtras)`     | `null`                                           | Triggered when the "Add" button is clicked or when a time grid is clicked/dragged in the day/week view. Drag-create passes `dragExtras` with the dragged start/end date and time as a second argument.                                                                                |
+| **onEdit**            | `function(appointment, extras, dragExtras)` | `null`                                  | Triggered when editing an appointment. Drag-move keeps the original `appointment` and `extras` unchanged and passes the dragged start/end date and time as `dragExtras`.                                                                                                             |
 | **onDelete**          | `function(appointment, extras)`  | `null`                                           | Triggered when deleting an appointment. The first argument is the appointment being deleted, and the second provides additional context.                                                                                                                                              |
 | **onView**            | `function(view)`                 | `null`                                           | Triggered when the calendar view changes. The new view is passed as an argument.                                                                                                                                                                                                      |
 | **onBeforeLoad**      | `function(requestData)`          | `null`                                           | Invoked prior to retrieving appointments. Receives contextual information, such as the current view, time span, and search term, if any.                                                                                                                                              |
@@ -771,8 +771,8 @@ They follow the naming convention:
 |----------------------------------|------------------------|--------------------------------------------------------------------------------------|
 | **all.bs.calendar**              | `eventName, ...params` | Triggered for every calendar event.                                                  |
 | **init.bs.calendar**             | `-`                    | Triggered after the calendar has been initialized.                                   |
-| **add.bs.calendar**              | `data, dragExtras`     | Triggered when a new item (e.g., appointment) is added. `dragExtras` is present for drag-create actions. |
-| **edit.bs.calendar**             | `appointment, extras, dragExtras` | Triggered when an appointment or item is edited. `dragExtras` is present for drag-move actions. |
+| **add.bs.calendar**              | `data, dragExtras`     | Triggered when a new item (e.g., appointment) is added. `dragExtras` contains dragged start/end date and time for drag-create actions. |
+| **edit.bs.calendar**             | `appointment, extras, dragExtras` | Triggered when an appointment or item is edited. `dragExtras` contains dragged start/end date and time for drag-move actions. |
 | **delete.bs.calendar**           | `appointment, extras`  | Fired when an appointment is deleted.                                                |
 | **view.bs.calendar**             | `view`                 | Triggered when the calendar view is changed (e.g., from month to week).              |
 | **navigate-forward.bs.calendar** | `view, from, to`       | Triggered when navigating forwards (e.g., to the next month or year).                |

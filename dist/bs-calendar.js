@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.1.1
+ * @version 2.1.2
  * @date 2026-05-08
  * @license MIT
  * @requires "jQuery" ^3
@@ -62,9 +62,9 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.1.1',
+            version: '2.1.2',
             about: {
-                version: '2.1.1',
+                version: '2.1.2',
                 releaseDate: '2026-05-08',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
@@ -3748,7 +3748,7 @@
                                 },
                                 view: getView(globalDragState.createDragState.$wrapper)
                             };
-                            const dragExtras = getDragAppointmentExtras(globalDragState.createDragState.$wrapper, null, start, end);
+                            const dragExtras = getDragAppointmentExtras(start, end);
                             trigger(globalDragState.createDragState.$wrapper, 'add', payload, dragExtras);
                         }
                         globalDragState.createDragState = null;
@@ -3765,7 +3765,7 @@
                                 const newEnd = new Date(newStart.getTime() + globalDragState.moveDragState.durationMs);
 
                                 const returnData = getAppointmentForReturn(appointment);
-                                const dragExtras = getDragAppointmentExtras(globalDragState.moveDragState.$wrapper, appointment, newStart, newEnd);
+                                const dragExtras = getDragAppointmentExtras(newStart, newEnd);
                                 trigger(globalDragState.moveDragState.$wrapper, 'edit', returnData.appointment, returnData.extras, dragExtras);
                             }
                         }
@@ -5671,23 +5671,23 @@
         }
 
         /**
-         * Builds a copied extras object for drag actions without mutating the original appointment.
+         * Builds a minimal drag context object without mutating the original appointment.
          *
-         * @param {jQuery} $wrapper - The wrapper element containing calendar settings.
-         * @param {Object|null} appointment - The original appointment object, if the drag moves an existing appointment.
          * @param {Date} start - The dragged start date.
          * @param {Date} end - The dragged end date.
-         * @return {Object} A deep copy of the recalculated extras object.
+         * @return {Object} The dragged start/end date and time values.
          */
-        function getDragAppointmentExtras($wrapper, appointment, start, end) {
-            const temporaryAppointment = copyAppointment(appointment || {});
-            temporaryAppointment.start = start;
-            temporaryAppointment.end = end;
-            if (!temporaryAppointment.hasOwnProperty('allDay')) {
-                temporaryAppointment.allDay = false;
-            }
-            setAppointmentExtras($wrapper, [temporaryAppointment]);
-            return $.extend(true, {}, appointment?.extras || {}, temporaryAppointment.extras || {});
+        function getDragAppointmentExtras(start, end) {
+            return {
+                start: {
+                    date: $.bsCalendar.utils.formatDateToDateString(start),
+                    time: $.bsCalendar.utils.formatTime(start)
+                },
+                end: {
+                    date: $.bsCalendar.utils.formatDateToDateString(end),
+                    time: $.bsCalendar.utils.formatTime(end)
+                }
+            };
         }
 
         /**

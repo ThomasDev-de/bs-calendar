@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.1.2**](#version-212)
     * [**Version 2.1.1**](#version-211)
     * [**Version 2.1.0**](#version-210)
     * [**Version 2.0.16**](#version-2016)
@@ -34,10 +35,15 @@
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
 
+### Version 2.1.2
+
+- Improvement: `dragExtras` now only contains the dragged `start` and `end` date/time values; all other appointment context remains in the regular `extras` object.
+- Docs: Updated `README.md`, `changelog.md`, and verified the demo for `2.1.2`.
+
 ### Version 2.1.1
 
-- Improvement: Drag-create now passes recalculated drag context as `dragExtras` to `add.bs.calendar` / `onAdd`.
-- Improvement: Drag-move now keeps the original `appointment` and `extras` unchanged and passes recalculated drag context as `dragExtras` to `edit.bs.calendar` / `onEdit`.
+- Improvement: Drag-create now passes dragged start/end date and time as `dragExtras` to `add.bs.calendar` / `onAdd`.
+- Improvement: Drag-move now keeps the original `appointment` and `extras` unchanged and passes dragged start/end date and time as `dragExtras` to `edit.bs.calendar` / `onEdit`.
 - Docs: Updated `README.md`, `changelog.md`, and the demo for `2.1.1`.
 
 ### Version 2.1.0
