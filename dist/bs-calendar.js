@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.1.4
+ * @version 2.1.5
  * @date 2026-05-08
  * @license MIT
  * @requires "jQuery" ^3
@@ -62,9 +62,9 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.1.4',
+            version: '2.1.5',
             about: {
-                version: '2.1.4',
+                version: '2.1.5',
                 releaseDate: '2026-05-08',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
@@ -3752,6 +3752,43 @@
                 return Math.max(0, Math.min(totalMinutes, snapped));
             }
 
+            function getMoveSlotContainerFromPointer($wrapperRef, point, $fallbackSlotContainer) {
+                if (getView($wrapperRef) !== 'week' || !Number.isFinite(point.x)) {
+                    return $fallbackSlotContainer;
+                }
+
+                let $matchedSlotContainer = $();
+                let $horizontalMatch = $();
+
+                $wrapperRef.find('.wc-day-view-time-slots').each(function () {
+                    const $slotContainer = $(this);
+                    const offset = $slotContainer.offset();
+                    if (!offset) {
+                        return;
+                    }
+
+                    const left = offset.left;
+                    const right = left + $slotContainer.outerWidth();
+                    const top = offset.top;
+                    const bottom = top + $slotContainer.outerHeight();
+                    const withinX = point.x >= left && point.x <= right;
+                    const withinY = !Number.isFinite(point.y) || (point.y >= top - 40 && point.y <= bottom + 40);
+
+                    if (withinX) {
+                        $horizontalMatch = $slotContainer;
+                    }
+
+                    if (withinX && withinY) {
+                        $matchedSlotContainer = $slotContainer;
+                        return false;
+                    }
+                });
+
+                return $matchedSlotContainer.length
+                    ? $matchedSlotContainer
+                    : ($horizontalMatch.length ? $horizontalMatch : $fallbackSlotContainer);
+            }
+
             function minutesToTimeString(totalMinutes) {
                 const h = Math.floor(totalMinutes / 60);
                 const m = totalMinutes % 60;
@@ -3891,6 +3928,26 @@
                         if (isTouchLikeEvent(e)) {
                             e.preventDefault();
                         }
+                        const $previousSlotContainer = globalDragState.moveDragState.$slotContainer;
+                        const $targetSlotContainer = getMoveSlotContainerFromPointer(
+                            globalDragState.moveDragState.$wrapper,
+                            point,
+                            $previousSlotContainer
+                        );
+
+                        if ($targetSlotContainer.length && !$targetSlotContainer.is($previousSlotContainer)) {
+                            globalDragState.moveDragState.$slotContainer = $targetSlotContainer;
+                            globalDragState.moveDragState.dateLocal = String($targetSlotContainer.attr('data-date-local'));
+                            globalDragState.moveDragState.$appointment.appendTo($targetSlotContainer);
+                            relayoutDayContainerForDrag(
+                                globalDragState.moveDragState.$wrapper,
+                                $previousSlotContainer,
+                                null,
+                                null,
+                                null
+                            );
+                        }
+
                         const settings = getSettings(globalDragState.moveDragState.$wrapper);
                         const pointerMinutes = getMinutesFromPointer(globalDragState.moveDragState.$wrapper, globalDragState.moveDragState.$slotContainer, pageY);
                         const durationMinutes = Math.max(getSnapMinutes(), Math.round(globalDragState.moveDragState.durationMs / 60000));
@@ -5474,7 +5531,7 @@
 
                         // Search of the container based on weekdays and date
                         const $weekDayContainer = $viewContainer.find(
-                            `[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`
+                            `.wc-day-view-time-slots[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`
                         );
 
                         if (!$weekDayContainer.length) {
@@ -5581,7 +5638,7 @@
 
                     // Search of the container based on the date and Weekday
                     const $weekDayContainer = $viewContainer.find(
-                        `[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`
+                        `.wc-day-view-time-slots[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`
                     );
                     if (!$weekDayContainer.length) {
                         console.warn(

@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.1.5**](#version-215)
     * [**Version 2.1.4**](#version-214)
     * [**Version 2.1.3**](#version-213)
     * [**Version 2.1.2**](#version-212)
@@ -36,6 +37,13 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.1.5
+
+- Feature: Week-view drag-move can now move appointments across days within the visible week, not only within the original day column.
+- Bugfix: Week-view appointments are now rendered only into the inner time-slot container, preventing duplicate appointment elements that could block drag-move.
+- Demo: Re-render the calendar when the appointment modal closes so canceled drag edits restore the current loaded data.
+- Docs: Updated README and changelog for `2.1.5`.
 
 ### Version 2.1.4
 

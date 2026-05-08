@@ -211,6 +211,9 @@
 
         function initAppointmentModal() {
             $modal
+                .on('hide.bs.modal', function () {
+                    $calendar.bsCalendar('render');
+                })
                 .on('change', 'input[name="allDay"]', function () {
                     $modal.find('.js-time-fields').toggle(!$(this).prop('checked'));
                 })

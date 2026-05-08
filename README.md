@@ -1,6 +1,6 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.1.4-blue)
+![Version](https://img.shields.io/badge/version-2.1.5-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -53,7 +53,7 @@ Use CDN/script tags:
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.1.4/dist/bs-calendar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.1.5/dist/bs-calendar.min.js"></script>
 ```
 
 Or install via Composer:
@@ -338,7 +338,8 @@ After a local mutation method has succeeded, the calendar fires completion event
 | `deleted.bs.calendar` | `onDeleted(appointment, extras)` | Appointment that was removed. |
 
 When drag-create is used, `dragExtras` contains the proposed `start` and `end`. When drag-move is used, `appointment`
-still contains the original appointment and `dragExtras` contains the proposed new range.
+still contains the original appointment and `dragExtras` contains the proposed new range. In week view, drag-move can
+also move an appointment to another day in the visible week.
 
 Open a modal for new appointments:
 
@@ -785,13 +786,13 @@ Development notes:
 
 Changelog and support:
 
-- [Changelog](changelog.md#version-214)
+- [Changelog](changelog.md#version-215)
 - [Issues](https://github.com/ThomasDev-de/bs-calendar/issues)
 - [License](LICENSE)
 
 ## Completeness Check
 
-This README is intended to cover the public surface of version `2.1.4`:
+This README is intended to cover the public surface of version `2.1.5`:
 
 - All `DEFAULTS` options from `dist/bs-calendar.js`
 - All public plugin methods in the method switch
