@@ -220,22 +220,25 @@
                     }
                 });
             })
-            .on('add.bs.calendar', function (event, data) {
+            .on('add.bs.calendar', function (event, data, dragExtras) {
                 // console.log(data);
+                const start = dragExtras?.start || data.start;
+                const end = dragExtras?.end || data.end;
                 modal.find('input[name="title"]').val(null);
-                modal.find('input[name="from_date"]').val(data.start.date);
-                modal.find('input[name="to_date"]').val(data.end.date);
-                modal.find('input[name="from_time"]').val(data.start.time);
-                modal.find('input[name="to_time"]').val(data.end.time);
+                modal.find('input[name="from_date"]').val(start.date);
+                modal.find('input[name="to_date"]').val(end.date);
+                modal.find('input[name="from_time"]').val(start.time ? start.time.substring(0, 5) : null);
+                modal.find('input[name="to_time"]').val(end.time ? end.time.substring(0, 5) : null);
                 modal.find('input[name="allDay"]').prop('checked', false).trigger('change');
                 modal.find('textarea[name="description"]').val(null);
                 modal.find('input[name="color"]').val(null);
                 modal.find('input[name="link"]').val(null);
                 modal.modal('show');
             })
-            .on('edit.bs.calendar', function (event, appointment, extras) {
+            .on('edit.bs.calendar', function (event, appointment, extras, dragExtras) {
                 event.preventDefault();
                 // console.log(appointment);
+                const eventExtras = dragExtras || extras;
 
                 const isAllDay = appointment.allDay;
                 const title = appointment.title;
@@ -243,12 +246,12 @@
                 const color = appointment.color;
                 const link = appointment.link;
 
-                const fromTime = isAllDay ? null : extras.start.time.substring(0, 5);
-                const toTime = isAllDay ? null : extras.end.time.substring(0, 5);
+                const fromTime = isAllDay ? null : eventExtras.start.time.substring(0, 5);
+                const toTime = isAllDay ? null : eventExtras.end.time.substring(0, 5);
 
                 modal.find('input[name="title"]').val(title);
-                modal.find('input[name="from_date"]').val(extras.start.date);   // Datum aus 'YYYY-MM-DD HH:mm:ss'
-                modal.find('input[name="to_date"]').val(extras.end.date);       // Datum aus 'YYYY-MM-DD HH:mm:ss'
+                modal.find('input[name="from_date"]').val(eventExtras.start.date);   // Datum aus 'YYYY-MM-DD HH:mm:ss'
+                modal.find('input[name="to_date"]').val(eventExtras.end.date);       // Datum aus 'YYYY-MM-DD HH:mm:ss'
                 modal.find('input[name="from_time"]').val(fromTime);   // Uhrzeit aus 'YYYY-MM-DD HH:mm:ss'
                 modal.find('input[name="to_time"]').val(toTime);       // Uhrzeit aus 'YYYY-MM-DD HH:mm:ss'
                 modal.find('input[name="allDay"]').prop('checked', isAllDay).trigger('change');
