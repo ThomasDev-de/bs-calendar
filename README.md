@@ -1,11 +1,11 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.0.16-blue)
+![Version](https://img.shields.io/badge/version-2.1.0-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[changelog](changelog.md#version-2016)
+[changelog](changelog.md#version-210)
 
 
 ---
@@ -61,8 +61,8 @@ You can use the plugin either via CDN or by installing it through Composer and s
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- bs-calendar via jsDelivr (version 2.0.16) -->
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.16/dist/bs-calendar.min.js"></script>
+<!-- bs-calendar via jsDelivr (version 2.1.0) -->
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.1.0/dist/bs-calendar.min.js"></script>
 <script>
     $(function () {
         $('#calendar').bsCalendar();
@@ -297,6 +297,7 @@ available options, including their types, default values, and descriptions.
 | **title**             | `string`                         | `null`                                           | The title displayed at the top-center of the calendar. Can be a string or HTML.                                                                                                                                                                                                       |
 | **startWeekOnSunday** | `boolean`                        | `true`                                           | Indicates whether the week starts on Sunday. If set to `false`, the week starts on Monday.                                                                                                                                                                                            |
 | **showAddButton**     | `boolean`                        | `true`                                           | Should a button for adding an appointment be displayed in the top navbar.                                                                                                                                                                                                             |
+| **draggable**         | `boolean`                        | `false`                                          | Enables drag-create and drag-move interactions in `day`/`week` view. On touch devices, drag starts via long-press.                                                                                                                                                                  |
 | **showAbout**         | `boolean`                        | `true`                                           | Controls the About dropdown in the top-right toolbar. When enabled, it shows values from `$.bsCalendar.about`.                                                                                                                                                                       |
 | **navigateOnWheel**   | `boolean`                        | `true`                                           | Enables navigation through days, weeks, months, or years using the mouse wheel if set to `true`.                                                                                                                                                                                      |
 | **rounded**           | `number`                         | `5`                                              | Specifies the border rounding of elements in pixels, enhancing the visual presentation.                                                                                                                                                                                               |
@@ -822,7 +823,14 @@ supported methods with their usage:
       $('#calendar').bsCalendar('refresh');
       ```
 
-2. **`clear`**
+2. **`render`**
+    - **Description**: Re-renders the current view using already loaded data (no fetch/reload).
+    - **Usage**:
+      ```javascript
+      $('#calendar').bsCalendar('render');
+      ```
+
+3. **`clear`**
     - **Description**: Clears all content and appointments from the calendar.
     - **Note**: This method is not available in search mode.
     - **Usage**:
@@ -830,7 +838,7 @@ supported methods with their usage:
       $('#calendar').bsCalendar('clear');
       ```
 
-3. **`updateOptions`**
+4. **`updateOptions`**
     - **Description**: Updates the calendar's configuration options at runtime.
     - **Parameters**: An object containing options to update.
     - **Note**: Structural toolbar/sidebar options (e.g. `showAddButton`, `search`, `views`, `icons`, `translations`) are now applied immediately at runtime.
@@ -842,14 +850,14 @@ supported methods with their usage:
       });
       ```
 
-4. **`destroy`**
+5. **`destroy`**
     - **Description**: Completely removes the calendar and restores the original DOM element.
     - **Usage**:
       ```javascript
       $('#calendar').bsCalendar('destroy');
       ```
 
-5. **`setDate`**
+6. **`setDate`**
     - **Description**: Sets the provided date as the currently visible reference date in the calendar.
     - **Parameters**: A valid date object or a date string in the `YYYY-MM-DD` format.
     - **Note**: Not available in search mode.
@@ -858,7 +866,7 @@ supported methods with their usage:
       $('#calendar').bsCalendar('setDate', '2025-07-01');
       ```
 
-6. **`setToday`**
+7. **`setToday`**
     - **Description**: Navigates to and sets today's date as the reference date.
     - **Note**: Not available in search mode.
     - **Usage**:

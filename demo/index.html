@@ -200,7 +200,11 @@
         calendarElement.bsCalendar({
             startWeekOnSunday: true,
             storeState: true,
+            draggable: true,
         });
+        modal.on('hidden.bs.modal', function () {
+            calendarElement.bsCalendar('render');
+        })
         // $('#calendar2').bsCalendar();
         calendarElement
             .on('change', '#selectUser', function () {

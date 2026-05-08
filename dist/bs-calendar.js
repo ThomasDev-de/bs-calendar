@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.16
+ * @version 2.1.0
  * @date 2026-05-06
  * @license MIT
  * @requires "jQuery" ^3
@@ -62,9 +62,9 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.16',
+            version: '2.1.0',
             about: {
-                version: '2.0.16',
+                version: '2.1.0',
                 releaseDate: '2026-05-08',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
@@ -97,6 +97,7 @@
                 views: ['year', 'month', 'week', 'day'],
                 holidays: null,
                 showAddButton: true,
+                draggable: false,
                 translations: {
                     search: 'Type and press Enter',
                     searchNoResult: 'No appointment found'
@@ -1243,6 +1244,14 @@
         };
 
         let globalEventsInitialized = false;
+        const globalDragState = {
+            createDragState: null,
+            moveDragState: null,
+            pendingCreate: null,
+            pendingMove: null,
+            suppressSlotClickUntil: 0,
+            suppressAppointmentClickUntil: 0
+        };
 
         const namespace = '.bs.calendar';
 
@@ -1399,6 +1408,9 @@
                 switch (optionsOrMethod) {
                     case 'refresh':
                         methodRefresh(wrapper, params);
+                        break;
+                    case 'render':
+                        methodRender(wrapper);
                         break;
                     case 'clear':
                         if (!inSearchMode) {
@@ -3493,6 +3505,279 @@
                 globalEventsInitialized = true;
             }
 
+            function getSnapMinutes() {
+                return 15;
+            }
+
+            function isTouchPointerEvent(e) {
+                return (e.originalEvent && e.originalEvent.pointerType === 'touch');
+            }
+
+            function isTouchLikeEvent(e) {
+                return e.type.indexOf('touch') === 0 || isTouchPointerEvent(e);
+            }
+
+            function getEventPageXY(e) {
+                const oe = e.originalEvent || e;
+                if (Number.isFinite(e.pageX) && Number.isFinite(e.pageY)) {
+                    return {x: e.pageX, y: e.pageY};
+                }
+                if (oe && oe.touches && oe.touches.length > 0) {
+                    return {x: oe.touches[0].pageX, y: oe.touches[0].pageY};
+                }
+                if (oe && oe.changedTouches && oe.changedTouches.length > 0) {
+                    return {x: oe.changedTouches[0].pageX, y: oe.changedTouches[0].pageY};
+                }
+                if (Number.isFinite(oe?.pageX) && Number.isFinite(oe?.pageY)) {
+                    return {x: oe.pageX, y: oe.pageY};
+                }
+                return {x: NaN, y: NaN};
+            }
+
+            function resolveEventWrapper(target, fallbackWrapper) {
+                const $resolved = $(target).closest(globalCalendarElements.wrapper);
+                if ($resolved.length) {
+                    return $resolved;
+                }
+                return fallbackWrapper;
+            }
+
+            function getMinutesFromPointer($wrapperRef, $slotContainer, pageY) {
+                const settings = getSettings($wrapperRef);
+                const offset = $slotContainer.offset();
+                const slotHeight = settings.hourSlots.height;
+                const totalMinutes = Math.max(0, (settings.hourSlots.end - settings.hourSlots.start) * 60);
+                const totalHeightPx = Math.max(1, (settings.hourSlots.end - settings.hourSlots.start) * slotHeight);
+                const relativeY = Math.max(0, Math.min(totalHeightPx, pageY - offset.top));
+                const minutesFloat = (relativeY / totalHeightPx) * totalMinutes;
+                const snap = getSnapMinutes();
+                const snapped = Math.round(minutesFloat / snap) * snap;
+                return Math.max(0, Math.min(totalMinutes, snapped));
+            }
+
+            function minutesToTimeString(totalMinutes) {
+                const h = Math.floor(totalMinutes / 60);
+                const m = totalMinutes % 60;
+                return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+            }
+
+            function buildDateTimeByMinutes($wrapperRef, dateString, minutesFromStart) {
+                const settings = getSettings($wrapperRef);
+                const date = $.bsCalendar.utils.parseDateInput(dateString);
+                date.setHours(settings.hourSlots.start, 0, 0, 0);
+                date.setMinutes(date.getMinutes() + minutesFromStart);
+                return date;
+            }
+
+            function appointmentsOverlap(a, b) {
+                return !(a.end <= b.start || a.start >= b.end);
+            }
+
+            function relayoutDayContainerForDrag($wrapperRef, $slotContainer, movingAppointment, tempStart, tempEnd) {
+                const settings = getSettings($wrapperRef);
+                const $appointments = $slotContainer.find('[data-appointment]');
+                const items = [];
+
+                $appointments.each(function () {
+                    const $el = $(this);
+                    const appointment = $el.data('appointment');
+                    if (!appointment || appointment.allDay) {
+                        return;
+                    }
+                    const isMoving = appointment === movingAppointment;
+                    const start = isMoving ? new Date(tempStart) : $.bsCalendar.utils.parseDateInput(appointment.start);
+                    const end = isMoving ? new Date(tempEnd) : $.bsCalendar.utils.parseDateInput(appointment.end);
+                    if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
+                        return;
+                    }
+                    items.push({$el, appointment, start, end});
+                });
+
+                items.sort((a, b) => a.start - b.start || a.end - b.end);
+                const clusters = [];
+                let currentCluster = [];
+                let clusterEnd = null;
+
+                items.forEach(item => {
+                    if (!currentCluster.length) {
+                        currentCluster.push(item);
+                        clusterEnd = item.end;
+                        return;
+                    }
+
+                    if (item.start < clusterEnd) {
+                        currentCluster.push(item);
+                        if (item.end > clusterEnd) {
+                            clusterEnd = item.end;
+                        }
+                    } else {
+                        clusters.push(currentCluster);
+                        currentCluster = [item];
+                        clusterEnd = item.end;
+                    }
+                });
+
+                if (currentCluster.length) {
+                    clusters.push(currentCluster);
+                }
+
+                const columnGap = 2;
+                const containerWidth = Math.max(1, $slotContainer.width());
+
+                clusters.forEach(cluster => {
+                    const columns = [];
+                    cluster.forEach(item => {
+                        let placed = false;
+                        for (let i = 0; i < columns.length; i++) {
+                            const column = columns[i];
+                            const hasOverlap = column.some(existing => appointmentsOverlap(existing, item));
+                            if (!hasOverlap) {
+                                column.push(item);
+                                item._column = i;
+                                placed = true;
+                                break;
+                            }
+                        }
+                        if (!placed) {
+                            columns.push([item]);
+                            item._column = columns.length - 1;
+                        }
+                    });
+
+                    const totalColumns = Math.max(1, columns.length);
+                    const totalGap = (totalColumns - 1) * columnGap;
+                    const widthPercent = totalColumns > 1 ? (100 - (totalGap * 100 / containerWidth)) / totalColumns : 100;
+
+                    cluster.forEach(item => {
+                        const position = calculateSlotPosition($wrapperRef, item.start.toISOString(), item.end.toISOString());
+                        const leftPercent = totalColumns > 1 ? item._column * (widthPercent + (columnGap * 100 / containerWidth)) : 0;
+                        item.$el.css({
+                            top: `${position.top}px`,
+                            height: `${position.height}px`,
+                            left: `${leftPercent}%`,
+                            width: `${widthPercent}%`
+                        });
+                    });
+                });
+            }
+
+            $(document)
+                .off('mousemove' + namespace + ' mouseup' + namespace + ' pointermove' + namespace + ' pointerup' + namespace + ' touchmove' + namespace + ' touchend' + namespace + ' touchcancel' + namespace)
+                .on('mousemove' + namespace + ' pointermove' + namespace + ' touchmove' + namespace, function (e) {
+                    const point = getEventPageXY(e);
+                    const pageY = point.y;
+                    if (!Number.isFinite(pageY)) {
+                        return;
+                    }
+                    if (globalDragState.createDragState) {
+                        if (isTouchLikeEvent(e)) {
+                            e.preventDefault();
+                        }
+                        const settings = getSettings(globalDragState.createDragState.$wrapper);
+                        const endMinutesRaw = getMinutesFromPointer(globalDragState.createDragState.$wrapper, globalDragState.createDragState.$slotContainer, pageY);
+                        let startMinutes = Math.min(globalDragState.createDragState.startMinutes, endMinutesRaw);
+                        let endMinutes = Math.max(globalDragState.createDragState.startMinutes, endMinutesRaw);
+                        const snap = getSnapMinutes();
+                        if (endMinutes - startMinutes < snap) {
+                            endMinutes = Math.min(endMinutes + snap, (settings.hourSlots.end - settings.hourSlots.start) * 60);
+                        }
+
+                        const topPx = (startMinutes / 60) * settings.hourSlots.height;
+                        const heightPx = Math.max(10, ((endMinutes - startMinutes) / 60) * settings.hourSlots.height);
+                        globalDragState.createDragState.$preview.css({top: `${topPx}px`, height: `${heightPx}px`, display: 'block'});
+                        globalDragState.createDragState.currentStartMinutes = startMinutes;
+                        globalDragState.createDragState.currentEndMinutes = endMinutes;
+                        globalDragState.createDragState.dragged = true;
+                    }
+
+                    if (globalDragState.moveDragState) {
+                        if (isTouchLikeEvent(e)) {
+                            e.preventDefault();
+                        }
+                        const settings = getSettings(globalDragState.moveDragState.$wrapper);
+                        const pointerMinutes = getMinutesFromPointer(globalDragState.moveDragState.$wrapper, globalDragState.moveDragState.$slotContainer, pageY);
+                        const durationMinutes = Math.max(getSnapMinutes(), Math.round(globalDragState.moveDragState.durationMs / 60000));
+                        const maxStart = Math.max(0, ((settings.hourSlots.end - settings.hourSlots.start) * 60) - durationMinutes);
+                        const newStartMinutes = Math.max(0, Math.min(maxStart, pointerMinutes - globalDragState.moveDragState.offsetMinutes));
+                        const snap = getSnapMinutes();
+                        const snappedStart = Math.round(newStartMinutes / snap) * snap;
+                        const tempStart = buildDateTimeByMinutes(
+                            globalDragState.moveDragState.$wrapper,
+                            globalDragState.moveDragState.dateLocal,
+                            snappedStart
+                        );
+                        const tempEnd = new Date(tempStart.getTime() + globalDragState.moveDragState.durationMs);
+                        relayoutDayContainerForDrag(
+                            globalDragState.moveDragState.$wrapper,
+                            globalDragState.moveDragState.$slotContainer,
+                            globalDragState.moveDragState.appointment,
+                            tempStart,
+                            tempEnd
+                        );
+                        globalDragState.moveDragState.$appointment.css({opacity: 0.8});
+                        globalDragState.moveDragState.currentStartMinutes = snappedStart;
+                        globalDragState.moveDragState.dragged = true;
+                    }
+                })
+                .on('mouseup' + namespace + ' pointerup' + namespace + ' touchend' + namespace + ' touchcancel' + namespace, function () {
+                    if (globalDragState.pendingCreate?.timer) {
+                        clearTimeout(globalDragState.pendingCreate.timer);
+                    }
+                    if (globalDragState.pendingMove?.timer) {
+                        clearTimeout(globalDragState.pendingMove.timer);
+                    }
+                    globalDragState.pendingCreate = null;
+                    globalDragState.pendingMove = null;
+
+                    if (globalDragState.createDragState) {
+                        if (globalDragState.createDragState.$preview) {
+                            globalDragState.createDragState.$preview.remove();
+                        }
+                        if (globalDragState.createDragState.dragged) {
+                            globalDragState.suppressSlotClickUntil = Date.now() + 250;
+                            const start = buildDateTimeByMinutes(globalDragState.createDragState.$wrapper, globalDragState.createDragState.dateLocal, globalDragState.createDragState.currentStartMinutes);
+                            const end = buildDateTimeByMinutes(globalDragState.createDragState.$wrapper, globalDragState.createDragState.dateLocal, globalDragState.createDragState.currentEndMinutes);
+                            const payload = {
+                                start: {
+                                    date: $.bsCalendar.utils.formatDateToDateString(start),
+                                    time: start.toTimeString().slice(0, 5)
+                                },
+                                end: {
+                                    date: $.bsCalendar.utils.formatDateToDateString(end),
+                                    time: end.toTimeString().slice(0, 5)
+                                },
+                                view: getView(globalDragState.createDragState.$wrapper)
+                            };
+                            trigger(globalDragState.createDragState.$wrapper, 'add', payload);
+                        }
+                        globalDragState.createDragState = null;
+                    }
+
+                    if (globalDragState.moveDragState) {
+                        const $appointment = globalDragState.moveDragState.$appointment;
+                        $appointment.css({opacity: ''});
+                        if (globalDragState.moveDragState.dragged) {
+                            globalDragState.suppressAppointmentClickUntil = Date.now() + 250;
+                            const appointment = $appointment.data('appointment');
+                            if (appointment) {
+                                const newStart = buildDateTimeByMinutes(globalDragState.moveDragState.$wrapper, globalDragState.moveDragState.dateLocal, globalDragState.moveDragState.currentStartMinutes);
+                                const newEnd = new Date(newStart.getTime() + globalDragState.moveDragState.durationMs);
+
+                                // Optimistic in-memory update so overlap layout is recalculated immediately.
+                                appointment.start = newStart;
+                                appointment.end = newEnd;
+                                setAppointmentExtras(globalDragState.moveDragState.$wrapper, [appointment]);
+                                buildAppointmentsForView(globalDragState.moveDragState.$wrapper);
+
+                                // Send edit payload with updated extras (new start/end date+time).
+                                const returnData = getAppointmentForReturn(appointment);
+                                trigger(globalDragState.moveDragState.$wrapper, 'edit', returnData.appointment, returnData.extras);
+                            }
+                        }
+                        globalDragState.moveDragState = null;
+                    }
+                });
+
             $('body')
                 .on('click' + namespace, globalCalendarElements.infoModal + ' [data-edit]', function (e) {
                     e.preventDefault();
@@ -3700,7 +3985,13 @@
                 })
                 .off('click' + namespace, '[data-day-hour]')
                 .on('click' + namespace, '[data-day-hour]', function (e) {
-                    const settings = getSettings($wrapper);
+                    if (Date.now() < globalDragState.suppressSlotClickUntil) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return;
+                    }
+                    const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
+                    const settings = getSettings($eventWrapper);
                     const details = $(e.currentTarget).data('details');
                     if (settings.debug) {
                         log('Day hour clicked:', details);
@@ -3718,16 +4009,183 @@
                             date: $.bsCalendar.utils.formatDateToDateString(end),
                             time: end.toTimeString().slice(0, 5) // nur "HH:mm"
                         },
-                        view: getView($wrapper)
+                        view: getView($eventWrapper)
                     };
 
-                    trigger($wrapper, 'add', data);
+                    trigger($eventWrapper, 'add', data);
+                })
+                .off('mousedown' + namespace + ' pointerdown' + namespace + ' touchstart' + namespace, '[data-day-hour]')
+                .on('mousedown' + namespace + ' pointerdown' + namespace + ' touchstart' + namespace, '[data-day-hour]', function (e) {
+                    const isTouchEvent = e.type === 'touchstart';
+                    const isPrimaryButton = isTouchEvent || (e.which === 1) || (e.button === 0) || (e.buttons === 1);
+                    if (!isPrimaryButton) {
+                        return;
+                    }
+                    const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
+                    const settings = getSettings($eventWrapper);
+                    const view = getView($eventWrapper);
+                    if (!settings.draggable || !settings.showAddButton || (view !== 'day' && view !== 'week')) {
+                        return;
+                    }
+                    const isTouch = isTouchLikeEvent(e);
+                    if ((e.type === 'pointerdown' || e.type === 'touchstart') && !isTouch) {
+                        e.preventDefault();
+                    }
+                    if ($(e.target).closest('[data-appointment]').length) {
+                        return;
+                    }
+
+                    const $slotContainer = $(e.currentTarget).closest('.wc-day-view-time-slots');
+                    if (!$slotContainer.length) {
+                        return;
+                    }
+                    const startPoint = getEventPageXY(e);
+                    if (!Number.isFinite(startPoint.y)) {
+                        return;
+                    }
+                    const startMinutes = getMinutesFromPointer($eventWrapper, $slotContainer, startPoint.y);
+                    const $preview = $('<div>', {
+                        class: 'position-absolute rounded',
+                        css: {
+                            left: '2px',
+                            right: '2px',
+                            top: '0',
+                            height: '0',
+                            display: 'none',
+                            zIndex: 11,
+                            backgroundColor: 'var(--bs-primary)',
+                            opacity: 0.2,
+                            border: '1px solid var(--bs-primary)'
+                        }
+                    }).appendTo($slotContainer);
+
+                    const activateCreateDrag = () => {
+                        globalDragState.createDragState = {
+                            $wrapper: $eventWrapper,
+                            $slotContainer: $slotContainer,
+                            $preview: $preview,
+                            dateLocal: String($slotContainer.attr('data-date-local')),
+                            startMinutes: startMinutes,
+                            currentStartMinutes: startMinutes,
+                            currentEndMinutes: startMinutes + getSnapMinutes(),
+                            dragged: true
+                        };
+                    };
+                    if (isTouch) {
+                        const startX = startPoint.x || 0;
+                        const startY = startPoint.y || 0;
+                        const timer = setTimeout(() => {
+                            if (!globalDragState.pendingCreate) return;
+                            activateCreateDrag();
+                            globalDragState.pendingCreate = null;
+                        }, 250);
+                        globalDragState.pendingCreate = {timer, startX, startY};
+                        $(document).one('pointermove' + namespace + '.pendingCreate touchmove' + namespace + '.pendingCreate', function (ev) {
+                            if (!globalDragState.pendingCreate) return;
+                            const p = getEventPageXY(ev);
+                            const x = Number.isFinite(p.x) ? p.x : startX;
+                            const y = Number.isFinite(p.y) ? p.y : startY;
+                            if (Math.abs(x - startX) > 8 || Math.abs(y - startY) > 8) {
+                                clearTimeout(globalDragState.pendingCreate.timer);
+                                globalDragState.pendingCreate = null;
+                                $preview.remove();
+                            }
+                        });
+                    } else {
+                        activateCreateDrag();
+                        e.preventDefault();
+                    }
+                })
+                .off('mousedown' + namespace + ' pointerdown' + namespace + ' touchstart' + namespace, '[data-appointment]')
+                .on('mousedown' + namespace + ' pointerdown' + namespace + ' touchstart' + namespace, '[data-appointment]', function (e) {
+                    const isTouchEvent = e.type === 'touchstart';
+                    const isPrimaryButton = isTouchEvent || (e.which === 1) || (e.button === 0) || (e.buttons === 1);
+                    if (!isPrimaryButton) {
+                        return;
+                    }
+                    const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
+                    const view = getView($eventWrapper);
+                    if (view !== 'day' && view !== 'week') {
+                        return;
+                    }
+                    const settings = getSettings($eventWrapper);
+                    if (!settings.draggable) {
+                        return;
+                    }
+                    const isTouch = isTouchLikeEvent(e);
+                    if ((e.type === 'pointerdown' || e.type === 'touchstart') && !isTouch) {
+                        e.preventDefault();
+                    }
+                    const $appointment = $(e.currentTarget);
+                    const appointment = $appointment.data('appointment');
+                    const editable = appointment && appointment.hasOwnProperty('editable') ? appointment.editable : true;
+                    if (!editable || !appointment || appointment.allDay) {
+                        return;
+                    }
+
+                    const $slotContainer = $appointment.closest('.wc-day-view-time-slots');
+                    if (!$slotContainer.length) {
+                        return;
+                    }
+
+                    const start = $.bsCalendar.utils.parseDateInput(appointment.start);
+                    const end = $.bsCalendar.utils.parseDateInput(appointment.end);
+                    if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
+                        return;
+                    }
+
+                    const startMinutes = (start.getHours() - settings.hourSlots.start) * 60 + start.getMinutes();
+                    const startPoint = getEventPageXY(e);
+                    if (!Number.isFinite(startPoint.y)) {
+                        return;
+                    }
+                    const pointerMinutes = getMinutesFromPointer($eventWrapper, $slotContainer, startPoint.y);
+                    const activateMoveDrag = () => {
+                        globalDragState.moveDragState = {
+                            $wrapper: $eventWrapper,
+                            $slotContainer: $slotContainer,
+                            $appointment: $appointment,
+                            appointment: appointment,
+                            dateLocal: String($slotContainer.attr('data-date-local')),
+                            offsetMinutes: pointerMinutes - startMinutes,
+                            durationMs: end.getTime() - start.getTime(),
+                            currentStartMinutes: startMinutes,
+                            dragged: false
+                        };
+                    };
+                    if (isTouch) {
+                        const startX = startPoint.x || 0;
+                        const startY = startPoint.y || 0;
+                        const timer = setTimeout(() => {
+                            if (!globalDragState.pendingMove) return;
+                            activateMoveDrag();
+                            globalDragState.pendingMove = null;
+                        }, 250);
+                        globalDragState.pendingMove = {timer, startX, startY};
+                        $(document).one('pointermove' + namespace + '.pendingMove touchmove' + namespace + '.pendingMove', function (ev) {
+                            if (!globalDragState.pendingMove) return;
+                            const p = getEventPageXY(ev);
+                            const x = Number.isFinite(p.x) ? p.x : startX;
+                            const y = Number.isFinite(p.y) ? p.y : startY;
+                            if (Math.abs(x - startX) > 8 || Math.abs(y - startY) > 8) {
+                                clearTimeout(globalDragState.pendingMove.timer);
+                                globalDragState.pendingMove = null;
+                            }
+                        });
+                    } else {
+                        activateMoveDrag();
+                        e.preventDefault();
+                    }
+                    if (!isTouch) {
+                        e.stopPropagation();
+                    }
                 })
                 .off('click' + namespace, '[data-role="day-wrapper"]')
                 .on('click' + namespace, '[data-role="day-wrapper"]', function (e) {
                     if (e.target !== e.currentTarget) {
                         return; // Abbrechen, falls ein untergeordnetes Element angeklickt wurde
                     }
+                    const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
 
                     const dayWrapper = $(e.currentTarget).closest('[data-month-date]');
                     const dateAttribute = dayWrapper.attr('data-month-date'); // Hole das Datum aus dem Attribut
@@ -3748,21 +4206,22 @@
                             date: $.bsCalendar.utils.formatDateToDateString(end),
                             time: end.toTimeString().slice(0, 5) // nur "HH:mm"
                         },
-                        view: getView($wrapper)
+                        view: getView($eventWrapper)
                     };
 
-                    trigger($wrapper, 'add', data);
+                    trigger($eventWrapper, 'add', data);
                 })
                 .off('click' + namespace, '[data-add-appointment]')
                 .on('click' + namespace, '[data-add-appointment]', function (e) {
                     e.preventDefault();
+                    const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
 
-                    if (getSearchMode($wrapper)) {
+                    if (getSearchMode($eventWrapper)) {
                         e.stopPropagation();
                         return; // If in search mode, cancel directly
                     }
 
-                    const period = getStartAndEndDateByView($wrapper);
+                    const period = getStartAndEndDateByView($eventWrapper);
 
                     const data = {
                         start: {
@@ -3773,10 +4232,10 @@
                             date: $.bsCalendar.utils.formatDateToDateString(period.end),
                             time: null
                         },
-                        view: getView($wrapper)
+                        view: getView($eventWrapper)
                     };
 
-                    trigger($wrapper, 'add', data);
+                    trigger($eventWrapper, 'add', data);
                 })
                 .off('click' + namespace, '[data-today]')
                 .on('click' + namespace, '[data-today]', function (e) {
@@ -3791,6 +4250,11 @@
                 })
                 .off(`click${namespace} touchend${namespace}`, '[data-appointment]')
                 .on(`click${namespace} touchend${namespace}`, '[data-appointment]', function (e) {
+                    if (Date.now() < globalDragState.suppressAppointmentClickUntil) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return;
+                    }
                     const clickedOnDate = $(e.target).is('[data-date]');
                     const clickedOnMonth = $(e.target).is('[data-month]');
                     const clickedOnToday = $(e.target).is('[data-today]');
@@ -3804,7 +4268,8 @@
 
                     e.preventDefault();
                     const element = $(e.currentTarget);
-                    showInfoWindow($wrapper, element);
+                    const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
+                    showInfoWindow($eventWrapper, element);
                 })
                 .off('click' + namespace, '[data-week-date]')
                 .on('click' + namespace, '[data-week-date]', function (e) {
@@ -4250,7 +4715,7 @@
          *
          * @return {void} This function does not return a value. It updates the DOM elements associated with the wrapper.
          */
-        function buildByView($wrapper, triggerViewChanged = true) {
+        function buildByView($wrapper, triggerViewChanged = true, fetchData = true) {
             const data = getBsCalendarData($wrapper);
             const settings = data.settings
             const view = data.view;
@@ -4331,7 +4796,21 @@
                 }
             }
 
-            fetchAppointments($wrapper);
+            if (fetchData) {
+                fetchAppointments($wrapper);
+            } else {
+                buildAppointmentsForView($wrapper);
+            }
+        }
+
+        /**
+         * Re-renders the current view using already loaded appointments without fetching new data.
+         *
+         * @param {jQuery} $wrapper - The wrapper element of the calendar instance.
+         * @return {void}
+         */
+        function methodRender($wrapper) {
+            buildByView($wrapper, false, false);
         }
 
         function executeFunction(functionOrName, ...args) {

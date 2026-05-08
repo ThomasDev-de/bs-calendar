@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.1.0**](#version-210)
     * [**Version 2.0.16**](#version-2016)
     * [**Version 2.0.15**](#version-2015)
     * [**Version 2.0.14.2**](#version-20142)
@@ -31,6 +32,12 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.1.0
+
+- Feature: Added new method `render` (`$('#calendar').bsCalendar('render')`) to re-render the current view using already loaded data, without re-fetching appointments.
+- Improvement: `buildByView` now supports an internal no-fetch render path, used by `render`.
+- Docs: Updated `README.md` and `changelog.md` for `2.1.0`.
 
 ### Version 2.0.16
 
