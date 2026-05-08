@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.0.15
+ * @version 2.0.16
  * @date 2026-05-06
  * @license MIT
  * @requires "jQuery" ^3
@@ -62,10 +62,10 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.0.15',
+            version: '2.0.16',
             about: {
-                version: '2.0.15',
-                releaseDate: '2026-05-07',
+                version: '2.0.16',
+                releaseDate: '2026-05-08',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
                 releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
@@ -2095,7 +2095,7 @@
          * @return {void}
          */
         function destroyCalendarTooltips($wrapper) {
-            const $tooltipOwners = $wrapper.find('[data-bs-calendar-tooltip], .wc-holiday-marked, [data-bs-original-title]');
+            const $tooltipOwners = $wrapper.find('[data-bs-calendar-tooltip], [data-bs-calendar-popover], .wc-holiday-marked, [data-bs-original-title]');
 
             $tooltipOwners.each(function () {
                 const $el = $(this);
@@ -2105,12 +2105,20 @@
                 } catch (e) {
                     // ignore
                 }
+                try {
+                    $el.popover('hide');
+                    $el.popover('dispose');
+                } catch (e) {
+                    // ignore
+                }
                 $el.removeAttr('aria-describedby');
             });
 
             // Remove rendered tooltip DOM nodes that may have survived rapid view/date switches.
             $wrapper.find('.tooltip').remove();
+            $wrapper.find('.popover').remove();
             $('body > .tooltip.wc-calendar-tooltip').remove();
+            $('body > .popover.wc-calendar-tooltip').remove();
         }
 
         /**
@@ -5642,9 +5650,22 @@
          * Renders and displays appointments for an entire year by updating the DOM with appointment details.
          */
         function drawAppointmentsForYear($wrapper, appointments) {
+            const settings = getSettings($wrapper);
             const $container = getViewContainer($wrapper);
             appointments.forEach(appointment => {
                 const $badge = $container.find(`[data-date="${appointment.date}"] .js-badge`);
+                const tooltipText = Object.prototype.hasOwnProperty.call(appointment, 'content')
+                    ? String(appointment.content ?? '')
+                    : String(appointment.total ?? '');
+                const popoverTitleDate = $.bsCalendar.utils.parseDateInput(appointment.date);
+                const popoverTitle = isNaN(popoverTitleDate?.getTime?.())
+                    ? ''
+                    : popoverTitleDate.toLocaleDateString(settings.locale, {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
 
                 // 1. Farben setzen
                 const bg = appointment.extras.colors.backgroundColor;
@@ -5675,13 +5696,30 @@
 
                 // FIX: Tooltip korrekt initialisieren
                 // Wir setzen den Title auf das Parent-Div (den Tag-Kreis), nicht auf den Badge.
-                $badge.closest('div')
-                    .attr('data-bs-calendar-tooltip', '1')
-                    .attr('title', appointment.total) // Title auf das Div!
-                    .tooltip({
+                const $target = $badge.closest('div');
+                try {
+                    $target.tooltip('dispose');
+                } catch (e) {
+                    // ignore
+                }
+                try {
+                    $target.popover('dispose');
+                } catch (e) {
+                    // ignore
+                }
+
+                $target.removeAttr('data-bs-calendar-tooltip data-bs-calendar-popover title data-bs-content');
+
+                $target
+                    .attr('data-bs-calendar-popover', '1')
+                    .attr('title', popoverTitle)
+                    .attr('data-bs-content', tooltipText)
+                    .popover({
                         container: $wrapper,
-                        customClass: 'wc-calendar-tooltip'
-                    }); // Tooltip auf das Div!
+                        customClass: 'wc-calendar-tooltip',
+                        trigger: 'hover focus',
+                        html: true
+                    });
             })
         }
 

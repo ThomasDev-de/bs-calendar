@@ -1,11 +1,11 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.0.15-blue)
+![Version](https://img.shields.io/badge/version-2.0.16-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-[changelog](changelog.md#version-2015)
+[changelog](changelog.md#version-2016)
 
 
 ---
@@ -61,8 +61,8 @@ You can use the plugin either via CDN or by installing it through Composer and s
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- bs-calendar via jsDelivr (version 2.0.15) -->
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.15/dist/bs-calendar.min.js"></script>
+<!-- bs-calendar via jsDelivr (version 2.0.16) -->
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.0.16/dist/bs-calendar.min.js"></script>
 <script>
     $(function () {
         $('#calendar').bsCalendar();
@@ -378,6 +378,16 @@ Usage patterns:
      }
    ]
    ```
+    - For year view (`view=year`): an array of year-day summary objects:
+   ```json
+   [
+     {
+       "date": "2026-05-08",
+       "total": 3,
+       "content": "3 appointments"
+     }
+   ]
+   ```
     - For search mode: an object with `rows` (an appointment array) and `total` (number of results):
    ```json
    {
@@ -439,8 +449,18 @@ Examples serverside contract (summary)
 
 - GET /api/appointments?fromDate=2025-07-01&toDate=2025-07-31&view=month&calendarIds[]=1&calendarIds[]=2
   → JSON array of appointments
+- GET /api/appointments?view=year&year=2026&calendarIds[]=1&calendarIds[]=2
+  → JSON array of year-day summary objects (`date`, `total`, optional `content`)
 - GET /api/appointments?search=john&limit=10&offset=0&calendarIds[]=1
   → { "rows": [ ... ], "total": 123 }
+
+Year-view summary object fields:
+
+| Field          | Type     | Required | Default     | Description |
+|----------------|----------|----------|-------------|-------------|
+| `date`         | `string` | Yes      | -           | Day in `YYYY-MM-DD` format. |
+| `total`        | `number` | Yes      | -           | Badge number shown in year view. Must be `> 0`. |
+| `content`      | `string` | No       | `total`     | Text/HTML content for the year-view popover body (`html` rendering enabled). |
 
 ### options.formatter
 

@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.0.16**](#version-2016)
     * [**Version 2.0.15**](#version-2015)
     * [**Version 2.0.14.2**](#version-20142)
     * [**Version 2.0.14.1**](#version-20141)
@@ -30,6 +31,12 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.0.16
+
+- Feature (year view): Optional `content` field was added; when present, it is shown in the year-view popover instead of `total`.
+- Improvement (year view): Replaced badge tooltip with a popover; popover title is now the localized day date.
+- Docs: Expanded `README.md` with the year-view response contract and field reference.
 
 ### Version 2.0.15
 

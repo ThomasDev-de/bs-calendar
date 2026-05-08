@@ -321,8 +321,15 @@
                 buckets.set(key, prev + increment);
             }
 
-            // Convert buckets to array of { date, total }
-            return Array.from(buckets, ([date, total]) => ({date, total}));
+            // Convert buckets to array of { date, total, content }
+            return Array.from(buckets, ([date, total]) => {
+                const useHtml = Math.random() > 0.5;
+                const content = useHtml
+                    ? `<strong>${total} appointments</strong><br><small>${date}</small>`
+                    : `${total} appointments on ${date}`;
+
+                return {date, total, content};
+            });
         }
 
         async function url(query) {
