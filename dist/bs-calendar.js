@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.1.2
+ * @version 2.1.3
  * @date 2026-05-08
  * @license MIT
  * @requires "jQuery" ^3
@@ -62,9 +62,9 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.1.2',
+            version: '2.1.3',
             about: {
-                version: '2.1.2',
+                version: '2.1.3',
                 releaseDate: '2026-05-08',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
@@ -1424,6 +1424,13 @@
                     case 'updateOptions':
                         methodUpdateOptions(wrapper, params);
                         break;
+                    case 'addAppointment':
+                        methodAddAppointment(wrapper, params);
+                        break;
+                    case 'editAppointment':
+                    case 'editApointment':
+                        methodEditAppointment(wrapper, params);
+                        break;
                     case 'destroy':
                         destroy(wrapper);
                         break;
@@ -1694,6 +1701,60 @@
         function getAppointments($wrapper) {
             const data = getBsCalendarData($wrapper);
             return data.appointments || [];
+        }
+
+        function hasAppointmentId(appointment) {
+            return appointment &&
+                Object.prototype.hasOwnProperty.call(appointment, 'id') &&
+                appointment.id !== null &&
+                appointment.id !== undefined &&
+                String(appointment.id).trim() !== '';
+        }
+
+        function generateAppointmentId() {
+            if (window.crypto && typeof window.crypto.randomUUID === 'function') {
+                return window.crypto.randomUUID();
+            }
+            return $.bsCalendar.utils.generateRandomString(24, 'bs_calendar_appointment_');
+        }
+
+        function ensureAppointmentId(appointment) {
+            if (appointment && typeof appointment === 'object' && !hasAppointmentId(appointment)) {
+                appointment.id = generateAppointmentId();
+            }
+            return appointment;
+        }
+
+        function ensureAppointmentIds(appointments) {
+            if (!Array.isArray(appointments)) {
+                return appointments;
+            }
+            appointments.forEach(appointment => ensureAppointmentId(appointment));
+            return appointments;
+        }
+
+        function getEditableAppointmentParams(object) {
+            if (!object || typeof object !== 'object') {
+                return null;
+            }
+
+            if (object.appointment && typeof object.appointment === 'object') {
+                const appointment = $.extend(true, {}, object.appointment);
+                if (!hasAppointmentId(appointment) && hasAppointmentId(object)) {
+                    appointment.id = object.id;
+                }
+                return appointment;
+            }
+
+            if (object.data && typeof object.data === 'object') {
+                const appointment = $.extend(true, {}, object.data);
+                if (!hasAppointmentId(appointment) && hasAppointmentId(object)) {
+                    appointment.id = object.id;
+                }
+                return appointment;
+            }
+
+            return $.extend(true, {}, object);
         }
 
         function normalizeSettings(settings) {
@@ -2326,6 +2387,79 @@
             }
         }
 
+        function methodAddAppointment($wrapper, appointment) {
+            const data = getBsCalendarData($wrapper);
+            const settings = data.settings;
+
+            if (data.searchMode || data.view === 'year') {
+                if (settings.debug) {
+                    log('Attempt to call addAppointment() in search/year mode — ignored.');
+                }
+                return;
+            }
+
+            if (!appointment || typeof appointment !== 'object') {
+                if (settings.debug) {
+                    log('addAppointment() expects an appointment object.');
+                }
+                return;
+            }
+
+            ensureAppointmentId(appointment);
+
+            const appointments = getAppointments($wrapper).map(item => copyAppointment(item));
+            appointments.push(copyAppointment(appointment));
+
+            checkAndSetAppointments($wrapper, appointments).then(_cleanedAppointments => {
+                void _cleanedAppointments;
+                buildAppointmentsForView($wrapper);
+            });
+        }
+
+        function methodEditAppointment($wrapper, object) {
+            const data = getBsCalendarData($wrapper);
+            const settings = data.settings;
+
+            if (data.searchMode || data.view === 'year') {
+                if (settings.debug) {
+                    log('Attempt to call editAppointment() in search/year mode — ignored.');
+                }
+                return;
+            }
+
+            const changes = getEditableAppointmentParams(object);
+            if (!hasAppointmentId(changes)) {
+                if (settings.debug) {
+                    log('editAppointment() expects an appointment object with an id.');
+                }
+                return;
+            }
+
+            let found = false;
+            const appointmentId = String(changes.id);
+            const appointments = getAppointments($wrapper).map(appointment => {
+                if (hasAppointmentId(appointment) && String(appointment.id) === appointmentId) {
+                    found = true;
+                    const updatedAppointment = $.extend(true, {}, appointment, changes);
+                    delete updatedAppointment.extras;
+                    return updatedAppointment;
+                }
+                return copyAppointment(appointment);
+            });
+
+            if (!found) {
+                if (settings.debug) {
+                    log('editAppointment() could not find appointment with id:', changes.id);
+                }
+                return;
+            }
+
+            checkAndSetAppointments($wrapper, appointments).then(_cleanedAppointments => {
+                void _cleanedAppointments;
+                buildAppointmentsForView($wrapper);
+            });
+        }
+
         /**
          * Updates and applies settings for a given wrapper element based on the provided parameters.
          *
@@ -2672,6 +2806,7 @@
                 }
 
                 // Check if the appointment array is valid, contains appointments, and is not empty
+                ensureAppointmentIds(appointments);
                 cleanAppointments($wrapper, appointments);
 
                 // Determine if the system is in search mode to adjust sorting behavior

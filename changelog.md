@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.1.3**](#version-213)
     * [**Version 2.1.2**](#version-212)
     * [**Version 2.1.1**](#version-211)
     * [**Version 2.1.0**](#version-210)
@@ -34,6 +35,14 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.1.3
+
+- Feature: Added public `addAppointment` method to append an appointment to the currently loaded data and re-render without fetching.
+- Feature: Added public `editAppointment` method to update an already loaded appointment by `id`; `editApointment` is accepted as a compatibility alias for the common typo.
+- Improvement: Loaded and locally added appointments now receive a generated `id` when none is provided, allowing later local edits.
+- Docs: Reworked `README.md` into a structured API reference, including add/edit workflow examples, `dragExtras` notes, local-vs-backend persistence guidance, and a completeness checklist.
+- Demo: Rebuilt `demo/index.html` into a single-calendar example with a clearer modal-based add/edit flow.
 
 ### Version 2.1.2
 

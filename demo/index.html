@@ -8,671 +8,447 @@
     <link id="bootswatch-theme" rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/darkly/bootstrap.min.css">
     <link href="../vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
-    <style>
-        /*.bs-calendar-border-style {*/
-        /*    border-radius: 50px !important;*/
-        /*    border: 5px solid var(--bs-warning) !important;*/
-        /*}*/
-    </style>
 </head>
 <body class="p-1 p-lg-5">
-<div id="calendar" data-sidebar-addons="#sidebarAddons" data-topbar-addons="#topbarAddons">
+<div id="calendar" data-sidebar-addons="#sidebarAddons"></div>
 
-</div>
-<!--<div id="calendar2" class="mt-5"></div>-->
-<div id="sidebarAddons" class="">
+<div id="sidebarAddons">
     <div class="card-body d-flex flex-column">
         <label class="form-label mb-1" for="selectBootswatchTheme">Bootswatch theme</label>
         <select class="form-select form-select-sm mb-3" id="selectBootswatchTheme"></select>
+
         <div class="form-check form-switch mb-3">
             <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckTheme">
             <label class="form-check-label" for="flexSwitchCheckTheme">light / dark</label>
         </div>
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="updateOptions">updateOptions {locale:
-            fr-FR}
-        </button>
+
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday">setToday('week')</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="clear">Clear</button>
-        <!--        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="destroy">Destroy</button>-->
     </div>
 </div>
 
-<div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel"
+     aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-body">
-                <div class="d-flex justify-content-end mb-3">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="modal-title mb-0" id="appointmentModalLabel">Appointment</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+
                 <div class="form-floating mb-3">
-                    <input name="title" type="text" class="form-control" id="floatingInputTitle"
+                    <input name="title" type="text" class="form-control" id="appointmentTitle"
                            placeholder="appointment title">
-                    <label for="floatingInputTitle">Title</label>
+                    <label for="appointmentTitle">Title</label>
                 </div>
+
                 <div class="d-flex justify-content-between align-items-center flex-nowrap mb-3">
                     <div class="form-floating flex-fill">
-                        <input name="from_date" type="date" class="form-control" id="floatingInputDate"
-                               placeholder="date">
-                        <label for="floatingInputDate">From date</label>
+                        <input name="from_date" type="date" class="form-control" id="appointmentFromDate">
+                        <label for="appointmentFromDate">From date</label>
                     </div>
                     <div class="mx-1"></div>
                     <div class="form-floating flex-fill">
-                        <input name="to_date" type="date" class="form-control" id="floatingInputToDate"
-                               placeholder="date">
-                        <label for="floatingInputToDate">To date</label>
+                        <input name="to_date" type="date" class="form-control" id="appointmentToDate">
+                        <label for="appointmentToDate">To date</label>
                     </div>
                 </div>
 
                 <div class="form-check form-switch mb-3">
                     <input class="form-check-input" type="checkbox" name="allDay" role="switch"
-                           id="flexSwitchCheckDefaultAllDay">
-                    <label class="form-check-label" for="flexSwitchCheckDefaultAllDay">all day</label>
+                           id="appointmentAllDay">
+                    <label class="form-check-label" for="appointmentAllDay">all day</label>
                 </div>
 
-                <div class="js-hide-on-all-day">
+                <div class="js-time-fields">
                     <div class="d-flex justify-content-between align-items-center flex-nowrap mb-3">
                         <div class="form-floating flex-fill">
-                            <input name="from_time" type="time" class="form-control" id="floatingInputTime"
-                                   placeholder="date">
-                            <label for="floatingInputTime">From time</label>
+                            <input name="from_time" type="time" class="form-control" id="appointmentFromTime">
+                            <label for="appointmentFromTime">From time</label>
                         </div>
                         <div class="mx-1"></div>
                         <div class="form-floating flex-fill">
-                            <input name="to_time" type="time" class="form-control" id="floatingInputToTime"
-                                   placeholder="date">
-                            <label for="floatingInputToTime">To time</label>
+                            <input name="to_time" type="time" class="form-control" id="appointmentToTime">
+                            <label for="appointmentToTime">To time</label>
                         </div>
                     </div>
                 </div>
 
                 <div class="form-floating mb-3">
-                    <textarea class="form-control" style="height:300px" name="description"
-                              placeholder="Leave a comment here" id="floatingTextareaDescription"></textarea>
-                    <label for="floatingTextareaDescription">Description</label>
+                    <textarea class="form-control" style="height: 160px" name="description"
+                              placeholder="Description" id="appointmentDescription"></textarea>
+                    <label for="appointmentDescription">Description</label>
                 </div>
 
                 <div class="form-floating mb-3">
-                    <input name="link" type="text" class="form-control" id="floatingInputLink"
+                    <input name="link" type="text" class="form-control" id="appointmentLink"
                            placeholder="appointment link">
-                    <label for="floatingInputLink">Link</label>
+                    <label for="appointmentLink">Link</label>
                 </div>
 
                 <div class="d-flex justify-content-end align-items-center">
-                    <label for="floatingInputColor" class="d-none"></label>
-                    <input type="color" name="color" class="form-control me-2" id="floatingInputColor">
+                    <label for="appointmentColor" class="d-none">Color</label>
+                    <input type="color" name="color" class="form-control me-2" id="appointmentColor">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary ms-2" data-save-appointment>Save</button>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<div id="calendarICS"></div>
-<div id="calendarEmptyUrl"></div>
-
 <script src="../vendor/components/jquery/jquery.min.js"></script>
-
 <script src="../vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../dist/bs-calendar.js"></script>
 <!--suppress JSUnresolvedReference -->
 <script>
     $(function () {
-        $('#calendarEmptyUrl').bsCalendar({
-            title: 'Calendar Empty URL',
-            locale: 'de-DE',
-            startWeekOnSunday: false,
-            navigateOnWheel: false,
-            storeState: true,
-            views: ["year"],
-            holidays: {
-                federalState: 'BE',
-                country: 'DE',
-                language: 'de'
-            }
-        });
+        const $calendar = $('#calendar');
+        const $modal = $('#appointmentModal');
 
-        const select = $('#selectCountries');
-        const selectSubdivision = $('#selectSubdivision');
-        select.on('change', function () {
-            selectSubdivision.empty();
-            $.bsCalendar.utils.openHolidayApi.getSubdivisions($(this).val(), 'DE').then(subdivisions => {
-                subdivisions.forEach(subdivision => {
-                    selectSubdivision.append(`<option value="${subdivision.shortName}">${subdivision.name[0].text}</option>`)
-                })
-                // console.log(subdivisions)
-            });
-        });
+        const modalState = {
+            mode: 'add',
+            appointmentId: null
+        };
 
-        $.bsCalendar.utils.openHolidayApi.getCountries('DE').then(countries => {
-            countries.forEach(country => {
-                select.append(`<option value="${country.isoCode}">${country.name[0].text}</option>`)
-            })
-            select.val('DE');
-            select.trigger('change')
-            // console.log(countries);
-        });
+        initThemeControls();
+        initAppointmentModal();
+        initCalendar();
+        bindCalendarEvents();
+        bindSidebarActions();
 
-
-        $.bsCalendar.setDefaults({
-            // title: 'Example',
-            title: '<span class="h4 text-uppercase mb-0">$.fn.bsCalendar</span>',
-            locale: 'de-DE',
-            startWeekOnSunday: false,
-            // mainColor: '#e3ec0b',
-            navigateOnWheel: false,
-            // holidays: {
-            //     federalState: 'BE',
-            // },
-            hourSlots: {
-                start: 0,
-                end: 24,
-                height: 60
-            },
-            calendars: [
-                {
-                    id: 'example-calendar-1',
-                    title: 'Personal',
-                    color: 'primary',
-                    active: true
+        function initCalendar() {
+            $calendar.bsCalendar({
+                title: '<span class="h4 text-uppercase mb-0">$.fn.bsCalendar</span>',
+                locale: 'de-DE',
+                startWeekOnSunday: false,
+                navigateOnWheel: false,
+                draggable: true,
+                storeState: true,
+                debug: true,
+                url: loadAppointments,
+                hourSlots: {
+                    start: 0,
+                    end: 24,
+                    height: 60
                 },
-                {
-                    id: 'example-calendar-2',
-                    title: 'Work',
-                    color: 'danger',
-                    active: false
-                },
-                {
-                    id: 'example-calendar-3',
-                    title: 'Sports',
-                    color: 'success',
-                    active: true
+                calendars: [
+                    {id: 'personal', title: 'Personal', color: 'primary', active: true},
+                    {id: 'work', title: 'Work', color: 'danger', active: true},
+                    {id: 'sports', title: 'Sports', color: 'success', active: true}
+                ],
+                onAll(eventName, ...args) {
+                    console.log(eventName, ...args);
                 }
-            ],
-            url: url,
-            debug: true,
-            storeState: true,
-            onAll(eventName, ...args) {
-                console.log(eventName, ...args);
-            }
-        });
-        const modal = $('#exampleModal');
-        const calendarElement = $('#calendar');
-        calendarElement.bsCalendar({
-            startWeekOnSunday: true,
-            storeState: true,
-            draggable: true,
-        });
-        modal.on('hidden.bs.modal', function () {
-            calendarElement.bsCalendar('render');
-        })
-        // $('#calendar2').bsCalendar();
-        calendarElement
-            .on('change', '#selectUser', function () {
-                const val = $(this).val();
-                calendarElement.bsCalendar('refresh', {
-                    view: 'week',
-                    queryParams(p) {
-                        if (val === 'all')
-                            p.userId = null;
-                        else
-                            p.userId = val;
-                        return p;
-                    }
+            });
+        }
+
+        function bindCalendarEvents() {
+            $calendar
+                .on('add.bs.calendar', function (event, data, dragExtras) {
+                    const start = dragExtras?.start || data.start;
+                    const end = dragExtras?.end || data.end;
+                    const isAllDay = !start.time && !end.time;
+
+                    openAppointmentModal('add', {
+                        title: '',
+                        startDate: start.date,
+                        endDate: end.date,
+                        startTime: start.time ? start.time.substring(0, 5) : '',
+                        endTime: end.time ? end.time.substring(0, 5) : '',
+                        allDay: isAllDay,
+                        description: '',
+                        color: '#0d6efd',
+                        link: ''
+                    });
+                })
+                .on('edit.bs.calendar', function (event, appointment, extras, dragExtras) {
+                    event.preventDefault();
+
+                    const eventExtras = dragExtras || extras;
+                    const isAllDay = !!appointment.allDay;
+
+                    openAppointmentModal('edit', {
+                        id: appointment.id,
+                        title: appointment.title,
+                        startDate: eventExtras.start.date,
+                        endDate: eventExtras.end.date,
+                        startTime: isAllDay ? '' : eventExtras.start.time.substring(0, 5),
+                        endTime: isAllDay ? '' : eventExtras.end.time.substring(0, 5),
+                        allDay: isAllDay,
+                        description: appointment.description || '',
+                        color: appointment.color || '#0d6efd',
+                        link: appointment.link || ''
+                    });
                 });
-            })
-            .on('add.bs.calendar', function (event, data, dragExtras) {
-                // console.log(data);
-                const start = dragExtras?.start || data.start;
-                const end = dragExtras?.end || data.end;
-                modal.find('input[name="title"]').val(null);
-                modal.find('input[name="from_date"]').val(start.date);
-                modal.find('input[name="to_date"]').val(end.date);
-                modal.find('input[name="from_time"]').val(start.time ? start.time.substring(0, 5) : null);
-                modal.find('input[name="to_time"]').val(end.time ? end.time.substring(0, 5) : null);
-                modal.find('input[name="allDay"]').prop('checked', false).trigger('change');
-                modal.find('textarea[name="description"]').val(null);
-                modal.find('input[name="color"]').val(null);
-                modal.find('input[name="link"]').val(null);
-                modal.modal('show');
-            })
-            .on('edit.bs.calendar', function (event, appointment, extras, dragExtras) {
+        }
+
+        function bindSidebarActions() {
+            $calendar.on('click', '[data-method]', function (event) {
                 event.preventDefault();
-                // console.log(appointment);
-                const eventExtras = dragExtras || extras;
 
-                const isAllDay = appointment.allDay;
-                const title = appointment.title;
-                const description = appointment.description;
-                const color = appointment.color;
-                const link = appointment.link;
-
-                const fromTime = isAllDay ? null : eventExtras.start.time.substring(0, 5);
-                const toTime = isAllDay ? null : eventExtras.end.time.substring(0, 5);
-
-                modal.find('input[name="title"]').val(title);
-                modal.find('input[name="from_date"]').val(eventExtras.start.date);   // Datum aus 'YYYY-MM-DD HH:mm:ss'
-                modal.find('input[name="to_date"]').val(eventExtras.end.date);       // Datum aus 'YYYY-MM-DD HH:mm:ss'
-                modal.find('input[name="from_time"]').val(fromTime);   // Uhrzeit aus 'YYYY-MM-DD HH:mm:ss'
-                modal.find('input[name="to_time"]').val(toTime);       // Uhrzeit aus 'YYYY-MM-DD HH:mm:ss'
-                modal.find('input[name="allDay"]').prop('checked', isAllDay).trigger('change');
-                modal.find('textarea[name="description"]').val(description);
-                modal.find('input[name="color"]').val(color);
-                modal.find('input[name="link"]').val(link);
-                modal.modal('show');
-            })
-            .on('view.bs.calendar', function (event, view) {
-                // console.log(view);
-            })
-            .on('click', '[data-method]', function (event) {
-                event.preventDefault();
                 switch ($(this).data('method')) {
-                    case 'destroy':
-                        calendarElement.bsCalendar('destroy');
-                        break;
                     case 'clear':
-                        calendarElement.bsCalendar('clear');
+                        $calendar.bsCalendar('clear');
                         break;
                     case 'refresh':
-                        calendarElement.bsCalendar('refresh');
-                        break;
-                    case 'setDate':
-                        calendarElement.bsCalendar('setDate', {date: '1970-01-01', view: 'day'});
+                        $calendar.bsCalendar('refresh');
                         break;
                     case 'setToday':
-                        calendarElement.bsCalendar('setToday', 'week');
-                        break;
-                    case 'updateOptions':
-                        calendarElement.bsCalendar('updateOptions', {
-                            locale: 'fr-FR',
-                        });
+                        $calendar.bsCalendar('setToday', 'week');
                         break;
                     default:
                         break;
                 }
-            })
-            .on('change', '#selectSubdivision', function () {
-                calendarElement.bsCalendar('updateOptions', {
-                    holidays: {
-                        federalState: selectSubdivision.val(),
-                        country: select.val()
-                    }
+            });
+        }
+
+        function initAppointmentModal() {
+            $modal
+                .on('change', 'input[name="allDay"]', function () {
+                    $modal.find('.js-time-fields').toggle(!$(this).prop('checked'));
+                })
+                .on('click', '[data-save-appointment]', function () {
+                    const appointment = readAppointmentModal();
+                    const method = modalState.mode === 'edit' ? 'editAppointment' : 'addAppointment';
+
+                    $calendar.bsCalendar(method, appointment);
+                    $modal.modal('hide');
                 });
-            })
-
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
         }
 
-        // Generates up to 500 day-buckets across the given year, summing counts per date
-        function generateDates(year) {
-            // Number of entries to be generated: Randomly between 1 and 365
-            const entriesCount = Math.floor(Math.random() * 365) + 1;
+        function openAppointmentModal(mode, appointment) {
+            modalState.mode = mode;
+            modalState.appointmentId = appointment.id || null;
 
-            // Bucket counts per date to avoid duplicates and reflect total per day
-            const buckets = new Map();
+            $modal.find('.modal-title').text(mode === 'edit' ? 'Edit appointment' : 'Add appointment');
+            $modal.find('[data-save-appointment]').text(mode === 'edit' ? 'Update' : 'Create');
+            $modal.find('input[name="title"]').val(appointment.title || '');
+            $modal.find('input[name="from_date"]').val(appointment.startDate);
+            $modal.find('input[name="to_date"]').val(appointment.endDate);
+            $modal.find('input[name="from_time"]').val(appointment.startTime || '');
+            $modal.find('input[name="to_time"]').val(appointment.endTime || '');
+            $modal.find('input[name="allDay"]').prop('checked', !!appointment.allDay).trigger('change');
+            $modal.find('textarea[name="description"]').val(appointment.description || '');
+            $modal.find('input[name="color"]').val(normalizeColorInput(appointment.color));
+            $modal.find('input[name="link"]').val(appointment.link || '');
+            $modal.modal('show');
+        }
 
-            for (let i = 0; i < entriesCount; i++) {
-                // Random date within the specified year
-                const randomDate = new Date(
-                    year,                             // specified year
-                    Math.floor(Math.random() * 12),   // month: 0 (Jan) to 11 (Dec)
-                    Math.floor(Math.random() * 28) + 1 // day: 1 to 28 (safe)
-                );
+        function readAppointmentModal() {
+            const allDay = $modal.find('input[name="allDay"]').prop('checked');
+            const appointment = {
+                title: $modal.find('input[name="title"]').val() || 'Untitled appointment',
+                start: buildDateTime(
+                    $modal.find('input[name="from_date"]').val(),
+                    $modal.find('input[name="from_time"]').val(),
+                    allDay
+                ),
+                end: buildDateTime(
+                    $modal.find('input[name="to_date"]').val(),
+                    $modal.find('input[name="to_time"]').val(),
+                    allDay,
+                    true
+                ),
+                allDay: allDay,
+                calendarId: 'personal',
+                description: $modal.find('textarea[name="description"]').val(),
+                color: $modal.find('input[name="color"]').val(),
+                link: $modal.find('input[name="link"]').val()
+            };
 
-                // Format date as 'YYYY-MM-DD'
-                const key = randomDate.toISOString().split('T')[0];
-
-                // Increment total for that day (you can tweak increment range if needed)
-                const prev = buckets.get(key) || 0;
-                const increment = Math.floor(Math.random() * 7); // 0–6
-                buckets.set(key, prev + increment);
+            if (modalState.appointmentId) {
+                appointment.id = modalState.appointmentId;
             }
 
-            // Convert buckets to array of { date, total, content }
-            return Array.from(buckets, ([date, total]) => {
-                const useHtml = Math.random() > 0.5;
-                const content = useHtml
-                    ? `<strong>${total} appointments</strong><br><small>${date}</small>`
-                    : `${total} appointments on ${date}`;
-
-                return {date, total, content};
-            });
+            return appointment;
         }
 
-        async function url(query) {
-            // console.log('index url', query);
-            await sleep(Math.floor(Math.random())); // Waits synchronously for 2 seconds
-
-            return new Promise((resolve, reject) => {
-                try {
-                    // Set default values if fromDate or toDate are not available
-                    const fromDate = query.fromDate ? new Date(`${query.fromDate}T00:00:00`) : null;
-                    const toDate = query.toDate ? new Date(`${query.toDate}T23:59:59`) : null;
-                    const search = query.search;
-
-
-                    // If there is only one search term, use the new function
-                    if (search && !fromDate && !toDate) {
-                        const limit = query.limit;
-                        const offset = query.offset;
-                        return resolve(getAppointmentsBySearch(search, limit, offset));
-                    }
-
-                    if (query.view === 'year') {
-                        return resolve(generateDates(query.year));
-                    }
-
-                    // Generierung von zufälligen Terminen (basierend auf Zeitraum)
-                    const appointments = generateRandomAppointments(
-                        (fromDate || new Date('1970-01-01T00:00:00')).toISOString(),
-                        (toDate || new Date('9999-12-31T23:59:59')).toISOString(),
-                        query.view
-                    );
-
-                    // Filter nach Zeitraum
-                    const filteredAppointments = appointments.filter(appointment => {
-                        const appointmentStart = new Date(appointment.start);
-                        const appointmentEnd = new Date(appointment.end);
-
-                        return (
-                            (!fromDate || appointmentStart >= fromDate) &&
-                            (!toDate || appointmentEnd <= toDate)
-                        );
-                    });
-
-                    // Falls ein Suchbegriff existiert, zusätzlich nach Titel filtern
-                    if (search) {
-                        const searchFilteredAppointments = filteredAppointments.filter(appointment => {
-                            return appointment.title.toLowerCase().includes(search.toLowerCase());
-                        });
-                        return resolve(searchFilteredAppointments);
-                    }
-
-                    // Rückgabe der (zeitlich gefilterten) Termine
-                    resolve(filteredAppointments);
-                } catch (error) {
-                    reject(error);
-                }
-            });
+        function buildDateTime(date, time, allDay, isEnd = false) {
+            if (allDay) {
+                return `${date} ${isEnd ? '23:59:59' : '00:00:00'}`;
+            }
+            return `${date} ${time || (isEnd ? '23:59' : '00:00')}:00`;
         }
 
-        function getAppointmentsBySearch(search, limit, offset) {
-            // Wenn kein Suchbegriff angegeben wurde, direkt leeres Array zurückgeben
-            if (!search) {
-                return {rows: [], total: 0};
+        function normalizeColorInput(color) {
+            return /^#[0-9a-f]{6}$/i.test(color || '') ? color : '#0d6efd';
+        }
+
+        async function loadAppointments(query) {
+            await sleep(100);
+
+            if (query.search) {
+                return searchAppointments(query.search, query.limit, query.offset, query.calendarIds);
             }
 
-            const appointments = generateStaticAppointmentsForSearch();
+            if (query.view === 'year') {
+                return generateYearBuckets(query.year);
+            }
 
-            // Filtere die Termine basierend auf dem Suchbegriff
-            const filteredAppointments = appointments.filter(appointment =>
-                appointment.title.toLowerCase().includes(search.toLowerCase())
+            return filterByCalendarIds(
+                generateAppointments(query.fromDate, query.toDate, query.view),
+                query.calendarIds
             );
-
-            // Calculate the total number of hits
-            const total = filteredAppointments.length;
-
-            // Apply limit and offset to limit the results
-            const startIndex = offset || 0; // Default value for offset is 0
-            const endIndex = limit ? startIndex + limit : total;
-
-            // Crop the result according to limit and offset
-            const rows = filteredAppointments.slice(startIndex, endIndex);
-
-            // Return the result as an object
-            return {rows, total};
         }
 
-        function generateStaticAppointmentsForSearch() {
-            const staticAppointments = []; // Array für Termine
-            const colors = ['#FF5733', '#33FF57', '#3357FF', '#F1C40F', '#9B59B6']; // Example color palette
-            const links = ['https://example.com/event', 'https://example.com/details']; // Example links
+        function searchAppointments(search, limit, offset, calendarIds) {
+            const searchLower = search.toLowerCase();
+            const rows = generateSearchAppointments()
+                .filter(appointment => shouldShowCalendar(appointment, calendarIds))
+                .filter(appointment => appointment.title.toLowerCase().includes(searchLower));
+            const start = offset || 0;
+            const end = limit ? start + limit : rows.length;
 
-            for (let i = 0; i < 46; i++) {
-                // Random description
-                const description = `Description for Appointment ${i + 1}`;
-                const randomMonth = Math.floor(Math.random() * 12); // Random Month (0-11)
-                const randomYear = Math.floor(Math.random() * (2025 - 2022 + 1)) + 2022;
+            return {
+                rows: rows.slice(start, end),
+                total: rows.length
+            };
+        }
 
-                // Random start and end times
-                const randomTimeStart = new Date(randomYear, randomMonth, Math.floor(Math.random() * 27) + 1, Math.floor(Math.random() * 24), Math.floor(Math.random() * 60));
-                const randomTimeEnd = new Date(randomTimeStart);
-                randomTimeEnd.setHours(randomTimeEnd.getHours() + 2); // Appointment lasts 2 hours
+        function filterByCalendarIds(appointments, calendarIds) {
+            return appointments.filter(appointment => shouldShowCalendar(appointment, calendarIds));
+        }
 
-                // Random Color and Link
-                const color = colors[i % colors.length];
-                const link = links[i % links.length];
-
-                // Create an appointment
-                const appointment = {
-                    id: i + 1,
-                    title: `Appointment ${i + 1}`,
-                    description: description,
-                    start: randomTimeStart.toISOString().replace('T', ' ').substring(0, 19),
-                    end: randomTimeEnd.toISOString().replace('T', ' ').substring(0, 19),
-                    allDay: i % 21 === 0, // Jeder 21. Termin ein Ganztages-Termin
-                    color: color,
-                    link: link
-                };
-
-                // Add an appointment
-                staticAppointments.push(appointment);
+        function shouldShowCalendar(appointment, calendarIds) {
+            if (!Array.isArray(calendarIds)) {
+                return true;
             }
-
-            return staticAppointments;
+            return calendarIds.includes(appointment.calendarId);
         }
 
-        function generateRandomAppointments(start, end, view = null) {
-            const colors = [
-                'primary opacity-75 gradient', 'danger opacity-75 gradient', 'info gradient  opacity-75', 'warning gradient  opacity-75',
-                'secondary opacity-75 gradient', 'dark opacity-75 gradient', 'light gradient  opacity-75', 'success gradient  opacity-75',
-            ];
+        function generateSearchAppointments() {
+            return Array.from({length: 36}, function (_, index) {
+                const start = new Date(2026, index % 12, (index % 24) + 1, 9 + (index % 8), 0, 0);
+                const end = new Date(start.getTime() + 60 * 60 * 1000);
 
+                return createAppointment(index + 1, start, end, index % 9 === 0);
+            });
+        }
+
+        function generateAppointments(fromDate, toDate, view) {
+            const from = new Date(`${fromDate}T00:00:00`);
+            const to = new Date(`${toDate}T23:59:59`);
+            const count = view === 'day' ? 4 : view === 'week' ? 12 : 24;
             const appointments = [];
-            const startDate = new Date(start);
-            const endDate = new Date(end);
 
-            // Validation: Ensure that the start and end dates are valid
-            if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-                throw new Error("Ungültiges Start- oder Enddatum übergeben.");
-            }
+            for (let index = 0; index < count; index++) {
+                const start = randomDateBetween(from, to);
+                const durationMinutes = [45, 60, 90, 120][index % 4];
+                const end = new Date(start.getTime() + durationMinutes * 60000);
 
-            // Validation: Make sure the end date is after the start date
-            if (endDate <= startDate) {
-                throw new Error("Das Enddatum muss nach dem Startdatum liegen.");
-            }
-
-            // Determining the Number of Appointments Based on the View
-            let count;
-            switch (view) {
-                case 'month':
-                case 'week':
-                case 'day':
-                    count = Math.floor(Math.random() * 21);
-                    break;
-                case 'year':
-                    count = Math.floor(Math.random() * 200);
-                    break;
-                default: // Default Count if No View Has Been Defined
-                    count = Math.floor(Math.random() * 120);
-            }
-
-            for (let i = 0; i < count; i++) {
-                // Generate random start time
-                const startMinutesOptions = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
-                const randomStartTime = new Date(
-                    startDate.getTime() + Math.random() * (endDate.getTime() - startDate.getTime())
-                );
-
-                randomStartTime.setMinutes(
-                    startMinutesOptions[Math.floor(Math.random() * startMinutesOptions.length)]
-                );
-                randomStartTime.setSeconds(0);
-                randomStartTime.setMilliseconds(0);
-
-                // Randomly determine the duration of the appointment
-                const durationOptions = [45, 60, 90, 120, 240, 500];
-                const randomDuration = durationOptions[Math.floor(Math.random() * durationOptions.length)];
-
-                // Calculate the end time of the appointment
-                const randomEndTime = new Date(randomStartTime.getTime() + randomDuration * 60000);
-
-                // Make sure the end time is within the allowed limits
-                if (randomEndTime > endDate) {
-                    continue; //Skip date if the end time is out of bounds
+                if (end <= to) {
+                    appointments.push(createAppointment(index + 1, start, end, index % 14 === 0));
                 }
-
-                const description = `This is a randomly generated appointment description. The appointment is meant to provide useful information about the scheduled event. Details such as the purpose of the appointment, participants, or special instructions can typically be included here. Appointment #${i + 1} is designed to showcase how descriptions enhance context.`;
-                const color = colors[Math.floor(Math.random() * colors.length)];
-                const link = 'https://github.com/ThomasDev-de/bs-calendar';
-
-                // Generate Location randomly: String, Array, or null
-                let location;
-                const randomChoice = Math.floor(Math.random() * 3); // 0 = String, 1 = Array, 2 = null
-                if (randomChoice === 0) {
-                    location = `Location ${Math.floor(Math.random() * 100) + 1}`; // z. B. "Location 42"
-                } else if (randomChoice === 1) {
-                    location = [
-                        `Room ${Math.floor(Math.random() * 10) + 1}`,
-                        `Building ${Math.floor(Math.random() * 5) + 1}`
-                    ]; // z. B. ["Room 3", "Building 2"]
-                } else {
-                    location = null; // No location
-                }
-
-                const allDay = i % 21 === 0;
-                // Den Termin erstellen
-                const appointment = {
-                    id: i + 1,
-                    title: `Appointment ${i + 1}`,
-                    description: description,
-                    start: randomStartTime.toISOString().replace('T', ' ').substring(0, 19),
-                    end: randomEndTime.toISOString().replace('T', ' ').substring(0, 19),
-                    allDay: allDay,
-                    color: color,
-                    link: link,
-                    location: location // Add Location
-                };
-
-                appointments.push(appointment);
             }
 
             return appointments;
         }
 
+        function generateYearBuckets(year) {
+            return Array.from({length: 24}, function (_, index) {
+                const date = new Date(year, index % 12, (index * 3) % 27 + 1);
+                const dateString = date.toISOString().split('T')[0];
+                const total = (index % 6) + 1;
 
-        $('#flexSwitchCheckDefaultAllDay').prop('checked', false)
-            .on('change', function () {
-                const isAllDay = $(this).prop('checked');
-                // if (isAllDay) {
-                $('.js-hide-on-all-day').toggle(!isAllDay);
-                // }
-
-
+                return {
+                    date: dateString,
+                    total: total,
+                    content: `<strong>${total} appointments</strong><br><small>${dateString}</small>`
+                };
             });
-        $('#flexSwitchCheckTheme').prop('checked', false)
-            .on('change', function () {
-                const htmlElement = $('html');
-                const theme = htmlElement.attr('data-bs-theme') === 'light' ? 'dark' : 'light';
-                htmlElement.attr('data-bs-theme', theme);
-            });
-
-        const bootswatchVersion = '5.3.8';
-        const bootswatchThemes = [
-            'default', 'cerulean', 'cosmo', 'cyborg', 'darkly', 'flatly', 'journal', 'litera',
-            'lumen', 'lux', 'materia', 'minty', 'morph', 'pulse', 'quartz', 'sandstone',
-            'simplex', 'sketchy', 'slate', 'solar', 'spacelab', 'superhero', 'united', 'vapor',
-            'yeti', 'zephyr'
-        ];
-        const bootswatchLink = $('#bootswatch-theme');
-        const bootswatchSelect = $('#selectBootswatchTheme');
-        const STORAGE_KEY_BOOTSWATCH = 'bsCalendar.demo.bootswatchTheme';
-
-        function toThemeLabel(themeName) {
-            if (themeName === 'default') {
-                return 'Bootstrap (default)';
-            }
-            return themeName.charAt(0).toUpperCase() + themeName.slice(1);
         }
 
-        function applyBootswatchTheme(themeName) {
-            if (!themeName || themeName === 'default') {
-                bootswatchLink.prop('disabled', true).attr('href', '');
-                return;
-            }
-            const href = `https://cdn.jsdelivr.net/npm/bootswatch@${bootswatchVersion}/dist/${themeName}/bootstrap.min.css`;
-            bootswatchLink.prop('disabled', false).attr('href', href);
+        function createAppointment(id, start, end, allDay = false) {
+            const calendars = ['personal', 'work', 'sports'];
+            const colors = ['primary opacity-75 gradient', 'danger opacity-75 gradient', 'success opacity-75 gradient'];
+            const calendarIndex = id % calendars.length;
+
+            return {
+                id: `demo-${id}-${start.getTime()}`,
+                calendarId: calendars[calendarIndex],
+                title: `Appointment ${id}`,
+                description: `Demo appointment ${id}`,
+                start: formatDateTime(start),
+                end: formatDateTime(end),
+                allDay: allDay,
+                color: colors[calendarIndex],
+                link: 'https://github.com/ThomasDev-de/bs-calendar'
+            };
         }
 
-        bootswatchThemes.forEach(themeName => {
-            bootswatchSelect.append(
-                `<option value="${themeName}">${toThemeLabel(themeName)}</option>`
-            );
-        });
+        function randomDateBetween(from, to) {
+            const date = new Date(from.getTime() + Math.random() * (to.getTime() - from.getTime()));
+            date.setMinutes([0, 15, 30, 45][Math.floor(Math.random() * 4)]);
+            date.setSeconds(0, 0);
+            return date;
+        }
 
-        const initialTheme = localStorage.getItem(STORAGE_KEY_BOOTSWATCH) || 'darkly';
-        bootswatchSelect.val(initialTheme);
-        applyBootswatchTheme(initialTheme);
+        function formatDateTime(date) {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            const hh = String(date.getHours()).padStart(2, '0');
+            const ii = String(date.getMinutes()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd} ${hh}:${ii}:00`;
+        }
 
-        bootswatchSelect.on('change', function () {
-            const selectedTheme = $(this).val();
-            applyBootswatchTheme(selectedTheme);
-            localStorage.setItem(STORAGE_KEY_BOOTSWATCH, selectedTheme);
-        });
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
 
-        // Generiere das heutige Datum im Format YYYYMMDD für den ICS-String
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = String(now.getMonth() + 1).padStart(2, '0');
-        const d = String(now.getDate()).padStart(2, '0');
-        const today = `${y}${m}${d}`;
+        function initThemeControls() {
+            const bootswatchVersion = '5.3.8';
+            const bootswatchThemes = [
+                'default', 'cerulean', 'cosmo', 'cyborg', 'darkly', 'flatly', 'journal', 'litera',
+                'lumen', 'lux', 'materia', 'minty', 'morph', 'pulse', 'quartz', 'sandstone',
+                'simplex', 'sketchy', 'slate', 'solar', 'spacelab', 'superhero', 'united', 'vapor',
+                'yeti', 'zephyr'
+            ];
+            const storageKey = 'bsCalendar.demo.bootswatchTheme';
+            const $bootswatchLink = $('#bootswatch-theme');
+            const $bootswatchSelect = $('#selectBootswatchTheme');
 
-        const icsString = `BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-SUMMARY:Team Meeting
-DTSTART:${today}T090000
-DTEND:${today}T100000
-DESCRIPTION:Discussing the Q4 roadmap and milestones.
-LOCATION:Conference Room B
-URL:https://meet.google.com/abc-defg-hij
-CATEGORIES:Work,Internal
-STATUS:CONFIRMED
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Lunch with Client
-DTSTART:${today}T123000
-DTEND:${today}T133000
-DESCRIPTION:Discussing new contract terms.
-LOCATION:Italian Restaurant 'Luigi'
-CATEGORIES:Business,Lunch
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Project Review
-DTSTART:${today}T140000
-DTEND:${today}T153000
-DESCRIPTION:Reviewing the latest deployment.
-LOCATION:Office 305
-ORGANIZER:CN=Project Lead:mailto:boss@example.com
-ATTENDEE;CN=John Doe:mailto:john@example.com
-UID:1234567890
-END:VEVENT
-BEGIN:VEVENT
-SUMMARY:Daily Standup
-DTSTART:${today}T160000
-DTEND:${today}T163000
-DESCRIPTION:Quick sync on daily tasks.
-URL:https://zoom.us/j/987654321
-CATEGORIES:Agile,Daily
-END:VEVENT
-END:VCALENDAR`;
-        const appointments = $.bsCalendar.utils.convertIcsToAppointments(icsString);
+            bootswatchThemes.forEach(themeName => {
+                $bootswatchSelect.append(
+                    `<option value="${themeName}">${getThemeLabel(themeName)}</option>`
+                );
+            });
 
-        // Dann in den Kalender laden (Beispiel: via refresh oder init)
-        $('#calendarICS').bsCalendar({
-            storeState: true,
-            url: () => Promise.resolve(appointments)
-        });
+            $bootswatchSelect
+                .val(localStorage.getItem(storageKey) || 'darkly')
+                .on('change', function () {
+                    const themeName = $(this).val();
+                    applyBootswatchTheme(themeName);
+                    localStorage.setItem(storageKey, themeName);
+                })
+                .trigger('change');
+
+            $('#flexSwitchCheckTheme').on('change', function () {
+                const $html = $('html');
+                const nextTheme = $html.attr('data-bs-theme') === 'light' ? 'dark' : 'light';
+                $html.attr('data-bs-theme', nextTheme);
+            });
+
+            function applyBootswatchTheme(themeName) {
+                if (!themeName || themeName === 'default') {
+                    $bootswatchLink.prop('disabled', true).attr('href', '');
+                    return;
+                }
+
+                $bootswatchLink
+                    .prop('disabled', false)
+                    .attr('href', `https://cdn.jsdelivr.net/npm/bootswatch@${bootswatchVersion}/dist/${themeName}/bootstrap.min.css`);
+            }
+
+            function getThemeLabel(themeName) {
+                return themeName === 'default'
+                    ? 'Bootstrap (default)'
+                    : themeName.charAt(0).toUpperCase() + themeName.slice(1);
+            }
+        }
     });
 </script>
 </body>
