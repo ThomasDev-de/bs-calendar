@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.1.3
+ * @version 2.1.4
  * @date 2026-05-08
  * @license MIT
  * @requires "jQuery" ^3
@@ -62,9 +62,9 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.1.3',
+            version: '2.1.4',
             about: {
-                version: '2.1.3',
+                version: '2.1.4',
                 releaseDate: '2026-05-08',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
@@ -140,8 +140,11 @@
                 onAll: null,
                 onInit: null,
                 onAdd: null,
+                onAdded: null,
                 onEdit: null,
+                onEdited: null,
                 onDelete: null,
+                onDeleted: null,
                 onView: null,
                 onBeforeLoad: null,
                 onAfterLoad: null,
@@ -1431,6 +1434,9 @@
                     case 'editApointment':
                         methodEditAppointment(wrapper, params);
                         break;
+                    case 'deleteAppointment':
+                        methodDeleteAppointment(wrapper, params);
+                        break;
                     case 'destroy':
                         destroy(wrapper);
                         break;
@@ -1755,6 +1761,17 @@
             }
 
             return $.extend(true, {}, object);
+        }
+
+        function getAppointmentIdParam(object) {
+            if (typeof object === 'string' || typeof object === 'number') {
+                return object;
+            }
+            const appointment = getEditableAppointmentParams(object);
+            if (hasAppointmentId(appointment)) {
+                return appointment.id;
+            }
+            return null;
         }
 
         function normalizeSettings(settings) {
@@ -2411,8 +2428,10 @@
             appointments.push(copyAppointment(appointment));
 
             checkAndSetAppointments($wrapper, appointments).then(_cleanedAppointments => {
-                void _cleanedAppointments;
+                const addedAppointment = _cleanedAppointments.find(item => hasAppointmentId(item) && String(item.id) === String(appointment.id));
+                const returnData = getAppointmentForReturn(addedAppointment || appointment);
                 buildAppointmentsForView($wrapper);
+                trigger($wrapper, 'added', returnData.appointment, returnData.extras);
             });
         }
 
@@ -2455,8 +2474,51 @@
             }
 
             checkAndSetAppointments($wrapper, appointments).then(_cleanedAppointments => {
-                void _cleanedAppointments;
+                const editedAppointment = _cleanedAppointments.find(item => hasAppointmentId(item) && String(item.id) === appointmentId);
+                const returnData = getAppointmentForReturn(editedAppointment || changes);
                 buildAppointmentsForView($wrapper);
+                trigger($wrapper, 'edited', returnData.appointment, returnData.extras);
+            });
+        }
+
+        function methodDeleteAppointment($wrapper, object) {
+            const data = getBsCalendarData($wrapper);
+            const settings = data.settings;
+
+            if (data.searchMode || data.view === 'year') {
+                if (settings.debug) {
+                    log('Attempt to call deleteAppointment() in search/year mode — ignored.');
+                }
+                return;
+            }
+
+            const appointmentIdParam = getAppointmentIdParam(object);
+            if (appointmentIdParam === null || appointmentIdParam === undefined || String(appointmentIdParam).trim() === '') {
+                if (settings.debug) {
+                    log('deleteAppointment() expects an appointment id or an appointment object with an id.');
+                }
+                return;
+            }
+
+            const appointmentId = String(appointmentIdParam);
+            const currentAppointments = getAppointments($wrapper);
+            const deletedAppointment = currentAppointments.find(appointment => hasAppointmentId(appointment) && String(appointment.id) === appointmentId);
+            const appointments = currentAppointments
+                .filter(appointment => !hasAppointmentId(appointment) || String(appointment.id) !== appointmentId)
+                .map(appointment => copyAppointment(appointment));
+
+            if (appointments.length === currentAppointments.length) {
+                if (settings.debug) {
+                    log('deleteAppointment() could not find appointment with id:', appointmentIdParam);
+                }
+                return;
+            }
+
+            checkAndSetAppointments($wrapper, appointments).then(_cleanedAppointments => {
+                void _cleanedAppointments;
+                const returnData = getAppointmentForReturn(deletedAppointment);
+                buildAppointmentsForView($wrapper);
+                trigger($wrapper, 'deleted', returnData.appointment, returnData.extras);
             });
         }
 

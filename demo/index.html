@@ -182,6 +182,10 @@
                         color: appointment.color || '#0d6efd',
                         link: appointment.link || ''
                     });
+                })
+                .on('delete.bs.calendar', function (event, appointment) {
+                    event.preventDefault();
+                    $calendar.bsCalendar('deleteAppointment', appointment.id);
                 });
         }
 

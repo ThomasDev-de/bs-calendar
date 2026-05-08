@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.1.4**](#version-214)
     * [**Version 2.1.3**](#version-213)
     * [**Version 2.1.2**](#version-212)
     * [**Version 2.1.1**](#version-211)
@@ -35,6 +36,13 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.1.4
+
+- Feature: Added public `deleteAppointment` method to remove a locally loaded appointment by `id` and re-render without fetching.
+- Feature: Added `added.bs.calendar`, `edited.bs.calendar`, and `deleted.bs.calendar` completion events with matching callbacks.
+- Demo: Wired `delete.bs.calendar` to `deleteAppointment` in the single-calendar modal demo.
+- Docs: Updated the workflow and method reference to cover add, edit, and delete together.
 
 ### Version 2.1.3
 

@@ -1,13 +1,13 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.1.3-blue)
+![Version](https://img.shields.io/badge/version-2.1.4-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 `bs-calendar` is a jQuery plugin for Bootstrap 5 calendars with `day`, `week`, `month`, and `year` views. It supports
 remote appointment loading, calendar filters, search, holidays, custom formatting, drag-create, drag-move, and local
-appointment add/edit methods.
+appointment add/edit/delete methods.
 
 As of version 2, Bootstrap 4 is no longer supported. Use version `^1` for Bootstrap 4 projects.
 
@@ -20,7 +20,7 @@ As of version 2, Bootstrap 4 is no longer supported. Use version `^1` for Bootst
 - [Core Concepts](#core-concepts)
 - [Appointment Data](#appointment-data)
 - [Remote Data with `url`](#remote-data-with-url)
-- [Add and Edit Workflow](#add-and-edit-workflow)
+- [Add, Edit, and Delete Workflow](#add-edit-and-delete-workflow)
 - [Options](#options)
 - [Events and Callbacks](#events-and-callbacks)
 - [Methods](#methods)
@@ -53,7 +53,7 @@ Use CDN/script tags:
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.1.3/dist/bs-calendar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.1.4/dist/bs-calendar.min.js"></script>
 ```
 
 Or install via Composer:
@@ -107,6 +107,8 @@ $('#calendar').bsCalendar('editAppointment', {
     id: appointment.id,
     title: 'Updated meeting'
 });
+
+$('#calendar').bsCalendar('deleteAppointment', appointment.id);
 ```
 
 ## Run the Demo
@@ -118,15 +120,18 @@ php -S localhost:8000 -t .
 
 Open `http://localhost:8000/demo/index.html`.
 
-The demo contains one calendar instance and shows a modal-based add/edit flow using `addAppointment` and
-`editAppointment`.
+The demo contains one calendar instance and shows a modal-based add/edit/delete flow using `addAppointment`,
+`editAppointment`, and `deleteAppointment`.
 
 ## Core Concepts
 
 - `url` loads appointment data for the current view, search term, and active calendars.
 - `calendars` defines sidebar filters. Active calendar IDs are sent as `calendarIds`.
-- `add.bs.calendar` and `edit.bs.calendar` are intent events. They tell you the user wants to add/edit; they do not save.
-- `addAppointment` and `editAppointment` update the currently loaded browser-side appointment data and re-render.
+- `add.bs.calendar`, `edit.bs.calendar`, and `delete.bs.calendar` are intent events. They tell you what the user wants;
+  they do not save.
+- `addAppointment`, `editAppointment`, and `deleteAppointment` update the currently loaded browser-side appointment data
+  and re-render.
+- `added.bs.calendar`, `edited.bs.calendar`, and `deleted.bs.calendar` fire after a local mutation method succeeded.
 - `refresh` reloads data from `url`.
 - `render` re-renders already loaded data without calling `url`.
 - `year` view uses summary objects (`date`, `total`, optional `content`), not full appointment objects.
@@ -311,10 +316,10 @@ $('#calendar').bsCalendar({
 
 `queryParams` cannot override protected period keys such as `fromDate`, `toDate`, `year`, or `view`.
 
-## Add and Edit Workflow
+## Add, Edit, and Delete Workflow
 
-`add.bs.calendar` and `edit.bs.calendar` are intent events. They let your app open a modal, validate input, save to a
-backend, and then update the calendar.
+`add.bs.calendar`, `edit.bs.calendar`, and `delete.bs.calendar` are intent events. They let your app open a modal,
+confirm destructive actions, validate input, save to a backend, and then update the calendar.
 
 Callback options receive the same payloads:
 
@@ -322,6 +327,15 @@ Callback options receive the same payloads:
 |-------|----------|---------|
 | `add.bs.calendar` | `onAdd(data, dragExtras)` | Proposed start/end for a new appointment. |
 | `edit.bs.calendar` | `onEdit(appointment, extras, dragExtras)` | Current appointment plus render context. |
+| `delete.bs.calendar` | `onDelete(appointment, extras)` | Appointment selected for deletion. |
+
+After a local mutation method has succeeded, the calendar fires completion events:
+
+| Event | Callback | Payload |
+|-------|----------|---------|
+| `added.bs.calendar` | `onAdded(appointment, extras)` | Appointment that was added. |
+| `edited.bs.calendar` | `onEdited(appointment, extras)` | Appointment after the local update. |
+| `deleted.bs.calendar` | `onDeleted(appointment, extras)` | Appointment that was removed. |
 
 When drag-create is used, `dragExtras` contains the proposed `start` and `end`. When drag-move is used, `appointment`
 still contains the original appointment and `dragExtras` contains the proposed new range.
@@ -385,11 +399,23 @@ if (appointmentModalMode === 'edit') {
 }
 ```
 
+Handle delete intents:
+
+```javascript
+$('#calendar').on('delete.bs.calendar', function (event, appointment) {
+    event.preventDefault();
+
+    if (confirm(`Delete "${appointment.title}"?`)) {
+        $('#calendar').bsCalendar('deleteAppointment', appointment.id);
+    }
+});
+```
+
 For backend-backed calendars, save to your backend first and then either:
 
 - call `refresh` so the updated data is loaded from `url`, or
-- call `addAppointment` / `editAppointment` for an immediate local update and ensure the backend returns the same data
-  on the next `refresh`.
+- call `addAppointment`, `editAppointment`, or `deleteAppointment` for an immediate local update and ensure the backend
+  returns the same data on the next `refresh`.
 
 ## Options
 
@@ -435,8 +461,11 @@ Some options can be updated later with `updateOptions`.
 | `onAll` | `function` or `null` | `null` | Receives all event callbacks. |
 | `onInit` | `function` or `null` | `null` | Called after initialization. |
 | `onAdd` | `function` or `null` | `null` | Same payload as `add.bs.calendar`. |
+| `onAdded` | `function` or `null` | `null` | Same payload as `added.bs.calendar`. |
 | `onEdit` | `function` or `null` | `null` | Same payload as `edit.bs.calendar`. |
+| `onEdited` | `function` or `null` | `null` | Same payload as `edited.bs.calendar`. |
 | `onDelete` | `function` or `null` | `null` | Same payload as `delete.bs.calendar`. |
+| `onDeleted` | `function` or `null` | `null` | Same payload as `deleted.bs.calendar`. |
 | `onView` | `function` or `null` | `null` | Called when the view changes. |
 | `onBeforeLoad` | `function` or `null` | `null` | Called before loading appointments. |
 | `onAfterLoad` | `function` or `null` | `null` | Called after appointments were processed. |
@@ -507,8 +536,11 @@ $('#calendar').on('view.bs.calendar', function (event, view) {
 | `all.bs.calendar` | `onAll(eventName, ...params)` | Event name plus event params. |
 | `init.bs.calendar` | `onInit()` | none |
 | `add.bs.calendar` | `onAdd(data, dragExtras)` | New appointment intent. |
+| `added.bs.calendar` | `onAdded(appointment, extras)` | Appointment added with `addAppointment`. |
 | `edit.bs.calendar` | `onEdit(appointment, extras, dragExtras)` | Edit appointment intent. |
+| `edited.bs.calendar` | `onEdited(appointment, extras)` | Appointment updated with `editAppointment`. |
 | `delete.bs.calendar` | `onDelete(appointment, extras)` | Delete appointment intent. |
+| `deleted.bs.calendar` | `onDeleted(appointment, extras)` | Appointment removed with `deleteAppointment`. |
 | `view.bs.calendar` | `onView(view)` | New view. |
 | `navigate-forward.bs.calendar` | `onNavigateForward(view, from, to)` | View and period. |
 | `navigate-back.bs.calendar` | `onNavigateBack(view, from, to)` | View and period. |
@@ -534,6 +566,7 @@ $('#calendar').bsCalendar('refresh');
 | `addAppointment` | appointment object | Adds one local appointment and renders. Not available in search mode or year view. |
 | `editAppointment` | appointment object with `id` | Updates a local appointment by `id` and renders. Not available in search mode or year view. |
 | `editApointment` | appointment object with `id` | Compatibility alias for `editAppointment`. |
+| `deleteAppointment` | appointment `id` or object with `id` | Deletes one local appointment by `id` and renders. Not available in search mode or year view. |
 | `destroy` | none | Removes generated markup/events and restores the original element state. |
 | `setDate` | date string, `Date`, or `{date, view}` | Sets the visible reference date. Not available in search mode. |
 | `setToday` | optional view string | Navigates to today. Not available in search mode. |
@@ -752,13 +785,13 @@ Development notes:
 
 Changelog and support:
 
-- [Changelog](changelog.md#version-213)
+- [Changelog](changelog.md#version-214)
 - [Issues](https://github.com/ThomasDev-de/bs-calendar/issues)
 - [License](LICENSE)
 
 ## Completeness Check
 
-This README is intended to cover the public surface of version `2.1.3`:
+This README is intended to cover the public surface of version `2.1.4`:
 
 - All `DEFAULTS` options from `dist/bs-calendar.js`
 - All public plugin methods in the method switch
