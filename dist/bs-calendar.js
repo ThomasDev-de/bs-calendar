@@ -3832,20 +3832,14 @@
                 return movedDate;
             }
 
-            function restoreMonthMoveDragElement(dragState) {
+            function cleanupMonthMoveDragElement(dragState) {
                 if (!dragState || !dragState.$appointment) {
                     return;
                 }
 
                 dragState.$appointment.css({opacity: '', zIndex: ''});
                 if (dragState.$placeholder && dragState.$placeholder.length) {
-                    dragState.$appointment.insertBefore(dragState.$placeholder);
                     dragState.$placeholder.remove();
-                    return;
-                }
-
-                if (dragState.$sourceCell && dragState.$sourceCell.length) {
-                    dragState.$appointment.appendTo(dragState.$sourceCell.find('[data-role="day-wrapper"]').first());
                 }
             }
 
@@ -4114,7 +4108,7 @@
 
                     if (globalDragState.monthMoveDragState) {
                         const dragState = globalDragState.monthMoveDragState;
-                        restoreMonthMoveDragElement(dragState);
+                        cleanupMonthMoveDragElement(dragState);
                         if (dragState.dragged) {
                             globalDragState.suppressSlotClickUntil = Date.now() + 250;
                             globalDragState.suppressAppointmentClickUntil = Date.now() + 250;
