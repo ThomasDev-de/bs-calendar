@@ -642,6 +642,7 @@ Formatter signatures:
 | `colors.backgroundImage` | Computed background image/gradient. |
 | `colors.color` | Computed text color. |
 | `colors.classList` | Computed Bootstrap classes, if applicable. |
+| `colors.hex` | Computed hexadecimal color ("#rrggbb") when resolvable, otherwise `null`. |
 | `start.date` | Start date in `YYYY-MM-DD`. |
 | `start.time` | Start time in `HH:MM:SS`. |
 | `end.date` | End date in `YYYY-MM-DD`. |
@@ -689,7 +690,8 @@ const colors = $.bsCalendar.utils.getColors('#ff5733', 'primary');
 //   origin: '#ff5733',
 //   backgroundColor: '#ff5733',
 //   backgroundImage: 'none',
-//   color: '#000000' or '#FFFFFF'
+//   color: '#000000' or '#FFFFFF',
+//   hex: '#ff5733' // 6-digit hex when resolvable, otherwise null
 // }
 ```
 
