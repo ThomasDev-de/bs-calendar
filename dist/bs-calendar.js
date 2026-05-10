@@ -1056,6 +1056,30 @@
                  * @param {string | null} fallbackColor - The fallback color or class if the primary color is invalid.
                  * @returns {object} - An object containing the colors: backgroundColor, backgroundImage, and text color.
                  */
+                toHex: (color) => {
+                    if (!color) return null;
+                    try {
+                        color = $.bsCalendar.utils.resolveColor(color);
+                    } catch (e) {
+                        return null;
+                    }
+                    if (typeof color !== 'string') return null;
+                    if (color.startsWith('#')) {
+                        if (color.length === 4) {
+                            return '#' + color[1] + color[1] + color[2] + color[2] + color[3] + color[3];
+                        }
+                        return color.toLowerCase();
+                    }
+                    const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/i);
+                    if (m) {
+                        const r = parseInt(m[1], 10);
+                        const g = parseInt(m[2], 10);
+                        const b = parseInt(m[3], 10);
+                        const hex = '#' + [r, g, b].map(n => n.toString(16).padStart(2, '0')).join('');
+                        return hex.toLowerCase();
+                    }
+                    return null;
+                },
                 getColors: (color, fallbackColor = null) => {
                     const primaryResult = $.bsCalendar.utils.computeColor(color);
                     const fallbackResult = primaryResult || $.bsCalendar.utils.computeColor(fallbackColor);
@@ -1068,11 +1092,16 @@
 
                     const result = {...defaultValues, ...fallbackResult};
 
+                    // compute hex representation of the backgroundColor (if possible)
+                    const hex = $.bsCalendar.utils.toHex(result.backgroundColor);
+
                     return {
                         origin: color, // input for debug purposes
                         ...result,
+                        hex: hex
                     };
                 },
+
                 /**
                  * Converts a date-time string with a space separator into ISO 8601 format
                  * by replacing the space character with 'T'. If the input is not a string,
