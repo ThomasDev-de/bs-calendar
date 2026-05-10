@@ -170,6 +170,8 @@
                     const eventExtras = dragExtras || extras;
                     const isAllDay = !!appointment.allDay;
 
+                    console.log('Editing appointment extras:', extras.colors);
+
                     openAppointmentModal('edit', {
                         id: appointment.id,
                         title: appointment.title,
@@ -179,7 +181,7 @@
                         endTime: isAllDay ? '' : normalizeTimeInputValue(eventExtras.end.time),
                         allDay: isAllDay,
                         description: appointment.description || '',
-                        color: appointment.color || '#0d6efd',
+                        color: extras.colors.hex || '#0d6efd',
                         link: appointment.link || ''
                     });
                 })
