@@ -1,6 +1,6 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.1.5-blue)
+![Version](https://img.shields.io/badge/version-2.1.6-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -53,7 +53,7 @@ Use CDN/script tags:
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.1.5/dist/bs-calendar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.1.6/dist/bs-calendar.min.js"></script>
 ```
 
 Or install via Composer:
@@ -339,7 +339,8 @@ After a local mutation method has succeeded, the calendar fires completion event
 
 When drag-create is used, `dragExtras` contains the proposed `start` and `end`. When drag-move is used, `appointment`
 still contains the original appointment and `dragExtras` contains the proposed new range. In week view, drag-move can
-also move an appointment to another day in the visible week.
+also move an appointment to another day in the visible week. In month view, drag-move can move an appointment to another
+day cell while keeping the original start/end times.
 
 Open a modal for new appointments:
 
@@ -449,7 +450,7 @@ Some options can be updated later with `updateOptions`.
 | `views` | `array` | `["year", "month", "week", "day"]` | Enabled views. |
 | `holidays` | `object` or `null` | `null` | OpenHolidays configuration. |
 | `showAddButton` | `boolean` | `true` | Shows the toolbar add button. |
-| `draggable` | `boolean` | `false` | Enables drag-create and drag-move in day/week view. Touch uses long-press. |
+| `draggable` | `boolean` | `false` | Enables drag-create in day/week view and drag-move in day/week/month view. Touch uses long-press. |
 | `translations` | `object` | see below | Search strings. |
 | `icons` | `object` | see below | Bootstrap icon classes. |
 | `url` | `string`, `function`, or `null` | `null` | Appointment data source. |
@@ -786,13 +787,13 @@ Development notes:
 
 Changelog and support:
 
-- [Changelog](changelog.md#version-215)
+- [Changelog](changelog.md#version-216)
 - [Issues](https://github.com/ThomasDev-de/bs-calendar/issues)
 - [License](LICENSE)
 
 ## Completeness Check
 
-This README is intended to cover the public surface of version `2.1.5`:
+This README is intended to cover the public surface of version `2.1.6`:
 
 - All `DEFAULTS` options from `dist/bs-calendar.js`
 - All public plugin methods in the method switch

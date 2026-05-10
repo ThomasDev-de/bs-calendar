@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.1.5
- * @date 2026-05-08
+ * @version 2.1.6
+ * @date 2026-05-10
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -62,10 +62,10 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.1.5',
+            version: '2.1.6',
             about: {
-                version: '2.1.5',
-                releaseDate: '2026-05-08',
+                version: '2.1.6',
+                releaseDate: '2026-05-10',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
                 releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
@@ -1250,6 +1250,7 @@
         const globalDragState = {
             createDragState: null,
             moveDragState: null,
+            monthMoveDragState: null,
             pendingCreate: null,
             pendingMove: null,
             suppressSlotClickUntil: 0,
@@ -3789,6 +3790,65 @@
                     : ($horizontalMatch.length ? $horizontalMatch : $fallbackSlotContainer);
             }
 
+            function getMonthDayCellFromPointer($wrapperRef, point, $fallbackCell) {
+                if (getView($wrapperRef) !== 'month' || !Number.isFinite(point.x) || !Number.isFinite(point.y)) {
+                    return $fallbackCell;
+                }
+
+                let $matchedCell = $();
+                getViewContainer($wrapperRef).find('[data-month-date]').each(function () {
+                    const $cell = $(this);
+                    const offset = $cell.offset();
+                    if (!offset) {
+                        return;
+                    }
+
+                    const left = offset.left;
+                    const right = left + $cell.outerWidth();
+                    const top = offset.top;
+                    const bottom = top + $cell.outerHeight();
+
+                    if (point.x >= left && point.x <= right && point.y >= top && point.y <= bottom) {
+                        $matchedCell = $cell;
+                        return false;
+                    }
+                });
+
+                return $matchedCell.length ? $matchedCell : $fallbackCell;
+            }
+
+            function getLocalDateIndex(date) {
+                const parsedDate = typeof date === 'string' ? $.bsCalendar.utils.parseDateInput(date) : date;
+                return Math.round(Date.UTC(
+                    parsedDate.getFullYear(),
+                    parsedDate.getMonth(),
+                    parsedDate.getDate()
+                ) / 86400000);
+            }
+
+            function addDaysPreservingTime(date, days) {
+                const movedDate = new Date(date.getTime());
+                movedDate.setDate(movedDate.getDate() + days);
+                return movedDate;
+            }
+
+            function restoreMonthMoveDragElement(dragState) {
+                if (!dragState || !dragState.$appointment) {
+                    return;
+                }
+
+                dragState.$appointment.css({opacity: '', zIndex: ''});
+                if (dragState.$placeholder && dragState.$placeholder.length) {
+                    dragState.$appointment.insertBefore(dragState.$placeholder);
+                    dragState.$placeholder.remove();
+                    return;
+                }
+
+                if (dragState.$sourceCell && dragState.$sourceCell.length) {
+                    dragState.$appointment.appendTo(dragState.$sourceCell.find('[data-role="day-wrapper"]').first());
+                }
+            }
+
             function minutesToTimeString(totalMinutes) {
                 const h = Math.floor(totalMinutes / 60);
                 const m = totalMinutes % 60;
@@ -3903,6 +3963,32 @@
                     if (!Number.isFinite(pageY)) {
                         return;
                     }
+
+                    if (globalDragState.monthMoveDragState) {
+                        if (isTouchLikeEvent(e)) {
+                            e.preventDefault();
+                        }
+                        const $previousCell = globalDragState.monthMoveDragState.$targetCell;
+                        const $targetCell = getMonthDayCellFromPointer(
+                            globalDragState.monthMoveDragState.$wrapper,
+                            point,
+                            $previousCell
+                        );
+
+                        if ($targetCell.length && !$targetCell.is($previousCell)) {
+                            const targetDateLocal = String($targetCell.attr('data-month-date'));
+                            const $dayWrapper = $targetCell.find('[data-role="day-wrapper"]').first();
+                            if ($dayWrapper.length) {
+                                globalDragState.monthMoveDragState.$targetCell = $targetCell;
+                                globalDragState.monthMoveDragState.targetDateLocal = targetDateLocal;
+                                globalDragState.monthMoveDragState.$appointment.appendTo($dayWrapper);
+                            }
+                        }
+
+                        globalDragState.monthMoveDragState.$appointment.css({opacity: 0.8});
+                        globalDragState.monthMoveDragState.dragged = true;
+                    }
+
                     if (globalDragState.createDragState) {
                         if (isTouchLikeEvent(e)) {
                             e.preventDefault();
@@ -4024,6 +4110,35 @@
                             }
                         }
                         globalDragState.moveDragState = null;
+                    }
+
+                    if (globalDragState.monthMoveDragState) {
+                        const dragState = globalDragState.monthMoveDragState;
+                        restoreMonthMoveDragElement(dragState);
+                        if (dragState.dragged) {
+                            globalDragState.suppressSlotClickUntil = Date.now() + 250;
+                            globalDragState.suppressAppointmentClickUntil = Date.now() + 250;
+                        }
+                        if (
+                            dragState.dragged &&
+                            dragState.targetDateLocal !== dragState.sourceDateLocal
+                        ) {
+                            const appointment = dragState.$appointment.data('appointment');
+                            if (appointment) {
+                                const start = $.bsCalendar.utils.parseDateInput(appointment.start);
+                                const end = $.bsCalendar.utils.parseDateInput(appointment.end);
+                                if (start && end && !isNaN(start.getTime()) && !isNaN(end.getTime())) {
+                                    const dayDelta = getLocalDateIndex(dragState.targetDateLocal) -
+                                        getLocalDateIndex(dragState.sourceDateLocal);
+                                    const newStart = addDaysPreservingTime(start, dayDelta);
+                                    const newEnd = addDaysPreservingTime(end, dayDelta);
+                                    const returnData = getAppointmentForReturn(appointment);
+                                    const dragExtras = getDragAppointmentExtras(newStart, newEnd);
+                                    trigger(dragState.$wrapper, 'edit', returnData.appointment, returnData.extras, dragExtras);
+                                }
+                            }
+                        }
+                        globalDragState.monthMoveDragState = null;
                     }
                 });
 
@@ -4354,7 +4469,7 @@
                     }
                     const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
                     const view = getView($eventWrapper);
-                    if (view !== 'day' && view !== 'week') {
+                    if (view !== 'day' && view !== 'week' && view !== 'month') {
                         return;
                     }
                     const settings = getSettings($eventWrapper);
@@ -4368,7 +4483,72 @@
                     const $appointment = $(e.currentTarget);
                     const appointment = $appointment.data('appointment');
                     const editable = appointment && appointment.hasOwnProperty('editable') ? appointment.editable : true;
-                    if (!editable || !appointment || appointment.allDay) {
+                    if (!editable || !appointment) {
+                        return;
+                    }
+
+                    if (view === 'month') {
+                        const $sourceCell = $appointment.closest('[data-month-date]');
+                        const sourceDateLocal = String($appointment.attr('data-month-appointment-date') || $sourceCell.attr('data-month-date') || '');
+                        if (!$sourceCell.length || !sourceDateLocal) {
+                            return;
+                        }
+
+                        const startPoint = getEventPageXY(e);
+                        if (!Number.isFinite(startPoint.x) || !Number.isFinite(startPoint.y)) {
+                            return;
+                        }
+
+                        const activateMonthMoveDrag = () => {
+                            const $placeholder = $('<span>', {
+                                'data-role': 'month-drag-placeholder',
+                                css: {display: 'none'}
+                            }).insertAfter($appointment);
+
+                            globalDragState.monthMoveDragState = {
+                                $wrapper: $eventWrapper,
+                                $appointment: $appointment,
+                                $placeholder: $placeholder,
+                                $sourceCell: $sourceCell,
+                                $targetCell: $sourceCell,
+                                appointment: appointment,
+                                sourceDateLocal: sourceDateLocal,
+                                targetDateLocal: sourceDateLocal,
+                                dragged: false
+                            };
+                            $appointment.css({zIndex: 12});
+                        };
+
+                        if (isTouch) {
+                            const startX = startPoint.x || 0;
+                            const startY = startPoint.y || 0;
+                            const timer = setTimeout(() => {
+                                if (!globalDragState.pendingMove) return;
+                                activateMonthMoveDrag();
+                                globalDragState.pendingMove = null;
+                            }, 250);
+                            globalDragState.pendingMove = {timer, startX, startY};
+                            $(document).one('pointermove' + namespace + '.pendingMove touchmove' + namespace + '.pendingMove', function (ev) {
+                                if (!globalDragState.pendingMove) return;
+                                const p = getEventPageXY(ev);
+                                const x = Number.isFinite(p.x) ? p.x : startX;
+                                const y = Number.isFinite(p.y) ? p.y : startY;
+                                if (Math.abs(x - startX) > 8 || Math.abs(y - startY) > 8) {
+                                    clearTimeout(globalDragState.pendingMove.timer);
+                                    globalDragState.pendingMove = null;
+                                }
+                            });
+                        } else {
+                            activateMonthMoveDrag();
+                            e.preventDefault();
+                        }
+                        if (!isTouch) {
+                            e.stopPropagation();
+                        }
+                        return;
+                    }
+
+                    if (appointment.allDay) {
                         return;
                     }
 
@@ -4431,6 +4611,11 @@
                 })
                 .off('click' + namespace, '[data-role="day-wrapper"]')
                 .on('click' + namespace, '[data-role="day-wrapper"]', function (e) {
+                    if (Date.now() < globalDragState.suppressSlotClickUntil) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return;
+                    }
                     if (e.target !== e.currentTarget) {
                         return; // Abbrechen, falls ein untergeordnetes Element angeklickt wurde
                     }
@@ -5886,6 +6071,7 @@
 
                     const appointmentElement = $('<small>', {
                         'data-appointment': true,
+                        'data-month-appointment-date': startString,
                         class: 'px-1 w-100 overflow-hidden mb-1 rounded',
                         css: {
                             minHeight: '18px',
@@ -5935,11 +6121,11 @@
             return {
                 start: {
                     date: $.bsCalendar.utils.formatDateToDateString(start),
-                    time: $.bsCalendar.utils.formatTime(start)
+                    time: $.bsCalendar.utils.formatTime(start, false)
                 },
                 end: {
                     date: $.bsCalendar.utils.formatDateToDateString(end),
-                    time: $.bsCalendar.utils.formatTime(end)
+                    time: $.bsCalendar.utils.formatTime(end, false)
                 }
             };
         }

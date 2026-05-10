@@ -156,8 +156,8 @@
                         title: '',
                         startDate: start.date,
                         endDate: end.date,
-                        startTime: start.time ? start.time.substring(0, 5) : '',
-                        endTime: end.time ? end.time.substring(0, 5) : '',
+                        startTime: normalizeTimeInputValue(start.time),
+                        endTime: normalizeTimeInputValue(end.time),
                         allDay: isAllDay,
                         description: '',
                         color: '#0d6efd',
@@ -175,8 +175,8 @@
                         title: appointment.title,
                         startDate: eventExtras.start.date,
                         endDate: eventExtras.end.date,
-                        startTime: isAllDay ? '' : eventExtras.start.time.substring(0, 5),
-                        endTime: isAllDay ? '' : eventExtras.end.time.substring(0, 5),
+                        startTime: isAllDay ? '' : normalizeTimeInputValue(eventExtras.start.time),
+                        endTime: isAllDay ? '' : normalizeTimeInputValue(eventExtras.end.time),
                         allDay: isAllDay,
                         description: appointment.description || '',
                         color: appointment.color || '#0d6efd',
@@ -282,6 +282,14 @@
 
         function normalizeColorInput(color) {
             return /^#[0-9a-f]{6}$/i.test(color || '') ? color : '#0d6efd';
+        }
+
+        function normalizeTimeInputValue(time) {
+            const match = String(time || '').match(/^(\d{1,2}):(\d{2})/);
+            if (!match) {
+                return '';
+            }
+            return `${match[1].padStart(2, '0')}:${match[2]}`;
         }
 
         async function loadAppointments(query) {

@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.1.6**](#version-216)
     * [**Version 2.1.5**](#version-215)
     * [**Version 2.1.4**](#version-214)
     * [**Version 2.1.3**](#version-213)
@@ -37,6 +38,15 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### Version 2.1.6
+
+- Feature: Month-view drag-move can now move appointments between day cells while preserving the original start and end times.
+- Bugfix: Canceling a month-view drag edit now restores the original rendered appointment position instead of leaving a stale visual move in the DOM.
+- Bugfix: Month-view drag-move now suppresses the follow-up day-cell click so the add modal is not opened with the current time after a drag.
+- Improvement: Drag payload times are emitted as `HH:mm` values for form-friendly modal prefilling.
+- Demo: Normalized appointment modal time values before writing to `input[type="time"]`.
+- Docs: Updated README and changelog for `2.1.6`.
 
 ### Version 2.1.5
 
