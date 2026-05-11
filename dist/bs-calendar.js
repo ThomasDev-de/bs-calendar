@@ -1336,6 +1336,7 @@
                     appointments: [],
                     date: new Date(),
                     lastView: null,
+                    viewBeforeSearch: null,
                     view: null,
                     dataBefore: snapshotWrapperState(wrapper),
                     searchMode: false,
@@ -3585,7 +3586,7 @@
             const settings = data.settings;
             if (status) {
                 if (!data.searchMode && data.view !== 'search') {
-                    data.lastView = data.view;
+                    data.viewBeforeSearch = data.view;
                 }
                 data.searchMode = true;
                 // Ensure the search view is rebuilt from scratch.
@@ -3594,9 +3595,10 @@
                 buildByView($wrapper, false);
             } else {
                 data.searchMode = false;
-                if (data.lastView && settings.views.includes(data.lastView)) {
-                    data.view = data.lastView;
+                if (data.viewBeforeSearch && settings.views.includes(data.viewBeforeSearch)) {
+                    data.view = data.viewBeforeSearch;
                 }
+                data.viewBeforeSearch = null;
                 // Force a full structural rebuild when leaving search mode.
                 // Otherwise the cached renderState may skip rebuilding and keep search DOM visible.
                 data.renderState = null;

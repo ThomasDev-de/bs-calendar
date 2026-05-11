@@ -96,7 +96,7 @@
                 <div class="d-flex justify-content-end align-items-center">
                     <label for="appointmentColor" class="d-none">Color</label>
                     <input type="color" name="color" class="form-control me-2" id="appointmentColor">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary ms-2" data-save-appointment>Save</button>
                 </div>
             </div>
@@ -134,6 +134,10 @@
                 storeState: false,
                 debug: true,
                 url: loadAppointments,
+                holidays: {
+                    country: 'DE',
+                    federalState: 'BE'
+                },
                 hourSlots: {
                     start: 0,
                     end: 24,
