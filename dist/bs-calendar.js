@@ -3090,9 +3090,8 @@
                 // When the close button is clicked, end the search mode
                 btnCloseSearch.on('click', function () {
                     toggleSearchBar($wrapper, false);
-                    if (getSearchMode($wrapper)) {
-                        toggleSearchMode($wrapper, false, true);
-                    }
+                    // Always force a search-exit rebuild so the previous view is restored reliably.
+                    toggleSearchMode($wrapper, false, true);
                 })
             }
 
@@ -3584,11 +3583,25 @@
         function toggleSearchMode($wrapper, status, rebuildView = true) {
             const data = getBsCalendarData($wrapper);
             const settings = data.settings;
-            data.searchMode = status;
-            setBsCalendarData($wrapper, data);
             if (status) {
+                if (!data.searchMode && data.view !== 'search') {
+                    data.lastView = data.view;
+                }
+                data.searchMode = true;
+                // Ensure the search view is rebuilt from scratch.
+                data.renderState = null;
+                setBsCalendarData($wrapper, data);
                 buildByView($wrapper, false);
             } else {
+                data.searchMode = false;
+                if (data.lastView && settings.views.includes(data.lastView)) {
+                    data.view = data.lastView;
+                }
+                // Force a full structural rebuild when leaving search mode.
+                // Otherwise the cached renderState may skip rebuilding and keep search DOM visible.
+                data.renderState = null;
+                setBsCalendarData($wrapper, data);
+
                 const search = {
                     limit: settings.search.limit,
                     offset: settings.search.offset
@@ -4330,35 +4343,37 @@
                 })
                 .off('click' + namespace, '.wc-search-pagination [data-page]')
                 .on('click' + namespace, '.wc-search-pagination [data-page]', function (e) {
+                    const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
                     // A page in the search navigation was clicked
                     e.preventDefault();
                     // determine the requested page
                     const $clickedLink = $(e.currentTarget);
                     const newPage = parseInt($clickedLink.attr('data-page'));
                     // update the pagination cries
-                    const searchPagination = getSearchPagination($wrapper);
+                    const searchPagination = getSearchPagination($eventWrapper);
                     searchPagination.offset = (newPage - 1) * searchPagination.limit;
                     const search = {limit: searchPagination.limit, offset: searchPagination.offset};
-                    setSearchPagination($wrapper, search);
+                    setSearchPagination($eventWrapper, search);
                     // delete the navigation buttons because they are rebuilt
-                    $wrapper.find('.wc-search-pagination').remove();
+                    $eventWrapper.find('.wc-search-pagination').remove();
                     // get the appointments
-                    fetchAppointments($wrapper);
+                    fetchAppointments($eventWrapper);
                 })
                 .off('keyup' + namespace, '[data-search-input]')
                 .on('keyup' + namespace, '[data-search-input]', function (e) {
+                    const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
                     e.preventDefault();
 
                     const input = $(e.currentTarget);
                     const isEmpty = $.bsCalendar.utils.isValueEmpty(input.val()); // Check if the input is empty
-                    let inSearchMode = getSearchMode($wrapper);
+                    let inSearchMode = getSearchMode($eventWrapper);
                     if (!inSearchMode && !isEmpty) {
-                        setSearchMode($wrapper, true);
+                        setSearchMode($eventWrapper, true);
                     }
 
                     // If input is empty, stop here and optionally disable search mode
                     if (isEmpty) {
-                        toggleSearchMode($wrapper, false, true); // End search mode if necessary
+                        toggleSearchMode($eventWrapper, false, true); // End search mode if necessary
                         return;
                     }
 
@@ -4366,7 +4381,7 @@
                     const isEnterKey = e.type === 'keyup' && (e.key === 'Enter' || e.which === 13 || e.keyCode === 13);
 
                     if (isEnterKey) {
-                        triggerSearch($wrapper);
+                        triggerSearch($eventWrapper);
                     }
 
                 })

@@ -10,7 +10,7 @@
     <link href="../vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 <body class="p-1 p-lg-5">
-<div id="calendar" data-sidebar-addons="#sidebarAddons"></div>
+<div id="calendar" data-sidebar-addons="#sidebarAddons" data-topbar-addons="#topbarAddons"></div>
 
 <div id="sidebarAddons">
     <div class="card-body d-flex flex-column">
@@ -26,6 +26,11 @@
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="clear">Clear</button>
     </div>
+</div>
+
+<div id="topbarAddons" class="d-flex align-items-center justify-content-center">
+    <span class="bg-info-subtle py2 px-5 rounded-5 border border-light">You can move appointments in the day, month and week views using
+        drag&drop.</span>
 </div>
 
 <div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel"

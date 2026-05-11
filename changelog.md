@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**dev-main**](#dev-main)
     * [**Version 2.1.6**](#version-216)
     * [**Version 2.1.5**](#version-215)
     * [**Version 2.1.4**](#version-214)
@@ -38,6 +39,10 @@
     * [**Version 1.2.4**](#version-124)
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
+
+### dev-main
+
+- Bugfix: Search-mode exit now restores the previous non-search view and forces view rebuild to clear search result/pagination UI.
 
 ### Version 2.1.6
 
