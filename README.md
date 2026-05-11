@@ -11,6 +11,17 @@ appointment add/edit/delete methods.
 
 As of version 2, Bootstrap 4 is no longer supported. Use version `^1` for Bootstrap 4 projects.
 
+<table>
+<tbody>
+<tr>
+<td><img src="/demo/img/day.png" alt="Calendar Preview" width="200"></td>
+<td><img src="/demo/img/week.png" alt="Calendar Preview" width="200"></td>
+<td><img src="/demo/img/month.png" alt="Calendar Preview" width="200"></td>
+<td><img src="/demo/img/year.png" alt="Calendar Preview" width="200"></td>
+</tr>
+</tbody>
+</table>
+
 ## Table of Contents
 
 - [Requirements](#requirements)
