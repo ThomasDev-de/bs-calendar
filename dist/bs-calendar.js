@@ -4162,7 +4162,7 @@
                             dragState.targetDateLocal !== dragState.sourceDateLocal
                         ) {
                             const appointment = dragState.$appointment.data('appointment');
-                            if (appointment) {
+                            if (appointment && isAppointmentEditable(appointment)) {
                                 const start = $.bsCalendar.utils.parseDateInput(appointment.start);
                                 const end = $.bsCalendar.utils.parseDateInput(appointment.end);
                                 if (start && end && !isNaN(start.getTime()) && !isNaN(end.getTime())) {
@@ -4522,7 +4522,7 @@
                     }
                     const $appointment = $(e.currentTarget);
                     const appointment = $appointment.data('appointment');
-                    const editable = appointment && appointment.hasOwnProperty('editable') ? appointment.editable : true;
+                    const editable = isAppointmentEditable(appointment);
                     if (!editable || !appointment) {
                         return;
                     }
@@ -6168,6 +6168,25 @@
                     time: $.bsCalendar.utils.formatTime(end, false)
                 }
             };
+        }
+
+        /**
+         * Resolves whether an appointment can be edited.
+         * Accepts boolean-like values from APIs (`false`, `"false"`, `0`, `"0"`).
+         *
+         * @param {Object|null|undefined} appointment - Appointment payload.
+         * @return {boolean} True when editable.
+         */
+        function isAppointmentEditable(appointment) {
+            if (!appointment || !appointment.hasOwnProperty('editable')) {
+                return true;
+            }
+            const value = appointment.editable;
+            if (typeof value === 'string') {
+                const normalized = value.trim().toLowerCase();
+                return normalized !== 'false' && normalized !== '0' && normalized !== 'no';
+            }
+            return value !== false && value !== 0;
         }
 
         /**
@@ -7818,7 +7837,7 @@
 
                 const modalOptions = $modal.find('[data-modal-options]');
                 const deleteable = appointment.hasOwnProperty('deleteable') ? appointment.deleteable : true;
-                const editable = appointment.hasOwnProperty('editable') ? appointment.editable : true;
+                const editable = isAppointmentEditable(appointment);
                 if (editable) {
                     if (!modalOptions.find('[data-edit]').length) {
                         $(`<button type="button" data-edit class="btn"><i class="bi bi-pen"></i></button>`).prependTo(modalOptions);

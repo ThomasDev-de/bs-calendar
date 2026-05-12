@@ -43,6 +43,8 @@
 ### dev-main
 
 - Bugfix: Search-mode exit now restores the previous non-search view and forces view rebuild to clear search result/pagination UI.
+- Bugfix: Month-view drag-move no longer triggers `edit.bs.calendar` for non-editable appointments (`editable: false`), including internal no-op/same-day move interactions.
+- Improvement: Editability checks now normalize boolean-like API values (`false`, `"false"`, `0`, `"0"`) to prevent unintended edit actions.
 
 ### Version 2.1.6
 
