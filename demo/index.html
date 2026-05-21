@@ -67,6 +67,12 @@
                     <label class="form-check-label" for="appointmentAllDay">all day</label>
                 </div>
 
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" name="overlap" role="switch"
+                           id="appointmentOverlap">
+                    <label class="form-check-label" for="appointmentOverlap">allow overlap (stack)</label>
+                </div>
+
                 <div class="js-time-fields">
                     <div class="d-flex justify-content-between align-items-center flex-nowrap mb-3">
                         <div class="form-floating flex-fill">
@@ -168,6 +174,7 @@
                         startTime: normalizeTimeInputValue(start.time),
                         endTime: normalizeTimeInputValue(end.time),
                         allDay: isAllDay,
+                        overlap: false,
                         description: '',
                         color: '#0d6efd',
                         link: ''
@@ -189,6 +196,7 @@
                         startTime: isAllDay ? '' : normalizeTimeInputValue(eventExtras.start.time),
                         endTime: isAllDay ? '' : normalizeTimeInputValue(eventExtras.end.time),
                         allDay: isAllDay,
+                        overlap: !!appointment.overlap,
                         description: appointment.description || '',
                         color: extras.colors.hex || '#0d6efd',
                         link: appointment.link || ''
@@ -249,6 +257,7 @@
             $modal.find('input[name="from_time"]').val(appointment.startTime || '');
             $modal.find('input[name="to_time"]').val(appointment.endTime || '');
             $modal.find('input[name="allDay"]').prop('checked', !!appointment.allDay).trigger('change');
+            $modal.find('input[name="overlap"]').prop('checked', !!appointment.overlap);
             $modal.find('textarea[name="description"]').val(appointment.description || '');
             $modal.find('input[name="color"]').val(normalizeColorInput(appointment.color));
             $modal.find('input[name="link"]').val(appointment.link || '');
@@ -271,6 +280,7 @@
                     true
                 ),
                 allDay: allDay,
+                overlap: $modal.find('input[name="overlap"]').prop('checked'),
                 calendarId: 'personal',
                 description: $modal.find('textarea[name="description"]').val(),
                 color: $modal.find('input[name="color"]').val(),
@@ -370,6 +380,23 @@
                 }
             }
 
+            if (view === 'day' || view === 'week') {
+                const anchor = new Date(from);
+                anchor.setHours(0, 0, 0, 0);
+                const overlapStartA = new Date(anchor);
+                overlapStartA.setHours(10, 0, 0, 0);
+                const overlapEndA = new Date(anchor);
+                overlapEndA.setHours(11, 30, 0, 0);
+                const overlapStartB = new Date(anchor);
+                overlapStartB.setHours(10, 30, 0, 0);
+                const overlapEndB = new Date(anchor);
+                overlapEndB.setHours(12, 0, 0, 0);
+
+                appointments.push(createAppointment('overlap-a', overlapStartA, overlapEndA, false, true));
+                appointments.push(createAppointment('overlap-b', overlapStartB, overlapEndB, false, true));
+                appointments.push(createAppointment('normal-c', overlapStartB, overlapEndB, false, false));
+            }
+
             return appointments;
         }
 
@@ -387,10 +414,11 @@
             });
         }
 
-        function createAppointment(id, start, end, allDay = false) {
+        function createAppointment(id, start, end, allDay = false, overlap = false) {
             const calendars = ['personal', 'work', 'sports'];
             const colors = ['primary opacity-75 gradient', 'danger opacity-75 gradient', 'success opacity-75 gradient'];
-            const calendarIndex = id % calendars.length;
+            const normalizedId = typeof id === 'number' ? id : String(id).length;
+            const calendarIndex = normalizedId % calendars.length;
 
             return {
                 id: `demo-${id}-${start.getTime()}`,
@@ -400,6 +428,7 @@
                 start: formatDateTime(start),
                 end: formatDateTime(end),
                 allDay: allDay,
+                overlap: overlap,
                 color: colors[calendarIndex],
                 link: 'https://github.com/ThomasDev-de/bs-calendar'
             };

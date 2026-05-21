@@ -2,6 +2,7 @@
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
     * [**dev-main**](#dev-main)
+    * [**Version 2.1.7**](#version-217)
     * [**Version 2.1.6**](#version-216)
     * [**Version 2.1.5**](#version-215)
     * [**Version 2.1.4**](#version-214)
@@ -42,9 +43,18 @@
 
 ### dev-main
 
+- No unreleased changes yet.
+
+### Version 2.1.7
+
 - Bugfix: Search-mode exit now restores the previous non-search view and forces view rebuild to clear search result/pagination UI.
 - Bugfix: Month-view drag-move no longer triggers `edit.bs.calendar` for non-editable appointments (`editable: false`), including internal no-op/same-day move interactions.
 - Improvement: Editability checks now normalize boolean-like API values (`false`, `"false"`, `0`, `"0"`) to prevent unintended edit actions.
+- Feature: Added per-appointment `overlap` support for day/week view. Appointments with `overlap: true` are rendered full-width and can stack instead of being split into side-by-side columns.
+- Improvement: Overlap stacking order now keeps the earliest appointment at the bottom and later appointments on top, including during drag-move live relayout.
+- Demo: Added overlap examples and an overlap toggle in the appointment modal to demonstrate and test stacked overlap behavior directly.
+- Docs: Updated appointment field reference with the new `overlap` option.
+- Note: This feature was added based on a request from `alexlewer` in ticket **Appointment Overlap #18**.
 
 ### Version 2.1.6
 

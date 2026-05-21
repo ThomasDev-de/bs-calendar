@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.1.6
- * @date 2026-05-10
+ * @version 2.1.7
+ * @date 2026-05-21
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -62,10 +62,10 @@
          * requirements.
          */
         $.bsCalendar = {
-            version: '2.1.6',
+            version: '2.1.7',
             about: {
-                version: '2.1.6',
-                releaseDate: '2026-05-10',
+                version: '2.1.7',
+                releaseDate: '2026-05-21',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
                 releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
@@ -3957,8 +3957,10 @@
                 const containerWidth = Math.max(1, $slotContainer.width());
 
                 clusters.forEach(cluster => {
+                    const forcedOverlapItems = cluster.filter(item => isAppointmentOverlapEnabled(item.appointment));
+                    const regularItems = cluster.filter(item => !isAppointmentOverlapEnabled(item.appointment));
                     const columns = [];
-                    cluster.forEach(item => {
+                    regularItems.forEach(item => {
                         let placed = false;
                         for (let i = 0; i < columns.length; i++) {
                             const column = columns[i];
@@ -3976,21 +3978,45 @@
                         }
                     });
 
-                    const totalColumns = Math.max(1, columns.length);
-                    const totalGap = (totalColumns - 1) * columnGap;
-                    const widthPercent = totalColumns > 1 ? (100 - (totalGap * 100 / containerWidth)) / totalColumns : 100;
+                    if (regularItems.length) {
+                        const totalColumns = Math.max(1, columns.length);
+                        const totalGap = (totalColumns - 1) * columnGap;
+                        const widthPercent = totalColumns > 1 ? (100 - (totalGap * 100 / containerWidth)) / totalColumns : 100;
 
-                    cluster.forEach(item => {
+                        regularItems.forEach(item => {
+                            const position = calculateSlotPosition($wrapperRef, item.start.toISOString(), item.end.toISOString());
+                            const leftPercent = totalColumns > 1 ? item._column * (widthPercent + (columnGap * 100 / containerWidth)) : 0;
+                            item.$el.css({
+                                top: `${position.top}px`,
+                                height: `${position.height}px`,
+                                left: `${leftPercent}%`,
+                                width: `${widthPercent}%`
+                            });
+                        });
+                    }
+
+                    forcedOverlapItems
+                        .sort((a, b) => a.start - b.start || a.end - b.end)
+                        .forEach((item) => {
                         const position = calculateSlotPosition($wrapperRef, item.start.toISOString(), item.end.toISOString());
-                        const leftPercent = totalColumns > 1 ? item._column * (widthPercent + (columnGap * 100 / containerWidth)) : 0;
                         item.$el.css({
                             top: `${position.top}px`,
                             height: `${position.height}px`,
-                            left: `${leftPercent}%`,
-                            width: `${widthPercent}%`
+                            left: '0%',
+                            width: '100%',
+                            zIndex: ''
                         });
                     });
                 });
+
+                // Keep overlap stacking stable for the whole day container while dragging:
+                // earliest start is always at the bottom, latest on top.
+                items
+                    .filter(item => isAppointmentOverlapEnabled(item.appointment))
+                    .sort((a, b) => a.start - b.start || a.end - b.end)
+                    .forEach((item, overlapIndex) => {
+                        item.$el.css('zIndex', overlapIndex + 1);
+                    });
             }
 
             $(document)
@@ -5636,6 +5662,10 @@
                 appointments.sort((a, b) => a.start - b.start);
 
                 appointments.forEach((appointment) => {
+                    if (isAppointmentOverlapEnabled(appointment.appointment)) {
+                        fullWidth.push(appointment);
+                        return;
+                    }
                     let placedInColumn = false;
 
                     // Try to sort the appointment in existing columns
@@ -5827,7 +5857,10 @@
                 });
 
                 /** 2. Renders of the isolated full width dates **/
-                fullWidth.forEach((slotData) => {
+                fullWidth
+                    .slice()
+                    .sort((a, b) => a.start - b.start || a.end - b.end)
+                    .forEach((slotData, overlapIndex) => {
                     const appointment = slotData.appointment;
 
                     const startDate = new Date(slotData.start);
@@ -5888,6 +5921,7 @@
                             height: `${position.height}px`,
                             left: `${appointmentLeftPercent}%`,
                             width: `${appointmentWidthPercent}%`,
+                            zIndex: overlapIndex + 1
                         },
                         html: appointmentContent,
                     }).appendTo($weekDayContainer);
@@ -6187,6 +6221,25 @@
                 return normalized !== 'false' && normalized !== '0' && normalized !== 'no';
             }
             return value !== false && value !== 0;
+        }
+
+        /**
+         * Resolves whether an appointment should render in overlap mode (full-width stack).
+         * Accepts boolean-like values from APIs (`true`, `"true"`, `1`, `"1"`).
+         *
+         * @param {Object|null|undefined} appointment - Appointment payload.
+         * @return {boolean} True when overlap mode is enabled.
+         */
+        function isAppointmentOverlapEnabled(appointment) {
+            if (!appointment || !appointment.hasOwnProperty('overlap')) {
+                return false;
+            }
+            const value = appointment.overlap;
+            if (typeof value === 'string') {
+                const normalized = value.trim().toLowerCase();
+                return normalized === 'true' || normalized === '1' || normalized === 'yes';
+            }
+            return value === true || value === 1;
         }
 
         /**

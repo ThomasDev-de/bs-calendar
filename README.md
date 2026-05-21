@@ -1,6 +1,6 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.1.6-blue)
+![Version](https://img.shields.io/badge/version-2.1.7-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -64,7 +64,7 @@ Use CDN/script tags:
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.1.6/dist/bs-calendar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.1.7/dist/bs-calendar.min.js"></script>
 ```
 
 Or install via Composer:
@@ -190,6 +190,7 @@ Optional fields:
 | `location` | `string`, `array`, or `null` | none | Rendered by the default info window formatter. |
 | `editable` | `boolean` | `true` | Controls whether the info window shows an edit button. |
 | `deleteable` | `boolean` | `true` | Controls whether the info window shows a delete button. |
+| `overlap` | `boolean` | `false` | Day/week view only: when `true`, this appointment is rendered full-width and may overlap other time-based appointments instead of being split into side-by-side columns. |
 
 Reserved field:
 
@@ -800,13 +801,13 @@ Development notes:
 
 Changelog and support:
 
-- [Changelog](changelog.md#version-216)
+- [Changelog](changelog.md#version-217)
 - [Issues](https://github.com/ThomasDev-de/bs-calendar/issues)
 - [License](LICENSE)
 
 ## Completeness Check
 
-This README is intended to cover the public surface of version `2.1.6`:
+This README is intended to cover the public surface of version `2.1.7`:
 
 - All `DEFAULTS` options from `dist/bs-calendar.js`
 - All public plugin methods in the method switch
