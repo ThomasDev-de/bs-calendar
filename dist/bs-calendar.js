@@ -4009,13 +4009,12 @@
                     });
                 });
 
-                // Keep overlap stacking stable for the whole day container while dragging:
-                // earliest start is always at the bottom, latest on top.
+                // Keep stacking stable for the whole day container while dragging:
+                // Sort ALL items by start ascending and assign zIndex accordingly
                 items
-                    .filter(item => isAppointmentOverlapEnabled(item.appointment))
                     .sort((a, b) => a.start - b.start || a.end - b.end)
-                    .forEach((item, overlapIndex) => {
-                        item.$el.css('zIndex', overlapIndex + 1);
+                    .forEach((item, index) => {
+                        item.$el.css('zIndex', index + 1);
                     });
             }
 
@@ -5930,6 +5929,45 @@
                     appointmentElement.data('appointment', appointment);
                     setAppointmentStyles(appointmentElement, appointment.extras.colors);
                 });
+
+                // --- Stacking pass per actual day container ---
+                // Ensure deterministic zIndex across both column and fullWidth appointments:
+                // collect all rendered containers used for this weekday and set stacking by appointment.start asc.
+                (function () {
+                    const seenContainers = {};
+                    // Collect containers from columns
+                    columns.forEach(column => {
+                        column.forEach(slotData => {
+                            const startDate = new Date(slotData.start);
+                            const targetDateLocal = $.bsCalendar.utils.formatDateToDateString(startDate);
+                            const key = targetDateLocal;
+                            seenContainers[key] = $viewContainer.find(`.wc-day-view-time-slots[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`).first();
+                        });
+                    });
+                    // Collect containers from fullWidth
+                    fullWidth.forEach(slotData => {
+                        const startDate = new Date(slotData.start);
+                        const targetDateLocal = $.bsCalendar.utils.formatDateToDateString(startDate);
+                        const key = targetDateLocal;
+                        seenContainers[key] = $viewContainer.find(`.wc-day-view-time-slots[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`).first();
+                    });
+
+                    Object.values(seenContainers).forEach($container => {
+                        if (!$container || !$container.length) return;
+                        const entries = $container.find('[data-appointment]').toArray().map(el => {
+                            const $el = $(el);
+                            const appt = $el.data('appointment');
+                            const start = appt ? $.bsCalendar.utils.parseDateInput(appt.start) : null;
+                            const end = appt ? $.bsCalendar.utils.parseDateInput(appt.end) : null;
+                            return { $el, start, end };
+                        }).filter(x => x.start && !isNaN(x.start.getTime()));
+
+                        entries.sort((a, b) => a.start - b.start || (a.end && b.end ? a.end - b.end : 0));
+                        entries.forEach((entry, idx) => {
+                            entry.$el.css('zIndex', idx + 1);
+                        });
+                    });
+                })();
             });
         }
 

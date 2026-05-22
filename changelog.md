@@ -43,7 +43,12 @@
 
 ### dev-main
 
-- No unreleased changes yet.
+- 2026-05-22: Fix/Improvement: Deterministic overlap stacking and z-index handling
+  - Changed: Unified stacking logic so appointments are stacked by start time (ascending) — the appointment with the earliest start is always at the bottom.
+  - Changed: In `relayoutDayContainerForDrag` z-index assignment now applies to all visible items sorted by `start` to avoid visual inconsistencies while dragging.
+  - Changed: In `drawAppointmentsForDayOrWeek` a per-day-container stacking pass was added after rendering column and full-width appointments. All `[data-appointment]` elements are sorted by `appointment.start` and assigned deterministic `z-index` values so render and drag behaviour match.
+  - Files modified: `dist/bs-calendar.js`
+  - Notes: This makes overlap behaviour predictable in both initial render and live drag-relayout; preserves existing layout (top/left/width/height) and only affects stacking order.
 
 ### Version 2.1.7
 
