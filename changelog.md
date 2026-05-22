@@ -43,6 +43,22 @@
 
 ### dev-main
 
+- 2026-05-22: Improvement: Live hover time indicator in day/week views when draggable enabled
+  - Added: When draggable is enabled and in day/week view, hovering over time slots displays a live time indicator (horizontal line with time badge).
+  - Added: The time indicator follows the mouse cursor and shows the current hour:minute at the hover position.
+  - Added: Indicator automatically disappears when leaving the time slots area.
+  - Changed: Indicator does not appear if a drag operation is in progress.
+  - Files modified: `dist/bs-calendar.js`
+  - Notes: Visual aid for precise appointment placement; only active in day/week views with draggable enabled; feature is automatic and requires no configuration.
+  - Todo: Move `getSnapMinutes` to options
+
+- 2026-05-22: Improvement: Live time display during drag-create and drag-move in day/week views
+  - Added: Drag-create now shows start/end times as small labels above and below the preview element in day/week views.
+  - Added: Drag-move now shows the current start time in a small badge in the top-right corner of the appointment during drag in day/week views.
+  - Changed: Times update live as you drag, helping to precisely place appointments at desired times.
+  - Files modified: `dist/bs-calendar.js`
+  - Notes: Only applies to day and week views; month view drag already has visual feedback; feature is automatic and requires no configuration.
+
 - 2026-05-22: Fix/Improvement: Deterministic overlap stacking and z-index handling
   - Changed: Unified stacking logic so appointments are stacked by start time (ascending) — the appointment with the earliest start is always at the bottom.
   - Changed: In `relayoutDayContainerForDrag` z-index assignment now applies to all visible items sorted by `start` to avoid visual inconsistencies while dragging.

@@ -3747,8 +3747,11 @@
                 globalEventsInitialized = true;
             }
 
+            /**
+             * @todo in optionen auslagern
+             */
             function getSnapMinutes() {
-                return 15;
+                return 5;
             }
 
             function isTouchPointerEvent(e) {
@@ -4068,6 +4071,17 @@
                         const topPx = (startMinutes / 60) * settings.hourSlots.height;
                         const heightPx = Math.max(10, ((endMinutes - startMinutes) / 60) * settings.hourSlots.height);
                         globalDragState.createDragState.$preview.css({top: `${topPx}px`, height: `${heightPx}px`, display: 'block'});
+                        
+                        // Update time labels
+                        const startHour = Math.floor(startMinutes / 60) + settings.hourSlots.start;
+                        const startMinute = startMinutes % 60;
+                        const endHour = Math.floor(endMinutes / 60) + settings.hourSlots.start;
+                        const endMinute = endMinutes % 60;
+                        const startTimeStr = `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
+                        const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
+                        globalDragState.createDragState.$startTimeLabel.text(startTimeStr);
+                        globalDragState.createDragState.$endTimeLabel.text(endTimeStr);
+                        
                         globalDragState.createDragState.currentStartMinutes = startMinutes;
                         globalDragState.createDragState.currentEndMinutes = endMinutes;
                         globalDragState.createDragState.dragged = true;
@@ -4117,6 +4131,13 @@
                             tempStart,
                             tempEnd
                         );
+                        
+                        // Update time display badge
+                        const startHour = Math.floor(snappedStart / 60) + settings.hourSlots.start;
+                        const startMinute = snappedStart % 60;
+                        const timeStr = `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
+                        globalDragState.moveDragState.$timeDisplay.text(timeStr);
+                        
                         globalDragState.moveDragState.$appointment.css({opacity: 0.8});
                         globalDragState.moveDragState.currentStartMinutes = snappedStart;
                         globalDragState.moveDragState.dragged = true;
@@ -4135,6 +4156,13 @@
                     if (globalDragState.createDragState) {
                         if (globalDragState.createDragState.$preview) {
                             globalDragState.createDragState.$preview.remove();
+                        }
+                        // Clean up time labels
+                        if (globalDragState.createDragState.$startTimeLabel) {
+                            globalDragState.createDragState.$startTimeLabel.remove();
+                        }
+                        if (globalDragState.createDragState.$endTimeLabel) {
+                            globalDragState.createDragState.$endTimeLabel.remove();
                         }
                         if (globalDragState.createDragState.dragged) {
                             globalDragState.suppressSlotClickUntil = Date.now() + 250;
@@ -4160,6 +4188,10 @@
                     if (globalDragState.moveDragState) {
                         const $appointment = globalDragState.moveDragState.$appointment;
                         $appointment.css({opacity: ''});
+                        // Remove time display badge
+                        if (globalDragState.moveDragState.$timeDisplay) {
+                            globalDragState.moveDragState.$timeDisplay.remove();
+                        }
                         if (globalDragState.moveDragState.dragged) {
                             globalDragState.suppressAppointmentClickUntil = Date.now() + 250;
                             const appointment = $appointment.data('appointment');
@@ -4488,11 +4520,40 @@
                         }
                     }).appendTo($slotContainer);
 
+                    // Add time labels for create drag (start at top, end at bottom)
+                    const $startTimeLabel = $('<div>', {
+                        class: 'position-absolute text-nowrap',
+                        css: {
+                            left: '4px',
+                            top: '-18px',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            color: 'var(--bs-primary)',
+                            zIndex: 12
+                        },
+                        text: ''
+                    }).appendTo($preview);
+
+                    const $endTimeLabel = $('<div>', {
+                        class: 'position-absolute text-nowrap',
+                        css: {
+                            left: '4px',
+                            bottom: '-18px',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            color: 'var(--bs-primary)',
+                            zIndex: 12
+                        },
+                        text: ''
+                    }).appendTo($preview);
+
                     const activateCreateDrag = () => {
                         globalDragState.createDragState = {
                             $wrapper: $eventWrapper,
                             $slotContainer: $slotContainer,
                             $preview: $preview,
+                            $startTimeLabel: $startTimeLabel,
+                            $endTimeLabel: $endTimeLabel,
                             dateLocal: String($slotContainer.attr('data-date-local')),
                             startMinutes: startMinutes,
                             currentStartMinutes: startMinutes,
@@ -4634,11 +4695,26 @@
                         return;
                     }
                     const pointerMinutes = getMinutesFromPointer($eventWrapper, $slotContainer, startPoint.y);
+                    
+                    // Create time badge for move drag
+                    const $timeDisplay = $('<div>', {
+                        class: 'position-absolute badge bg-primary',
+                        css: {
+                            fontSize: '10px',
+                            padding: '2px 4px',
+                            right: '4px',
+                            top: '2px',
+                            zIndex: 13
+                        },
+                        text: ''
+                    });
+                    
                     const activateMoveDrag = () => {
                         globalDragState.moveDragState = {
                             $wrapper: $eventWrapper,
                             $slotContainer: $slotContainer,
                             $appointment: $appointment,
+                            $timeDisplay: $timeDisplay,
                             appointment: appointment,
                             dateLocal: String($slotContainer.attr('data-date-local')),
                             offsetMinutes: pointerMinutes - startMinutes,
@@ -4646,6 +4722,8 @@
                             currentStartMinutes: startMinutes,
                             dragged: false
                         };
+                        // Append time display to appointment
+                        $timeDisplay.appendTo($appointment);
                     };
                     if (isTouch) {
                         const startX = startPoint.x || 0;
@@ -4847,6 +4925,80 @@
                             setView($wrapper, newView);
                             buildByView($wrapper, true);
                         }
+                    }
+                })
+                // Live time indicator on hover over time slots (day/week only, when draggable enabled)
+                .off('mousemove' + namespace + ' mouseleave' + namespace, '.wc-day-view-time-slots')
+                .on('mousemove' + namespace, '.wc-day-view-time-slots', function (e) {
+                    const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
+                    const settings = getSettings($eventWrapper);
+                    const view = getView($eventWrapper);
+
+                    // Only show if draggable is enabled and we're in day or week view
+                    if (!settings.draggable || (view !== 'day' && view !== 'week')) {
+                        return;
+                    }
+
+                    // Skip if drag is in progress
+                    if (globalDragState.createDragState || globalDragState.moveDragState || globalDragState.monthMoveDragState) {
+                        return;
+                    }
+
+                    const $slotContainer = $(e.currentTarget);
+                    let $indicator = $slotContainer.find('[data-role="time-indicator"]');
+
+                    // Create indicator if not exists
+                    if (!$indicator.length) {
+                        $indicator = $('<div>', {
+                            'data-role': 'time-indicator',
+                            class: 'position-absolute',
+                            css: {
+                                left: '0',
+                                right: '0',
+                                height: '2px',
+                                backgroundColor: 'var(--bs-primary)',
+                                zIndex: 10,
+                                opacity: 0.7,
+                                boxShadow: '0 0 4px var(--bs-primary)'
+                            }
+                        }).appendTo($slotContainer);
+
+                        // Add time label badge
+                        const $timeLabel = $('<div>', {
+                            'data-role': 'time-label',
+                            class: 'position-absolute badge bg-primary',
+                            css: {
+                                fontSize: '10px',
+                                padding: '2px 4px',
+                                left: '2px',
+                                transform: 'translateY(-50%)',
+                                zIndex: 11,
+                                whiteSpace: 'nowrap'
+                            },
+                            text: ''
+                        }).appendTo($indicator);
+
+                        $indicator.data('$timeLabel', $timeLabel);
+                    }
+
+                    // Update indicator position and time
+                    const pageY = e.pageY;
+                    const minutes = getMinutesFromPointer($eventWrapper, $slotContainer, pageY);
+                    const startHour = Math.floor(minutes / 60) + settings.hourSlots.start;
+                    const startMinute = minutes % 60;
+                    const timeStr = `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
+
+                    const offset = $slotContainer.offset();
+                    const relativeY = Math.max(0, pageY - offset.top);
+
+                    $indicator.css('top', `${relativeY}px`);
+                    $indicator.data('$timeLabel').text(timeStr);
+                })
+                .on('mouseleave' + namespace, '.wc-day-view-time-slots', function (e) {
+                    const $slotContainer = $(e.currentTarget);
+                    const $indicator = $slotContainer.find('[data-role="time-indicator"]');
+                    if ($indicator.length) {
+                        $indicator.remove();
                     }
                 })
         }
