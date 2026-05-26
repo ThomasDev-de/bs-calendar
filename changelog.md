@@ -44,7 +44,8 @@
 
 ### dev-main
 
-- No unreleased changes.
+- Bugfix: Week-view drag hit-testing now scopes slot detection to the active view container to avoid temporary hiding/misplacement of other appointments during drag-move edge cases (e.g. Saturday column interactions).
+- Files modified: `dist/bs-calendar.js`
 
 ### Version 2.1.8
 

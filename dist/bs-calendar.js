@@ -3821,7 +3821,10 @@
                 let $matchedSlotContainer = $();
                 let $horizontalMatch = $();
 
-                $wrapperRef.find('.wc-day-view-time-slots').each(function () {
+                // Restrict hit-testing to the currently rendered view container.
+                // Using the whole wrapper can pick up stale/hidden slot containers and
+                // cause temporary misplacement/covering while dragging in week view.
+                getViewContainer($wrapperRef).find('.wc-day-view-time-slots').each(function () {
                     const $slotContainer = $(this);
                     const offset = $slotContainer.offset();
                     if (!offset) {

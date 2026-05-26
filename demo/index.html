@@ -75,15 +75,19 @@
 
                 <div class="js-time-fields">
                     <div class="d-flex justify-content-between align-items-center flex-nowrap mb-3">
-                        <div class="form-floating flex-fill">
-                            <input name="from_time" type="time" class="form-control" id="appointmentFromTime">
-                            <label for="appointmentFromTime">From time</label>
+                        <div class="flex-fill">
+                            <label for="appointmentFromTimePicker" class="form-label mb-1">From time</label>
+                            <div id="appointmentFromTimePicker"></div>
                         </div>
                         <div class="mx-1"></div>
-                        <div class="form-floating flex-fill">
-                            <input name="to_time" type="time" class="form-control" id="appointmentToTime">
-                            <label for="appointmentToTime">To time</label>
+                        <div class="flex-fill">
+                            <label for="appointmentToTimePicker" class="form-label mb-1">To time</label>
+                            <div id="appointmentToTimePicker"></div>
                         </div>
+                    </div>
+                    <div class="small text-body-secondary mb-3">
+                        Time selection powered by
+                        <a href="https://github.com/ThomasDev-de/bs-timepicker" target="_blank" rel="noopener noreferrer">ThomasDev-de/bs-timepicker</a>.
                     </div>
                 </div>
 
@@ -113,6 +117,7 @@
 <script src="../vendor/components/jquery/jquery.min.js"></script>
 <script src="../vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../dist/bs-calendar.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-timepicker@1.0.6/dist/bs-timepicker.min.js"></script>
 <!--suppress JSUnresolvedReference -->
 <script>
     $(function () {
@@ -171,8 +176,8 @@
                         title: '',
                         startDate: start.date,
                         endDate: end.date,
-                        startTime: normalizeTimeInputValue(start.time),
-                        endTime: normalizeTimeInputValue(end.time),
+                        startTime: resolveModalTime(start.time, null),
+                        endTime: resolveModalTime(end.time, null),
                         allDay: isAllDay,
                         overlap: false,
                         description: '',
@@ -185,6 +190,8 @@
 
                     const eventExtras = dragExtras || extras;
                     const isAllDay = !!appointment.allDay;
+                    const startTimeCandidate = dragExtras?.start?.time || extras?.start?.time || appointment?.start;
+                    const endTimeCandidate = dragExtras?.end?.time || extras?.end?.time || appointment?.end;
 
                     console.log('Editing appointment extras:', extras.colors);
 
@@ -193,8 +200,8 @@
                         title: appointment.title,
                         startDate: eventExtras.start.date,
                         endDate: eventExtras.end.date,
-                        startTime: isAllDay ? '' : normalizeTimeInputValue(eventExtras.start.time),
-                        endTime: isAllDay ? '' : normalizeTimeInputValue(eventExtras.end.time),
+                        startTime: isAllDay ? '' : resolveModalTime(startTimeCandidate, appointment.start),
+                        endTime: isAllDay ? '' : resolveModalTime(endTimeCandidate, appointment.end),
                         allDay: isAllDay,
                         overlap: !!appointment.overlap,
                         description: appointment.description || '',
@@ -229,6 +236,8 @@
         }
 
         function initAppointmentModal() {
+            initModalTimepickers();
+
             $modal
                 .on('hide.bs.modal', function () {
                     $calendar.bsCalendar('render');
@@ -245,6 +254,33 @@
                 });
         }
 
+        function initModalTimepickers() {
+            if (typeof $.fn.bsTimepicker !== 'function') {
+                return;
+            }
+
+            $modal.find('#appointmentFromTimePicker, #appointmentToTimePicker').each(function () {
+                ensureTimepickerInitialized($(this));
+            });
+        }
+
+        function ensureTimepickerInitialized($input) {
+            if (typeof $.fn.bsTimepicker !== 'function' || !$input || !$input.length) {
+                return false;
+            }
+            if ($input.data('bsTimepicker')) {
+                return true;
+            }
+            $input.bsTimepicker({
+                format: '24h',
+                minuteInterval: 1,
+                btnClass: 'btn btn-outline-secondary w-100 text-start',
+                nameField: null,
+                btnEmptyText: '--:--'
+            });
+            return !!$input.data('bsTimepicker');
+        }
+
         function openAppointmentModal(mode, appointment) {
             modalState.mode = mode;
             modalState.appointmentId = appointment.id || null;
@@ -254,8 +290,8 @@
             $modal.find('input[name="title"]').val(appointment.title || '');
             $modal.find('input[name="from_date"]').val(appointment.startDate);
             $modal.find('input[name="to_date"]').val(appointment.endDate);
-            $modal.find('input[name="from_time"]').val(appointment.startTime || '');
-            $modal.find('input[name="to_time"]').val(appointment.endTime || '');
+            setModalTimeValue('from_time', appointment.startTime || '');
+            setModalTimeValue('to_time', appointment.endTime || '');
             $modal.find('input[name="allDay"]').prop('checked', !!appointment.allDay).trigger('change');
             $modal.find('input[name="overlap"]').prop('checked', !!appointment.overlap);
             $modal.find('textarea[name="description"]').val(appointment.description || '');
@@ -264,18 +300,42 @@
             $modal.modal('show');
         }
 
+        function setModalTimeValue(fieldName, value) {
+            const selector = fieldName === 'from_time' ? '#appointmentFromTimePicker' : '#appointmentToTimePicker';
+            const $input = $modal.find(selector);
+            const normalized = normalizeTimeInputValue(value);
+            if (ensureTimepickerInitialized($input)) {
+                if (normalized) {
+                    $input.bsTimepicker('setTime', normalized);
+                } else {
+                    $input.bsTimepicker('clear');
+                }
+                return;
+            }
+            $input.val(normalized);
+        }
+
+        function getModalTimeValue(fieldName) {
+            const selector = fieldName === 'from_time' ? '#appointmentFromTimePicker' : '#appointmentToTimePicker';
+            const $input = $modal.find(selector);
+            if (ensureTimepickerInitialized($input)) {
+                return normalizeTimeInputValue($input.bsTimepicker('val'));
+            }
+            return normalizeTimeInputValue($input.val());
+        }
+
         function readAppointmentModal() {
             const allDay = $modal.find('input[name="allDay"]').prop('checked');
             const appointment = {
                 title: $modal.find('input[name="title"]').val() || 'Untitled appointment',
                 start: buildDateTime(
                     $modal.find('input[name="from_date"]').val(),
-                    $modal.find('input[name="from_time"]').val(),
+                    getModalTimeValue('from_time'),
                     allDay
                 ),
                 end: buildDateTime(
                     $modal.find('input[name="to_date"]').val(),
-                    $modal.find('input[name="to_time"]').val(),
+                    getModalTimeValue('to_time'),
                     allDay,
                     true
                 ),
@@ -306,11 +366,51 @@
         }
 
         function normalizeTimeInputValue(time) {
-            const match = String(time || '').match(/^(\d{1,2}):(\d{2})/);
+            const match = String(time || '').match(/(?:^|\s|T)(\d{1,2}):(\d{2})(?::\d{2})?/);
             if (!match) {
                 return '';
             }
             return `${match[1].padStart(2, '0')}:${match[2]}`;
+        }
+
+        function parseDateTimeString(str) {
+            const match = String(str || '').match(
+                /^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{2}):(\d{2})(?::(\d{2}))?)?$/
+            );
+            if (!match) {
+                return null;
+            }
+            const year = Number(match[1]);
+            const month = Number(match[2]) - 1;
+            const day = Number(match[3]);
+            const hours = Number(match[4] || 0);
+            const minutes = Number(match[5] || 0);
+            const seconds = Number(match[6] || 0);
+            const date = new Date(year, month, day, hours, minutes, seconds, 0);
+            return isNaN(date.getTime()) ? null : date;
+        }
+
+        function extractTimeFromDateTime(value) {
+            if (!value) {
+                return '';
+            }
+            if (value instanceof Date && !isNaN(value.getTime())) {
+                return `${String(value.getHours()).padStart(2, '0')}:${String(value.getMinutes()).padStart(2, '0')}`;
+            }
+            const str = String(value);
+            const direct = normalizeTimeInputValue(str);
+            if (direct) {
+                return direct;
+            }
+            const date = parseDateTimeString(str) || new Date(str);
+            if (!isNaN(date.getTime())) {
+                return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+            }
+            return '';
+        }
+
+        function resolveModalTime(preferredTime, fallbackDateTime) {
+            return normalizeTimeInputValue(preferredTime) || extractTimeFromDateTime(fallbackDateTime);
         }
 
         async function loadAppointments(query) {
