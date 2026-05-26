@@ -98,6 +98,7 @@
                 holidays: null,
                 showAddButton: true,
                 draggable: false,
+                draggableSnapMinutes: 5,
                 translations: {
                     search: 'Type and press Enter',
                     searchNoResult: 'No appointment found'
@@ -1947,6 +1948,16 @@
                 settings.hourSlots.start = clamp(settings.hourSlots.start, 0, 23);
                 settings.hourSlots.end = clamp(settings.hourSlots.end, 1, 24);
             }
+
+            // Validate draggable snap interval (minutes)
+            if (settings.hasOwnProperty('draggableSnapMinutes')) {
+                const parsedSnap = Number(settings.draggableSnapMinutes);
+                if (!Number.isFinite(parsedSnap)) {
+                    settings.draggableSnapMinutes = $.bsCalendar.getDefaults().draggableSnapMinutes;
+                } else {
+                    settings.draggableSnapMinutes = Math.max(1, Math.floor(parsedSnap));
+                }
+            }
         }
 
         /**
@@ -3747,11 +3758,13 @@
                 globalEventsInitialized = true;
             }
 
-            /**
-             * @todo in optionen auslagern
-             */
-            function getSnapMinutes() {
-                return 5;
+            function getSnapMinutes($wrapperRef) {
+                const settings = getSettings($wrapperRef);
+                const snap = Number(settings?.draggableSnapMinutes);
+                if (!Number.isFinite(snap)) {
+                    return $.bsCalendar.getDefaults().draggableSnapMinutes;
+                }
+                return Math.max(1, Math.floor(snap));
             }
 
             function isTouchPointerEvent(e) {
@@ -3795,7 +3808,7 @@
                 const totalHeightPx = Math.max(1, (settings.hourSlots.end - settings.hourSlots.start) * slotHeight);
                 const relativeY = Math.max(0, Math.min(totalHeightPx, pageY - offset.top));
                 const minutesFloat = (relativeY / totalHeightPx) * totalMinutes;
-                const snap = getSnapMinutes();
+                const snap = getSnapMinutes($wrapperRef);
                 const snapped = Math.round(minutesFloat / snap) * snap;
                 return Math.max(0, Math.min(totalMinutes, snapped));
             }
@@ -4063,7 +4076,7 @@
                         const endMinutesRaw = getMinutesFromPointer(globalDragState.createDragState.$wrapper, globalDragState.createDragState.$slotContainer, pageY);
                         let startMinutes = Math.min(globalDragState.createDragState.startMinutes, endMinutesRaw);
                         let endMinutes = Math.max(globalDragState.createDragState.startMinutes, endMinutesRaw);
-                        const snap = getSnapMinutes();
+                        const snap = getSnapMinutes(globalDragState.createDragState.$wrapper);
                         if (endMinutes - startMinutes < snap) {
                             endMinutes = Math.min(endMinutes + snap, (settings.hourSlots.end - settings.hourSlots.start) * 60);
                         }
@@ -4113,10 +4126,10 @@
 
                         const settings = getSettings(globalDragState.moveDragState.$wrapper);
                         const pointerMinutes = getMinutesFromPointer(globalDragState.moveDragState.$wrapper, globalDragState.moveDragState.$slotContainer, pageY);
-                        const durationMinutes = Math.max(getSnapMinutes(), Math.round(globalDragState.moveDragState.durationMs / 60000));
+                        const durationMinutes = Math.max(getSnapMinutes(globalDragState.moveDragState.$wrapper), Math.round(globalDragState.moveDragState.durationMs / 60000));
                         const maxStart = Math.max(0, ((settings.hourSlots.end - settings.hourSlots.start) * 60) - durationMinutes);
                         const newStartMinutes = Math.max(0, Math.min(maxStart, pointerMinutes - globalDragState.moveDragState.offsetMinutes));
-                        const snap = getSnapMinutes();
+                        const snap = getSnapMinutes(globalDragState.moveDragState.$wrapper);
                         const snappedStart = Math.round(newStartMinutes / snap) * snap;
                         const tempStart = buildDateTimeByMinutes(
                             globalDragState.moveDragState.$wrapper,
@@ -4131,13 +4144,13 @@
                             tempStart,
                             tempEnd
                         );
-                        
+
                         // Update time display badge
                         const startHour = Math.floor(snappedStart / 60) + settings.hourSlots.start;
                         const startMinute = snappedStart % 60;
                         const timeStr = `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
                         globalDragState.moveDragState.$timeDisplay.text(timeStr);
-                        
+
                         globalDragState.moveDragState.$appointment.css({opacity: 0.8});
                         globalDragState.moveDragState.currentStartMinutes = snappedStart;
                         globalDragState.moveDragState.dragged = true;
@@ -4548,6 +4561,8 @@
                     }).appendTo($preview);
 
                     const activateCreateDrag = () => {
+                        // Hide hover time indicator while an active drag is running
+                        $eventWrapper.find('[data-role="time-indicator"]').remove();
                         globalDragState.createDragState = {
                             $wrapper: $eventWrapper,
                             $slotContainer: $slotContainer,
@@ -4557,7 +4572,7 @@
                             dateLocal: String($slotContainer.attr('data-date-local')),
                             startMinutes: startMinutes,
                             currentStartMinutes: startMinutes,
-                            currentEndMinutes: startMinutes + getSnapMinutes(),
+                            currentEndMinutes: startMinutes + getSnapMinutes($eventWrapper),
                             dragged: true
                         };
                     };
@@ -4695,8 +4710,8 @@
                         return;
                     }
                     const pointerMinutes = getMinutesFromPointer($eventWrapper, $slotContainer, startPoint.y);
-                    
-                    // Create time badge for move drag
+
+                    // Create time badge for move drag (appointment top-right)
                     const $timeDisplay = $('<div>', {
                         class: 'position-absolute badge bg-primary',
                         css: {
@@ -4704,12 +4719,15 @@
                             padding: '2px 4px',
                             right: '4px',
                             top: '2px',
-                            zIndex: 13
+                            zIndex: 13,
+                            pointerEvents: 'none'
                         },
                         text: ''
                     });
                     
                     const activateMoveDrag = () => {
+                        // Hide hover time indicator while an active drag is running
+                        $eventWrapper.find('[data-role="time-indicator"]').remove();
                         globalDragState.moveDragState = {
                             $wrapper: $eventWrapper,
                             $slotContainer: $slotContainer,
@@ -4959,7 +4977,8 @@
                                 backgroundColor: 'var(--bs-primary)',
                                 zIndex: 10,
                                 opacity: 0.7,
-                                boxShadow: '0 0 4px var(--bs-primary)'
+                                boxShadow: '0 0 4px var(--bs-primary)',
+                                pointerEvents: 'none'
                             }
                         }).appendTo($slotContainer);
 
@@ -4973,7 +4992,8 @@
                                 left: '2px',
                                 transform: 'translateY(-50%)',
                                 zIndex: 11,
-                                whiteSpace: 'nowrap'
+                                whiteSpace: 'nowrap',
+                                pointerEvents: 'none'
                             },
                             text: ''
                         }).appendTo($indicator);

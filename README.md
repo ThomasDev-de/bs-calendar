@@ -57,6 +57,7 @@ No Node.js build step is required for normal usage. The browser-ready files are 
 Use CDN/script tags:
 
 ```html
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
 
@@ -79,6 +80,7 @@ Bootstrap, and Bootstrap Icons.
 ## Quick Start
 
 ```html
+
 <div id="calendar"></div>
 
 <script>
@@ -170,32 +172,32 @@ For `day`, `week`, `month`, and search results, appointments use this shape:
 
 Required fields:
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `title` | `string` | Appointment title. |
+| Field   | Type     | Description                                                                    |
+|---------|----------|--------------------------------------------------------------------------------|
+| `title` | `string` | Appointment title.                                                             |
 | `start` | `string` | Start date/time in `YYYY-MM-DD HH:mm:ss` or compatible local date-time format. |
-| `end` | `string` | End date/time in `YYYY-MM-DD HH:mm:ss` or compatible local date-time format. |
+| `end`   | `string` | End date/time in `YYYY-MM-DD HH:mm:ss` or compatible local date-time format.   |
 
 Optional fields:
 
-| Field | Type | Default | Description |
-|-------|------|---------|-------------|
-| `id` | `string` or `number` | generated when missing | Required for later `editAppointment` calls. |
-| `allDay` | `boolean` | `false` | Treat the appointment as an all-day item. |
-| `calendarId` | `string` or `number` | none | Useful for server-side or custom filtering by calendar. |
-| `description` | `string` | none | Used by the default info window formatter. |
-| `color` | `string` | `mainColor` | Bootstrap color, CSS color, CSS variable, or class combination. |
-| `icon` | `string` | appointment icon | Bootstrap icon class for this appointment. |
-| `link` | `string` or `object` | none | Rendered by the default info window formatter. |
-| `location` | `string`, `array`, or `null` | none | Rendered by the default info window formatter. |
-| `editable` | `boolean` | `true` | Controls whether the info window shows an edit button. |
-| `deleteable` | `boolean` | `true` | Controls whether the info window shows a delete button. |
-| `overlap` | `boolean` | `false` | Day/week view only: when `true`, this appointment is rendered full-width and may overlap other time-based appointments instead of being split into side-by-side columns. |
+| Field         | Type                         | Default                | Description                                                                                                                                                              |
+|---------------|------------------------------|------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `id`          | `string` or `number`         | generated when missing | Required for later `editAppointment` calls.                                                                                                                              |
+| `allDay`      | `boolean`                    | `false`                | Treat the appointment as an all-day item.                                                                                                                                |
+| `calendarId`  | `string` or `number`         | none                   | Useful for server-side or custom filtering by calendar.                                                                                                                  |
+| `description` | `string`                     | none                   | Used by the default info window formatter.                                                                                                                               |
+| `color`       | `string`                     | `mainColor`            | Bootstrap color, CSS color, CSS variable, or class combination.                                                                                                          |
+| `icon`        | `string`                     | appointment icon       | Bootstrap icon class for this appointment.                                                                                                                               |
+| `link`        | `string` or `object`         | none                   | Rendered by the default info window formatter.                                                                                                                           |
+| `location`    | `string`, `array`, or `null` | none                   | Rendered by the default info window formatter.                                                                                                                           |
+| `editable`    | `boolean`                    | `true`                 | Controls whether the info window shows an edit button.                                                                                                                   |
+| `deleteable`  | `boolean`                    | `true`                 | Controls whether the info window shows a delete button.                                                                                                                  |
+| `overlap`     | `boolean`                    | `false`                | Day/week view only: when `true`, this appointment is rendered full-width and may overlap other time-based appointments instead of being split into side-by-side columns. |
 
 Reserved field:
 
-| Field | Description |
-|-------|-------------|
+| Field    | Description                                                                                      |
+|----------|--------------------------------------------------------------------------------------------------|
 | `extras` | Internal render context generated by bs-calendar. Do not send or persist it as appointment data. |
 
 All-day appointments:
@@ -249,19 +251,19 @@ With a function, bs-calendar passes `requestData` and expects a Promise.
 
 Request data in normal views:
 
-| View | Request fields |
-|------|----------------|
+| View                   | Request fields                              |
+|------------------------|---------------------------------------------|
 | `day`, `week`, `month` | `fromDate`, `toDate`, `view`, `calendarIds` |
-| `year` | `year`, `view`, `calendarIds` |
+| `year`                 | `year`, `view`, `calendarIds`               |
 
 Request data in search mode:
 
-| Field | Description |
-|-------|-------------|
-| `search` | Search string. |
-| `limit` | Page size from `options.search.limit`. |
-| `offset` | Current search offset. |
-| `calendarIds` | Active calendar IDs. |
+| Field         | Description                            |
+|---------------|----------------------------------------|
+| `search`      | Search string.                         |
+| `limit`       | Page size from `options.search.limit`. |
+| `offset`      | Current search offset.                 |
+| `calendarIds` | Active calendar IDs.                   |
 
 Normal response for `day`, `week`, and `month`:
 
@@ -307,11 +309,11 @@ Year-view response:
 
 Year summary fields:
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `date` | `string` | Yes | Day in `YYYY-MM-DD` format. |
-| `total` | `number` | Yes | Badge number shown in year view. Must be greater than `0`. |
-| `content` | `string` | No | Popover body. HTML rendering is enabled. Defaults to `total`. |
+| Field     | Type     | Required | Description                                                   |
+|-----------|----------|----------|---------------------------------------------------------------|
+| `date`    | `string` | Yes      | Day in `YYYY-MM-DD` format.                                   |
+| `total`   | `number` | Yes      | Badge number shown in year view. Must be greater than `0`.    |
+| `content` | `string` | No       | Popover body. HTML rendering is enabled. Defaults to `total`. |
 
 Use `queryParams` to append custom request values:
 
@@ -335,19 +337,19 @@ confirm destructive actions, validate input, save to a backend, and then update 
 
 Callback options receive the same payloads:
 
-| Event | Callback | Payload |
-|-------|----------|---------|
-| `add.bs.calendar` | `onAdd(data, dragExtras)` | Proposed start/end for a new appointment. |
-| `edit.bs.calendar` | `onEdit(appointment, extras, dragExtras)` | Current appointment plus render context. |
-| `delete.bs.calendar` | `onDelete(appointment, extras)` | Appointment selected for deletion. |
+| Event                | Callback                                  | Payload                                   |
+|----------------------|-------------------------------------------|-------------------------------------------|
+| `add.bs.calendar`    | `onAdd(data, dragExtras)`                 | Proposed start/end for a new appointment. |
+| `edit.bs.calendar`   | `onEdit(appointment, extras, dragExtras)` | Current appointment plus render context.  |
+| `delete.bs.calendar` | `onDelete(appointment, extras)`           | Appointment selected for deletion.        |
 
 After a local mutation method has succeeded, the calendar fires completion events:
 
-| Event | Callback | Payload |
-|-------|----------|---------|
-| `added.bs.calendar` | `onAdded(appointment, extras)` | Appointment that was added. |
-| `edited.bs.calendar` | `onEdited(appointment, extras)` | Appointment after the local update. |
-| `deleted.bs.calendar` | `onDeleted(appointment, extras)` | Appointment that was removed. |
+| Event                 | Callback                         | Payload                             |
+|-----------------------|----------------------------------|-------------------------------------|
+| `added.bs.calendar`   | `onAdded(appointment, extras)`   | Appointment that was added.         |
+| `edited.bs.calendar`  | `onEdited(appointment, extras)`  | Appointment after the local update. |
+| `deleted.bs.calendar` | `onDeleted(appointment, extras)` | Appointment that was removed.       |
 
 When drag-create is used, `dragExtras` contains the proposed `start` and `end`. When drag-move is used, `appointment`
 still contains the original appointment and `dragExtras` contains the proposed new range. In week view, drag-move can
@@ -444,51 +446,52 @@ $('#calendar').bsCalendar({
 
 Some options can be updated later with `updateOptions`.
 
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `showAbout` | `boolean` | `true` | Shows the About dropdown. |
-| `locale` | `string` | `"en-GB"` | Locale for labels and date formatting. |
-| `title` | `string` or `null` | `null` | HTML/string title in the toolbar. |
-| `startWeekOnSunday` | `boolean` | `true` | If `false`, weeks start on Monday. |
-| `navigateOnWheel` | `boolean` | `true` | Enables mouse-wheel navigation over the calendar. |
-| `rounded` | `number` | `5` | Bootstrap rounded level used by calendar UI elements. |
-| `border` | `string` | `"border border-0 rounded-0 shadow"` | Bootstrap classes used by bordered calendar UI elements. |
-| `search` | `object` or `null` | `{limit: 10, offset: 0}` | Search config. Set `null` to disable search. |
-| `search.limit` | `number` | `10` | Number of search results per page. |
-| `search.offset` | `number` | `0` | Initial search offset. |
-| `startDate` | `Date` or `string` | `new Date()` | Initial reference date. |
-| `startView` | `string` | `"month"` | Initial view: `year`, `month`, `week`, or `day`. |
-| `mainColor` | `string` | `"primary"` | Default color used by highlights and appointments. |
-| `views` | `array` | `["year", "month", "week", "day"]` | Enabled views. |
-| `holidays` | `object` or `null` | `null` | OpenHolidays configuration. |
-| `showAddButton` | `boolean` | `true` | Shows the toolbar add button. |
-| `draggable` | `boolean` | `false` | Enables drag-create in day/week view and drag-move in day/week/month view. Touch uses long-press. |
-| `translations` | `object` | see below | Search strings. |
-| `icons` | `object` | see below | Bootstrap icon classes. |
-| `url` | `string`, `function`, or `null` | `null` | Appointment data source. |
-| `queryParams` | `function` or `null` | `null` | Adds custom request params before loading appointments. |
-| `topbarAddons` | selector or `null` | `null` | jQuery selector/element inserted after the top toolbar. |
-| `sidebarAddons` | selector or `null` | `null` | jQuery selector/element appended to the sidebar. |
-| `formatter` | `object` | see below | Custom render functions. |
-| `hourSlots` | `object` | `{height: 30, start: 0, end: 24}` | Day/week hour slot layout. |
-| `calendars` | `array` or `null` | `null` | Sidebar calendar filters. |
-| `onAll` | `function` or `null` | `null` | Receives all event callbacks. |
-| `onInit` | `function` or `null` | `null` | Called after initialization. |
-| `onAdd` | `function` or `null` | `null` | Same payload as `add.bs.calendar`. |
-| `onAdded` | `function` or `null` | `null` | Same payload as `added.bs.calendar`. |
-| `onEdit` | `function` or `null` | `null` | Same payload as `edit.bs.calendar`. |
-| `onEdited` | `function` or `null` | `null` | Same payload as `edited.bs.calendar`. |
-| `onDelete` | `function` or `null` | `null` | Same payload as `delete.bs.calendar`. |
-| `onDeleted` | `function` or `null` | `null` | Same payload as `deleted.bs.calendar`. |
-| `onView` | `function` or `null` | `null` | Called when the view changes. |
-| `onBeforeLoad` | `function` or `null` | `null` | Called before loading appointments. |
-| `onAfterLoad` | `function` or `null` | `null` | Called after appointments were processed. |
-| `onShowInfoWindow` | `function` or `null` | `null` | Called before the info window is shown. |
-| `onHideInfoWindow` | `function` or `null` | `null` | Called when the info window is hidden. |
-| `onNavigateForward` | `function` or `null` | `null` | Called after forward navigation. |
-| `onNavigateBack` | `function` or `null` | `null` | Called after backward navigation. |
-| `storeState` | `boolean` | `false` | Persists selected view and active calendars in `localStorage`. |
-| `debug` | `boolean` | `false` | Enables debug logging. |
+| Option                 | Type                            | Default                              | Description                                                                                       |
+|------------------------|---------------------------------|--------------------------------------|---------------------------------------------------------------------------------------------------|
+| `showAbout`            | `boolean`                       | `true`                               | Shows the About dropdown.                                                                         |
+| `locale`               | `string`                        | `"en-GB"`                            | Locale for labels and date formatting.                                                            |
+| `title`                | `string` or `null`              | `null`                               | HTML/string title in the toolbar.                                                                 |
+| `startWeekOnSunday`    | `boolean`                       | `true`                               | If `false`, weeks start on Monday.                                                                |
+| `navigateOnWheel`      | `boolean`                       | `true`                               | Enables mouse-wheel navigation over the calendar.                                                 |
+| `rounded`              | `number`                        | `5`                                  | Bootstrap rounded level used by calendar UI elements.                                             |
+| `border`               | `string`                        | `"border border-0 rounded-0 shadow"` | Bootstrap classes used by bordered calendar UI elements.                                          |
+| `search`               | `object` or `null`              | `{limit: 10, offset: 0}`             | Search config. Set `null` to disable search.                                                      |
+| `search.limit`         | `number`                        | `10`                                 | Number of search results per page.                                                                |
+| `search.offset`        | `number`                        | `0`                                  | Initial search offset.                                                                            |
+| `startDate`            | `Date` or `string`              | `new Date()`                         | Initial reference date.                                                                           |
+| `startView`            | `string`                        | `"month"`                            | Initial view: `year`, `month`, `week`, or `day`.                                                  |
+| `mainColor`            | `string`                        | `"primary"`                          | Default color used by highlights and appointments.                                                |
+| `views`                | `array`                         | `["year", "month", "week", "day"]`   | Enabled views.                                                                                    |
+| `holidays`             | `object` or `null`              | `null`                               | OpenHolidays configuration.                                                                       |
+| `showAddButton`        | `boolean`                       | `true`                               | Shows the toolbar add button.                                                                     |
+| `draggable`            | `boolean`                       | `false`                              | Enables drag-create in day/week view and drag-move in day/week/month view. Touch uses long-press. |
+| `draggableSnapMinutes` | `number`                        | `5`                                  | Snap interval in minutes for drag-create/move in day/week view. Minimum is `1`.                   |
+| `translations`         | `object`                        | see below                            | Search strings.                                                                                   |
+| `icons`                | `object`                        | see below                            | Bootstrap icon classes.                                                                           |
+| `url`                  | `string`, `function`, or `null` | `null`                               | Appointment data source.                                                                          |
+| `queryParams`          | `function` or `null`            | `null`                               | Adds custom request params before loading appointments.                                           |
+| `topbarAddons`         | selector or `null`              | `null`                               | jQuery selector/element inserted after the top toolbar.                                           |
+| `sidebarAddons`        | selector or `null`              | `null`                               | jQuery selector/element appended to the sidebar.                                                  |
+| `formatter`            | `object`                        | see below                            | Custom render functions.                                                                          |
+| `hourSlots`            | `object`                        | `{height: 30, start: 0, end: 24}`    | Day/week hour slot layout.                                                                        |
+| `calendars`            | `array` or `null`               | `null`                               | Sidebar calendar filters.                                                                         |
+| `onAll`                | `function` or `null`            | `null`                               | Receives all event callbacks.                                                                     |
+| `onInit`               | `function` or `null`            | `null`                               | Called after initialization.                                                                      |
+| `onAdd`                | `function` or `null`            | `null`                               | Same payload as `add.bs.calendar`.                                                                |
+| `onAdded`              | `function` or `null`            | `null`                               | Same payload as `added.bs.calendar`.                                                              |
+| `onEdit`               | `function` or `null`            | `null`                               | Same payload as `edit.bs.calendar`.                                                               |
+| `onEdited`             | `function` or `null`            | `null`                               | Same payload as `edited.bs.calendar`.                                                             |
+| `onDelete`             | `function` or `null`            | `null`                               | Same payload as `delete.bs.calendar`.                                                             |
+| `onDeleted`            | `function` or `null`            | `null`                               | Same payload as `deleted.bs.calendar`.                                                            |
+| `onView`               | `function` or `null`            | `null`                               | Called when the view changes.                                                                     |
+| `onBeforeLoad`         | `function` or `null`            | `null`                               | Called before loading appointments.                                                               |
+| `onAfterLoad`          | `function` or `null`            | `null`                               | Called after appointments were processed.                                                         |
+| `onShowInfoWindow`     | `function` or `null`            | `null`                               | Called before the info window is shown.                                                           |
+| `onHideInfoWindow`     | `function` or `null`            | `null`                               | Called when the info window is hidden.                                                            |
+| `onNavigateForward`    | `function` or `null`            | `null`                               | Called after forward navigation.                                                                  |
+| `onNavigateBack`       | `function` or `null`            | `null`                               | Called after backward navigation.                                                                 |
+| `storeState`           | `boolean`                       | `false`                              | Persists selected view and active calendars in `localStorage`.                                    |
+| `debug`                | `boolean`                       | `false`                              | Enables debug logging.                                                                            |
 
 Calendar filters:
 
@@ -503,37 +506,37 @@ $('#calendar').bsCalendar({
 
 Calendar fields:
 
-| Field | Type | Required | Default | Description |
-|-------|------|----------|---------|-------------|
-| `id` | `string` or `number` | Yes | none | Sent in `calendarIds`. |
-| `title` | `string` | No | `Calendar {i}` | Sidebar label. |
-| `color` | `string` | No | `mainColor` | Sidebar color. |
-| `active` | `boolean` | No | `true` | Initial filter state. |
+| Field    | Type                 | Required | Default        | Description            |
+|----------|----------------------|----------|----------------|------------------------|
+| `id`     | `string` or `number` | Yes      | none           | Sent in `calendarIds`. |
+| `title`  | `string`             | No       | `Calendar {i}` | Sidebar label.         |
+| `color`  | `string`             | No       | `mainColor`    | Sidebar color.         |
+| `active` | `boolean`            | No       | `true`         | Initial filter state.  |
 
 Translations:
 
-| Key | Default | Description |
-|-----|---------|-------------|
-| `search` | `"Type and press Enter"` | Search placeholder. |
+| Key              | Default                  | Description           |
+|------------------|--------------------------|-----------------------|
+| `search`         | `"Type and press Enter"` | Search placeholder.   |
 | `searchNoResult` | `"No appointment found"` | Empty search message. |
 
 Icons:
 
-| Key | Default |
-|-----|---------|
-| `day` | `"bi bi-calendar-day"` |
-| `week` | `"bi bi-kanban"` |
-| `month` | `"bi bi-calendar-month"` |
-| `year` | `"bi bi-calendar4"` |
-| `about` | `"bi bi-info-circle"` |
-| `add` | `"bi bi-plus-lg"` |
-| `menu` | `"bi bi-layout-sidebar-inset"` |
-| `search` | `"bi bi-search"` |
-| `prev` | `"bi bi-chevron-left"` |
-| `next` | `"bi bi-chevron-right"` |
-| `link` | `"bi bi-box-arrow-up-right"` |
-| `appointment` | `"bi bi-clock"` |
-| `appointmentAllDay` | `"bi bi-brightness-high"` |
+| Key                 | Default                        |
+|---------------------|--------------------------------|
+| `day`               | `"bi bi-calendar-day"`         |
+| `week`              | `"bi bi-kanban"`               |
+| `month`             | `"bi bi-calendar-month"`       |
+| `year`              | `"bi bi-calendar4"`            |
+| `about`             | `"bi bi-info-circle"`          |
+| `add`               | `"bi bi-plus-lg"`              |
+| `menu`              | `"bi bi-layout-sidebar-inset"` |
+| `search`            | `"bi bi-search"`               |
+| `prev`              | `"bi bi-chevron-left"`         |
+| `next`              | `"bi bi-chevron-right"`        |
+| `link`              | `"bi bi-box-arrow-up-right"`   |
+| `appointment`       | `"bi bi-clock"`                |
+| `appointmentAllDay` | `"bi bi-brightness-high"`      |
 
 ## Events and Callbacks
 
@@ -545,23 +548,23 @@ $('#calendar').on('view.bs.calendar', function (event, view) {
 });
 ```
 
-| Event | Callback option | Payload |
-|-------|-----------------|---------|
-| `all.bs.calendar` | `onAll(eventName, ...params)` | Event name plus event params. |
-| `init.bs.calendar` | `onInit()` | none |
-| `add.bs.calendar` | `onAdd(data, dragExtras)` | New appointment intent. |
-| `added.bs.calendar` | `onAdded(appointment, extras)` | Appointment added with `addAppointment`. |
-| `edit.bs.calendar` | `onEdit(appointment, extras, dragExtras)` | Edit appointment intent. |
-| `edited.bs.calendar` | `onEdited(appointment, extras)` | Appointment updated with `editAppointment`. |
-| `delete.bs.calendar` | `onDelete(appointment, extras)` | Delete appointment intent. |
-| `deleted.bs.calendar` | `onDeleted(appointment, extras)` | Appointment removed with `deleteAppointment`. |
-| `view.bs.calendar` | `onView(view)` | New view. |
-| `navigate-forward.bs.calendar` | `onNavigateForward(view, from, to)` | View and period. |
-| `navigate-back.bs.calendar` | `onNavigateBack(view, from, to)` | View and period. |
-| `show-info-window.bs.calendar` | `onShowInfoWindow(appointment, extras)` | Info window opened. |
-| `hide-info-window.bs.calendar` | `onHideInfoWindow()` | Info window closed. |
-| `before-load.bs.calendar` | `onBeforeLoad(requestData)` | Request data before loading. |
-| `after-load.bs.calendar` | `onAfterLoad(appointments)` | Processed appointments. |
+| Event                          | Callback option                           | Payload                                       |
+|--------------------------------|-------------------------------------------|-----------------------------------------------|
+| `all.bs.calendar`              | `onAll(eventName, ...params)`             | Event name plus event params.                 |
+| `init.bs.calendar`             | `onInit()`                                | none                                          |
+| `add.bs.calendar`              | `onAdd(data, dragExtras)`                 | New appointment intent.                       |
+| `added.bs.calendar`            | `onAdded(appointment, extras)`            | Appointment added with `addAppointment`.      |
+| `edit.bs.calendar`             | `onEdit(appointment, extras, dragExtras)` | Edit appointment intent.                      |
+| `edited.bs.calendar`           | `onEdited(appointment, extras)`           | Appointment updated with `editAppointment`.   |
+| `delete.bs.calendar`           | `onDelete(appointment, extras)`           | Delete appointment intent.                    |
+| `deleted.bs.calendar`          | `onDeleted(appointment, extras)`          | Appointment removed with `deleteAppointment`. |
+| `view.bs.calendar`             | `onView(view)`                            | New view.                                     |
+| `navigate-forward.bs.calendar` | `onNavigateForward(view, from, to)`       | View and period.                              |
+| `navigate-back.bs.calendar`    | `onNavigateBack(view, from, to)`          | View and period.                              |
+| `show-info-window.bs.calendar` | `onShowInfoWindow(appointment, extras)`   | Info window opened.                           |
+| `hide-info-window.bs.calendar` | `onHideInfoWindow()`                      | Info window closed.                           |
+| `before-load.bs.calendar`      | `onBeforeLoad(requestData)`               | Request data before loading.                  |
+| `after-load.bs.calendar`       | `onAfterLoad(appointments)`               | Processed appointments.                       |
 
 ## Methods
 
@@ -571,19 +574,19 @@ Call methods with the jQuery plugin method syntax:
 $('#calendar').bsCalendar('refresh');
 ```
 
-| Method | Params | Description |
-|--------|--------|-------------|
-| `refresh` | optional `{url, view, queryParams}` | Reloads data from `url` and renders. |
-| `render` | none | Re-renders current loaded data without fetching. |
-| `clear` | none | Clears rendered appointments and stored local appointment data. Not available in search mode. |
-| `updateOptions` | `object` | Merges runtime options and rebuilds where needed. |
-| `addAppointment` | appointment object | Adds one local appointment and renders. Not available in search mode or year view. |
-| `editAppointment` | appointment object with `id` | Updates a local appointment by `id` and renders. Not available in search mode or year view. |
-| `editApointment` | appointment object with `id` | Compatibility alias for `editAppointment`. |
-| `deleteAppointment` | appointment `id` or object with `id` | Deletes one local appointment by `id` and renders. Not available in search mode or year view. |
-| `destroy` | none | Removes generated markup/events and restores the original element state. |
-| `setDate` | date string, `Date`, or `{date, view}` | Sets the visible reference date. Not available in search mode. |
-| `setToday` | optional view string | Navigates to today. Not available in search mode. |
+| Method              | Params                                 | Description                                                                                   |
+|---------------------|----------------------------------------|-----------------------------------------------------------------------------------------------|
+| `refresh`           | optional `{url, view, queryParams}`    | Reloads data from `url` and renders.                                                          |
+| `render`            | none                                   | Re-renders current loaded data without fetching.                                              |
+| `clear`             | none                                   | Clears rendered appointments and stored local appointment data. Not available in search mode. |
+| `updateOptions`     | `object`                               | Merges runtime options and rebuilds where needed.                                             |
+| `addAppointment`    | appointment object                     | Adds one local appointment and renders. Not available in search mode or year view.            |
+| `editAppointment`   | appointment object with `id`           | Updates a local appointment by `id` and renders. Not available in search mode or year view.   |
+| `editApointment`    | appointment object with `id`           | Compatibility alias for `editAppointment`.                                                    |
+| `deleteAppointment` | appointment `id` or object with `id`   | Deletes one local appointment by `id` and renders. Not available in search mode or year view. |
+| `destroy`           | none                                   | Removes generated markup/events and restores the original element state.                      |
+| `setDate`           | date string, `Date`, or `{date, view}` | Sets the visible reference date. Not available in search mode.                                |
+| `setToday`          | optional view string                   | Navigates to today. Not available in search mode.                                             |
 
 Examples:
 
@@ -630,57 +633,57 @@ $('#calendar').bsCalendar({
 
 Formatter signatures:
 
-| Formatter | Signature | Return |
-|-----------|-----------|--------|
-| `day` | `(appointment, extras)` | HTML/string |
-| `week` | `(appointment, extras)` | HTML/string |
-| `allDay` | `(appointment, extras, view)` | HTML/string |
-| `month` | `(appointment, extras)` | HTML/string |
-| `search` | `(appointment, extras)` | HTML/string |
-| `holiday` | `(holiday, view)` | HTML/string |
-| `window` | `(appointment, extras)` | Promise resolving to HTML/string |
-| `duration` | `(duration)` | string |
+| Formatter  | Signature                     | Return                           |
+|------------|-------------------------------|----------------------------------|
+| `day`      | `(appointment, extras)`       | HTML/string                      |
+| `week`     | `(appointment, extras)`       | HTML/string                      |
+| `allDay`   | `(appointment, extras, view)` | HTML/string                      |
+| `month`    | `(appointment, extras)`       | HTML/string                      |
+| `search`   | `(appointment, extras)`       | HTML/string                      |
+| `holiday`  | `(holiday, view)`             | HTML/string                      |
+| `window`   | `(appointment, extras)`       | Promise resolving to HTML/string |
+| `duration` | `(duration)`                  | string                           |
 
 ## Extras Object
 
 `extras` is generated for each appointment after loading/normalization.
 
-| Field | Description |
-|-------|-------------|
-| `locale` | Locale used for formatting. |
-| `icon` | Appointment icon class. |
-| `colors.origin` | Original color value. |
-| `colors.backgroundColor` | Computed background color. |
-| `colors.backgroundImage` | Computed background image/gradient. |
-| `colors.color` | Computed text color. |
-| `colors.classList` | Computed Bootstrap classes, if applicable. |
-| `colors.hex` | Computed hexadecimal color ("#rrggbb") when resolvable, otherwise `null`. |
-| `start.date` | Start date in `YYYY-MM-DD`. |
-| `start.time` | Start time in `HH:MM:SS`. |
-| `end.date` | End date in `YYYY-MM-DD`. |
-| `end.time` | End time in `HH:MM:SS`. |
-| `duration.days` | Full days. |
-| `duration.hours` | Remaining hours. |
-| `duration.minutes` | Remaining minutes. |
-| `duration.seconds` | Remaining seconds. |
-| `duration.totalMinutes` | Total minutes. |
-| `duration.totalSeconds` | Total seconds. |
-| `duration.formatted` | Formatter output. |
-| `displayDates` | Per-day display data used by month/week/day rendering. |
-| `allDay` | Whether the appointment is all-day. |
-| `inADay` | Whether it stays within one calendar day. |
-| `isToday` | Whether it intersects today. |
-| `isNow` | Whether it is currently active. |
+| Field                    | Description                                                               |
+|--------------------------|---------------------------------------------------------------------------|
+| `locale`                 | Locale used for formatting.                                               |
+| `icon`                   | Appointment icon class.                                                   |
+| `colors.origin`          | Original color value.                                                     |
+| `colors.backgroundColor` | Computed background color.                                                |
+| `colors.backgroundImage` | Computed background image/gradient.                                       |
+| `colors.color`           | Computed text color.                                                      |
+| `colors.classList`       | Computed Bootstrap classes, if applicable.                                |
+| `colors.hex`             | Computed hexadecimal color ("#rrggbb") when resolvable, otherwise `null`. |
+| `start.date`             | Start date in `YYYY-MM-DD`.                                               |
+| `start.time`             | Start time in `HH:MM:SS`.                                                 |
+| `end.date`               | End date in `YYYY-MM-DD`.                                                 |
+| `end.time`               | End time in `HH:MM:SS`.                                                   |
+| `duration.days`          | Full days.                                                                |
+| `duration.hours`         | Remaining hours.                                                          |
+| `duration.minutes`       | Remaining minutes.                                                        |
+| `duration.seconds`       | Remaining seconds.                                                        |
+| `duration.totalMinutes`  | Total minutes.                                                            |
+| `duration.totalSeconds`  | Total seconds.                                                            |
+| `duration.formatted`     | Formatter output.                                                         |
+| `displayDates`           | Per-day display data used by month/week/day rendering.                    |
+| `allDay`                 | Whether the appointment is all-day.                                       |
+| `inADay`                 | Whether it stays within one calendar day.                                 |
+| `isToday`                | Whether it intersects today.                                              |
+| `isNow`                  | Whether it is currently active.                                           |
 
 `displayDates[]` entries contain:
 
-| Field | Description |
-|-------|-------------|
-| `date` | Display date. |
-| `day` | Weekday index. |
-| `times.start` | Visible start time for that day. |
-| `times.end` | Visible end time for that day. |
-| `visibleInWeek` | Whether this date is visible in week view. |
+| Field            | Description                                 |
+|------------------|---------------------------------------------|
+| `date`           | Display date.                               |
+| `day`            | Weekday index.                              |
+| `times.start`    | Visible start time for that day.            |
+| `times.end`      | Visible end time for that day.              |
+| `visibleInWeek`  | Whether this date is visible in week view.  |
 | `visibleInMonth` | Whether this date is visible in month view. |
 
 ## Colors
@@ -721,11 +724,11 @@ $('#calendar').bsCalendar({
 });
 ```
 
-| Key | Type | Default | Description |
-|-----|------|---------|-------------|
-| `country` | `string` or `null` | locale country | ISO 3166-1 alpha-2 country code. |
-| `federalState` | `string` or `null` | `null` | Subdivision/state code. Required for school holidays. |
-| `language` | `string` or `null` | locale language | ISO 639-1 language code. |
+| Key            | Type               | Default         | Description                                           |
+|----------------|--------------------|-----------------|-------------------------------------------------------|
+| `country`      | `string` or `null` | locale country  | ISO 3166-1 alpha-2 country code.                      |
+| `federalState` | `string` or `null` | `null`          | Subdivision/state code. Required for school holidays. |
+| `language`     | `string` or `null` | locale language | ISO 639-1 language code.                              |
 
 If `url` is `null`, holidays can still be loaded and rendered.
 

@@ -2,6 +2,7 @@
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
     * [**dev-main**](#dev-main)
+    * [**Version 2.1.8**](#version-218)
     * [**Version 2.1.7**](#version-217)
     * [**Version 2.1.6**](#version-216)
     * [**Version 2.1.5**](#version-215)
@@ -43,32 +44,22 @@
 
 ### dev-main
 
-- 2026-05-22: Improvement: Live hover time indicator in day/week views when draggable enabled
-  - Added: When draggable is enabled and in day/week view, hovering over time slots displays a live time indicator (horizontal line with time badge).
-  - Added: The time indicator follows the mouse cursor and shows the current hour:minute at the hover position.
-  - Added: Indicator automatically disappears when leaving the time slots area.
-  - Changed: Indicator does not appear if a drag operation is in progress.
-  - Files modified: `dist/bs-calendar.js`
-  - Notes: Visual aid for precise appointment placement; only active in day/week views with draggable enabled; feature is automatic and requires no configuration.
-  - Todo: Move `getSnapMinutes` to options
+- No unreleased changes.
 
-- 2026-05-22: Improvement: Live time display during drag-create and drag-move in day/week views
-  - Added: Drag-create now shows start/end times as small labels above and below the preview element in day/week views.
-  - Added: Drag-move now shows the current start time in a small badge in the top-right corner of the appointment during drag in day/week views.
-  - Changed: Times update live as you drag, helping to precisely place appointments at desired times.
-  - Files modified: `dist/bs-calendar.js`
-  - Notes: Only applies to day and week views; month view drag already has visual feedback; feature is automatic and requires no configuration.
+### Version 2.1.8
 
-- 2026-05-22: Fix/Improvement: Deterministic overlap stacking and z-index handling
-  - Changed: Unified stacking logic so appointments are stacked by start time (ascending) — the appointment with the earliest start is always at the bottom.
-  - Changed: In `relayoutDayContainerForDrag` z-index assignment now applies to all visible items sorted by `start` to avoid visual inconsistencies while dragging.
-  - Changed: In `drawAppointmentsForDayOrWeek` a per-day-container stacking pass was added after rendering column and full-width appointments. All `[data-appointment]` elements are sorted by `appointment.start` and assigned deterministic `z-index` values so render and drag behaviour match.
-  - Files modified: `dist/bs-calendar.js`
-  - Notes: This makes overlap behaviour predictable in both initial render and live drag-relayout; preserves existing layout (top/left/width/height) and only affects stacking order.
+- Improvement: Added live hover time indicator in day/week views when `draggable` is enabled.
+- Improvement: Added live start/end time labels during drag-create in day/week views.
+- Improvement: Added deterministic overlap stacking by start time in render and drag-relayout.
+- Improvement: Added new option `draggableSnapMinutes` (default `5`) to configure a drag snap interval in day/week interactions.
+- Bugfix: Hover indicator and time labels no longer block drag interactions (`pointer-events: none`).
+- Bugfix: Hover time indicator (mouse-follow line/badge) is hidden while drag-create or drag-move is active.
+- Docs: Updated options reference in `README.md`.
+- Files modified: `dist/bs-calendar.js`, `dist/bs-calendar.min.js`, `README.md`
 
 ### Version 2.1.7
 
-- Bugfix: Search-mode exit now restores the previous non-search view and forces view rebuild to clear search result/pagination UI.
+- Bugfix: Search-mode exit now restores the previous non-search view and forces view rebuild to clear the search result /pagination UI.
 - Bugfix: Month-view drag-move no longer triggers `edit.bs.calendar` for non-editable appointments (`editable: false`), including internal no-op/same-day move interactions.
 - Improvement: Editability checks now normalize boolean-like API values (`false`, `"false"`, `0`, `"0"`) to prevent unintended edit actions.
 - Feature: Added per-appointment `overlap` support for day/week view. Appointments with `overlap: true` are rendered full-width and can stack instead of being split into side-by-side columns.
@@ -81,7 +72,7 @@
 
 - Feature: Month-view drag-move can now move appointments between day cells while preserving the original start and end times.
 - Bugfix: Month-view drag-move now keeps the visual move visible while the edit modal is open; canceled edits are restored by re-rendering the current loaded data when the modal closes.
-- Bugfix: Month-view drag-move now suppresses the follow-up day-cell click so the add modal is not opened with the current time after a drag.
+- Bugfix: Month-view drag-move now suppresses the follow-up day-cell click so the added modal is not opened with the current time after a drag.
 - Improvement: Drag payload times are emitted as `HH:mm` values for form-friendly modal prefilling.
 - Demo: Normalized appointment modal time values before writing to `input[type="time"]`.
 - Docs: Updated README and changelog for `2.1.6`.
@@ -90,7 +81,7 @@
 
 - Feature: Week-view drag-move can now move appointments across days within the visible week, not only within the original day column.
 - Bugfix: Week-view appointments are now rendered only into the inner time-slot container, preventing duplicate appointment elements that could block drag-move.
-- Demo: Re-render the calendar when the appointment modal closes so canceled drag edits restore the current loaded data.
+- Demo: Re-render the calendar when the appointment modal closes, so canceled drag edits restore the current loaded data.
 - Docs: Updated README and changelog for `2.1.5`.
 
 ### Version 2.1.4
@@ -98,14 +89,14 @@
 - Feature: Added public `deleteAppointment` method to remove a locally loaded appointment by `id` and re-render without fetching.
 - Feature: Added `added.bs.calendar`, `edited.bs.calendar`, and `deleted.bs.calendar` completion events with matching callbacks.
 - Demo: Wired `delete.bs.calendar` to `deleteAppointment` in the single-calendar modal demo.
-- Docs: Updated the workflow and method reference to cover add, edit, and delete together.
+- Docs: Updated the workflow and method reference to cover adding, edit, and delete together.
 
 ### Version 2.1.3
 
 - Feature: Added public `addAppointment` method to append an appointment to the currently loaded data and re-render without fetching.
 - Feature: Added public `editAppointment` method to update an already loaded appointment by `id`; `editApointment` is accepted as a compatibility alias for the common typo.
 - Improvement: Loaded and locally added appointments now receive a generated `id` when none is provided, allowing later local edits.
-- Docs: Reworked `README.md` into a structured API reference, including add/edit workflow examples, `dragExtras` notes, local-vs-backend persistence guidance, and a completeness checklist.
+- Docs: Reworked `README.md` into a structured API reference, including add/edit workflow examples, `dragExtras` notes, local-vs.-backend persistence guidance, and a completeness checklist.
 - Demo: Rebuilt `demo/index.html` into a single-calendar example with a clearer modal-based add/edit flow.
 
 ### Version 2.1.2
@@ -128,7 +119,7 @@
 ### Version 2.0.16
 
 - Feature (year view): Optional `content` field was added; when present, it is shown in the year-view popover instead of `total`.
-- Improvement (year view): Replaced badge tooltip with a popover; popover title is now the localized day date.
+- Improvement (year view): Replaced badge tooltip with a popover; the popover title is now the localized day date.
 - Docs: Expanded `README.md` with the year-view response contract and field reference.
 
 ### Version 2.0.15
@@ -175,7 +166,7 @@
 
 ### Version 2.0.12
 
-- Bugfix: Fixed date-shift issues in negative timezones (e.g. US) caused by parsing `YYYY-MM-DD` via native UTC interpretation.
+- Bugfix: Fixed date-shift issues in negative timezones (e.g., US) caused by parsing `YYYY-MM-DD` via native UTC interpretation.
 - Improvement: Added timezone-safe date parsing for date-only and local date-time strings and applied it across core date handling paths (`setDate`, `startDate`, holidays, all-day normalization, formatting).
 - Improvement: Holiday rendering now uses local date formatting instead of `toISOString().split('T')[0]` to avoid off-by-one day rendering.
 - Docs: Updated `README.md` and `changelog.md` to reflect version 2.0.12.
@@ -188,7 +179,7 @@
 ### Version 2.0.10
 
 - Enhancement: `appointment.link` can now be either a `string` (simple URL) or an `object` with attributes (`href`, `text`, `target`, `rel`, `disabled`, `html`).
-- Docs: `README.md` expanded (examples and defaults for link object); Updated Badge/CDN/Changelog reference to 2.0.10.
+- Docs: `README.md` expanded (examples and defaults for a link object); Updated Badge/CDN/Changelog reference to 2.0.10.
 
 ### Version 2.0.9.2
 
@@ -218,7 +209,7 @@
     - Optimized the month view grid for better readability and stability.
     - **Removed**: The `rounded` option has been deprecated and removed in favor of the new, cohesive design system.
 - **Performance Optimization**: The `buildByView` function now includes a state check to avoid redundant DOM rebuilds.
-    - **Smart Rendering**: The calendar view (DOM structure) is only rebuilt if the view type (e.g. month, week) or the visible date range
+    - **Smart Rendering**: The calendar view (DOM structure) is only rebuilt if the view type (e.g., month, week) or the visible date range
       has changed.
     - **State Tracking**: Introduced internal `renderState` to track the currently rendered view context.
     - **Configuration Awareness**: The state check now also accounts for changes in `hourSlots` (start, end, height), ensuring the day and
@@ -270,7 +261,7 @@
 
 Breaking/Structural
 
-- Introduced stable, per-instance element IDs under `data.elements` (e.g., `wrapperId`, , , , , , , ) and refactored DOM
+- Introduced stable, per-instance element IDs under `data.elements` (e.g., `wrapperId`, , , , ) and refactored DOM
   queries to use these IDs. This reduces selector collisions and improves multi-instance and re-init stability.
   `wrapperTopNavId``wrapperSideNavId``wrapperSearchNavId``wrapperViewContainerId``wrapperViewContainerTitleId``wrapperSmallMonthCalendarId``wrapperSmallMonthCalendarTitleId`
 
@@ -327,14 +318,12 @@ Developer Notes
       month)
       at the change of month.
     - Cause: endDate was incorrectly modified based on the originally set Date object instead of being recalculated as a
-      copy of startDate. As a result, weeks that protrude into the previous month resulted in a "rolling" of the day (
-      e.g.
-      27.10. => 03.12.).
+      copy of startDate. As a result, weeks that protrude into the previous month resulted in a "rolling" of the day (e.g., 27.10. ⇒ 03.12.).
     - Fix: endDate is now explicitly copied from startDate and then added +6 days (endDate = new Date(
       startDate.getTime()); endDate.setDate(startDate.getDate() + 6)).
 
 - Fix: Protection against unintentional overwriting of period parameters by queryParams
-    - When merging the values returned by settings.queryParams, period-related keys (fromDate, toDate, year, view) are
+    - When merging the values returned by settings queryParams, period-related keys (fromDate, toDate, year, view) are
       now
       protected by default and not overwritten.
     - This keeps the UI calculation of the visible period consistent with the data queries.
@@ -349,7 +338,7 @@ Developer Notes
 
 - Appointments are now correctly placed within the rendered week, even at the change of month.
 - Fewer error messages such as "Full-width container ... not found".
-- Better debugging for future time period and request issues.
+- Better debugging for a future time period and request issues.
 
 #### **Version 2.0.0**
 
@@ -357,7 +346,7 @@ Developer Notes
 
 #### **Version 1.2.12**
 
-- Add: totalMinutes and totalSeconds to appointment.extras object
+- Add: totalMinutes and totalSeconds to an appointment extras object
 
 #### **Version 1.2.11**
 
@@ -370,11 +359,11 @@ Developer Notes
 
 #### **Version 1.2.8**
 
-- Fix: Normalize and deduplicate settings.views after merging defaults, data-attributes and passed options to avoid
+- Fix: Normalize and deduplicate settings views after merging defaults, data-attributes, and passed options to avoid
   duplicating view entries in the view dropdown (prevents rendering the same view multiple times).
-- Fix: Ensure settings.views accepts comma-separated strings and invalid values gracefully (falls back to sensible
+- Fix: Ensure settings views accept comma-separated strings and invalid values gracefully (falls back to sensible
   defaults).
-- Improvement: Replace locale-dependent "KW" week label with a language-neutral compact week label ("W42") for UI, store
+- Improvement: Replace the locale-dependent "KW" week label with a language-neutral compact week label ("W42") for UI, store
   ISO week ("YYYY-Www") in a data-attribute, and add a localized date-range tooltip for better international clarity.
 
 #### **Version 1.2.7**
