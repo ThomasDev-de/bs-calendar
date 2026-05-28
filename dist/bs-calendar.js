@@ -3818,13 +3818,12 @@
                     return $fallbackSlotContainer;
                 }
 
-                let $matchedSlotContainer = $();
-                let $horizontalMatch = $();
+                let bestStrictMatch = null;
+                let bestHorizontalMatch = null;
 
-                // Restrict hit-testing to the currently rendered view container.
-                // Using the whole wrapper can pick up stale/hidden slot containers and
-                // cause temporary misplacement/covering while dragging in week view.
-                getViewContainer($wrapperRef).find('.wc-day-view-time-slots').each(function () {
+                // Restrict hit-testing to the active view and visible day slot columns only.
+                // Choose the nearest candidate to avoid boundary flicker between adjacent days.
+                getViewContainer($wrapperRef).find('.wc-day-view-time-slots:visible').each(function () {
                     const $slotContainer = $(this);
                     const offset = $slotContainer.offset();
                     if (!offset) {
@@ -3835,22 +3834,34 @@
                     const right = left + $slotContainer.outerWidth();
                     const top = offset.top;
                     const bottom = top + $slotContainer.outerHeight();
-                    const withinX = point.x >= left && point.x <= right;
+                    const centerX = left + ((right - left) / 2);
+                    const centerY = top + ((bottom - top) / 2);
+                    const withinX = point.x >= left && point.x < right;
                     const withinY = !Number.isFinite(point.y) || (point.y >= top - 40 && point.y <= bottom + 40);
+                    const distanceX = Math.abs(point.x - centerX);
+                    const distanceY = Number.isFinite(point.y) ? Math.abs(point.y - centerY) : 0;
+                    const score = distanceX + (distanceY * 0.1);
 
                     if (withinX) {
-                        $horizontalMatch = $slotContainer;
+                        if (!bestHorizontalMatch || score < bestHorizontalMatch.score) {
+                            bestHorizontalMatch = {$slotContainer, score};
+                        }
                     }
 
                     if (withinX && withinY) {
-                        $matchedSlotContainer = $slotContainer;
-                        return false;
+                        if (!bestStrictMatch || score < bestStrictMatch.score) {
+                            bestStrictMatch = {$slotContainer, score};
+                        }
                     }
                 });
 
-                return $matchedSlotContainer.length
-                    ? $matchedSlotContainer
-                    : ($horizontalMatch.length ? $horizontalMatch : $fallbackSlotContainer);
+                if (bestStrictMatch && bestStrictMatch.$slotContainer.length) {
+                    return bestStrictMatch.$slotContainer;
+                }
+                if (bestHorizontalMatch && bestHorizontalMatch.$slotContainer.length) {
+                    return bestHorizontalMatch.$slotContainer;
+                }
+                return $fallbackSlotContainer;
             }
 
             function getMonthDayCellFromPointer($wrapperRef, point, $fallbackCell) {
