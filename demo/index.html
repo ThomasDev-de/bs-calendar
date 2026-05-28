@@ -14,6 +14,12 @@
 
 <div id="sidebarAddons">
     <div class="card-body d-flex flex-column">
+        <label class="form-label mb-1" for="selectLanguage">Language</label>
+        <select class="form-select form-select-sm mb-3" id="selectLanguage">
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
+        </select>
+
         <label class="form-label mb-1" for="selectBootswatchTheme">Bootswatch theme</label>
         <select class="form-select form-select-sm mb-3" id="selectBootswatchTheme"></select>
 
@@ -128,17 +134,99 @@
             mode: 'add',
             appointmentId: null
         };
+        const i18n = {
+            en: {
+                locale: 'en-US',
+                htmlLang: 'en',
+                holidays: {
+                    country: 'US',
+                    federalState: null
+                },
+                sidebarLanguage: 'Language',
+                sidebarTheme: 'Bootswatch theme',
+                sidebarLightDark: 'light / dark',
+                btnSetToday: "setToday('week')",
+                btnRefresh: 'Refresh',
+                btnClear: 'Clear',
+                topbarHint: 'You can move appointments in day, month and week views using drag and drop.',
+                modalTitle: 'Appointment',
+                inputTitlePlaceholder: 'appointment title',
+                labelTitle: 'Title',
+                labelFromDate: 'From date',
+                labelToDate: 'To date',
+                labelAllDay: 'all day',
+                labelOverlap: 'allow overlap (stack)',
+                labelFromTime: 'From time',
+                labelToTime: 'To time',
+                inputDescriptionPlaceholder: 'Description',
+                labelDescription: 'Description',
+                inputLinkPlaceholder: 'appointment link',
+                labelLink: 'Link',
+                btnCancel: 'Cancel',
+                btnSave: 'Save',
+                modalAddTitle: 'Add appointment',
+                modalEditTitle: 'Edit appointment',
+                modalCreate: 'Create',
+                modalUpdate: 'Update',
+                untitled: 'Untitled appointment',
+                yearAppointments: 'appointments',
+                appointmentPrefix: 'Appointment',
+                appointmentDescriptionPrefix: 'Demo appointment'
+            },
+            de: {
+                locale: 'de-DE',
+                htmlLang: 'de',
+                holidays: {
+                    country: 'DE',
+                    federalState: 'BE'
+                },
+                sidebarLanguage: 'Sprache',
+                sidebarTheme: 'Bootswatch-Theme',
+                sidebarLightDark: 'hell / dunkel',
+                btnSetToday: "setToday('week')",
+                btnRefresh: 'Aktualisieren',
+                btnClear: 'Leeren',
+                topbarHint: 'Du kannst Termine in Tages-, Monats- und Wochenansicht per Drag-and-drop verschieben.',
+                modalTitle: 'Termin',
+                inputTitlePlaceholder: 'Termintitel',
+                labelTitle: 'Titel',
+                labelFromDate: 'Von Datum',
+                labelToDate: 'Bis Datum',
+                labelAllDay: 'ganztägig',
+                labelOverlap: 'Überlappung erlauben (stapeln)',
+                labelFromTime: 'Von Uhrzeit',
+                labelToTime: 'Bis Uhrzeit',
+                inputDescriptionPlaceholder: 'Beschreibung',
+                labelDescription: 'Beschreibung',
+                inputLinkPlaceholder: 'Terminlink',
+                labelLink: 'Link',
+                btnCancel: 'Abbrechen',
+                btnSave: 'Speichern',
+                modalAddTitle: 'Termin hinzufügen',
+                modalEditTitle: 'Termin bearbeiten',
+                modalCreate: 'Erstellen',
+                modalUpdate: 'Aktualisieren',
+                untitled: 'Unbenannter Termin',
+                yearAppointments: 'Termine',
+                appointmentPrefix: 'Termin',
+                appointmentDescriptionPrefix: 'Demo-Termin'
+            }
+        };
+        const state = {
+            lang: 'en'
+        };
 
         initThemeControls();
         initAppointmentModal();
         initCalendar();
+        initLanguageControls();
         bindCalendarEvents();
         bindSidebarActions();
 
         function initCalendar() {
             $calendar.bsCalendar({
                 title: '<span class="h4 text-uppercase mb-0">$.fn.bsCalendar</span>',
-                locale: 'de-DE',
+                locale: i18n[state.lang].locale,
                 startWeekOnSunday: false,
                 navigateOnWheel: false,
                 draggable: true,
@@ -146,8 +234,8 @@
                 debug: true,
                 url: loadAppointments,
                 holidays: {
-                    country: 'DE',
-                    federalState: 'BE'
+                    country: i18n[state.lang].holidays.country,
+                    federalState: i18n[state.lang].holidays.federalState
                 },
                 hourSlots: {
                     start: 0,
@@ -235,6 +323,61 @@
             });
         }
 
+        function initLanguageControls() {
+            const storageKey = 'bsCalendar.demo.language';
+            const $languageSelect = $('#selectLanguage');
+            const savedLang = localStorage.getItem(storageKey);
+            const lang = savedLang && i18n[savedLang] ? savedLang : 'en';
+            state.lang = lang;
+            $languageSelect.val(lang);
+            applyLanguage(lang);
+
+            $languageSelect.on('change', function () {
+                const nextLang = $(this).val();
+                if (!i18n[nextLang]) {
+                    return;
+                }
+                state.lang = nextLang;
+                localStorage.setItem(storageKey, nextLang);
+                applyLanguage(nextLang);
+            });
+        }
+
+        function applyLanguage(lang) {
+            const t = i18n[lang] || i18n.en;
+            $('html').attr('lang', t.htmlLang);
+
+            $('label[for="selectLanguage"]').text(t.sidebarLanguage);
+            $('label[for="selectBootswatchTheme"]').text(t.sidebarTheme);
+            $('label[for="flexSwitchCheckTheme"]').text(t.sidebarLightDark);
+            $('[data-method="setToday"]').text(t.btnSetToday);
+            $('[data-method="refresh"]').text(t.btnRefresh);
+            $('[data-method="clear"]').text(t.btnClear);
+            $('#topbarAddons span').text(t.topbarHint);
+            $('#appointmentModalLabel').text(t.modalTitle);
+
+            $('input[name="title"]').attr('placeholder', t.inputTitlePlaceholder);
+            $('label[for="appointmentTitle"]').text(t.labelTitle);
+            $('label[for="appointmentFromDate"]').text(t.labelFromDate);
+            $('label[for="appointmentToDate"]').text(t.labelToDate);
+            $('label[for="appointmentAllDay"]').text(t.labelAllDay);
+            $('label[for="appointmentOverlap"]').text(t.labelOverlap);
+            $('label[for="appointmentFromTimePicker"]').text(t.labelFromTime);
+            $('label[for="appointmentToTimePicker"]').text(t.labelToTime);
+            $('textarea[name="description"]').attr('placeholder', t.inputDescriptionPlaceholder);
+            $('label[for="appointmentDescription"]').text(t.labelDescription);
+            $('input[name="link"]').attr('placeholder', t.inputLinkPlaceholder);
+            $('label[for="appointmentLink"]').text(t.labelLink);
+            $('[data-bs-dismiss="modal"].btn.btn-secondary').text(t.btnCancel);
+            $('[data-save-appointment]').text(t.btnSave);
+
+            $calendar.bsCalendar('updateOptions', {
+                locale: t.locale,
+                holidays: t.holidays
+            });
+            $calendar.bsCalendar('render');
+        }
+
         function initAppointmentModal() {
             initModalTimepickers();
 
@@ -282,11 +425,12 @@
         }
 
         function openAppointmentModal(mode, appointment) {
+            const t = i18n[state.lang] || i18n.en;
             modalState.mode = mode;
             modalState.appointmentId = appointment.id || null;
 
-            $modal.find('.modal-title').text(mode === 'edit' ? 'Edit appointment' : 'Add appointment');
-            $modal.find('[data-save-appointment]').text(mode === 'edit' ? 'Update' : 'Create');
+            $modal.find('.modal-title').text(mode === 'edit' ? t.modalEditTitle : t.modalAddTitle);
+            $modal.find('[data-save-appointment]').text(mode === 'edit' ? t.modalUpdate : t.modalCreate);
             $modal.find('input[name="title"]').val(appointment.title || '');
             $modal.find('input[name="from_date"]').val(appointment.startDate);
             $modal.find('input[name="to_date"]').val(appointment.endDate);
@@ -325,9 +469,10 @@
         }
 
         function readAppointmentModal() {
+            const t = i18n[state.lang] || i18n.en;
             const allDay = $modal.find('input[name="allDay"]').prop('checked');
             const appointment = {
-                title: $modal.find('input[name="title"]').val() || 'Untitled appointment',
+                title: $modal.find('input[name="title"]').val() || t.untitled,
                 start: buildDateTime(
                     $modal.find('input[name="from_date"]').val(),
                     getModalTimeValue('from_time'),
@@ -501,6 +646,7 @@
         }
 
         function generateYearBuckets(year) {
+            const t = i18n[state.lang] || i18n.en;
             return Array.from({length: 24}, function (_, index) {
                 const date = new Date(year, index % 12, (index * 3) % 27 + 1);
                 const dateString = date.toISOString().split('T')[0];
@@ -509,12 +655,13 @@
                 return {
                     date: dateString,
                     total: total,
-                    content: `<strong>${total} appointments</strong><br><small>${dateString}</small>`
+                    content: `<strong>${total} ${t.yearAppointments}</strong><br><small>${dateString}</small>`
                 };
             });
         }
 
         function createAppointment(id, start, end, allDay = false, overlap = false) {
+            const t = i18n[state.lang] || i18n.en;
             const calendars = ['personal', 'work', 'sports'];
             const colors = ['primary opacity-75 gradient', 'danger opacity-75 gradient', 'success opacity-75 gradient'];
             const normalizedId = typeof id === 'number' ? id : String(id).length;
@@ -523,8 +670,8 @@
             return {
                 id: `demo-${id}-${start.getTime()}`,
                 calendarId: calendars[calendarIndex],
-                title: `Appointment ${id}`,
-                description: `Demo appointment ${id}`,
+                title: `${t.appointmentPrefix} ${id}`,
+                description: `${t.appointmentDescriptionPrefix} ${id}`,
                 start: formatDateTime(start),
                 end: formatDateTime(end),
                 allDay: allDay,
