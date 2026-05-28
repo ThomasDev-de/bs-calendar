@@ -139,9 +139,14 @@
                 locale: 'en-US',
                 htmlLang: 'en',
                 holidays: {
-                    country: 'US',
+                    country: 'IE',
                     federalState: null
                 },
+                calendars: [
+                    {id: 'personal', title: 'Personal', color: 'primary', active: true},
+                    {id: 'work', title: 'Work', color: 'danger', active: true},
+                    {id: 'sports', title: 'Sports', color: 'success', active: true}
+                ],
                 sidebarLanguage: 'Language',
                 sidebarTheme: 'Bootswatch theme',
                 sidebarLightDark: 'light / dark',
@@ -180,6 +185,11 @@
                     country: 'DE',
                     federalState: 'BE'
                 },
+                calendars: [
+                    {id: 'personal', title: 'Privat', color: 'primary', active: true},
+                    {id: 'work', title: 'Arbeit', color: 'danger', active: true},
+                    {id: 'sports', title: 'Sport', color: 'success', active: true}
+                ],
                 sidebarLanguage: 'Sprache',
                 sidebarTheme: 'Bootswatch-Theme',
                 sidebarLightDark: 'hell / dunkel',
@@ -242,11 +252,7 @@
                     end: 24,
                     height: 60
                 },
-                calendars: [
-                    {id: 'personal', title: 'Personal', color: 'primary', active: true},
-                    {id: 'work', title: 'Work', color: 'danger', active: true},
-                    {id: 'sports', title: 'Sports', color: 'success', active: true}
-                ],
+                calendars: i18n[state.lang].calendars,
                 onAll(eventName, ...args) {
                     console.log(eventName, ...args);
                 }
@@ -375,7 +381,28 @@
                 locale: t.locale,
                 holidays: t.holidays
             });
-            $calendar.bsCalendar('render');
+            $calendar.bsCalendar('refresh');
+            applyCalendarLabels(t.calendars);
+        }
+
+        function applyCalendarLabels(calendars) {
+            if (!Array.isArray(calendars)) {
+                return;
+            }
+            const titleById = calendars.reduce(function (acc, calendar) {
+                if (calendar && calendar.id) {
+                    acc[calendar.id] = calendar.title;
+                }
+                return acc;
+            }, {});
+
+            $calendar.find('[data-calendar-toggle]').each(function () {
+                const id = $(this).data('calendar-toggle');
+                if (!id || !titleById[id]) {
+                    return;
+                }
+                $(this).find('span').first().text(titleById[id]);
+            });
         }
 
         function initAppointmentModal() {
