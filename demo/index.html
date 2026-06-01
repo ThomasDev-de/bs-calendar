@@ -1,12 +1,10 @@
 <!doctype html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Bootstrap Calendar Demo</title>
     <link href="../vendor/twbs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link id="bootswatch-theme" rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootswatch@5.3.8/dist/darkly/bootstrap.min.css">
     <link href="../vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 <body class="p-1 p-lg-5">
@@ -19,14 +17,6 @@
             <option value="en">English</option>
             <option value="de">Deutsch</option>
         </select>
-
-        <label class="form-label mb-1" for="selectBootswatchTheme">Bootswatch theme</label>
-        <select class="form-select form-select-sm mb-3" id="selectBootswatchTheme"></select>
-
-        <div class="form-check form-switch mb-3">
-            <input class="form-check-input" type="checkbox" role="switch" id="flexSwitchCheckTheme">
-            <label class="form-check-label" for="flexSwitchCheckTheme">light / dark</label>
-        </div>
 
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday">setToday('week')</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
@@ -148,8 +138,6 @@
                     {id: 'sports', title: 'Sports', color: 'success', active: true}
                 ],
                 sidebarLanguage: 'Language',
-                sidebarTheme: 'Bootswatch theme',
-                sidebarLightDark: 'light / dark',
                 btnSetToday: "setToday('week')",
                 btnRefresh: 'Refresh',
                 btnClear: 'Clear',
@@ -191,8 +179,6 @@
                     {id: 'sports', title: 'Sport', color: 'success', active: true}
                 ],
                 sidebarLanguage: 'Sprache',
-                sidebarTheme: 'Bootswatch-Theme',
-                sidebarLightDark: 'hell / dunkel',
                 btnSetToday: "setToday('week')",
                 btnRefresh: 'Aktualisieren',
                 btnClear: 'Leeren',
@@ -226,7 +212,6 @@
             lang: 'en'
         };
 
-        initThemeControls();
         initAppointmentModal();
         initCalendar();
         initLanguageControls();
@@ -354,8 +339,6 @@
             $('html').attr('lang', t.htmlLang);
 
             $('label[for="selectLanguage"]').text(t.sidebarLanguage);
-            $('label[for="selectBootswatchTheme"]').text(t.sidebarTheme);
-            $('label[for="flexSwitchCheckTheme"]').text(t.sidebarLightDark);
             $('[data-method="setToday"]').text(t.btnSetToday);
             $('[data-method="refresh"]').text(t.btnRefresh);
             $('[data-method="clear"]').text(t.btnClear);
@@ -728,56 +711,6 @@
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
-        function initThemeControls() {
-            const bootswatchVersion = '5.3.8';
-            const bootswatchThemes = [
-                'default', 'cerulean', 'cosmo', 'cyborg', 'darkly', 'flatly', 'journal', 'litera',
-                'lumen', 'lux', 'materia', 'minty', 'morph', 'pulse', 'quartz', 'sandstone',
-                'simplex', 'sketchy', 'slate', 'solar', 'spacelab', 'superhero', 'united', 'vapor',
-                'yeti', 'zephyr'
-            ];
-            const storageKey = 'bsCalendar.demo.bootswatchTheme';
-            const $bootswatchLink = $('#bootswatch-theme');
-            const $bootswatchSelect = $('#selectBootswatchTheme');
-
-            bootswatchThemes.forEach(themeName => {
-                $bootswatchSelect.append(
-                    `<option value="${themeName}">${getThemeLabel(themeName)}</option>`
-                );
-            });
-
-            $bootswatchSelect
-                .val(localStorage.getItem(storageKey) || 'darkly')
-                .on('change', function () {
-                    const themeName = $(this).val();
-                    applyBootswatchTheme(themeName);
-                    localStorage.setItem(storageKey, themeName);
-                })
-                .trigger('change');
-
-            $('#flexSwitchCheckTheme').on('change', function () {
-                const $html = $('html');
-                const nextTheme = $html.attr('data-bs-theme') === 'light' ? 'dark' : 'light';
-                $html.attr('data-bs-theme', nextTheme);
-            });
-
-            function applyBootswatchTheme(themeName) {
-                if (!themeName || themeName === 'default') {
-                    $bootswatchLink.prop('disabled', true).attr('href', '');
-                    return;
-                }
-
-                $bootswatchLink
-                    .prop('disabled', false)
-                    .attr('href', `https://cdn.jsdelivr.net/npm/bootswatch@${bootswatchVersion}/dist/${themeName}/bootstrap.min.css`);
-            }
-
-            function getThemeLabel(themeName) {
-                return themeName === 'default'
-                    ? 'Bootstrap (default)'
-                    : themeName.charAt(0).toUpperCase() + themeName.slice(1);
-            }
-        }
     });
 </script>
 </body>
