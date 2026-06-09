@@ -1,6 +1,6 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.2.0-blue)
+![Version](https://img.shields.io/badge/version-2.2.1-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -66,7 +66,7 @@ Use CDN/script tags:
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.2.0/dist/bs-calendar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.2.1/dist/bs-calendar.min.js"></script>
 ```
 
 Or install via Composer:
@@ -447,52 +447,52 @@ $('#calendar').bsCalendar({
 
 Some options can be updated later with `updateOptions`.
 
-| Option                 | Type                            | Default                              | Description                                                                                       |
-|------------------------|---------------------------------|--------------------------------------|---------------------------------------------------------------------------------------------------|
-| `showAbout`            | `boolean`                       | `true`                               | Shows the About dropdown.                                                                         |
-| `locale`               | `string`                        | `"en-GB"`                            | Locale for labels and date formatting.                                                            |
-| `title`                | `string` or `null`              | `null`                               | HTML/string title in the toolbar.                                                                 |
-| `startWeekOnSunday`    | `boolean`                       | `true`                               | If `false`, weeks start on Monday.                                                                |
-| `navigateOnWheel`      | `boolean`                       | `true`                               | Enables mouse-wheel navigation over the calendar.                                                 |
-| `rounded`              | `number`                        | `5`                                  | Bootstrap rounded level used by calendar UI elements.                                             |
-| `border`               | `string`                        | `"border border-0 rounded-0 shadow"` | Bootstrap classes used by bordered calendar UI elements.                                          |
-| `search`               | `object` or `null`              | `{limit: 10, offset: 0}`             | Search config. Set `null` to disable search.                                                      |
-| `search.limit`         | `number`                        | `10`                                 | Number of search results per page.                                                                |
-| `search.offset`        | `number`                        | `0`                                  | Initial search offset.                                                                            |
-| `startDate`            | `Date` or `string`              | `new Date()`                         | Initial reference date.                                                                           |
-| `startView`            | `string`                        | `"month"`                            | Initial view: `year`, `month`, `week`, `4day` or `day`.                                           |
-| `mainColor`            | `string`                        | `"primary"`                          | Default color used by highlights and appointments.                                                |
-| `views`                | `array`                         | `["year", "month", "week", "4day", "day"]` | Enabled views.                                                                            |
-| `holidays`             | `object` or `null`              | `null`                               | OpenHolidays configuration.                                                                       |
-| `showAddButton`        | `boolean`                       | `true`                               | Shows the toolbar add button.                                                                     |
-| `draggable`            | `boolean`                       | `false`                              | Enables drag-create in day/week view and drag-move in day/week/month view. Touch uses long-press. |
-| `draggableSnapMinutes` | `number`                        | `5`                                  | Snap interval in minutes for drag-create/move in day/week view. Minimum is `1`.                   |
-| `translations`         | `object`                        | see below                            | Search strings.                                                                                   |
-| `icons`                | `object`                        | see below                            | Bootstrap icon classes.                                                                           |
-| `url`                  | `string`, `function`, or `null` | `null`                               | Appointment data source.                                                                          |
-| `queryParams`          | `function` or `null`            | `null`                               | Adds custom request params before loading appointments.                                           |
-| `topbarAddons`         | selector or `null`              | `null`                               | jQuery selector/element inserted after the top toolbar.                                           |
-| `sidebarAddons`        | selector or `null`              | `null`                               | jQuery selector/element appended to the sidebar.                                                  |
-| `formatter`            | `object`                        | see below                            | Custom render functions.                                                                          |
-| `hourSlots`            | `object`                        | `{height: 30, start: 0, end: 24}`    | Day/week hour slot layout.                                                                        |
-| `calendars`            | `array` or `null`               | `null`                               | Sidebar calendar filters.                                                                         |
-| `onAll`                | `function` or `null`            | `null`                               | Receives all event callbacks.                                                                     |
-| `onInit`               | `function` or `null`            | `null`                               | Called after initialization.                                                                      |
-| `onAdd`                | `function` or `null`            | `null`                               | Same payload as `add.bs.calendar`.                                                                |
-| `onAdded`              | `function` or `null`            | `null`                               | Same payload as `added.bs.calendar`.                                                              |
-| `onEdit`               | `function` or `null`            | `null`                               | Same payload as `edit.bs.calendar`.                                                               |
-| `onEdited`             | `function` or `null`            | `null`                               | Same payload as `edited.bs.calendar`.                                                             |
-| `onDelete`             | `function` or `null`            | `null`                               | Same payload as `delete.bs.calendar`.                                                             |
-| `onDeleted`            | `function` or `null`            | `null`                               | Same payload as `deleted.bs.calendar`.                                                            |
-| `onView`               | `function` or `null`            | `null`                               | Called when the view changes.                                                                     |
-| `onBeforeLoad`         | `function` or `null`            | `null`                               | Called before loading appointments.                                                               |
-| `onAfterLoad`          | `function` or `null`            | `null`                               | Called after appointments were processed.                                                         |
-| `onShowInfoWindow`     | `function` or `null`            | `null`                               | Called before the info window is shown.                                                           |
-| `onHideInfoWindow`     | `function` or `null`            | `null`                               | Called when the info window is hidden.                                                            |
-| `onNavigateForward`    | `function` or `null`            | `null`                               | Called after forward navigation.                                                                  |
-| `onNavigateBack`       | `function` or `null`            | `null`                               | Called after backward navigation.                                                                 |
-| `storeState`           | `boolean`                       | `false`                              | Persists selected view and active calendars in `localStorage`.                                    |
-| `debug`                | `boolean`                       | `false`                              | Enables debug logging.                                                                            |
+| Option                 | Type                            | Default                                    | Description                                                                                       |
+|------------------------|---------------------------------|--------------------------------------------|---------------------------------------------------------------------------------------------------|
+| `showAbout`            | `boolean`                       | `true`                                     | Shows the About dropdown.                                                                         |
+| `locale`               | `string`                        | `"en-GB"`                                  | Locale for labels and date formatting.                                                            |
+| `title`                | `string` or `null`              | `null`                                     | HTML/string title in the toolbar.                                                                 |
+| `startWeekOnSunday`    | `boolean`                       | `true`                                     | If `false`, weeks start on Monday.                                                                |
+| `navigateOnWheel`      | `boolean`                       | `true`                                     | Enables mouse-wheel navigation over the calendar.                                                 |
+| `rounded`              | `number`                        | `5`                                        | Bootstrap rounded level used by calendar UI elements.                                             |
+| `border`               | `string`                        | `"border border-0 rounded-0 shadow"`       | Bootstrap classes used by bordered calendar UI elements.                                          |
+| `search`               | `object` or `null`              | `{limit: 10, offset: 0}`                   | Search config. Set `null` to disable search.                                                      |
+| `search.limit`         | `number`                        | `10`                                       | Number of search results per page.                                                                |
+| `search.offset`        | `number`                        | `0`                                        | Initial search offset.                                                                            |
+| `startDate`            | `Date` or `string`              | `new Date()`                               | Initial reference date.                                                                           |
+| `startView`            | `string`                        | `"month"`                                  | Initial view: `year`, `month`, `week`, `4day` or `day`.                                           |
+| `mainColor`            | `string`                        | `"primary"`                                | Default color used by highlights and appointments.                                                |
+| `views`                | `array`                         | `["year", "month", "week", "4day", "day"]` | Enabled views.                                                                                    |
+| `holidays`             | `object` or `null`              | `null`                                     | OpenHolidays configuration.                                                                       |
+| `showAddButton`        | `boolean`                       | `true`                                     | Shows the toolbar add button.                                                                     |
+| `draggable`            | `boolean`                       | `false`                                    | Enables drag-create in day/week view and drag-move in day/week/month view. Touch uses long-press. |
+| `draggableSnapMinutes` | `number`                        | `5`                                        | Snap interval in minutes for drag-create/move in day/week view. Minimum is `1`.                   |
+| `translations`         | `object`                        | see below                                  | Search strings.                                                                                   |
+| `icons`                | `object`                        | see below                                  | Bootstrap icon classes.                                                                           |
+| `url`                  | `string`, `function`, or `null` | `null`                                     | Appointment data source.                                                                          |
+| `queryParams`          | `function` or `null`            | `null`                                     | Adds custom request params before loading appointments.                                           |
+| `topbarAddons`         | selector or `null`              | `null`                                     | jQuery selector/element inserted after the top toolbar.                                           |
+| `sidebarAddons`        | selector or `null`              | `null`                                     | jQuery selector/element appended to the sidebar.                                                  |
+| `formatter`            | `object`                        | see below                                  | Custom render functions.                                                                          |
+| `hourSlots`            | `object`                        | `{height: 30, start: 0, end: 24}`          | Day/week hour slot layout.                                                                        |
+| `calendars`            | `array` or `null`               | `null`                                     | Sidebar calendar filters.                                                                         |
+| `onAll`                | `function` or `null`            | `null`                                     | Receives all event callbacks.                                                                     |
+| `onInit`               | `function` or `null`            | `null`                                     | Called after initialization.                                                                      |
+| `onAdd`                | `function` or `null`            | `null`                                     | Same payload as `add.bs.calendar`.                                                                |
+| `onAdded`              | `function` or `null`            | `null`                                     | Same payload as `added.bs.calendar`.                                                              |
+| `onEdit`               | `function` or `null`            | `null`                                     | Same payload as `edit.bs.calendar`.                                                               |
+| `onEdited`             | `function` or `null`            | `null`                                     | Same payload as `edited.bs.calendar`.                                                             |
+| `onDelete`             | `function` or `null`            | `null`                                     | Same payload as `delete.bs.calendar`.                                                             |
+| `onDeleted`            | `function` or `null`            | `null`                                     | Same payload as `deleted.bs.calendar`.                                                            |
+| `onView`               | `function` or `null`            | `null`                                     | Called when the view changes.                                                                     |
+| `onBeforeLoad`         | `function` or `null`            | `null`                                     | Called before loading appointments.                                                               |
+| `onAfterLoad`          | `function` or `null`            | `null`                                     | Called after appointments were processed.                                                         |
+| `onShowInfoWindow`     | `function` or `null`            | `null`                                     | Called before the info window is shown.                                                           |
+| `onHideInfoWindow`     | `function` or `null`            | `null`                                     | Called when the info window is hidden.                                                            |
+| `onNavigateForward`    | `function` or `null`            | `null`                                     | Called after forward navigation.                                                                  |
+| `onNavigateBack`       | `function` or `null`            | `null`                                     | Called after backward navigation.                                                                 |
+| `storeState`           | `boolean`                       | `false`                                    | Persists selected view and active calendars in `localStorage`.                                    |
+| `debug`                | `boolean`                       | `false`                                    | Enables debug logging.                                                                            |
 
 Calendar filters:
 
@@ -516,16 +516,16 @@ Calendar fields:
 
 Translations:
 
-| Key              | Default                  | Description                               |
-|------------------|--------------------------|-------------------------------------------|
-| `today`          | `"Today"`                | Text for the "Today" button.              |
-| `day`            | `"Day"`                  | Label for the day view.                   |
-| `4day`           | `"4 Days"`               | Label for the 4-day view.                 |
-| `week`           | `"Week"`                 | Label for the week view.                  |
-| `month`          | `"Month"`                | Label for the month view.                 |
-| `year`           | `"Year"`                 | Label for the year view.                  |
-| `search`         | `"Type and press Enter"` | Search placeholder.                       |
-| `searchNoResult` | `"No appointment found"` | Empty search message.                     |
+| Key              | Default                  | Description                  |
+|------------------|--------------------------|------------------------------|
+| `today`          | `"Today"`                | Text for the "Today" button. |
+| `day`            | `"Day"`                  | Label for the day view.      |
+| `4day`           | `"4 Days"`               | Label for the 4-day view.    |
+| `week`           | `"Week"`                 | Label for the week view.     |
+| `month`          | `"Month"`                | Label for the month view.    |
+| `year`           | `"Year"`                 | Label for the year view.     |
+| `search`         | `"Type and press Enter"` | Search placeholder.          |
+| `searchNoResult` | `"No appointment found"` | Empty search message.        |
 
 Icons:
 
@@ -594,12 +594,14 @@ $('#calendar').bsCalendar('refresh');
 | `destroy`           | none                                   | Removes generated markup/events and restores the original element state.                      |
 | `setDate`           | date string, `Date`, or `{date, view}` | Sets the visible reference date. Not available in search mode.                                |
 | `setToday`          | optional view string                   | Navigates to today. Not available in search mode.                                             |
+| `setView`           | view string                            | Changes the view                                                                              |
 
 Examples:
 
 ```javascript
 $('#calendar').bsCalendar('setDate', {date: '2026-05-08', view: 'day'});
 $('#calendar').bsCalendar('setToday', 'week');
+$('#calendar').bsCalendar('setView', 'day');
 $('#calendar').bsCalendar('updateOptions', {locale: 'fr-FR'});
 ```
 
@@ -755,7 +757,8 @@ $('#calendar').bsCalendar({
 
 ### Overriding Specific Strings
 
-You can override individual translation keys without providing a full translation object. The plugin merges your custom strings with the defaults for the selected locale:
+You can override individual translation keys without providing a full translation object. The plugin merges your custom strings with the
+defaults for the selected locale:
 
 ```javascript
 $('#calendar').bsCalendar({
@@ -769,7 +772,8 @@ $('#calendar').bsCalendar({
 
 ### Adding New Languages
 
-If your required language is not built-in, you can register it globally using `$.bsCalendar.addTranslation`. This should be done before initializing the calendar:
+If your required language is not built-in, you can register it globally using `$.bsCalendar.addTranslation`. This should be done before
+initializing the calendar:
 
 ```javascript
 $.bsCalendar.addTranslation('fr', {
@@ -889,7 +893,7 @@ Changelog and support:
 
 ## Completeness Check
 
-This README is intended to cover the public surface of version `2.2.0`:
+This README is intended to cover the public surface of version `2.2.1`:
 
 - All `DEFAULTS` options from `dist/bs-calendar.js`
 - All public plugin methods in the method switch

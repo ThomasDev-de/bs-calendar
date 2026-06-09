@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.2.0
+ * @version 2.2.1
  * @date 2026-06-09
  * @license MIT
  * @requires "jQuery" ^3
@@ -363,9 +363,9 @@
             };
 
         $.bsCalendar = {
-            version: '2.2.0',
+            version: '2.2.1',
             about: {
-                version: '2.2.0',
+                version: '2.2.1',
                 releaseDate: '2026-06-09',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
@@ -1749,6 +1749,15 @@
                             }
                         }
                         break;
+                    case 'setView':
+                        if (!inSearchMode) {
+                            methodSetView(wrapper, params);
+                        } else {
+                            if (getSettings(wrapper).debug) {
+                                log('Attempt to call setView() in search mode — ignored.');
+                            }
+                        }
+                        break;
                     default:
                         // Unknown method → warn in debug mode to help detect typos
                         const settings = getSettings(wrapper) || {};
@@ -2057,7 +2066,6 @@
                         if (calendar.hasOwnProperty('color') && typeof calendar.color === 'string') {
                             color = calendar.color;
                         }
-                        console.log('calendar color before normalization:', color);
                         calendar.color = $.bsCalendar.utils.getColors(color, settings.mainColor);
 
                         // Active fallback
@@ -2440,6 +2448,33 @@
             }
 
             buildByView($wrapper, viewChanged);
+        }
+
+        /**
+         * Updates the current view of the calendar, if the new view is valid and different from the current view.
+         *
+         * @param {jQuery} $wrapper - The DOM element wrapping the calendar.
+         * @param {string} view - The name of the view to set.
+         * @return {void} This method does not return a value.
+         */
+        function methodSetView($wrapper, view) {
+            log('methodSetView called with view:', view);
+            if (!view) {
+                log('methodSetView: view is not provided');
+                return;
+            }
+            const data = getBsCalendarData($wrapper);
+            if (data.view === view) {
+                log('methodSetView: view is already set to', view);
+                return;
+            }
+            const settings = data.settings;
+            if(!settings.views.includes(view)) {
+                log('methodSetView: view', view, 'is not in available views', settings.views);
+                return;
+            }
+            setView($wrapper, view);
+            buildByView($wrapper, true);
         }
 
         /**
@@ -3582,7 +3617,7 @@
 
                 // Container: Vertikal, etwas Luft, modern
                 const calendarWrapper = $('<div>', {
-                    class: 'd-flex flex-column gap-2 mt-3 p-2 bg-body overflow-visible'
+                    class: 'd-flex flex-column gap-2 mt-3 py-2 ps-2 pe-0 bg-body overflow-visible'
                 }).appendTo('#' + data.elements.wrapperCalendarsId);
 
                 settings.calendars.forEach(calendar => {
@@ -3590,7 +3625,7 @@
 
                     const itemContainer = $('<a>', {
                         href: '#',
-                        class: `d-flex align-items-center py-1 px-3 rounded-end text-decoration-none user-select-none transition-base`,
+                        class: `d-flex align-items-center py-1 ps-3 pe-1 rounded-end text-decoration-none user-select-none transition-base`,
                         css: {
                             cursor: 'pointer',
                             transition: 'all 0.2s ease-in-out',
@@ -3609,7 +3644,7 @@
 
                     // Optional: Ein kleiner Dot am Ende für visuellen Balance, wenn aktiv
                     const statusDot = $('<span>', {
-                        class: 'rounded-circle ms-2 js-calendar-dot',
+                        class: 'rounded-circle mx-2 js-calendar-dot',
                         css: {
                             width: '6px',
                             height: '6px',
@@ -3618,6 +3653,20 @@
                             transition: 'opacity 0.2s'
                         }
                     }).appendTo(itemContainer);
+
+                    // const ccalendarActionsHTML = [
+                    //     `<div class="dropdown">`,
+                    //     `<button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">`,
+                    //     `<i class="bi bi-three-dots-vertical"></i>`,
+                    //     `</button>`,
+                    //     `<ul class="dropdown-menu bg-body">`,
+                    //     `<li><a class="dropdown-item" href="#">edit</a></li>`,
+                    //     `<li><a class="dropdown-item" href="#">delete</a></li>`,
+                    //     `</ul>`,
+                    //     `</div>`,
+                    // ].join('')
+                    // // test
+                    // const dropdownbutton = $(ccalendarActionsHTML).appendTo(itemContainer);
                 });
             }
 
@@ -6832,6 +6881,7 @@
             const settings = data.settings;
             const view = data.view;
             const now = new Date();
+            const viewRangeCached = getStartAndEndDateByView($wrapper);
 
             if (view === 'year') {
                 appointments.forEach(appointment => {
@@ -6896,7 +6946,7 @@
                     const monthEnd = new Date(lastOfMonth);
                     monthEnd.setDate(lastOfMonth.getDate() + (6 - (lastOfMonth.getDay() - firstDayOffset + 7) % 7)); // last day of last week
 
-                    const viewRange = getStartAndEndDateByView($wrapper);
+                    const viewRange = viewRangeCached;
                     const viewRangeStart = new Date(viewRange.start);
                     const viewRangeEnd = new Date(viewRange.end);
                     viewRangeStart.setHours(0, 0, 0, 0);
