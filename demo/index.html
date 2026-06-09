@@ -20,7 +20,7 @@
 
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday" data-view="week">setToday('week')</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday" data-view="4day">setToday('4day')</button>
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setView" data-view="4day">setView('4day')</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setLocale" data-locale="en-US">setLocale('en-US')</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="clear">Clear</button>
     </div>
@@ -332,6 +332,9 @@
                         break;
                     case 'setView':
                         $calendar.bsCalendar('setView', $(this).data('view') || 'month');
+                        break;
+                    case 'setLocale':
+                        $calendar.bsCalendar('setLocale', $(this).data('locale') || 'month');
                         break;
                     default:
                         break;

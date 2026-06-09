@@ -595,6 +595,7 @@ $('#calendar').bsCalendar('refresh');
 | `setDate`           | date string, `Date`, or `{date, view}` | Sets the visible reference date. Not available in search mode.                                |
 | `setToday`          | optional view string                   | Navigates to today. Not available in search mode.                                             |
 | `setView`           | view string                            | Changes the view                                                                              |
+| `setLocale`         | locale string                          | Changes the locale and transitions                                                            |
 
 Examples:
 
@@ -602,6 +603,7 @@ Examples:
 $('#calendar').bsCalendar('setDate', {date: '2026-05-08', view: 'day'});
 $('#calendar').bsCalendar('setToday', 'week');
 $('#calendar').bsCalendar('setView', 'day');
+$('#calendar').bsCalendar('setLocale', 'de-DE');
 $('#calendar').bsCalendar('updateOptions', {locale: 'fr-FR'});
 ```
 

@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
  
  - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.2.2**](#version-222)
     * [**Version 2.2.1**](#version-221)
     * [**Version 2.2.0**](#version-220)
     * [**Version 2.1.8**](#version-218)
@@ -43,10 +44,15 @@
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
 
+### Version 2.2.2
+
+- Feature: Added new public method `setLocale` to programmatically change the calendar locale and translations.
+
 ### Version 2.2.1
 
 - Feature: Added new public method `setView` to programmatically change the calendar view.
 - Bugfix: Optimized performance by reducing redundant calls to `getStartAndEndDateByView` during appointment processing.
+- Bugfix: Fixed an issue where translations were not updated when changing the locale via `setLocale`.
 - Files modified: `dist/bs-calendar.js`, `dist/bs-calendar.min.js`, `changelog.md`
 
 ### Version 2.2.0

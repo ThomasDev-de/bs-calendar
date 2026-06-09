@@ -1758,6 +1758,15 @@
                             }
                         }
                         break;
+                    case 'setLocale':
+                        if (!inSearchMode) {
+                            methodSetLocale(wrapper, params);
+                        } else {
+                            if (getSettings(wrapper).debug) {
+                                log('Attempt to call setLocale() in search mode — ignored.');
+                            }
+                        }
+                        break;
                     default:
                         // Unknown method → warn in debug mode to help detect typos
                         const settings = getSettings(wrapper) || {};
@@ -2451,6 +2460,32 @@
         }
 
         /**
+         * Sets the locale for the given calendar wrapper.
+         * Updates the calendar's settings to use the provided locale
+         * if it differs from the currently set locale.
+         *
+         * @param {jQuery} $wrapper - The wrapper object containing the calendar instance.
+         * @param {string} locale - The locale string to be set. It should follow the format "language_region".
+         * @return {void} Returns nothing.
+         */
+        function methodSetLocale($wrapper, locale) {
+            log('methodSetLocale called with locale:', locale);
+            if (!locale) {
+                log('methodSetLocale: locale is not provided');
+                return;
+            }
+            const data = getBsCalendarData($wrapper);
+            if (data.settings.locale === locale) {
+                log('methodSetLocale: locale is already set to', locale);
+                return;
+            }
+
+            methodUpdateOptions($wrapper, {
+                locale: locale.replace('_', '-')
+            });
+        }
+
+        /**
          * Updates the current view of the calendar, if the new view is valid and different from the current view.
          *
          * @param {jQuery} $wrapper - The DOM element wrapping the calendar.
@@ -2469,7 +2504,7 @@
                 return;
             }
             const settings = data.settings;
-            if(!settings.views.includes(view)) {
+            if (!settings.views.includes(view)) {
                 log('methodSetView: view', view, 'is not in available views', settings.views);
                 return;
             }
