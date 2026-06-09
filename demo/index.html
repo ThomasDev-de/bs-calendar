@@ -368,7 +368,8 @@
 
             $calendar.bsCalendar('updateOptions', {
                 locale: t.locale,
-                holidays: t.holidays
+                holidays: t.holidays,
+                calendars: t.calendars
             });
             $calendar.bsCalendar('refresh');
             applyCalendarLabels(t.calendars);

@@ -58,6 +58,13 @@
 - Bugfix: Fixed an issue where calendar colors were not correctly calculated in some browsers by ensuring the temporary element is visible during style computation and adding fallbacks for different Bootstrap versions.
 - Bugfix: Fixed visibility issues with sidebar addons (like the language select) by ensuring correct overflow settings in the sidebar containers and the demo page.
 - Bugfix: Fixed a bug where the "4day" view was missing from the view switch if not explicitly configured in the settings (corrected fallback in `init()`).
+- Documentation: Added documentation for `$.bsCalendar.addTranslation` to `README.md`.
+- Bugfix: Fixed parameter naming in `addTranslation` to correctly register new translations.
+- Bugfix: Fixed an issue in `updateOptions` where the `calendars` array was being deep-merged instead of replaced, causing color inconsistencies. Improved logic now merges calendar definitions by ID if the property is provided, allowing partial updates while preserving existing settings.
+- Bugfix: Fixed an issue where `sidebarAddons` and `topbarAddons` were being deep-merged instead of replaced, which could lead to duplicated or incorrectly displayed addons.
+- Bugfix: Fixed a bug where `sidebarAddons` and `topbarAddons` would disappear after a rebuild (e.g. during `updateOptions`) by ensuring them are detached before the container is cleared and preserving their references in the settings.
+- Bugfix: Fixed an issue where internal translations were not updated when the locale was changed via `updateOptions`.
+- Demo: Updated `demo/index.html` to correctly update calendar labels and colors when switching languages.
 - Files modified: `dist/bs-calendar.js`, `README.md`, `changelog.md`, `demo/index.html`
 
 ### Version 2.1.8

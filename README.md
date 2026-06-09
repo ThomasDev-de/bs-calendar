@@ -39,6 +39,7 @@ As of version 2, Bootstrap 4 is no longer supported. Use version `^1` for Bootst
 - [Extras Object](#extras-object)
 - [Colors](#colors)
 - [Holidays](#holidays)
+- [Localization and Translations](#localization-and-translations)
 - [Utilities](#utilities)
 - [Repository Notes](#repository-notes)
 - [Completeness Check](#completeness-check)
@@ -515,10 +516,16 @@ Calendar fields:
 
 Translations:
 
-| Key              | Default                  | Description           |
-|------------------|--------------------------|-----------------------|
-| `search`         | `"Type and press Enter"` | Search placeholder.   |
-| `searchNoResult` | `"No appointment found"` | Empty search message. |
+| Key              | Default                  | Description                               |
+|------------------|--------------------------|-------------------------------------------|
+| `today`          | `"Today"`                | Text for the "Today" button.              |
+| `day`            | `"Day"`                  | Label for the day view.                   |
+| `4day`           | `"4 Days"`               | Label for the 4-day view.                 |
+| `week`           | `"Week"`                 | Label for the week view.                  |
+| `month`          | `"Month"`                | Label for the month view.                 |
+| `year`           | `"Year"`                 | Label for the year view.                  |
+| `search`         | `"Type and press Enter"` | Search placeholder.                       |
+| `searchNoResult` | `"No appointment found"` | Empty search message.                     |
 
 Icons:
 
@@ -732,6 +739,66 @@ $('#calendar').bsCalendar({
 
 If `url` is `null`, holidays can still be loaded and rendered.
 
+## Localization and Translations
+
+`bs-calendar` supports built-in localization for over 15 languages and allows full customization of all UI strings.
+
+### Using Locales
+
+The `locale` option controls the date formatting (via `Intl.DateTimeFormat`) and selects the corresponding built-in translation:
+
+```javascript
+$('#calendar').bsCalendar({
+    locale: 'de-DE' // Uses German translations and date format
+});
+```
+
+### Overriding Specific Strings
+
+You can override individual translation keys without providing a full translation object. The plugin merges your custom strings with the defaults for the selected locale:
+
+```javascript
+$('#calendar').bsCalendar({
+    locale: 'en-GB',
+    translations: {
+        today: 'Now',
+        search: 'Find something...'
+    }
+});
+```
+
+### Adding New Languages
+
+If your required language is not built-in, you can register it globally using `$.bsCalendar.addTranslation`. This should be done before initializing the calendar:
+
+```javascript
+$.bsCalendar.addTranslation('fr', {
+    today: 'Aujourd’hui',
+    day: 'Jour',
+    '4day': '4 Jours',
+    week: 'Semaine',
+    month: 'Mois',
+    year: 'Année',
+    search: 'Rechercher...',
+    searchNoResult: 'Aucun résultat'
+});
+
+// Now you can use it
+$('#calendar').bsCalendar({
+    locale: 'fr-FR'
+});
+```
+
+### Dynamic Language Change
+
+You can change the language at runtime using the `updateOptions` method:
+
+```javascript
+$('#calendar').bsCalendar('updateOptions', {
+    locale: 'es-ES'
+});
+```
+
 ## Utilities
 
 Global API:
@@ -741,6 +808,18 @@ $.bsCalendar.version;
 $.bsCalendar.about;
 $.bsCalendar.setDefaults({locale: 'de-DE'});
 $.bsCalendar.getDefaults();
+
+// Add a new translation
+$.bsCalendar.addTranslation('es', {
+    today: 'Hoy',
+    day: 'Día',
+    '4day': '4 días',
+    week: 'Semana',
+    month: 'Mes',
+    year: 'Año',
+    search: 'Escribe y pulsa Enter',
+    searchNoResult: 'No se ha encontrado ninguna cita'
+});
 ```
 
 Appointment and date helpers:
@@ -804,13 +883,13 @@ Development notes:
 
 Changelog and support:
 
-- [Changelog](changelog.md#version-217)
+- [Changelog](changelog.md)
 - [Issues](https://github.com/ThomasDev-de/bs-calendar/issues)
 - [License](LICENSE)
 
 ## Completeness Check
 
-This README is intended to cover the public surface of version `2.1.7`:
+This README is intended to cover the public surface of version `2.2.0`:
 
 - All `DEFAULTS` options from `dist/bs-calendar.js`
 - All public plugin methods in the method switch
@@ -819,5 +898,6 @@ This README is intended to cover the public surface of version `2.1.7`:
 - Normal, search, and year-view `url` response contracts
 - Formatter signatures
 - `extras` fields used by callbacks and formatters
+- Localization and custom translation handling
 - Public utility entry points
 - Current single-calendar demo workflow

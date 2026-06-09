@@ -381,14 +381,14 @@
                 return this.DEFAULTS;
             },
             possibleViews: ['4day', 'day', 'week', 'month', 'year'],
-            addTranslation(locale, translations) {
+            addTranslation(locale, translation) {
                 const loc = locale.split('-')[0].toLowerCase();
 
                 translations[loc] = $.extend(
                     true,
                     {},
                     translations['en'],
-                    translations
+                    translation
                 );
             },
             getTranslations(locale) {
@@ -2057,6 +2057,7 @@
                         if (calendar.hasOwnProperty('color') && typeof calendar.color === 'string') {
                             color = calendar.color;
                         }
+                        console.log('calendar color before normalization:', color);
                         calendar.color = $.bsCalendar.utils.getColors(color, settings.mainColor);
 
                         // Active fallback
@@ -2600,6 +2601,33 @@
             if (Object.prototype.hasOwnProperty.call(options, 'views')) {
                 merged.views = Array.isArray(options.views) ? [...options.views] : options.views;
             }
+            if (Object.prototype.hasOwnProperty.call(options, 'sidebarAddons')) {
+                // Falls ein neuer Selektor oder ein neues Element übergeben wird, nehmen wir dieses.
+                // Ansonsten bleibt das bestehende (ggf. bereits gedetachte) erhalten.
+                merged.sidebarAddons = Array.isArray(options.sidebarAddons) ? [...options.sidebarAddons] : options.sidebarAddons;
+            }
+            if (Object.prototype.hasOwnProperty.call(options, 'topbarAddons')) {
+                merged.topbarAddons = Array.isArray(options.topbarAddons) ? [...options.topbarAddons] : options.topbarAddons;
+            }
+            if (Object.prototype.hasOwnProperty.call(options, 'calendars')) {
+                if (Array.isArray(options.calendars) && Array.isArray(prevSettings.calendars)) {
+                    // Erstelle eine Kopie der alten Kalender
+                    const newCalendars = JSON.parse(JSON.stringify(prevSettings.calendars));
+                    options.calendars.forEach(newCal => {
+                        const index = newCalendars.findIndex(c => c.id === newCal.id);
+                        if (index !== -1) {
+                            // Bestehenden Kalender mergen
+                            newCalendars[index] = $.extend(true, {}, newCalendars[index], newCal);
+                        } else {
+                            // Neuen Kalender hinzufügen
+                            newCalendars.push(JSON.parse(JSON.stringify(newCal)));
+                        }
+                    });
+                    merged.calendars = newCalendars;
+                } else {
+                    merged.calendars = Array.isArray(options.calendars) ? JSON.parse(JSON.stringify(options.calendars)) : options.calendars;
+                }
+            }
             const frameworkSensitiveOptionKeys = new Set([
                 'border',
                 'calendars',
@@ -2621,6 +2649,13 @@
             const previousSearchValue = wasSearchMode ? (getSearchElement($wrapper)?.val() ?? '') : '';
 
             normalizeSettings(merged);
+
+            // Locale oder Translations geändert? Dann Übersetzungen neu laden
+            if (options.hasOwnProperty('locale') || options.hasOwnProperty('translations')) {
+                const t = $.bsCalendar.getTranslations(merged.locale);
+                merged.translations = $.extend(true, {}, t || {}, options.translations || {});
+            }
+
             merged.ingoreStore = true;
             data.mainColor = $.bsCalendar.utils.getColors(merged.mainColor);
             // Apply new settings
@@ -3251,6 +3286,25 @@
             const data = getBsCalendarData($wrapper);
             // get the settings
             const settings = data.settings;
+
+            // Vor dem Leeren des Wrappers: Addons "retten", falls sie bereits im DOM sind,
+            // damit sie nicht durch .empty() gelöscht werden.
+            // Wir suchen explizit im Wrapper, da sie dorthin verschoben wurden.
+            if (settings.topbarAddons) {
+                const $topAddons = $(settings.topbarAddons);
+                if ($topAddons.length > 0) {
+                    $topAddons.detach();
+                    settings.topbarAddons = $topAddons; // Speichere das gedetachte Objekt
+                }
+            }
+            if (settings.sidebarAddons) {
+                const $sideAddons = $(settings.sidebarAddons);
+                if ($sideAddons.length > 0) {
+                    $sideAddons.detach();
+                    settings.sidebarAddons = $sideAddons; // Speichere das gedetachte Objekt
+                }
+            }
+
             // Clear the wrapper first
             $wrapper.empty();
 
@@ -3533,9 +3587,10 @@
 
                 settings.calendars.forEach(calendar => {
                     const color = calendar.color.backgroundColor;
+
                     const itemContainer = $('<a>', {
                         href: '#',
-                        class: `d-flex align-items-center py12 px-3 rounded-end text-decoration-none user-select-none transition-base`,
+                        class: `d-flex align-items-center py-1 px-3 rounded-end text-decoration-none user-select-none transition-base`,
                         css: {
                             cursor: 'pointer',
                             transition: 'all 0.2s ease-in-out',
