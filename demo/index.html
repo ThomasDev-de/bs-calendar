@@ -223,8 +223,7 @@
         function initCalendar() {
             $calendar.bsCalendar({
                 title: '<span class="h4 text-uppercase mb-0">$.fn.bsCalendar</span>',
-                // locale: i18n[state.lang].locale,
-                locale: 'de-DE',
+                locale: i18n[state.lang].locale,
                 startWeekOnSunday: false,
                 navigateOnWheel: false,
                 draggable: true,
@@ -323,8 +322,7 @@
         function initLanguageControls() {
             const storageKey = 'bsCalendar.demo.language';
             const $languageSelect = $('#selectLanguage');
-            const savedLang = localStorage.getItem(storageKey);
-            const lang = savedLang && i18n[savedLang] ? savedLang : 'en';
+            const lang = 'en';
             state.lang = lang;
             $languageSelect.val(lang);
             applyLanguage(lang);

@@ -64,6 +64,8 @@
 - Bugfix: Fixed an issue where `sidebarAddons` and `topbarAddons` were being deep-merged instead of replaced, which could lead to duplicated or incorrectly displayed addons.
 - Bugfix: Fixed a bug where `sidebarAddons` and `topbarAddons` would disappear after a rebuild (e.g. during `updateOptions`) by ensuring them are detached before the container is cleared and preserving their references in the settings.
 - Bugfix: Fixed an issue where internal translations were not updated when the locale was changed via `updateOptions`.
+- Bugfix: Fixed an issue where the info modal (`wcCalendarInfoWindowModal`) remained open when starting a drag and drop operation.
+- Demo: Set default language to English on the demo page.
 - Demo: Updated `demo/index.html` to correctly update calendar labels and colors when switching languages.
 - Files modified: `dist/bs-calendar.js`, `README.md`, `changelog.md`, `demo/index.html`
 

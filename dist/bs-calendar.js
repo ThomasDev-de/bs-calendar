@@ -4916,6 +4916,8 @@
                     }).appendTo($preview);
 
                     const activateCreateDrag = () => {
+                        // Close info modal if open
+                        $(globalCalendarElements.infoModal).modal('hide');
                         // Hide hover time indicator while an active drag is running
                         $eventWrapper.find('[data-role="time-indicator"]').remove();
                         globalDragState.createDragState = {
@@ -4996,6 +4998,8 @@
                         }
 
                         const activateMonthMoveDrag = () => {
+                            // Close info modal if open
+                            $(globalCalendarElements.infoModal).modal('hide');
                             const $placeholder = $('<span>', {
                                 'data-role': 'month-drag-placeholder',
                                 css: {display: 'none'}
@@ -5081,6 +5085,8 @@
                     });
 
                     const activateMoveDrag = () => {
+                        // Close info modal if open
+                        $(globalCalendarElements.infoModal).modal('hide');
                         // Hide hover time indicator while an active drag is running
                         $eventWrapper.find('[data-role="time-indicator"]').remove();
                         globalDragState.moveDragState = {
