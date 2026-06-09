@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.1.7
- * @date 2026-05-21
+ * @version 2.2.0
+ * @date 2026-06-09
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -61,11 +61,312 @@
          * the calendar dynamically and tailor it based on specific application
          * requirements.
          */
+
+            // const localeKeys = ['today', 'day', 'week', 'month', 'year', 'search', 'searchNoResult'];
+        const translations = {
+                'ar': { // Arabic
+                    today: 'اليوم',
+                    day: 'يوم',
+                    '4day': '٤ أيام',
+                    week: 'أسبوع',
+                    month: 'شهر',
+                    year: 'سنة',
+                    search: 'اكتب واضغط Enter',
+                    searchNoResult: 'لم يتم العثور على موعد'
+                },
+
+                'he': { // Hebrew
+                    today: 'היום',
+                    day: 'יום',
+                    '4day': '4 ימים',
+                    week: 'שבוע',
+                    month: 'חודש',
+                    year: 'שנה',
+                    search: 'הקלד ולחץ על Enter',
+                    searchNoResult: 'לא נמצא תור'
+                },
+
+                'zh': { // Chinese Simplified
+                    today: '今天',
+                    day: '天',
+                    '4day': '4天',
+                    week: '周',
+                    month: '月',
+                    year: '年',
+                    search: '输入并按 Enter',
+                    searchNoResult: '未找到预约'
+                },
+
+                'en': { // English
+                    today: 'Today',
+                    day: 'Day',
+                    '4day': '4 Days',
+                    week: 'Week',
+                    month: 'Month',
+                    year: 'Year',
+                    search: 'Type and press Enter',
+                    searchNoResult: 'No appointment found'
+                },
+
+                'de': { // German
+                    today: 'Heute',
+                    day: 'Tag',
+                    '4day': '4 Tage',
+                    week: 'Woche',
+                    month: 'Monat',
+                    year: 'Jahr',
+                    search: 'Tippen und Enter drücken',
+                    searchNoResult: 'Kein Termin gefunden'
+                },
+
+                'es': { // Spanish
+                    today: 'Hoy',
+                    day: 'Día',
+                    '4day': '4 Días',
+                    week: 'Semana',
+                    month: 'Mes',
+                    year: 'Año',
+                    search: 'Escribe y pulsa Enter',
+                    searchNoResult: 'No se encontró ninguna cita'
+                },
+
+                'fr': { // French
+                    today: 'Aujourd’hui',
+                    day: 'Jour',
+                    '4day': '4 Jours',
+                    week: 'Semaine',
+                    month: 'Mois',
+                    year: 'Année',
+                    search: 'Tapez et appuyez sur Entrée',
+                    searchNoResult: 'Aucun rendez-vous trouvé'
+                },
+
+                'it': { // Italian
+                    today: 'Oggi',
+                    day: 'Giorno',
+                    '4day': '4 Giorni',
+                    week: 'Settimana',
+                    month: 'Mese',
+                    year: 'Anno',
+                    search: 'Digita e premi Invio',
+                    searchNoResult: 'Nessun appuntamento trovato'
+                },
+
+                'pt': { // Portuguese
+                    today: 'Hoje',
+                    day: 'Dia',
+                    '4day': '4 Dias',
+                    week: 'Semana',
+                    month: 'Mês',
+                    year: 'Ano',
+                    search: 'Digite e pressione Enter',
+                    searchNoResult: 'Nenhum compromisso encontrado'
+                },
+
+                'nl': { // Dutch
+                    today: 'Vandaag',
+                    day: 'Dag',
+                    '4day': '4 Dagen',
+                    week: 'Week',
+                    month: 'Maand',
+                    year: 'Jaar',
+                    search: 'Typ en druk op Enter',
+                    searchNoResult: 'Geen afspraak gevonden'
+                },
+
+                'pl': { // Polish
+                    today: 'Dzisiaj',
+                    day: 'Dzień',
+                    '4day': '4 Dni',
+                    week: 'Tydzień',
+                    month: 'Miesiąc',
+                    year: 'Rok',
+                    search: 'Wpisz i naciśnij Enter',
+                    searchNoResult: 'Nie znaleziono terminu'
+                },
+
+                'ru': { // Russian
+                    today: 'Сегодня',
+                    day: 'День',
+                    '4day': '4 Дня',
+                    week: 'Неделя',
+                    month: 'Месяц',
+                    year: 'Год',
+                    search: 'Введите и нажмите Enter',
+                    searchNoResult: 'Встреча не найдена'
+                },
+
+                'uk': { // Ukrainian
+                    today: 'Сьогодні',
+                    day: 'День',
+                    '4day': '4 Дні',
+                    week: 'Тиждень',
+                    month: 'Місяць',
+                    year: 'Рік',
+                    search: 'Введіть і натисніть Enter',
+                    searchNoResult: 'Запис не знайдено'
+                },
+
+                'tr': { // Turkish
+                    today: 'Bugün',
+                    day: 'Gün',
+                    '4day': '4 Gün',
+                    week: 'Hafta',
+                    month: 'Ay',
+                    year: 'Yıl',
+                    search: 'Yazın ve Enter’a basın',
+                    searchNoResult: 'Randevu bulunamadı'
+                },
+
+                'ja': { // Japanese
+                    today: '今日',
+                    day: '日',
+                    '4day': '4日間',
+                    week: '週',
+                    month: '月',
+                    year: '年',
+                    search: '入力して Enter を押してください',
+                    searchNoResult: '予約が見つかりません'
+                },
+
+                'ko': { // Korean
+                    today: '오늘',
+                    day: '일',
+                    '4day': '4일',
+                    week: '주',
+                    month: '월',
+                    year: '년',
+                    search: '입력 후 Enter를 누르세요',
+                    searchNoResult: '예약을 찾을 수 없습니다'
+                },
+
+                'hi': { // Hindi
+                    today: 'आज',
+                    day: 'दिन',
+                    '4day': '4 दिन',
+                    week: 'सप्ताह',
+                    month: 'महीना',
+                    year: 'वर्ष',
+                    search: 'टाइप करें और Enter दबाएँ',
+                    searchNoResult: 'कोई अपॉइंटमेंट नहीं मिला'
+                },
+
+                'id': { // Indonesian
+                    today: 'Hari ini',
+                    day: 'Hari',
+                    '4day': '4 Hari',
+                    week: 'Minggu',
+                    month: 'Bulan',
+                    year: 'Tahun',
+                    search: 'Ketik lalu tekan Enter',
+                    searchNoResult: 'Janji temu tidak ditemukan'
+                },
+
+                'vi': { // Vietnamese
+                    today: 'Hôm nay',
+                    day: 'Ngày',
+                    '4day': '4 Ngày',
+                    week: 'Tuần',
+                    month: 'Tháng',
+                    year: 'Năm',
+                    search: 'Nhập và nhấn Enter',
+                    searchNoResult: 'Không tìm thấy lịch hẹn'
+                },
+
+                'th': { // Thai
+                    today: 'วันนี้',
+                    day: 'วัน',
+                    '4day': '4 วัน',
+                    week: 'สัปดาห์',
+                    month: 'เดือน',
+                    year: 'ปี',
+                    search: 'พิมพ์แล้วกด Enter',
+                    searchNoResult: 'ไม่พบการนัดหมาย'
+                },
+
+                'cs': { // Czech
+                    today: 'Dnes',
+                    day: 'Den',
+                    '4day': '4 Dny',
+                    week: 'Týden',
+                    month: 'Měsíc',
+                    year: 'Rok',
+                    search: 'Napište a stiskněte Enter',
+                    searchNoResult: 'Nebyla nalezena žádná schůzka'
+                },
+
+                'sv': { // Swedish
+                    today: 'Idag',
+                    day: 'Dag',
+                    '4day': '4 Dagar',
+                    week: 'Vecka',
+                    month: 'Månad',
+                    year: 'År',
+                    search: 'Skriv och tryck på Enter',
+                    searchNoResult: 'Ingen tid hittades'
+                },
+
+                'da': { // Danish
+                    today: 'I dag',
+                    day: 'Dag',
+                    '4day': '4 Dage',
+                    week: 'Uge',
+                    month: 'Måned',
+                    year: 'År',
+                    search: 'Skriv og tryk på Enter',
+                    searchNoResult: 'Ingen aftale fundet'
+                },
+
+                'no': { // Norwegian
+                    today: 'I dag',
+                    day: 'Dag',
+                    '4day': '4 Dager',
+                    week: 'Uke',
+                    month: 'Måned',
+                    year: 'År',
+                    search: 'Skriv og trykk på Enter',
+                    searchNoResult: 'Ingen avtale funnet'
+                },
+
+                'fi': { // Finnish
+                    today: 'Tänään',
+                    day: 'Päivä',
+                    '4day': '4 Päivää',
+                    week: 'Viikko',
+                    month: 'Kuukausi',
+                    year: 'Vuosi',
+                    search: 'Kirjoita ja paina Enter',
+                    searchNoResult: 'Aikaa ei löytynyt'
+                },
+
+                'ro': { // Romanian
+                    today: 'Astăzi',
+                    day: 'Zi',
+                    '4day': '4 Zile',
+                    week: 'Săptămână',
+                    month: 'Lună',
+                    year: 'An',
+                    search: 'Tastează și apasă Enter',
+                    searchNoResult: 'Nu a fost găsită nicio programare'
+                },
+
+                'el': { // Greek
+                    today: 'Σήμερα',
+                    day: 'Ημέρα',
+                    '4day': '4 Ημέρες',
+                    week: 'Εβδομάδα',
+                    month: 'Μήνας',
+                    year: 'Έτος',
+                    search: 'Πληκτρολογήστε και πατήστε Enter',
+                    searchNoResult: 'Δεν βρέθηκε ραντεβού'
+                }
+            };
+
         $.bsCalendar = {
-            version: '2.1.7',
+            version: '2.2.0',
             about: {
-                version: '2.1.7',
-                releaseDate: '2026-05-21',
+                version: '2.2.0',
+                releaseDate: '2026-06-09',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
                 releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
@@ -78,6 +379,28 @@
             },
             getDefaults() {
                 return this.DEFAULTS;
+            },
+            possibleViews: ['4day', 'day', 'week', 'month', 'year'],
+            addTranslation(locale, translations) {
+                const loc = locale.split('-')[0].toLowerCase();
+
+                translations[loc] = $.extend(
+                    true,
+                    {},
+                    translations['en'],
+                    translations
+                );
+            },
+            getTranslations(locale) {
+                const loc = locale.split('-')[0].toLowerCase();
+                return translations?.[loc] || translations?.['en'];
+            },
+            getTranslation(locale, key) {
+                const loc = locale.split('-')[0].toLowerCase();
+
+                return translations?.[loc]?.[key]
+                    ?? translations?.['en']?.[key]
+                    ?? key;
             },
             DEFAULTS: {
                 showAbout: true,
@@ -92,9 +415,9 @@
                     offset: 0
                 },
                 startDate: new Date(),
-                startView: 'month', // day, week, month, year
+                startView: 'month', // day, week, month, year, 4day
                 mainColor: 'primary',
-                views: ['year', 'month', 'week', 'day'],
+                views: ['year', 'month', 'week', '4day', 'day'],
                 holidays: null,
                 showAddButton: true,
                 draggable: false,
@@ -105,6 +428,7 @@
                 },
                 icons: {
                     day: 'bi bi-calendar-day',
+                    '4day': 'bi bi-calendar-range',
                     week: 'bi bi-kanban',
                     month: 'bi bi-calendar-month',
                     year: 'bi bi-calendar4',
@@ -919,28 +1243,32 @@
 
                     // Vereinfachte Implementierung: nur Bootstrap 5+ wird unterstützt.
                     const classList = isVar ? [] : inputClassNames.split(" ").map(className => {
-                        if (className.includes("opacity") || className.includes("gradient")) {
-                            return className.startsWith("bg-") ? className : `bg-${className}`;
+                        if (className.includes("opacity") || className.includes("gradient") || className.includes("bg-")) {
+                            return className;
                         } else {
-                            // Für Bootstrap 5 verwenden wir die text-bg-*-Utilities für textuelle Hintergründe.
-                            return className.startsWith("bg-") ?
-                                className.replace("bg-", "text-bg-") :
-                                `text-bg-${className}`;
+                            // Für Bootstrap 5 versuchen wir text-bg-*, aber wir behalten das Original als Fallback.
+                            return className;
                         }
                     });
 
                     const tempElement = document.createElement("div");
-                    tempElement.style.display = "none";
+                    tempElement.style.visibility = "hidden";
                     tempElement.style.position = "absolute";
+                    tempElement.style.left = "-9999px";
+                    tempElement.style.top = "-9999px";
+                    tempElement.style.pointerEvents = "none";
                     document.body.appendChild(tempElement);
 
                     if (isVar) {
                         tempElement.style.backgroundColor = inputClassNames;
-                        // For CSS variables, we might need to set a default text color if the variable only defines background
-                        // But getComputedStyle will return whatever is inherited or default.
-                        // To be safe and consistent with Bootstrap's text-bg-*, we could try to determine contrast
                     } else {
-                        classList.forEach(className => {
+                        // Wir wenden sowohl das Original (z.B. "primary") als auch "text-bg-*" an,
+                        // um maximale Kompatibilität mit verschiedenen Bootstrap-Versionen zu erreichen.
+                        inputClassNames.split(" ").forEach(className => {
+                            if (!className.includes("opacity") && !className.includes("gradient") && !className.startsWith("bg-") && !className.startsWith("text-bg-")) {
+                                tempElement.classList.add(`text-bg-${className}`);
+                                tempElement.classList.add(`bg-${className}`);
+                            }
                             tempElement.classList.add(className);
                         });
                     }
@@ -1142,76 +1470,6 @@
                     }
                     return prefix + result;
                 },
-                getStandardizedUnits: (locale) => {
-                    const units = ['today', 'day', 'week', 'month', 'year']; // Eingabewerte
-                    const result = {};
-
-                    // Definierte gültige Einheiten für Intl.RelativeTimeFormat
-                    const validRelativeTimeFormatUnits = ['day', 'week', 'month', 'year'];
-
-                    units.forEach(unit => {
-                        let localizedUnit;
-
-                        // Statische Übersetzungen für fehlerhafte oder bekannte schwierige Locales
-                        if (locale === 'ar') {
-                            const arabicTranslations = {
-                                today: "اليوم", // heute
-                                day: "يوم",
-                                week: "أسبوع",
-                                month: "شهر",
-                                year: "سنة"
-                            };
-                            localizedUnit = arabicTranslations[unit];
-                        } else if (locale === 'he') {
-                            const hebrewTranslations = {
-                                today: "היום", // heute
-                                day: "יום",
-                                week: "שבוע",
-                                month: "חודש",
-                                year: "שנה"
-                            };
-                            localizedUnit = hebrewTranslations[unit];
-                        } else if (locale === 'zh') {
-                            const chineseTranslations = {
-                                today: "今天", // heute
-                                day: "天",
-                                week: "周",
-                                month: "月",
-                                year: "年"
-                            };
-                            localizedUnit = chineseTranslations[unit];
-                        } else {
-                            // Dynamische Verarbeitung für alle anderen Locales
-                            try {
-                                if (unit === 'today') {
-                                    // Feste Übersetzung für "heute"
-                                    localizedUnit = new Intl.RelativeTimeFormat(locale, {numeric: 'auto'}).format(0, 'day');
-                                } else if (validRelativeTimeFormatUnits.includes(unit)) {
-                                    const formatter = new Intl.RelativeTimeFormat(locale, {numeric: 'always'});
-                                    const formatted = formatter.format(1, unit);
-
-                                    localizedUnit = formatted
-                                        .replace(/^\D*\d+\s?/, '') // Entfernt Präfixe/Zahlen (z. B. "in 1 ")
-                                        .replace(/後|后$/, '')     // Entfernt "später" für Japanisch/Chinesisch
-                                        .replace(/\s후$/, '')     // Entfernt "후" für Koreanisch
-                                        .replace(/^ในอีก\s?/, '') // Entfernt "in" für Thailändisch
-                                        .trim();
-                                } else {
-                                    // Fallback für ungültige Einheiten
-                                    console.error(`${unit} ist keine gültige Einheit für Intl.RelativeTimeFormat.`);
-                                }
-                            } catch (error) {
-                                console.error(`Fehler für ${unit} mit Locale ${locale}:`, error.message);
-                                localizedUnit = unit; // Rückfall zur Einheit
-                            }
-                        }
-
-                        // Ergebnis speichern
-                        result[unit] = localizedUnit || unit; // Fallback zur Einheit
-                    });
-
-                    return result;
-                },
                 getLanguageAndCountry: (locale) => {
                     const parts = locale.split('-'); // separate the string based on the bind screed
                     let language = parts[0].toUpperCase(); // The first part is the language, always present
@@ -1388,7 +1646,8 @@
                 normalizeSettings(bsCalendarData.settings);
 
                 // Merge standardized translation units (locale-dependent)
-                bsCalendarData.settings.translations = $.extend(true, {}, bsCalendarData.settings.translations, $.bsCalendar.utils.getStandardizedUnits(bsCalendarData.settings.locale) || {});
+                const t = $.bsCalendar.getTranslations(bsCalendarData.settings.locale);
+                bsCalendarData.settings.translations = $.extend(true, {}, bsCalendarData.settings.translations, t || {});
 
                 // Resolve main color now (colors may depend on normalized settings)
                 bsCalendarData.mainColor = $.bsCalendar.utils.getColors(bsCalendarData.settings.mainColor, 'primary');
@@ -1502,46 +1761,6 @@
 
             // Support chaining
             return wrapper;
-        }
-
-        /**
-         * Updates the rounded class on elements within the given wrapper based on the provided round value.
-         * @deprecated
-         * @param {Object} $wrapper - The wrapper element containing the elements to update.
-         * @param {number} round - The round value to apply, which determines the level of rounding for the elements.
-         * @return {void}
-         */
-        function setRounded($wrapper, round) {
-            // Try to use round as integer, fallback to the default value from Settings (3)
-            // Values are limited to the allowed range [0, 5].
-            const parsed = Number.isFinite(Number(round)) ? Math.floor(Number(round)) : NaN;
-            const normalized = Number.isNaN(parsed) ? 3 : Math.min(Math.max(parsed, 0), 5);
-
-            $wrapper.find('.bs-calendar-border-style')
-                .removeClass('rounded-0 rounded-1 rounded-2 rounded-3 rounded-4 rounded-5')
-                .addClass(`rounded-${normalized}`);
-        }
-
-        /**
-         * Sets the border style for the given wrapper element.
-         *
-         * @deprecated
-         * @param {jQuery} $wrapper - The wrapper element on which the border adjustment is applied.
-         * @param {string|number} border - The desired border value. If it is not a finite number, it defaults to 3. The value is clamped to the range [0, 5].
-         * @return {void} Does not return a value.
-         */
-        function setBorder($wrapper, border) {
-            const data = getBsCalendarData(wrapper);
-            // Try to use round as integer, fallback to the default value from Settings (3)
-            // Values are limited to the allowed range [0, 5].
-            const parsed = Number.isFinite(Number(border)) ? Math.floor(Number(border)) : NaN;
-            const normalized = Number.isNaN(parsed) ? 3 : Math.min(Math.max(parsed, 0), 5);
-
-            $wrapper.find('.bs-calendar-border-style')
-                .removeClass(data.borderBefore)
-                .addClass(border);
-            data.borderBefore = border;
-            setBsCalendarData(wrapper, data);
         }
 
         /**
@@ -1810,7 +2029,10 @@
 
             // clamp helper
             const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
-            const possibleViews = ['day', 'week', 'month', 'year'];
+            const possibleViews = $.bsCalendar.possibleViews;
+
+            // normalize locale format (e.g., en_US → en-US)
+            settings.locale = settings.locale.replace('_', '-');
 
             if (settings.hasOwnProperty('startDate')) {
                 if (typeof settings.startDate === 'string') {
@@ -1870,16 +2092,15 @@
                     });
 
                     // Filter out any invalid views (only allow a defined set)
-                    const possibleViews = ['day', 'week', 'month', 'year'];
                     settings.views = settings.views.filter(v => possibleViews.includes(v));
 
                     // If nothing left after filtering, fallback to sensible default
                     if (settings.views.length === 0) {
-                        settings.views = ['day', 'week', 'month', 'year'];
+                        settings.views = $.bsCalendar.possibleViews;
                     }
                 } else {
                     // Fallback to sensible default when views is invalid
-                    settings.views = ['day', 'week', 'month', 'year'];
+                    settings.views = $.bsCalendar.possibleViews;
                 }
             }
 
@@ -1990,7 +2211,7 @@
             const styleString = toStyleString(style);
 
             const classes = [];
-            if (view === 'week') {
+            if (view === 'week' || view === '4day') {
                 classes.push('w-100');
             }
 
@@ -2027,7 +2248,7 @@
          * @return {string} A styled HTML string representing the holiday for display.
          */
         function formatterHoliday(holiday, view) {
-            const isDayOrWeek = view === 'day' || view === 'week';
+            const isDayOrWeek = view === 'day' || view === 'week' || view === '4day';
             const css = [
                 'font-size: 12px',
                 'line-height: 12px',
@@ -2391,7 +2612,9 @@
                 'title',
                 'topbarAddons',
                 'translations',
-                'views'
+                'views',
+                'locale',
+                'holidays'
             ]);
             const shouldRebuildFramework = Object.keys(options).some(key => frameworkSensitiveOptionKeys.has(key));
             const wasSearchMode = !!data.searchMode;
@@ -2673,7 +2896,7 @@
                 const rel = link.rel || defaultRel;
                 const disabled = link.disabled || defaultDisabled;
                 const disabledClass = disabled ? "disabled" : "";
-                const color =  $.bsCalendar.utils.getColors(link.color || defaultColor);
+                const color = $.bsCalendar.utils.getColors(link.color || defaultColor);
                 const combinedCss = [
                     'background-color: ' + color.backgroundColor, // Set the computed background color.
                     'background-image: ' + color.backgroundImage, // Set the computed gradient.
@@ -2815,7 +3038,7 @@
                     $wrapper.attr('data-bs-calendar-id', data.elements.wrapperId);
 
                     if (!data.settings.hasOwnProperty('views') || data.settings.views.length === 0) {
-                        data.settings.views = ['day', 'week', 'month', 'year'];
+                        data.settings.views = ['day', '4day', 'week', 'month', 'year'];
                     }
                     if (!data.settings.hasOwnProperty('startView') || !data.settings.startView) {
                         data.settings.startView = 'month';
@@ -3284,7 +3507,7 @@
                 css: {
                     position: 'relative',
                 },
-                class: ' py-4 px-4 bg-body-tertiary rounded-2',
+                class: ' py-4 px-4 bg-body-tertiary rounded-2 overflow-visible',
                 html: [
                     '<div class="pb-3">',
                     '<div class="d-flex justify-content-between align-items-center gap-2">',
@@ -3305,7 +3528,7 @@
 
                 // Container: Vertikal, etwas Luft, modern
                 const calendarWrapper = $('<div>', {
-                    class: 'd-flex flex-column gap-2 mt-3 p-2 bg-body'
+                    class: 'd-flex flex-column gap-2 mt-3 p-2 bg-body overflow-visible'
                 }).appendTo('#' + data.elements.wrapperCalendarsId);
 
                 settings.calendars.forEach(calendar => {
@@ -3347,7 +3570,7 @@
             if (settings.sidebarAddons && $(settings.sidebarAddons).length > 0) {
                 // Container: Vertikal, etwas Luft, modern
                 const sidebarAddonWrapper = $('<div>', {
-                    class: 'd-flex flex-column gap-2 mt-3 p-2 bg-body'
+                    class: 'd-flex flex-column gap-2 mt-3 p-2 bg-body overflow-visible'
                 }).appendTo('#' + data.elements.wrapperCalendarsId);
                 $(settings.sidebarAddons).appendTo(sidebarAddonWrapper);
             }
@@ -3447,12 +3670,30 @@
                 return startStr + ' — ' + endStr;
             }
 
+            // Localized date range for the 4-day view (human-friendly)
+            function get4DayDateRange(d, locale) {
+                const start = new Date(d);
+                const end = new Date(start);
+                end.setDate(start.getDate() + 3);
+                const options = {day: 'numeric', month: 'short', year: 'numeric'};
+                const startStr = start.toLocaleDateString(locale, options);
+                const endStr = end.toLocaleDateString(locale, options);
+                return startStr + ' — ' + endStr;
+            }
+
             switch (view) {
                 case 'day':
                     el.text(weekdayName + ', ' + dayName + ' ' + monthName + ' ' + yearName);
                     el.removeAttr('data-iso-week');
                     el.attr('title', '');
                     break;
+                case '4day': {
+                    const range = get4DayDateRange(date, settings.locale);
+                    el.text(range);
+                    el.removeAttr('data-iso-week');
+                    el.attr('title', '');
+                    break;
+                }
                 case 'week': {
                     // Use a short universal week label "W42" (widely recognized) for the visible text,
                     // keep ISO week in a data-attribute, and expose the localized date range in the title/tooltip.
@@ -3508,6 +3749,9 @@
                 case 'week':
                     newDate.setDate(newDate.getDate() - 7);
                     break;
+                case '4day':
+                    newDate.setDate(newDate.getDate() - 4);
+                    break;
                 case 'day':
                     newDate.setDate(newDate.getDate() - 1);
                     break;
@@ -3547,6 +3791,9 @@
                     break;
                 case 'week':
                     newDate.setDate(newDate.getDate() + 7);
+                    break;
+                case '4day':
+                    newDate.setDate(newDate.getDate() + 4);
                     break;
                 case 'day':
                     newDate.setDate(newDate.getDate() + 1);
@@ -3814,7 +4061,8 @@
             }
 
             function getMoveSlotContainerFromPointer($wrapperRef, point, $fallbackSlotContainer) {
-                if (getView($wrapperRef) !== 'week' || !Number.isFinite(point.x)) {
+                const view = getView($wrapperRef);
+                if ((view !== 'week' && view !== '4day') || !Number.isFinite(point.x)) {
                     return $fallbackSlotContainer;
                 }
 
@@ -3937,8 +4185,11 @@
 
             function relayoutDayContainerForDrag($wrapperRef, $slotContainer, movingAppointment, tempStart, tempEnd) {
                 const settings = getSettings($wrapperRef);
-                const $appointments = $slotContainer.find('[data-appointment]');
+                const $movingEl = movingAppointment?.$appointment || $();
+                const $appointments = $slotContainer.find('[data-appointment]').not($movingEl);
                 const items = [];
+
+                const containerDateLocal = $slotContainer.data('date-local');
 
                 $appointments.each(function () {
                     const $el = $(this);
@@ -3946,14 +4197,49 @@
                     if (!appointment || appointment.allDay) {
                         return;
                     }
-                    const isMoving = appointment === movingAppointment;
-                    const start = isMoving ? new Date(tempStart) : $.bsCalendar.utils.parseDateInput(appointment.start);
-                    const end = isMoving ? new Date(tempEnd) : $.bsCalendar.utils.parseDateInput(appointment.end);
+                    let start = $.bsCalendar.utils.parseDateInput(appointment.start);
+                    let end = $.bsCalendar.utils.parseDateInput(appointment.end);
                     if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
                         return;
                     }
+
+                    // For multi-day appointments: crop start/end to the container's day
+                    if (containerDateLocal) {
+                        const dayStart = new Date(`${containerDateLocal}T00:00:00`);
+                        const dayEnd = new Date(`${containerDateLocal}T23:59:59`);
+                        if (start < dayStart) {
+                            start = dayStart;
+                        }
+                        if (end > dayEnd) {
+                            end = dayEnd;
+                        }
+                    }
+
                     items.push({$el, appointment, start, end});
                 });
+
+                if (movingAppointment && movingAppointment.appointment) {
+                    let start = new Date(tempStart);
+                    let end = new Date(tempEnd);
+
+                    if (containerDateLocal) {
+                        const dayStart = new Date(`${containerDateLocal}T00:00:00`);
+                        const dayEnd = new Date(`${containerDateLocal}T23:59:59`);
+                        if (start < dayStart) {
+                            start = dayStart;
+                        }
+                        if (end > dayEnd) {
+                            end = dayEnd;
+                        }
+                    }
+
+                    items.push({
+                        $el: $movingEl,
+                        appointment: movingAppointment.appointment,
+                        start: start,
+                        end: end
+                    });
+                }
 
                 items.sort((a, b) => a.start - b.start || a.end - b.end);
                 const clusters = [];
@@ -4028,15 +4314,14 @@
                     forcedOverlapItems
                         .sort((a, b) => a.start - b.start || a.end - b.end)
                         .forEach((item) => {
-                        const position = calculateSlotPosition($wrapperRef, item.start.toISOString(), item.end.toISOString());
-                        item.$el.css({
-                            top: `${position.top}px`,
-                            height: `${position.height}px`,
-                            left: '0%',
-                            width: '100%',
-                            zIndex: ''
+                            const position = calculateSlotPosition($wrapperRef, item.start.toISOString(), item.end.toISOString());
+                            item.$el.css({
+                                top: `${position.top}px`,
+                                height: `${position.height}px`,
+                                left: '0%',
+                                width: '100%'
+                            });
                         });
-                    });
                 });
 
                 // Keep stacking stable for the whole day container while dragging:
@@ -4044,7 +4329,8 @@
                 items
                     .sort((a, b) => a.start - b.start || a.end - b.end)
                     .forEach((item, index) => {
-                        item.$el.css('zIndex', index + 1);
+                        const isMoving = movingAppointment && item.appointment === movingAppointment.appointment;
+                        item.$el.css('zIndex', isMoving ? 12 : index + 1);
                     });
             }
 
@@ -4098,7 +4384,7 @@
                         const topPx = (startMinutes / 60) * settings.hourSlots.height;
                         const heightPx = Math.max(10, ((endMinutes - startMinutes) / 60) * settings.hourSlots.height);
                         globalDragState.createDragState.$preview.css({top: `${topPx}px`, height: `${heightPx}px`, display: 'block'});
-                        
+
                         // Update time labels
                         const startHour = Math.floor(startMinutes / 60) + settings.hourSlots.start;
                         const startMinute = startMinutes % 60;
@@ -4108,7 +4394,7 @@
                         const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
                         globalDragState.createDragState.$startTimeLabel.text(startTimeStr);
                         globalDragState.createDragState.$endTimeLabel.text(endTimeStr);
-                        
+
                         globalDragState.createDragState.currentStartMinutes = startMinutes;
                         globalDragState.createDragState.currentEndMinutes = endMinutes;
                         globalDragState.createDragState.dragged = true;
@@ -4154,7 +4440,7 @@
                         relayoutDayContainerForDrag(
                             globalDragState.moveDragState.$wrapper,
                             globalDragState.moveDragState.$slotContainer,
-                            globalDragState.moveDragState.appointment,
+                            globalDragState.moveDragState,
                             tempStart,
                             tempEnd
                         );
@@ -4512,7 +4798,7 @@
                     const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
                     const settings = getSettings($eventWrapper);
                     const view = getView($eventWrapper);
-                    if (!settings.draggable || !settings.showAddButton || (view !== 'day' && view !== 'week')) {
+                    if (!settings.draggable || !settings.showAddButton || (view !== 'day' && view !== 'week' && view !== '4day')) {
                         return;
                     }
                     const isTouch = isTouchLikeEvent(e);
@@ -4624,7 +4910,7 @@
                     }
                     const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
                     const view = getView($eventWrapper);
-                    if (view !== 'day' && view !== 'week' && view !== 'month') {
+                    if (view !== 'day' && view !== 'week' && view !== '4day' && view !== 'month') {
                         return;
                     }
                     const settings = getSettings($eventWrapper);
@@ -4738,7 +5024,7 @@
                         },
                         text: ''
                     });
-                    
+
                     const activateMoveDrag = () => {
                         // Hide hover time indicator while an active drag is running
                         $eventWrapper.find('[data-role="time-indicator"]').remove();
@@ -4967,7 +5253,7 @@
                     const view = getView($eventWrapper);
 
                     // Only show if draggable is enabled and we're in day or week view
-                    if (!settings.draggable || (view !== 'day' && view !== 'week')) {
+                    if (!settings.draggable || (view !== 'day' && view !== 'week' && view !== '4day')) {
                         return;
                     }
 
@@ -5291,7 +5577,7 @@
             const currentView = data.view;
             const allowedViews = Array.isArray(settings.views) ? settings.views : [];
 
-            if (view !== 'search' && !['day', 'week', 'month', 'year'].includes(view)) {
+            if (view !== 'search' && !['day', '4day', 'week', 'month', 'year'].includes(view)) {
                 if (settings.debug) {
                     console.error(
                         'Invalid view type provided. Defaulting to month view.',
@@ -5435,13 +5721,14 @@
                     renderState.start !== period.start ||
                     renderState.end !== period.end ||
                     (view === 'year' && renderState.selectedDate !== currentSelectedDate) ||
-                    ((view === 'day' || view === 'week') && renderState.hourSlots !== currentHourSlots);
+                    ((view === 'day' || view === 'week' || view === '4day') && renderState.hourSlots !== currentHourSlots);
 
                 if (needsRebuild) {
                     switch (view) {
                         case 'month':
                             buildMonthView($wrapper);
                             break;
+                        case '4day':
                         case 'week':
                             buildWeekView($wrapper);
                             break;
@@ -5815,7 +6102,7 @@
             appointments.forEach((appointment) => {
                 appointment.extras.displayDates.forEach((obj) => {
                     // Ignore appointments that are not visible in the weekly view
-                    if (view === 'week' && !obj.visibleInWeek) {
+                    if ((view === 'week' || view === '4day') && !obj.visibleInWeek) {
                         return;
                     }
 
@@ -5823,15 +6110,17 @@
                     const slotStart = new Date(`${obj.date}T${obj.times.start}`);
                     const slotEnd = new Date(`${obj.date}T${obj.times.end}`);
 
-                    // calculate the weekday correctly
+                    // calculate the key correctly
+                    const targetDateLocal = $.bsCalendar.utils.formatDateToDateString(slotStart);
                     const weekday = slotStart.getDay();
+                    const key = `${weekday}_${targetDateLocal}`;
 
                     // initialize daily structure, if not yet available
-                    if (!groupedByWeekdays[weekday]) {
-                        groupedByWeekdays[weekday] = {appointments: [], columns: [], fullWidth: []};
+                    if (!groupedByWeekdays[key]) {
+                        groupedByWeekdays[key] = {appointments: [], columns: [], fullWidth: []};
                     }
 
-                    groupedByWeekdays[weekday].appointments.push({
+                    groupedByWeekdays[key].appointments.push({
                         start: slotStart,
                         end: slotEnd,
                         appointment
@@ -5840,8 +6129,9 @@
             });
 
             // 2. Create columns and Fullwidth
-            Object.keys(groupedByWeekdays).forEach((day) => {
-                const {appointments, columns, fullWidth} = groupedByWeekdays[day];
+            Object.keys(groupedByWeekdays).forEach((key) => {
+                const {appointments, columns, fullWidth} = groupedByWeekdays[key];
+                const [weekday, targetDateLocal] = key.split('_');
 
                 // sort the dates by start time
                 appointments.sort((a, b) => a.start - b.start);
@@ -5947,7 +6237,8 @@
 
             const columnGap = 2; // distance between the columns in pixels
 
-            Object.entries(groupedAppointments).forEach(([weekday, {columns, fullWidth}]) => {
+            Object.entries(groupedAppointments).forEach(([key, {columns, fullWidth}]) => {
+                const [weekday, targetDateLocal] = key.split('_');
 
                 /** 1. Renders of the grouped dates in columns **/
                 const totalColumns = columns.length; // calculate the number of columns
@@ -5965,9 +6256,6 @@
                             console.warn(`Invalid date in Appointment: ${appointment?.title || 'unknown'}`);
                             return; // Überspringe das fehlerhafte Datum
                         }
-
-                        // Formatierung des Startdatums für den richtigen Container
-                        const targetDateLocal = $.bsCalendar.utils.formatDateToDateString(startDate);
 
                         // Search of the container based on weekdays and date
                         const $weekDayContainer = $viewContainer.find(
@@ -6046,75 +6334,75 @@
                     .slice()
                     .sort((a, b) => a.start - b.start || a.end - b.end)
                     .forEach((slotData, overlapIndex) => {
-                    const appointment = slotData.appointment;
+                        const appointment = slotData.appointment;
 
-                    const startDate = new Date(slotData.start);
+                        const startDate = new Date(slotData.start);
 
-                    // appointments that take the whole width
-                    const appointmentWidthPercent = 100; // full width
-                    const appointmentLeftPercent = 0; // no distance from the left
+                        // appointments that take the whole width
+                        const appointmentWidthPercent = 100; // full width
+                        const appointmentLeftPercent = 0; // no distance from the left
 
-                    // default value for position
-                    let position = {
-                        top: 0,
-                        height: 0
-                    };
+                        // default value for position
+                        let position = {
+                            top: 0,
+                            height: 0
+                        };
 
-                    // validity check for the data
-                    if (
-                        slotData.start instanceof Date &&
-                        !isNaN(slotData.start) &&
-                        slotData.end instanceof Date &&
-                        !isNaN(slotData.end)
-                    ) {
-                        position = calculateSlotPosition(
-                            $wrapper,
-                            slotData.start.toISOString(),
-                            slotData.end.toISOString()
+                        // validity check for the data
+                        if (
+                            slotData.start instanceof Date &&
+                            !isNaN(slotData.start) &&
+                            slotData.end instanceof Date &&
+                            !isNaN(slotData.end)
+                        ) {
+                            position = calculateSlotPosition(
+                                $wrapper,
+                                slotData.start.toISOString(),
+                                slotData.end.toISOString()
+                            );
+                        } else {
+                            console.error("Invalid date detected:", slotData.start, slotData.end, appointment);
+                        }
+
+                        // formatting of the start date for the container
+                        const targetDateLocal = $.bsCalendar.utils.formatDateToDateString(startDate);
+
+                        // Search of the container based on the date and Weekday
+                        const $weekDayContainer = $viewContainer.find(
+                            `.wc-day-view-time-slots[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`
                         );
-                    } else {
-                        console.error("Invalid date detected:", slotData.start, slotData.end, appointment);
-                    }
+                        if (!$weekDayContainer.length) {
+                            console.warn(
+                                `Full-Width-Container für Weekday ${weekday} mit Datum ${targetDateLocal} nicht gefunden.`
+                            );
+                            return; // skip when the container is missing
+                        }
 
-                    // formatting of the start date for the container
-                    const targetDateLocal = $.bsCalendar.utils.formatDateToDateString(startDate);
+                        // Copy the original and return the clean appointment with the calculated extras
+                        const returnData = getAppointmentForReturn(appointment);
 
-                    // Search of the container based on the date and Weekday
-                    const $weekDayContainer = $viewContainer.find(
-                        `.wc-day-view-time-slots[data-week-day="${weekday}"][data-date-local="${targetDateLocal}"]`
-                    );
-                    if (!$weekDayContainer.length) {
-                        console.warn(
-                            `Full-Width-Container für Weekday ${weekday} mit Datum ${targetDateLocal} nicht gefunden.`
-                        );
-                        return; // skip when the container is missing
-                    }
+                        const appointmentContent = view === 'day' ?
+                            settings.formatter.day(returnData.appointment, returnData.extras) :
+                            settings.formatter.week(returnData.appointment, returnData.extras);
 
-                    // Copy the original and return the clean appointment with the calculated extras
-                    const returnData = getAppointmentForReturn(appointment);
+                        // rendering the full-width date
+                        const appointmentElement = $('<div>', {
+                            'data-appointment': true,
+                            class: 'position-absolute overflow-hidden rounded',
+                            css: {
+                                top: `${position.top}px`,
+                                height: `${position.height}px`,
+                                left: `${appointmentLeftPercent}%`,
+                                width: `${appointmentWidthPercent}%`,
+                                zIndex: overlapIndex + 1
+                            },
+                            html: appointmentContent,
+                        }).appendTo($weekDayContainer);
 
-                    const appointmentContent = view === 'day' ?
-                        settings.formatter.day(returnData.appointment, returnData.extras) :
-                        settings.formatter.week(returnData.appointment, returnData.extras);
-
-                    // rendering the full-width date
-                    const appointmentElement = $('<div>', {
-                        'data-appointment': true,
-                        class: 'position-absolute overflow-hidden rounded',
-                        css: {
-                            top: `${position.top}px`,
-                            height: `${position.height}px`,
-                            left: `${appointmentLeftPercent}%`,
-                            width: `${appointmentWidthPercent}%`,
-                            zIndex: overlapIndex + 1
-                        },
-                        html: appointmentContent,
-                    }).appendTo($weekDayContainer);
-
-                    // add meta data and styling
-                    appointmentElement.data('appointment', appointment);
-                    setAppointmentStyles(appointmentElement, appointment.extras.colors);
-                });
+                        // add meta data and styling
+                        appointmentElement.data('appointment', appointment);
+                        setAppointmentStyles(appointmentElement, appointment.extras.colors);
+                    });
 
                 // --- Stacking pass per actual day container ---
                 // Ensure deterministic zIndex across both column and fullWidth appointments:
@@ -6145,7 +6433,7 @@
                             const appt = $el.data('appointment');
                             const start = appt ? $.bsCalendar.utils.parseDateInput(appt.start) : null;
                             const end = appt ? $.bsCalendar.utils.parseDateInput(appt.end) : null;
-                            return { $el, start, end };
+                            return {$el, start, end};
                         }).filter(x => x.start && !isNaN(x.start.getTime()));
 
                         entries.sort((a, b) => a.start - b.start || (a.end && b.end ? a.end - b.end : 0));
@@ -6544,6 +6832,12 @@
                     const monthEnd = new Date(lastOfMonth);
                     monthEnd.setDate(lastOfMonth.getDate() + (6 - (lastOfMonth.getDay() - firstDayOffset + 7) % 7)); // last day of last week
 
+                    const viewRange = getStartAndEndDateByView($wrapper);
+                    const viewRangeStart = new Date(viewRange.start);
+                    const viewRangeEnd = new Date(viewRange.end);
+                    viewRangeStart.setHours(0, 0, 0, 0);
+                    viewRangeEnd.setHours(23, 59, 59, 999);
+
                     while (tempDate <= tempEnd) {
                         const dateIsStart = $.bsCalendar.utils.datesAreEqual(tempDate, start);
                         const dateIsEnd = $.bsCalendar.utils.datesAreEqual(tempDate, end);
@@ -6582,20 +6876,8 @@
                             dateDetails.visibleInMonth = true;
                         }
 
-                        // Exam for a weekly display is already implemented
-                        const weekRangeStart = new Date(tempDate);
-                        const weekRangeEnd = new Date(tempDate);
-
-                        if (settings.startWeekOnSunday) {
-                            weekRangeStart.setDate(weekRangeStart.getDate() - weekRangeStart.getDay());
-                        } else {
-                            const dayOffset = (weekRangeStart.getDay() === 0 ? 7 : weekRangeStart.getDay()) - 1;
-                            weekRangeStart.setDate(weekRangeStart.getDate() - dayOffset);
-                        }
-                        weekRangeStart.setHours(0, 0, 0, 0);
-                        weekRangeEnd.setTime(weekRangeStart.getTime() + 7 * 24 * 60 * 60 * 1000 - 1);
-
-                        if (tempDate >= weekRangeStart && tempDate <= weekRangeEnd) {
+                        // Check if the date is within the current view range (day, 4day, week)
+                        if (tempDate >= viewRangeStart && tempDate <= viewRangeEnd) {
                             dateDetails.visibleInWeek = true;
                         }
 
@@ -6664,6 +6946,7 @@
 
             switch (view) {
                 case 'day':
+                case '4day':
                 case 'week':
                     drawAppointmentsForDayOrWeek($wrapper, appointments);
                     break;
@@ -6846,7 +7129,7 @@
             // Get the current view of the calendar (e.g. "day", "week", "month")
             const settings = getSettings($wrapper);
             const view = getView($wrapper);
-            const isDayOrWeek = view === 'day' || view === 'week';
+            const isDayOrWeek = view === 'day' || view === 'week' || view === '4day';
             const isMonth = view === 'month';
             const isYear = view === 'year';
             // Get the container element for the current calendar view
@@ -6886,7 +7169,7 @@
                     if (container?.length) {
                         if (!isYear) {
                             // build a wrapper for a holiday element
-                            if (container.is(':empty') && (view === 'day' || view === 'week')) {
+                            if (container.is(':empty') && (view === 'day' || view === 'week' || view === '4day')) {
                                 container.addClass('pb-3');
                             }
                             const $holidayWrapper = $('<small>', {
@@ -7043,6 +7326,20 @@
                 case "day":
                     // nothing to change
                     break;
+                case "4day": {
+                    const newEnd = new Date(startDate.getTime());
+                    newEnd.setDate(startDate.getDate() + 3);
+                    endDate.setTime(newEnd.getTime());
+
+                    if (settings.debug) {
+                        log("getStartAndEndDateByView (4day) computed:", {
+                            viewDate: $.bsCalendar.utils.formatDateToDateString(date),
+                            start: $.bsCalendar.utils.formatDateToDateString(startDate),
+                            end: $.bsCalendar.utils.formatDateToDateString(endDate)
+                        });
+                    }
+                    break;
+                }
                 case "week": {
                     const dayOfWeek = startDate.getDay();
                     // If startWeekOnSunday -> offset relative to Sunday, otherwise Monday-based week: compute offset to Monday (Sunday -> -6)
@@ -7402,16 +7699,16 @@
             }).appendTo($container);
 
             const thead = $('<thead>').appendTo(table);
-            const weekdaysRow = $('<tr>', { css: { height: `${cellSize}px` } }).appendTo(thead);
+            const weekdaysRow = $('<tr>', {css: {height: `${cellSize}px`}}).appendTo(thead);
 
-            $('<th>', { class: 'p-0', css: { width: weekRowWidth + 'px' }, text: '' }).appendTo(weekdaysRow);
+            $('<th>', {class: 'p-0', css: {width: weekRowWidth + 'px'}, text: ''}).appendTo(weekdaysRow);
 
             const weekDays = $.bsCalendar.utils.getShortWeekDayNames(settings.locale, settings.startWeekOnSunday);
             weekDays.forEach(day => {
                 $('<th>', {
                     text: day.substring(0, 2),
                     class: 'text-body-secondary fw-normal p-0',
-                    css: { width: `${cellSize}px`, verticalAlign: 'middle' }
+                    css: {width: `${cellSize}px`, verticalAlign: 'middle'}
                 }).appendTo(weekdaysRow);
             });
 
@@ -7419,12 +7716,12 @@
             let currentDate = new Date(calendarStart);
 
             while (currentDate <= calendarEnd) {
-                const weekRow = $('<tr>', { css: { height: `${cellSize}px` } }).appendTo(tbody);
+                const weekRow = $('<tr>', {css: {height: `${cellSize}px`}}).appendTo(tbody);
 
                 const calendarWeek = $.bsCalendar.utils.getCalendarWeek(currentDate);
                 const weekColumn = $('<td>', {
                     class: 'text-body-tertiary p-0 align-middle small',
-                    css: { fontSize: (fontSize - 3) + 'px', width: weekRowWidth + 'px' },
+                    css: {fontSize: (fontSize - 3) + 'px', width: weekRowWidth + 'px'},
                     text: calendarWeek,
                 }).appendTo(weekRow);
 
@@ -7482,14 +7779,13 @@
                     $('<td>', {
                         'data-date': $.bsCalendar.utils.formatDateToDateString(currentDate),
                         class: 'p-0 align-middle position-relative',
-                        css: { cursor: 'pointer' }
+                        css: {cursor: 'pointer'}
                     }).append($cellContent).appendTo(weekRow);
 
                     currentDate.setDate(currentDate.getDate() + 1);
                 }
             }
         }
-
 
 
         /**
@@ -7540,6 +7836,10 @@
         function buildWeekView($wrapper) {
             // get the main container for the view
             const $viewContainer = getViewContainer($wrapper);
+            const data = getBsCalendarData($wrapper);
+            const is4Day = data.view === '4day';
+            const dayCount = is4Day ? 4 : 7;
+
             // empty container (remove the old content)
             $viewContainer.empty();
 
@@ -7551,11 +7851,18 @@
             const settings = getSettings($wrapper);
             const {startWeekOnSunday} = settings;
             const currentDay = date.getDay();
-            const startOfWeek = new Date(date);
-            const startOffset = startWeekOnSunday ? currentDay : currentDay === 0 ? 6 : currentDay - 1;
-            startOfWeek.setDate(date.getDate() - startOffset);
+
+            let startOfWeek;
+            if (is4Day) {
+                startOfWeek = new Date(date);
+            } else {
+                startOfWeek = new Date(date);
+                const startOffset = startWeekOnSunday ? currentDay : currentDay === 0 ? 6 : currentDay - 1;
+                startOfWeek.setDate(date.getDate() - startOffset);
+            }
+
             const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 6);
+            endOfWeek.setDate(startOfWeek.getDate() + (dayCount - 1));
 
 // DEBUG: Ausgabe des berechneten Wochenbereichs
             if (settings.debug) {
@@ -7568,12 +7875,12 @@
             }).appendTo($container);
 
 
-            for (let day = 0; day < 7; day++) {
+            for (let day = 0; day < dayCount; day++) {
                 const col = $('<div>', {
                     class: 'flex-grow-1 d-flex flex-column jusify-content-center align-items-center flex-fill position-relative overflow-hidden',
                     css: {
                         // minHeight:'133px',
-                        width: (100 / 7) + '%' // Fixe Breite für 7 Spalten
+                        width: (100 / dayCount) + '%' // Fixe Breite für Spalten
                     }
 
                 }).appendTo(wrappAllDay);
@@ -7586,10 +7893,10 @@
                 headline.attr('data-date', $.bsCalendar.utils.formatDateToDateString(currentDate)).css('cursor', 'pointer');
                 $('<div>', {
                     css: {
-                        minHeight:'45px',
-                        // width: (100 / 7) + '%' // Fixe Breite für 7 Spalten
+                        minHeight: '45px',
+                        // width: (100 / dayCount) + '%' // Fixe Breite für Spalten
                     },
-                        'data-all-day': currentDate.getDay(),
+                    'data-all-day': currentDate.getDay(),
                     'data-date-local': $.bsCalendar.utils.formatDateToDateString(currentDate),
                     class: 'd-flex flex-column align-items-stretch flex-fill w-100',
                 }).appendTo(col);
@@ -7604,7 +7911,7 @@
 
 
             // iteration over the days of the week (from starting day to end day)
-            for (let day = 0; day < 7; day++) {
+            for (let day = 0; day < dayCount; day++) {
                 const currentDate = new Date(startOfWeek);
                 currentDate.setDate(startOfWeek.getDate() + day); // calculate the next day
 
@@ -7614,7 +7921,7 @@
                     'data-date-local': $.bsCalendar.utils.formatDateToDateString(currentDate),
                     class: 'wc-day-week-view flex-grow-1 flex-fill border-end position-relative',
                     css: {
-                        width: (100 / 7) + '%' // Fixe Breite für 7 Spalten
+                        width: (100 / dayCount) + '%' // Fixe Breite für Spalten
                     }
                 }).appendTo(weekContainer);
 
@@ -8073,11 +8380,13 @@
                 if (!modalExists) {
                     const roundedClass = 'rounded-' + settings.rounded;
                     const borderClass = settings.border;
+                    const shadowClass = (borderClass.includes('shadow-none') || !/shadow(-\w+)?/.test(borderClass)) ? 'shadow' : '';
+                    const shadowStyle = shadowClass === 'shadow' ? 'box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;' : '';
                     // If the modal does not exist, create the modal's HTML structure and append it to the body.
                     const modalHtml = [
                         `<div class="modal fade pe-none" id="${globalCalendarElements.infoModal.substring(1)}" tabindex="-1" data-bs-backdrop="false">`,
-                        `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto overflow-y-auto" style="max-height: calc(100% - var(--bs-modal-margin) * 2);">`,
-                        `<div class="modal-content ${borderClass} bs-calendar-border-style ">`,
+                        `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto rounded-3" style="max-height: calc(100% - var(--bs-modal-margin) * 2);box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;">`,
+                        `<div class="modal-content border-0  bs-calendar-border-style " style="${shadowStyle}">`,
                         `<div class="modal-body d-flex flex-column align-items-stretch pb-4">`,
                         `<div class="d-flex justify-content-end align-items-center" data-modal-options>`,
                         `<button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i></button>`,
@@ -8212,7 +8521,7 @@
                         $modalDialog.animate({
                             top: `${top}px`,
                             left: `${left}px`
-                        });
+                        }, "slow");
                     } else {
                         $modalDialog.css({
                             top: `${top}px`,

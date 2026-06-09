@@ -1,7 +1,7 @@
 ### Changelog for `bs-calendar.js`
-
-- [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
-    * [**dev-main**](#dev-main)
+ 
+ - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.2.0**](#version-220)
     * [**Version 2.1.8**](#version-218)
     * [**Version 2.1.7**](#version-217)
     * [**Version 2.1.6**](#version-216)
@@ -42,10 +42,23 @@
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
 
-### dev-main
+### Version 2.2.0
 
-- Bugfix: Week-view drag hit-testing now scopes slot detection to the active view container to avoid temporary hiding/misplacement of other appointments during drag-move edge cases (e.g. Saturday column interactions).
-- Files modified: `dist/bs-calendar.js`
+- Feature: Added new "4day" view that shows 4 days starting from the currently selected date.
+- Improvement: Generalized week view rendering to support variable day counts.
+- Improvement: Added translations for "4day" view in all supported languages.
+- Improvement: Added `bi-calendar-range` icon for the 4-day view.
+- Improvement: Added navigation support (4-day steps) for the "4day" view.
+- Bugfix: Fixed several issues in the drag & drop logic where appointments could disappear or become unresponsive during active drags, especially in columns with multiple entries.
+- Bugfix: Fixed an indexing issue in week and 4day view where appointments were incorrectly grouped when multiple days with the same weekday were visible.
+- Bugfix: Fixed a bug where appointments spanning multiple days would disappear in the `week` and `4day` views.
+- Bugfix: Fixed a bug where multi-day appointments would disappear or cause layout issues during drag-and-drop by correctly cropping them to the current day's visible range.
+- Bugfix: Added missing title generation for the "4day" view in `setCurrentDateName()`.
+- Bugfix: Fixed missing shadow on `wcCalendarInfoWindowModal`. Added inline style fallback to ensure shadow visibility across different environments.
+- Bugfix: Fixed an issue where calendar colors were not correctly calculated in some browsers by ensuring the temporary element is visible during style computation and adding fallbacks for different Bootstrap versions.
+- Bugfix: Fixed visibility issues with sidebar addons (like the language select) by ensuring correct overflow settings in the sidebar containers and the demo page.
+- Bugfix: Fixed a bug where the "4day" view was missing from the view switch if not explicitly configured in the settings (corrected fallback in `init()`).
+- Files modified: `dist/bs-calendar.js`, `README.md`, `changelog.md`, `demo/index.html`
 
 ### Version 2.1.8
 

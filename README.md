@@ -1,11 +1,11 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.1.7-blue)
+![Version](https://img.shields.io/badge/version-2.2.0-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-`bs-calendar` is a jQuery plugin for Bootstrap 5 calendars with `day`, `week`, `month`, and `year` views. It supports
+`bs-calendar` is a jQuery plugin for Bootstrap 5 calendars with `day`, `4day`, `week`, `month`, and `year` views. It supports
 remote appointment loading, calendar filters, search, holidays, custom formatting, drag-create, drag-move, and local
 appointment add/edit/delete methods.
 
@@ -65,7 +65,7 @@ Use CDN/script tags:
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.1.7/dist/bs-calendar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.2.0/dist/bs-calendar.min.js"></script>
 ```
 
 Or install via Composer:
@@ -459,9 +459,9 @@ Some options can be updated later with `updateOptions`.
 | `search.limit`         | `number`                        | `10`                                 | Number of search results per page.                                                                |
 | `search.offset`        | `number`                        | `0`                                  | Initial search offset.                                                                            |
 | `startDate`            | `Date` or `string`              | `new Date()`                         | Initial reference date.                                                                           |
-| `startView`            | `string`                        | `"month"`                            | Initial view: `year`, `month`, `week`, or `day`.                                                  |
+| `startView`            | `string`                        | `"month"`                            | Initial view: `year`, `month`, `week`, `4day` or `day`.                                           |
 | `mainColor`            | `string`                        | `"primary"`                          | Default color used by highlights and appointments.                                                |
-| `views`                | `array`                         | `["year", "month", "week", "day"]`   | Enabled views.                                                                                    |
+| `views`                | `array`                         | `["year", "month", "week", "4day", "day"]` | Enabled views.                                                                            |
 | `holidays`             | `object` or `null`              | `null`                               | OpenHolidays configuration.                                                                       |
 | `showAddButton`        | `boolean`                       | `true`                               | Shows the toolbar add button.                                                                     |
 | `draggable`            | `boolean`                       | `false`                              | Enables drag-create in day/week view and drag-move in day/week/month view. Touch uses long-press. |

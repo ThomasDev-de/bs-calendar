@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11,14 +11,16 @@
 <div id="calendar" data-sidebar-addons="#sidebarAddons" data-topbar-addons="#topbarAddons"></div>
 
 <div id="sidebarAddons">
-    <div class="card-body d-flex flex-column">
+    <div class="card-body d-flex flex-column overflow-visible">
         <label class="form-label mb-1" for="selectLanguage">Language</label>
         <select class="form-select form-select-sm mb-3" id="selectLanguage">
             <option value="en">English</option>
             <option value="de">Deutsch</option>
         </select>
 
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday">setToday('week')</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday" data-view="week">setToday('week')</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday" data-view="4day">setToday('4day')</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setView" data-view="4day">setView('4day')</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="clear">Clear</button>
     </div>
@@ -141,7 +143,7 @@
                 btnSetToday: "setToday('week')",
                 btnRefresh: 'Refresh',
                 btnClear: 'Clear',
-                topbarHint: 'You can move appointments in day, month and week views using drag and drop.',
+                topbarHint: 'You can move appointments in day, 4day, month and week views using drag and drop.',
                 modalTitle: 'Appointment',
                 inputTitlePlaceholder: 'appointment title',
                 labelTitle: 'Title',
@@ -221,7 +223,8 @@
         function initCalendar() {
             $calendar.bsCalendar({
                 title: '<span class="h4 text-uppercase mb-0">$.fn.bsCalendar</span>',
-                locale: i18n[state.lang].locale,
+                // locale: i18n[state.lang].locale,
+                locale: 'de-DE',
                 startWeekOnSunday: false,
                 navigateOnWheel: false,
                 draggable: true,
@@ -306,7 +309,10 @@
                         $calendar.bsCalendar('refresh');
                         break;
                     case 'setToday':
-                        $calendar.bsCalendar('setToday', 'week');
+                        $calendar.bsCalendar('setToday', $(this).data('view') || 'week');
+                        break;
+                    case 'setView':
+                        $calendar.bsCalendar('setView', $(this).data('view') || 'month');
                         break;
                     default:
                         break;
