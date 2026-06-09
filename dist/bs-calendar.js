@@ -4966,6 +4966,8 @@
                         return;
                     }
                     const startMinutes = getMinutesFromPointer($eventWrapper, $slotContainer, startPoint.y);
+                    const mainColors = $.bsCalendar.utils.getColors(settings.mainColor);
+
                     const $preview = $('<div>', {
                         class: 'position-absolute rounded',
                         css: {
@@ -4975,9 +4977,9 @@
                             height: '0',
                             display: 'none',
                             zIndex: 11,
-                            backgroundColor: 'var(--bs-primary)',
+                            backgroundColor: mainColors.backgroundColor,
                             opacity: 0.2,
-                            border: '1px solid var(--bs-primary)'
+                            border: '1px solid ' + mainColors.backgroundColor
                         }
                     }).appendTo($slotContainer);
 
@@ -4989,7 +4991,7 @@
                             top: '-18px',
                             fontSize: '11px',
                             fontWeight: 'bold',
-                            color: 'var(--bs-primary)',
+                            color: mainColors.backgroundColor,
                             zIndex: 12
                         },
                         text: ''
@@ -5002,7 +5004,7 @@
                             bottom: '-18px',
                             fontSize: '11px',
                             fontWeight: 'bold',
-                            color: 'var(--bs-primary)',
+                            color: mainColors.backgroundColor,
                             zIndex: 12
                         },
                         text: ''
@@ -5410,6 +5412,8 @@
                         return;
                     }
 
+                    const mainColors = $.bsCalendar.utils.getColors(settings.mainColor);
+
                     const $slotContainer = $(e.currentTarget);
                     let $indicator = $slotContainer.find('[data-role="time-indicator"]');
 
@@ -5422,10 +5426,10 @@
                                 left: '0',
                                 right: '0',
                                 height: '2px',
-                                backgroundColor: 'var(--bs-primary)',
+                                backgroundColor: mainColors.backgroundColor,
                                 zIndex: 10,
                                 opacity: 0.7,
-                                boxShadow: '0 0 4px var(--bs-primary)',
+                                boxShadow: '0 0 4px ' + mainColors.backgroundColor,
                                 pointerEvents: 'none'
                             }
                         }).appendTo($slotContainer);
@@ -5433,7 +5437,7 @@
                         // Add time label badge
                         const $timeLabel = $('<div>', {
                             'data-role': 'time-label',
-                            class: 'position-absolute badge bg-primary',
+                            class: 'position-absolute badge',
                             css: {
                                 fontSize: '10px',
                                 padding: '2px 4px',
@@ -5441,7 +5445,9 @@
                                 transform: 'translateY(-50%)',
                                 zIndex: 11,
                                 whiteSpace: 'nowrap',
-                                pointerEvents: 'none'
+                                pointerEvents: 'none',
+                                backgroundColor: mainColors.backgroundColor,
+                                color: mainColors.color
                             },
                             text: ''
                         }).appendTo($indicator);
