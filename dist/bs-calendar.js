@@ -4419,6 +4419,9 @@
                             }
                         }
 
+                        if (!globalDragState.monthMoveDragState.dragged) {
+                            $(globalCalendarElements.infoModal).modal('hide');
+                        }
                         globalDragState.monthMoveDragState.$appointment.css({opacity: 0.8});
                         globalDragState.monthMoveDragState.dragged = true;
                     }
@@ -4450,6 +4453,9 @@
                         globalDragState.createDragState.$startTimeLabel.text(startTimeStr);
                         globalDragState.createDragState.$endTimeLabel.text(endTimeStr);
 
+                        if (!globalDragState.createDragState.dragged) {
+                            $(globalCalendarElements.infoModal).modal('hide');
+                        }
                         globalDragState.createDragState.currentStartMinutes = startMinutes;
                         globalDragState.createDragState.currentEndMinutes = endMinutes;
                         globalDragState.createDragState.dragged = true;
@@ -4507,6 +4513,9 @@
                         globalDragState.moveDragState.$timeDisplay.text(timeStr);
 
                         globalDragState.moveDragState.$appointment.css({opacity: 0.8});
+                        if (!globalDragState.moveDragState.dragged) {
+                            $(globalCalendarElements.infoModal).modal('hide');
+                        }
                         globalDragState.moveDragState.currentStartMinutes = snappedStart;
                         globalDragState.moveDragState.dragged = true;
                     }
@@ -4916,8 +4925,6 @@
                     }).appendTo($preview);
 
                     const activateCreateDrag = () => {
-                        // Close info modal if open
-                        $(globalCalendarElements.infoModal).modal('hide');
                         // Hide hover time indicator while an active drag is running
                         $eventWrapper.find('[data-role="time-indicator"]').remove();
                         globalDragState.createDragState = {
@@ -4998,8 +5005,6 @@
                         }
 
                         const activateMonthMoveDrag = () => {
-                            // Close info modal if open
-                            $(globalCalendarElements.infoModal).modal('hide');
                             const $placeholder = $('<span>', {
                                 'data-role': 'month-drag-placeholder',
                                 css: {display: 'none'}
@@ -5085,8 +5090,6 @@
                     });
 
                     const activateMoveDrag = () => {
-                        // Close info modal if open
-                        $(globalCalendarElements.infoModal).modal('hide');
                         // Hide hover time indicator while an active drag is running
                         $eventWrapper.find('[data-role="time-indicator"]').remove();
                         globalDragState.moveDragState = {

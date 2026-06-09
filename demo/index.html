@@ -47,15 +47,15 @@
                     <label for="appointmentTitle">Title</label>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center flex-nowrap mb-3">
-                    <div class="form-floating flex-fill">
-                        <input name="from_date" type="date" class="form-control" id="appointmentFromDate">
-                        <label for="appointmentFromDate">From date</label>
+                <div class="mb-3">
+                    <div id="appointmentDateRange">
+                        <input name="from_date" type="hidden"  id="appointmentFromDate">
+                        <input name="to_date" type="hidden"  id="appointmentToDate">
                     </div>
-                    <div class="mx-1"></div>
-                    <div class="form-floating flex-fill">
-                        <input name="to_date" type="date" class="form-control" id="appointmentToDate">
-                        <label for="appointmentToDate">To date</label>
+                    <div class="small text-body-secondary mt-1">
+                        Date selection powered by
+                        <a href="https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-datepicker" target="_blank"
+                           rel="noopener noreferrer">ThomasDev-de/bs-datepicker</a>.
                     </div>
                 </div>
 
@@ -72,20 +72,20 @@
                 </div>
 
                 <div class="js-time-fields">
-                    <div class="d-flex justify-content-between align-items-center flex-nowrap mb-3">
-                        <div class="flex-fill">
+                    <div class="d-flex justify-content-start align-items-center flex-nowrap mb-3 gap-2">
+                        <div class="flex-fill-">
                             <label for="appointmentFromTimePicker" class="form-label mb-1">From time</label>
                             <div id="appointmentFromTimePicker"></div>
                         </div>
-                        <div class="mx-1"></div>
-                        <div class="flex-fill">
+                        <div class="flex-fill-">
                             <label for="appointmentToTimePicker" class="form-label mb-1">To time</label>
                             <div id="appointmentToTimePicker"></div>
                         </div>
                     </div>
                     <div class="small text-body-secondary mb-3">
                         Time selection powered by
-                        <a href="https://github.com/ThomasDev-de/bs-timepicker" target="_blank" rel="noopener noreferrer">ThomasDev-de/bs-timepicker</a>.
+                        <a href="https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-timepicker" target="_blank"
+                           rel="noopener noreferrer">ThomasDev-de/bs-timepicker</a>.
                     </div>
                 </div>
 
@@ -102,8 +102,15 @@
                 </div>
 
                 <div class="d-flex justify-content-end align-items-center">
-                    <label for="appointmentColor" class="d-none">Color</label>
-                    <input type="color" name="color" class="form-control me-2" id="appointmentColor">
+                    <div class="small text-body-secondary mb-3">
+                        Color picker powered by
+                        <a href="https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-color-picker" target="_blank"
+                           rel="noopener noreferrer">ThomasDev-de/bs-colorpicker</a>.
+                    </div>
+                    <div class="me-2">
+                        <label for="appointmentColor" class="d-none">Color</label>
+                        <input type="color" name="color" class="form-control me-2" id="appointmentColor">
+                    </div>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary ms-2" data-save-appointment>Save</button>
                 </div>
@@ -115,12 +122,25 @@
 <script src="../vendor/components/jquery/jquery.min.js"></script>
 <script src="../vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 <script src="../dist/bs-calendar.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-timepicker@1.0.6/dist/bs-timepicker.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-timepicker@main/dist/bs-timepicker.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-color-picker@main/dist/bs-color-picker.js?v=dev"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-datepicker@main/dist/bs-datepicker.min.js?v=dev"></script>
 <!--suppress JSUnresolvedReference -->
 <script>
     $(function () {
         const $calendar = $('#calendar');
         const $modal = $('#appointmentModal');
+        const $colorpicker = $('#appointmentColor');
+        const $dateRange = $('#appointmentDateRange');
+
+        $colorpicker.bsColorPicker({
+            btnClass: 'btn btn-lg btn-outline-secondary',
+        });
+
+        $dateRange.bsDatepicker({
+            months: 1,
+            range: true
+        });
 
         const modalState = {
             mode: 'add',
@@ -369,6 +389,9 @@
                 holidays: t.holidays,
                 calendars: t.calendars
             });
+            if (typeof $.fn.bsDatepicker === 'function') {
+                $dateRange.bsDatepicker('setLocale', t.locale);
+            }
             $calendar.bsCalendar('refresh');
             applyCalendarLabels(t.calendars);
         }
@@ -447,14 +470,22 @@
             $modal.find('.modal-title').text(mode === 'edit' ? t.modalEditTitle : t.modalAddTitle);
             $modal.find('[data-save-appointment]').text(mode === 'edit' ? t.modalUpdate : t.modalCreate);
             $modal.find('input[name="title"]').val(appointment.title || '');
-            $modal.find('input[name="from_date"]').val(appointment.startDate);
-            $modal.find('input[name="to_date"]').val(appointment.endDate);
+
+            // console.log(mode, appointment);
+            if (typeof $.fn.bsDatepicker === 'function') {
+                $dateRange.bsDatepicker('val', [appointment.startDate, appointment.endDate]);
+            } else {
+                $modal.find('input[name="from_date"]').val(appointment.startDate);
+                $modal.find('input[name="to_date"]').val(appointment.endDate);
+            }
+
             setModalTimeValue('from_time', appointment.startTime || '');
             setModalTimeValue('to_time', appointment.endTime || '');
             $modal.find('input[name="allDay"]').prop('checked', !!appointment.allDay).trigger('change');
             $modal.find('input[name="overlap"]').prop('checked', !!appointment.overlap);
             $modal.find('textarea[name="description"]').val(appointment.description || '');
-            $modal.find('input[name="color"]').val(normalizeColorInput(appointment.color));
+            $colorpicker.bsColorPicker('val', appointment.color);
+            // $modal.find('input[name="color"]').val(normalizeColorInput(appointment.color));
             $modal.find('input[name="link"]').val(appointment.link || '');
             $modal.modal('show');
         }
