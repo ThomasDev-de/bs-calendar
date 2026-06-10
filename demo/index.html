@@ -255,6 +255,13 @@
 
         function initCalendar() {
             let eventCounter = 1;
+            const storageKey = 'bsCalendar.demo.language';
+            const lang = localStorage.getItem(storageKey) || 'en';
+            state.lang = lang;
+
+            $calendar.on('init.bs.calendar', function () {
+                applyLanguage(lang, false);
+            });
             $calendar.bsCalendar({
                 title: '<span class="h4 text-uppercase mb-0">$.fn.bsCalendar</span>',
                 locale: i18n[state.lang].locale,
@@ -375,10 +382,6 @@
         function initLanguageControls() {
             const storageKey = 'bsCalendar.demo.language';
             const $languageSelect = $('#selectLanguage');
-            const lang = 'en';
-            state.lang = lang;
-            $languageSelect.val(lang);
-            applyLanguage(lang);
 
             $languageSelect.on('change', function () {
                 const nextLang = $(this).val();
@@ -391,10 +394,12 @@
             });
         }
 
-        function applyLanguage(lang) {
+        function applyLanguage(lang, refresh = true) {
             const t = i18n[lang] || i18n.en;
+            state.lang = lang;
+            $('#selectLanguage').val(lang);
             $('html').attr('lang', t.htmlLang);
-
+            
             $('label[for="selectLanguage"]').text(t.sidebarLanguage);
             // $('[data-method="setToday"]').text(t.btnSetToday);
             $('[data-method="refresh"]').text(t.btnRefresh);
@@ -425,7 +430,9 @@
             if (typeof $.fn.bsDatepicker === 'function') {
                 $dateRange.bsDatepicker('setLocale', t.locale);
             }
-            $calendar.bsCalendar('refresh');
+            if (refresh) {
+                $calendar.bsCalendar('refresh');
+            }
             applyCalendarLabels(t.calendars);
         }
 

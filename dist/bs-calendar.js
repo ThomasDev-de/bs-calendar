@@ -5160,7 +5160,6 @@
                         class: 'position-absolute rounded',
                         css: {
                             right: '2px',
-                            right: '2px',
                             top: '0',
                             height: '0',
                             display: 'none',
