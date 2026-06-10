@@ -195,6 +195,7 @@ Optional fields:
 | `editable`    | `boolean`                    | `true`                 | Controls whether the info window shows an edit button.                                                                                                                   |
 | `deleteable`  | `boolean`                    | `true`                 | Controls whether the info window shows a delete button.                                                                                                                  |
 | `overlap`     | `boolean`                    | `false`                | Day/week view only: when `true`, this appointment is rendered full-width and may overlap other time-based appointments instead of being split into side-by-side columns. |
+| `task`        | `object`                     | `null`                 | If provided, the appointment is treated as a task. See [Tasks](#tasks) section for details.                                                                              |
 
 Reserved field:
 

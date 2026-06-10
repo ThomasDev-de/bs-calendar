@@ -497,7 +497,7 @@
                     appointmentAllDay: 'bi bi-brightness-high',
                     task: 'bi bi-circle',
                     taskDone: 'bi bi-check2-circle',
-                    taskOverdue: 'bi bi-exclamation-circle text-danger'
+                    taskOverdue: 'bi bi-exclamation-circle'
                 },
                 url: null,
                 queryParams: null,
@@ -2359,7 +2359,7 @@
         function formatterWeek(appointment, extras) {
             if (appointment.task) {
                 const textClass = appointment.task.checked ? 'text-decoration-line-through text-muted' : '';
-                const overdueClass = appointment.task.isOverdue ? 'text-danger fw-bold' : '';
+                const overdueClass = appointment.task.isOverdue ? '' : '';
                 return `<div class="badge d-flex align-items-center flex-nowrap ${textClass} ${overdueClass}" style="font-size: 10px; color: ${extras.colors.color}; background-color: ${extras.colors.backgroundColor}; background-image: ${extras.colors.backgroundImage}"><i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i> <span class="text-truncate">${appointment.title}</span></div>`;
             }
             void extras;
@@ -2376,7 +2376,7 @@
         function formatterMonth(appointment, extras) {
             if (appointment.task) {
                 const textClass = appointment.task.checked ? 'text-decoration-line-through' : '';
-                const overdueClass = appointment.task.isOverdue ? 'text-danger fw-bold' : '';
+                const overdueClass = appointment.task.isOverdue ? '' : '';
                 return `
                 <div class="d-flex align-items-center flex-nowrap ${textClass}" style="font-size: 12px; line-height: 18px; color: ${extras.colors.color}; height: 18px; overflow: hidden;">
                     <i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i>
