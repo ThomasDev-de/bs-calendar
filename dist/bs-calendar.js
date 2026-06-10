@@ -72,7 +72,9 @@
                     month: 'شهر',
                     year: 'سنة',
                     search: 'اكتب واضغط Enter',
-                    searchNoResult: 'لم يتم العثور على موعد'
+                    searchNoResult: 'لم يتم العثور على موعد',
+                    tasks: 'المهام',
+                    duplicate: 'تكرار'
                 },
 
                 'he': { // Hebrew
@@ -83,7 +85,9 @@
                     month: 'חודש',
                     year: 'שנה',
                     search: 'הקלד ולחץ על Enter',
-                    searchNoResult: 'לא נמצא תור'
+                    searchNoResult: 'לא נמצא תור',
+                    tasks: 'משימות',
+                    duplicate: 'שכפול'
                 },
 
                 'zh': { // Chinese Simplified
@@ -94,7 +98,9 @@
                     month: '月',
                     year: '年',
                     search: '输入并按 Enter',
-                    searchNoResult: '未找到预约'
+                    searchNoResult: '未找到预约',
+                    tasks: '任务',
+                    duplicate: '复制'
                 },
 
                 'en': { // English
@@ -105,7 +111,9 @@
                     month: 'Month',
                     year: 'Year',
                     search: 'Type and press Enter',
-                    searchNoResult: 'No appointment found'
+                    searchNoResult: 'No appointment found',
+                    tasks: 'Tasks',
+                    duplicate: 'Duplicate'
                 },
 
                 'de': { // German
@@ -116,106 +124,126 @@
                     month: 'Monat',
                     year: 'Jahr',
                     search: 'Tippen und Enter drücken',
-                    searchNoResult: 'Kein Termin gefunden'
+                    searchNoResult: 'Kein Termin gefunden',
+                    tasks: 'Aufgaben',
+                    duplicate: 'Duplizieren'
                 },
 
                 'es': { // Spanish
                     today: 'Hoy',
                     day: 'Día',
-                    '4day': '4 Días',
+                    '4day': '4 días',
                     week: 'Semana',
                     month: 'Mes',
                     year: 'Año',
                     search: 'Escribe y pulsa Enter',
-                    searchNoResult: 'No se encontró ninguna cita'
+                    searchNoResult: 'No se encontró ninguna cita',
+                    tasks: 'Tareas',
+                    duplicate: 'Duplicar'
                 },
 
                 'fr': { // French
                     today: 'Aujourd’hui',
                     day: 'Jour',
-                    '4day': '4 Jours',
+                    '4day': '4 jours',
                     week: 'Semaine',
                     month: 'Mois',
                     year: 'Année',
                     search: 'Tapez et appuyez sur Entrée',
-                    searchNoResult: 'Aucun rendez-vous trouvé'
+                    searchNoResult: 'Aucun rendez-vous trouvé',
+                    tasks: 'Tâches',
+                    duplicate: 'Dupliquer'
                 },
 
                 'it': { // Italian
                     today: 'Oggi',
                     day: 'Giorno',
-                    '4day': '4 Giorni',
+                    '4day': '4 giorni',
                     week: 'Settimana',
                     month: 'Mese',
                     year: 'Anno',
                     search: 'Digita e premi Invio',
-                    searchNoResult: 'Nessun appuntamento trovato'
+                    searchNoResult: 'Nessun appuntamento trovato',
+                    tasks: 'Attività',
+                    duplicate: 'Duplica'
                 },
 
                 'pt': { // Portuguese
                     today: 'Hoje',
                     day: 'Dia',
-                    '4day': '4 Dias',
+                    '4day': '4 dias',
                     week: 'Semana',
                     month: 'Mês',
                     year: 'Ano',
                     search: 'Digite e pressione Enter',
-                    searchNoResult: 'Nenhum compromisso encontrado'
+                    searchNoResult: 'Nenhum compromisso encontrado',
+                    tasks: 'Tarefas',
+                    duplicate: 'Duplicar'
                 },
 
                 'nl': { // Dutch
                     today: 'Vandaag',
                     day: 'Dag',
-                    '4day': '4 Dagen',
+                    '4day': '4 dagen',
                     week: 'Week',
                     month: 'Maand',
                     year: 'Jaar',
                     search: 'Typ en druk op Enter',
-                    searchNoResult: 'Geen afspraak gevonden'
+                    searchNoResult: 'Geen afspraak gevonden',
+                    tasks: 'Taken',
+                    duplicate: 'Dupliceren'
                 },
 
                 'pl': { // Polish
                     today: 'Dzisiaj',
                     day: 'Dzień',
-                    '4day': '4 Dni',
+                    '4day': '4 dni',
                     week: 'Tydzień',
                     month: 'Miesiąc',
                     year: 'Rok',
                     search: 'Wpisz i naciśnij Enter',
-                    searchNoResult: 'Nie znaleziono terminu'
+                    searchNoResult: 'Nie znaleziono terminu',
+                    tasks: 'Zadania',
+                    duplicate: 'Duplikuj'
                 },
 
                 'ru': { // Russian
                     today: 'Сегодня',
                     day: 'День',
-                    '4day': '4 Дня',
+                    '4day': '4 дня',
                     week: 'Неделя',
                     month: 'Месяц',
                     year: 'Год',
                     search: 'Введите и нажмите Enter',
-                    searchNoResult: 'Встреча не найдена'
+                    searchNoResult: 'Встреча не найдена',
+                    tasks: 'Задачи',
+                    duplicate: 'Дублировать'
                 },
 
                 'uk': { // Ukrainian
                     today: 'Сьогодні',
                     day: 'День',
-                    '4day': '4 Дні',
+                    '4day': '4 дні',
                     week: 'Тиждень',
                     month: 'Місяць',
                     year: 'Рік',
                     search: 'Введіть і натисніть Enter',
-                    searchNoResult: 'Запис не знайдено'
+                    searchNoResult: 'Запис не знайдено',
+                    tasks: 'Завдання',
+                    duplicate: 'Дублювати'
                 },
 
                 'tr': { // Turkish
                     today: 'Bugün',
                     day: 'Gün',
-                    '4day': '4 Gün',
+                    '4day': '4 gün',
                     week: 'Hafta',
                     month: 'Ay',
                     year: 'Yıl',
                     search: 'Yazın ve Enter’a basın',
-                    searchNoResult: 'Randevu bulunamadı'
+                    searchNoResult: 'Randevu bulunamadı',
+                    tasks: 'Görevler',
+                    duplicate: 'Çoğalt'
                 },
 
                 'ja': { // Japanese
@@ -226,7 +254,9 @@
                     month: '月',
                     year: '年',
                     search: '入力して Enter を押してください',
-                    searchNoResult: '予約が見つかりません'
+                    searchNoResult: '予約が見つかりません',
+                    tasks: 'タスク',
+                    duplicate: '複製'
                 },
 
                 'ko': { // Korean
@@ -237,7 +267,9 @@
                     month: '월',
                     year: '년',
                     search: '입력 후 Enter를 누르세요',
-                    searchNoResult: '예약을 찾을 수 없습니다'
+                    searchNoResult: '예약을 찾을 수 없습니다',
+                    tasks: '작업',
+                    duplicate: '복제'
                 },
 
                 'hi': { // Hindi
@@ -248,29 +280,35 @@
                     month: 'महीना',
                     year: 'वर्ष',
                     search: 'टाइप करें और Enter दबाएँ',
-                    searchNoResult: 'कोई अपॉइंटमेंट नहीं मिला'
+                    searchNoResult: 'कोई अपॉइंटमेंट नहीं मिला',
+                    tasks: 'कार्य',
+                    duplicate: 'डुप्लिकेट करें'
                 },
 
                 'id': { // Indonesian
                     today: 'Hari ini',
                     day: 'Hari',
-                    '4day': '4 Hari',
+                    '4day': '4 hari',
                     week: 'Minggu',
                     month: 'Bulan',
                     year: 'Tahun',
                     search: 'Ketik lalu tekan Enter',
-                    searchNoResult: 'Janji temu tidak ditemukan'
+                    searchNoResult: 'Janji temu tidak ditemukan',
+                    tasks: 'Tugas',
+                    duplicate: 'Duplikat'
                 },
 
                 'vi': { // Vietnamese
                     today: 'Hôm nay',
                     day: 'Ngày',
-                    '4day': '4 Ngày',
+                    '4day': '4 ngày',
                     week: 'Tuần',
                     month: 'Tháng',
                     year: 'Năm',
                     search: 'Nhập và nhấn Enter',
-                    searchNoResult: 'Không tìm thấy lịch hẹn'
+                    searchNoResult: 'Không tìm thấy lịch hẹn',
+                    tasks: 'Nhiệm vụ',
+                    duplicate: 'Nhân bản'
                 },
 
                 'th': { // Thai
@@ -281,92 +319,108 @@
                     month: 'เดือน',
                     year: 'ปี',
                     search: 'พิมพ์แล้วกด Enter',
-                    searchNoResult: 'ไม่พบการนัดหมาย'
+                    searchNoResult: 'ไม่พบการนัดหมาย',
+                    tasks: 'งาน',
+                    duplicate: 'ทำซ้ำ'
                 },
 
                 'cs': { // Czech
                     today: 'Dnes',
                     day: 'Den',
-                    '4day': '4 Dny',
+                    '4day': '4 dny',
                     week: 'Týden',
                     month: 'Měsíc',
                     year: 'Rok',
                     search: 'Napište a stiskněte Enter',
-                    searchNoResult: 'Nebyla nalezena žádná schůzka'
+                    searchNoResult: 'Nebyla nalezena žádná schůzka',
+                    tasks: 'Úkoly',
+                    duplicate: 'Duplikovat'
                 },
 
                 'sv': { // Swedish
                     today: 'Idag',
                     day: 'Dag',
-                    '4day': '4 Dagar',
+                    '4day': '4 dagar',
                     week: 'Vecka',
                     month: 'Månad',
                     year: 'År',
                     search: 'Skriv och tryck på Enter',
-                    searchNoResult: 'Ingen tid hittades'
+                    searchNoResult: 'Ingen tid hittades',
+                    tasks: 'Uppgifter',
+                    duplicate: 'Duplicera'
                 },
 
                 'da': { // Danish
                     today: 'I dag',
                     day: 'Dag',
-                    '4day': '4 Dage',
+                    '4day': '4 dage',
                     week: 'Uge',
                     month: 'Måned',
                     year: 'År',
                     search: 'Skriv og tryk på Enter',
-                    searchNoResult: 'Ingen aftale fundet'
+                    searchNoResult: 'Ingen aftale fundet',
+                    tasks: 'Opgaver',
+                    duplicate: 'Dupliker'
                 },
 
                 'no': { // Norwegian
                     today: 'I dag',
                     day: 'Dag',
-                    '4day': '4 Dager',
+                    '4day': '4 dager',
                     week: 'Uke',
                     month: 'Måned',
                     year: 'År',
                     search: 'Skriv og trykk på Enter',
-                    searchNoResult: 'Ingen avtale funnet'
+                    searchNoResult: 'Ingen avtale funnet',
+                    tasks: 'Oppgaver',
+                    duplicate: 'Dupliser'
                 },
 
                 'fi': { // Finnish
                     today: 'Tänään',
                     day: 'Päivä',
-                    '4day': '4 Päivää',
+                    '4day': '4 päivää',
                     week: 'Viikko',
                     month: 'Kuukausi',
                     year: 'Vuosi',
                     search: 'Kirjoita ja paina Enter',
-                    searchNoResult: 'Aikaa ei löytynyt'
+                    searchNoResult: 'Aikaa ei löytynyt',
+                    tasks: 'Tehtävät',
+                    duplicate: 'Monista'
                 },
 
                 'ro': { // Romanian
                     today: 'Astăzi',
                     day: 'Zi',
-                    '4day': '4 Zile',
+                    '4day': '4 zile',
                     week: 'Săptămână',
                     month: 'Lună',
                     year: 'An',
                     search: 'Tastează și apasă Enter',
-                    searchNoResult: 'Nu a fost găsită nicio programare'
+                    searchNoResult: 'Nu a fost găsită nicio programare',
+                    tasks: 'Sarcini',
+                    duplicate: 'Duplică'
                 },
 
                 'el': { // Greek
                     today: 'Σήμερα',
                     day: 'Ημέρα',
-                    '4day': '4 Ημέρες',
+                    '4day': '4 ημέρες',
                     week: 'Εβδομάδα',
                     month: 'Μήνας',
                     year: 'Έτος',
                     search: 'Πληκτρολογήστε και πατήστε Enter',
-                    searchNoResult: 'Δεν βρέθηκε ραντεβού'
+                    searchNoResult: 'Δεν βρέθηκε ραντεβού',
+                    tasks: 'Εργασίες',
+                    duplicate: 'Διπλότυπο'
                 }
             };
 
         $.bsCalendar = {
-            version: '2.2.1',
+            version: '2.3.0',
             about: {
-                version: '2.2.1',
-                releaseDate: '2026-06-09',
+                version: '2.3.0',
+                releaseDate: '2026-06-10',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
                 releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
@@ -440,7 +494,10 @@
                     next: 'bi bi-chevron-right',
                     link: 'bi bi-box-arrow-up-right',
                     appointment: 'bi bi-clock',
-                    appointmentAllDay: 'bi bi-brightness-high'
+                    appointmentAllDay: 'bi bi-brightness-high',
+                    task: 'bi bi-circle',
+                    taskDone: 'bi bi-check2-circle',
+                    taskOverdue: 'bi bi-exclamation-circle text-danger'
                 },
                 url: null,
                 queryParams: null,
@@ -468,16 +525,19 @@
                 onAdded: null,
                 onEdit: null,
                 onEdited: null,
+                onDuplicate: null,
                 onDelete: null,
                 onDeleted: null,
                 onView: null,
                 onBeforeLoad: null,
                 onAfterLoad: null,
+                onTaskStatusChanged: null,
                 onShowInfoWindow: null,
                 onHideInfoWindow: null,
                 onNavigateForward: null,
                 onNavigateBack: null,
                 storeState: false,
+                showTasks: true,
                 debug: false
             },
             utils: {
@@ -1599,6 +1659,7 @@
                     view: null,
                     dataBefore: snapshotWrapperState(wrapper),
                     searchMode: false,
+                    showTasks: true,
                     searchPagination: null,
                     xhrs: {
                         appointments: null
@@ -1626,15 +1687,11 @@
                 // Backwards-compatible normalization for ignoreStore typo ("ingoreStore")
                 // Accept both 'ignoreStore' and legacy misspelling 'ingoreStore'
                 const ignoreStoreFlag =
-                    bsCalendarData.settings.ignoreStore === true ||
                     bsCalendarData.settings.ingoreStore === true;
 
                 // Remove both possible keys to normalize settings object
                 if (bsCalendarData.settings.hasOwnProperty('ingoreStore')) {
                     delete bsCalendarData.settings.ingoreStore;
-                }
-                if (bsCalendarData.settings.hasOwnProperty('ignoreStore')) {
-                    delete bsCalendarData.settings.ignoreStore;
                 }
                 if (bsCalendarData.settings.hasOwnProperty('border')) {
                     bsCalendarData.borderBefore = bsCalendarData.settings.border;
@@ -1652,6 +1709,8 @@
                 // Resolve main color now (colors may depend on normalized settings)
                 bsCalendarData.mainColor = $.bsCalendar.utils.getColors(bsCalendarData.settings.mainColor, 'primary');
 
+                bsCalendarData.showTasks = bsCalendarData.settings.showTasks;
+
                 // Persist data object on element
                 setBsCalendarData(wrapper, bsCalendarData);
 
@@ -1663,6 +1722,13 @@
                         if (!$.bsCalendar.utils.isValueEmpty(view)) {
                             bsCalendarData.settings.startView = view;
                             updateSettings(wrapper, bsCalendarData.settings);
+                        }
+
+                        // restore showTasks
+                        // bsCalendarData.settings.showTasks = getFromLocalStorage(wrapper, 'showTasks');
+                        const showTasks = getFromLocalStorage(wrapper, 'showTasks');
+                        if (!$.bsCalendar.utils.isValueEmpty(showTasks)) {
+                            bsCalendarData.showTasks = showTasks;
                         }
 
                         // Restore active calendars if available
@@ -2207,19 +2273,35 @@
          * @return {string} A formatted string representing the appointment's title enclosed in a styled HTML structure.
          */
         function formatterDay(appointment, extras) {
-            void extras; // Verhindert die Warnung, aber erfüllt keinen Zweck
+            if (appointment.task) {
+                const textClass = appointment.task.checked ? 'text-decoration-line-through text-muted' : '';
+                const overdueClass = appointment.task.isOverdue ? '' : '';
+                return `<div class="badge d-flex align-items-center flex-nowrap ${textClass} ${overdueClass}" style="color: ${extras.colors.color}; background-color: ${extras.colors.backgroundColor}; background-image: ${extras.colors.backgroundImage}"><i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i> <span class="text-truncate">${appointment.title}</span></div>`;
+            }
+            void extras;
             return `<small class="px-2">${appointment.title}</small>`;
         }
 
-        /**
-         * Formats an all-day appointment into an HTML string representation.
-         *
-         * @param {Object} appointment - The appointment object containing details about the event.
-         * @param {Object} extras - Additional data, including style information such as colors.
-         * @param {string} view - the current view.
-         * @return {string} An HTML string representing the formatted all-day appointment.
-         */
         function formatterAllDay(appointment, extras, view) {
+            const classes = ['badge', 'd-flex', 'align-items-center', 'flex-nowrap', 'px-2'];
+            if (view === 'week' || view === '4day') {
+                classes.push('w-100');
+            }
+
+            if (appointment.task) {
+                const textClass = appointment.task.checked ? 'text-decoration-line-through text-muted' : '';
+                const overdueClass = appointment.task.isOverdue ? '' : '';
+                classes.push(textClass);
+                classes.push('justify-content-start');
+
+                return `
+                    <div class="${classes.join(' ')}" style="font-size: 12px; line-height: 18px; background-color: ${extras.colors.backgroundColor}; background-image: ${extras.colors.backgroundImage}; color: ${extras.colors.color}">
+                        <i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i>
+                        <span class="text-nowrap d-inline-block text-truncate">${appointment.title}</span>
+                    </div>
+                `;
+            }
+
             const style = {
                 backgroundColor: extras.colors.backgroundColor,
                 backgroundImage: extras.colors.backgroundImage,
@@ -2228,29 +2310,16 @@
 
             const styleString = toStyleString(style);
 
-            const classes = [];
-            if (view === 'week' || view === '4day') {
-                classes.push('w-100');
-            }
-
             return [
-                '<div class="badge px-2 ' + classes.join(' ') + '" style="' + styleString + '">',
+                '<div class="' + classes.join(' ') + '" style="' + styleString + '">',
                 appointment.title,
                 '</div>'
             ].join('')
         }
 
-        /**
-         * Converts a style object into a string representation suitable for inline CSS.
-         *
-         * @param {Object} styleObj - An object containing style properties as keys and their corresponding values.
-         *                              Keys are in camelCase format, and the values can be strings or numbers.
-         *                              Undefined or null values will be filtered out.
-         * @return {string} A formatted string representing the styles in "key: value"; format, with keys converted to a kebab-case.
-         */
         function toStyleString(styleObj) {
             return Object.entries(styleObj)
-                .filter(([_, value]) => value !== undefined && value !== null) // Filter out undefined/null
+                .filter(([_, value]) => value !== undefined && value !== null)
                 .map(([key, value]) =>
                     key.replace(/([A-Z])/g, '-$1').toLowerCase() + ': ' + value + ';'
                 )
@@ -2288,7 +2357,12 @@
          * @return {string} A formatted string representing the appointment, styled as a small HTML element.
          */
         function formatterWeek(appointment, extras) {
-            void extras; // Verhindert die Warnung, aber erfüllt keinen Zweck
+            if (appointment.task) {
+                const textClass = appointment.task.checked ? 'text-decoration-line-through text-muted' : '';
+                const overdueClass = appointment.task.isOverdue ? 'text-danger fw-bold' : '';
+                return `<div class="badge d-flex align-items-center flex-nowrap ${textClass} ${overdueClass}" style="font-size: 10px; color: ${extras.colors.color}; background-color: ${extras.colors.backgroundColor}; background-image: ${extras.colors.backgroundImage}"><i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i> <span class="text-truncate">${appointment.title}</span></div>`;
+            }
+            void extras;
             return `<small class="px-2" style="font-size: 10px">${appointment.title}</small>`;
         }
 
@@ -2300,6 +2374,17 @@
          * @return {string} A formatted HTML string representing the appointment.
          */
         function formatterMonth(appointment, extras) {
+            if (appointment.task) {
+                const textClass = appointment.task.checked ? 'text-decoration-line-through' : '';
+                const overdueClass = appointment.task.isOverdue ? 'text-danger fw-bold' : '';
+                return `
+                <div class="d-flex align-items-center flex-nowrap ${textClass}" style="font-size: 12px; line-height: 18px; color: ${extras.colors.color}">
+                    <i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i>
+                    <span class="text-nowrap d-inline-block w-100 text-truncate">${appointment.title}</span>
+                </div>
+            `;
+            }
+
             const startTime = $.bsCalendar.utils.parseDateInput(appointment.start).toLocaleTimeString(extras.locale, {
                 hour: '2-digit',
                 minute: '2-digit'
@@ -3648,7 +3733,8 @@
             }).appendTo(container);
             sidebar.data('visible', true);
 
-            if (settings.calendars && Array.isArray(settings.calendars) && settings.calendars.length > 0) {
+            const hasCalendars = settings.calendars && Array.isArray(settings.calendars) && settings.calendars.length > 0;
+            if (hasCalendars) {
 
                 // Container: Vertikal, etwas Luft, modern
                 const calendarWrapper = $('<div>', {
@@ -3688,23 +3774,55 @@
                             transition: 'opacity 0.2s'
                         }
                     }).appendTo(itemContainer);
-
-                    // const ccalendarActionsHTML = [
-                    //     `<div class="dropdown">`,
-                    //     `<button class="btn btn-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">`,
-                    //     `<i class="bi bi-three-dots-vertical"></i>`,
-                    //     `</button>`,
-                    //     `<ul class="dropdown-menu bg-body">`,
-                    //     `<li><a class="dropdown-item" href="#">edit</a></li>`,
-                    //     `<li><a class="dropdown-item" href="#">delete</a></li>`,
-                    //     `</ul>`,
-                    //     `</div>`,
-                    // ].join('')
-                    // // test
-                    // const dropdownbutton = $(ccalendarActionsHTML).appendTo(itemContainer);
                 });
             }
 
+            if (settings.showTasks) {
+                const paddingControls = hasCalendars ? 'pb-2' : 'py-2';
+                const controlWrapper = $('<div>', {
+                    class: 'd-flex flex-column gap-2 ' + paddingControls + ' ps-2 pe-0 bg-body overflow-visible'
+                }).appendTo('#' + data.elements.wrapperCalendarsId);
+
+                const tasksControl = {
+                    id: 'tasks',
+                    title: settings.translations.tasks,
+                    active: data.showTasks,
+                    color: $.bsCalendar.utils.getColors(settings.mainColor, settings.mainColor)
+                };
+
+                const itemContainer = $('<a>', {
+                    href: '#',
+                    class: `d-flex align-items-center py-1 ps-3 pe-1 rounded-end text-decoration-none user-select-none transition-base`,
+                    css: {
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease-in-out',
+                        ...getStyleCalendarButton(tasksControl)
+                    },
+                    'data-control-toggle': 'tasks'
+                }).appendTo(controlWrapper);
+
+                $('<i>', {
+                    class: settings.icons.taskDone + ' me-2',
+                    css: {fontSize: '0.9rem'},
+                }).appendTo(itemContainer);
+
+                $('<span>', {
+                    class: 'text-truncate flex-fill',
+                    css: {fontSize: '0.9rem'},
+                    text: tasksControl.title
+                }).appendTo(itemContainer);
+
+                $('<span>', {
+                    class: 'rounded-circle mx-2 js-calendar-dot',
+                    css: {
+                        width: '6px',
+                        height: '6px',
+                        backgroundColor: tasksControl.color.backgroundColor,
+                        opacity: tasksControl.active ? 1 : 0,
+                        transition: 'opacity 0.2s'
+                    }
+                }).appendTo(itemContainer);
+            }
             // If more addons are to be invited, add them to the sidebar
             if (settings.sidebarAddons && $(settings.sidebarAddons).length > 0) {
                 // Container: Vertikal, etwas Luft, modern
@@ -4699,6 +4817,16 @@
                 });
 
             $('body')
+                .on('click' + namespace, globalCalendarElements.infoModal + ' [data-duplicate]', function (e) {
+                    e.preventDefault();
+                    const modal = $(globalCalendarElements.infoModal);
+                    const wrapperId = modal.attr('data-bs-calendar-wrapper-id');
+                    const wrapper = $(`.bs-calendar[data-bs-calendar-id="${wrapperId}"]`);
+                    const appointment = $(globalCalendarElements.infoModal).data('appointment');
+                    const returnData = getAppointmentForReturn(appointment);
+                    trigger(wrapper, 'duplicate', returnData.appointment, returnData.extras);
+                    $(globalCalendarElements.infoModal).modal('hide');
+                })
                 .on('click' + namespace, globalCalendarElements.infoModal + ' [data-edit]', function (e) {
                     e.preventDefault();
                     const modal = $(globalCalendarElements.infoModal);
@@ -4708,7 +4836,6 @@
                     const returnData = getAppointmentForReturn(appointment);
                     trigger(wrapper, 'edit', returnData.appointment, returnData.extras);
                     $(globalCalendarElements.infoModal).modal('hide');
-
                 })
                 .on('click' + namespace, globalCalendarElements.infoModal + ' [data-remove]', function (e) {
                     e.preventDefault();
@@ -4760,10 +4887,19 @@
             }
 
             $wrapper
-                .off('mouseenter mouseleave', '[data-calendar-toggle]')
-                .on('mouseenter mouseleave', '[data-calendar-toggle]', function (e) {
+                .off('mouseenter mouseleave', '[data-calendar-toggle], [data-control-toggle]')
+                .on('mouseenter mouseleave', '[data-calendar-toggle], [data-control-toggle]', function (e) {
                     const item = $(e.currentTarget);
-                    const cal = item.data('calendar');
+                    let cal = item.data('calendar');
+
+                    if (!cal && item.attr('data-control-toggle') === 'tasks') {
+                        const data = getBsCalendarData($wrapper);
+                        cal = {
+                            id: 'tasks',
+                            active: data.showTasks,
+                            color: $.bsCalendar.utils.getColors(data.settings.mainColor, data.settings.mainColor)
+                        };
+                    }
 
                     if (cal && !cal.active) {
                         const color = cal.color.backgroundColor;
@@ -4833,6 +4969,58 @@
                             // 7. Event & Rebuild
                             buildByView($wrapper, false);
                         }
+                    }
+                })
+                .on('click', '[data-control-toggle="tasks"]', function (e) {
+                    e.preventDefault();
+                    const item = $(e.currentTarget);
+                    const dot = item.find('.js-calendar-dot');
+                    const data = getBsCalendarData($wrapper);
+
+                    data.showTasks = !data.showTasks;
+                    setBsCalendarData($wrapper, data);
+
+                    if (data.settings.storeState) {
+                        saveToLocalStorage($wrapper, 'showTasks', data.showTasks);
+                    }
+
+                    const tasksControl = {
+                        id: 'tasks',
+                        title: data.settings.translations.tasks,
+                        active: data.showTasks,
+                        color: $.bsCalendar.utils.getColors(data.settings.mainColor, data.settings.mainColor)
+                    };
+
+                    const newStyle = getStyleCalendarButton(tasksControl);
+                    item.css(newStyle);
+                    dot.css('opacity', data.showTasks ? 1 : 0);
+
+                    fetchAppointments($wrapper);
+                })
+                .off('click' + namespace, '.task-toggle')
+                .on('click' + namespace, '.task-toggle', function (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const $appointmentEl = $(this).closest('[data-appointment]');
+                    const appointment = $appointmentEl.data('appointment');
+
+                    if (appointment && appointment.task) {
+                        appointment.task.checked = !appointment.task.checked;
+
+                        // Update in global array
+                        const data = getBsCalendarData($wrapper);
+                        const idx = data.appointments.findIndex(a => a.id === appointment.id);
+                        if (idx !== -1) {
+                            data.appointments[idx].task.checked = appointment.task.checked;
+                            setBsCalendarData($wrapper, data);
+                        }
+
+                        // Re-calculate extras for icons
+                        setAppointmentExtras($wrapper, data.appointments);
+
+                        buildByView($wrapper, false, false);
+                        trigger($wrapper, 'task-status-changed', appointment);
                     }
                 })
                 .off('wheel', '.wc-calendar-view-container')
@@ -4971,7 +5159,7 @@
                     const $preview = $('<div>', {
                         class: 'position-absolute rounded',
                         css: {
-                            left: '2px',
+                            right: '2px',
                             right: '2px',
                             top: '0',
                             height: '0',
@@ -5441,7 +5629,7 @@
                             css: {
                                 fontSize: '10px',
                                 padding: '2px 4px',
-                                left: '2px',
+                                right: '2px',
                                 transform: 'translateY(-50%)',
                                 zIndex: 11,
                                 whiteSpace: 'nowrap',
@@ -6026,7 +6214,8 @@
                     // If the view is yearly, prepare request data specific to the year
                     requestData = {
                         year: $.bsCalendar.utils.parseDateInput(period.date).getFullYear(),
-                        view: view // 'year'
+                        view: view, // 'year'
+                        showTasks: bsCalendarData.showTasks
                     };
                 } else {
                     // For daily, weekly, or monthly views, use the start and end dates
@@ -6034,6 +6223,7 @@
                         fromDate: period.start, // Start date in ISO format
                         toDate: period.end,    // End date in ISO format
                         view: view, // 'day', 'week', 'month'
+                        showTasks: bsCalendarData.showTasks,
                     };
                 }
             } else {
@@ -6909,6 +7099,17 @@
         }
 
         /**
+         * Normalizes task priorities to the supported public values.
+         *
+         * @param {*} priority - Raw priority value from appointment.task.priority.
+         * @return {string} One of `low`, `normal`, or `high`.
+         */
+        function normalizeTaskPriority(priority) {
+            const normalized = typeof priority === 'string' ? priority.trim().toLowerCase() : '';
+            return ['low', 'normal', 'high'].includes(normalized) ? normalized : 'normal';
+        }
+
+        /**
          * Calculates the duration for a list of appointments and appends the calculated duration
          * to each appointment object. Durations include days, hours, minutes, and seconds.
          *
@@ -6943,6 +7144,7 @@
                     if (appointment.hasOwnProperty('icon') && appointment.icon) {
                         iconClass = appointment.icon;
                     }
+
                     const extras = {
                         locale: settings.locale,
                         icon: iconClass,
@@ -6969,6 +7171,12 @@
                         isToday: start.toDateString() === now.toDateString(),
                         isNow: (start <= now && end >= now),
                     };
+                    if (appointment.task) {
+                        appointment.task.priority = normalizeTaskPriority(appointment.task.priority);
+                        const dueDate = appointment.task.due ? $.bsCalendar.utils.parseDateInput(appointment.task.due) : null;
+                        appointment.task.isOverdue = !appointment.task.checked && dueDate && dueDate < now;
+                        extras.icon = appointment.task.checked ? settings.icons.taskDone : (appointment.task.isOverdue ? settings.icons.taskOverdue : settings.icons.task);
+                    }
 
                     let tempDate = new Date(start);
                     let tempEnd = new Date(end);
@@ -7090,7 +7298,9 @@
             methodClear($wrapper, false);
 
             const settings = data.settings;
-            const appointments = data.appointments;
+
+            let appointments = data.appointments;
+
             const isSearchMode = data.searchMode;
 
             const view = data.view;
@@ -8519,28 +8729,33 @@
          * @return {void} Does not return a value, but shows a modal with the appointment's details.
          */
         function showInfoWindow($wrapper, $targetElement) {
-            const settings = getSettings($wrapper);
+            const data = getBsCalendarData($wrapper);
+            const settings = data.settings;
             // Extract the `appointment` data from the clicked target element (provided as a data attribute).
             const appointment = $targetElement.data('appointment');
+            const isTask = appointment.hasOwnProperty('task');
+            const colors = $.bsCalendar.utils.getColors(data.settings.mainColor);
 
             // Set a reference to the modal element using its ID.
             let $modal = $(globalCalendarElements.infoModal);
 
             const returnData = getAppointmentForReturn(appointment);
-            trigger($wrapper, 'show-info-window', returnData.appointment, returnData.extras);
+            // trigger($wrapper, 'show-info-window', returnData.appointment, returnData.extras);
             // Create the HTML content for the modal body, displaying the appointment details.
+            const modalExists = $modal.length > 0;
+            if (! modalExists) {
+                trigger($wrapper, 'show-info-window', returnData.appointment, returnData.extras);
+            }
             settings.formatter.window(returnData.appointment, returnData.extras).then(html => {
                 // Check if the modal already exists on the page.
                 const modalExists = $modal.length > 0;
                 if (!modalExists) {
-                    const roundedClass = 'rounded-' + settings.rounded;
                     const borderClass = settings.border;
-                    const shadowClass = (borderClass.includes('shadow-none') || !/shadow(-\w+)?/.test(borderClass)) ? 'shadow' : '';
-                    const shadowStyle = shadowClass === 'shadow' ? 'box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;' : '';
+                    const shadowStyle = 'box-shadow: rgba(0, 0, 0, 0.56) 0px 22px 70px 4px !important;';
                     // If the modal does not exist, create the modal's HTML structure and append it to the body.
                     const modalHtml = [
                         `<div class="modal fade pe-none" id="${globalCalendarElements.infoModal.substring(1)}" tabindex="-1" data-bs-backdrop="false">`,
-                        `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto rounded-3" style="max-height: calc(100% - var(--bs-modal-margin) * 2);box-shadow: rgba(0, 0, 0, 0.25) 0px 54px 55px, rgba(0, 0, 0, 0.12) 0px -12px 30px, rgba(0, 0, 0, 0.12) 0px 4px 6px, rgba(0, 0, 0, 0.17) 0px 12px 13px, rgba(0, 0, 0, 0.09) 0px -3px 5px;">`,
+                        `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto rounded-3" style="max-height: calc(100% - var(--bs-modal-margin) * 2);">`,
                         `<div class="modal-content border-0  bs-calendar-border-style " style="${shadowStyle}">`,
                         `<div class="modal-body d-flex flex-column align-items-stretch pb-4">`,
                         `<div class="d-flex justify-content-end align-items-center" data-modal-options>`,
@@ -8577,9 +8792,11 @@
                 $modal.data('appointment', appointment);
 
                 const modalOptions = $modal.find('[data-modal-options]');
+
                 const deleteable = appointment.hasOwnProperty('deleteable') ? appointment.deleteable : true;
                 const editable = isAppointmentEditable(appointment);
                 if (editable) {
+                    // If the edit button has not been inserted yet, do so.
                     if (!modalOptions.find('[data-edit]').length) {
                         $(`<button type="button" data-edit class="btn"><i class="bi bi-pen"></i></button>`).prependTo(modalOptions);
                     }
@@ -8587,11 +8804,45 @@
                     modalOptions.find('[data-edit]').remove();
                 }
                 if (deleteable) {
+                    // If the delete button hasn't been inserted yet, do so.
                     if (!modalOptions.find('[data-remove]').length) {
                         $(`<button type="button" data-remove data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i></button>`).prependTo(modalOptions);
                     }
                 } else {
                     modalOptions.find('[data-remove]').remove();
+                }
+                const t = $.bsCalendar.getTranslations(data.settings.locale);
+
+                if (editable) {
+                    // If the custom dropdown hasn't been added yet, do so.
+                    if (!modalOptions.find('[data-modal-dropdown]').length) {
+                        const dropdownHTML = [
+                            `<div class="dropdown" data-modal-dropdown>`,
+                            `<button class="btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">`,
+                            `<i class="bi bi-three-dots-vertical"></i>`,
+                            `</button>`,
+                            `<ul class="dropdown-menu">`,
+                            `<li><a class="dropdown-item" data-duplicate href="#">${t.duplicate}</a></li>`,
+                            // space for more...
+                            `</ul>`,
+                            `</div>`
+                        ].join('');
+                        $(dropdownHTML).insertAfter(modalOptions.find('[data-edit]'));
+                    }
+                } else {
+                    modalOptions.find('[data-edit]').remove();
+                }
+
+
+                if (isTask) {
+                    $('<span>', {
+                        class: 'badge me-auto',
+                        css: {
+                            backgroundColor: colors.backgroundColor,
+                            color: colors.color,
+                        },
+                        text: t.tasks
+                    }).prependTo(modalOptions);
                 }
 
                 // Get relevant dimensions and positioning of the modal and target element.

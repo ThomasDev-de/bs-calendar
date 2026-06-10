@@ -1,7 +1,7 @@
 ### Changelog for `bs-calendar.js`
  
  - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
-    * [**Version 2.2.2**](#version-222)
+    * [**Version 2.3.0**](#version-230)
     * [**Version 2.2.1**](#version-221)
     * [**Version 2.2.0**](#version-220)
     * [**Version 2.1.8**](#version-218)
@@ -44,8 +44,32 @@
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
 
-### Version 2.2.2
 
+### Version 2.3.0
+- *Improvement: Refined task formatting to exactly match all-day appointment styles (badges) across all views.*
+
+- Bugfix: Fixed an issue where tasks in day/week views did not show the background color correctly and appeared to deviate from normal appointments.
+- Bugfix: Fixed an issue where appointment colors were not applied to tasks in all views.
+- Feature: Native support for **Tasks** within the calendar.
+- Feature: Added task-specific icons (`task`, `taskDone`, `taskOverdue`) to the defaults.
+- Feature: Automatically detect tasks via the presence of a `task` object in the appointment data.
+- Feature: Interactive task status toggling (checked/unchecked) directly from the calendar UI.
+- Feature: Support for task due dates (`due`) with automatic "overdue" state detection.
+- Improvement: Task priorities are normalized to `low`, `normal`, or `high`; missing or unsupported values default to `normal`.
+- Feature: New event `task-status-changed.bs.calendar` fired when a task's status is updated.
+- Improvement: Tasks are rendered with strikethrough styling and muted colors when completed.
+- Improvement: Overdue tasks are highlighted with dedicated icons and styling.
+- Demo: Enhanced the demo to generate random tasks and showcase the new functionality.
+- Improvement: Moved the live time indicator badge to the right side to avoid overlapping with task icons in day/week views.
+- Bugfix: Fixed an issue where toggling a task status triggered a redundant data fetch (AJAX request). Now it only re-renders the current view with updated state.
+- Files modified: `dist/bs-calendar.js`, `README.md`, `changelog.md`, `demo/index.html`, `composer.json`
+- Bugfix: Fixed an issue where all-day tasks were not correctly formatted as tasks (with checkbox icons and strikethrough) in day, week, and 4day views.
+
+- Bugfix: Fixed task checkbox icon not updating correctly when toggled.
+- Improvement: The `showTasks` status is now automatically sent in all data requests (`url` or function).
+- Improvement: Toggling tasks in the sidebar now triggers a fresh data fetch instead of local filtering.
+- Feature: Added `onTaskStatusChanged` callback and `task-status-changed.bs.calendar` event.
+- Feature: Added `onDuplicate` callback and `duplicate.bs.calendar` event (triggered via the info window dropdown).
 - Feature: Added new public method `setLocale` to programmatically change the calendar locale and translations.
 
 ### Version 2.2.1

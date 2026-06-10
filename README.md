@@ -1,6 +1,6 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.2.1-blue)
+![Version](https://img.shields.io/badge/version-2.3.0-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -30,6 +30,7 @@ As of version 2, Bootstrap 4 is no longer supported. Use version `^1` for Bootst
 - [Run the Demo](#run-the-demo)
 - [Core Concepts](#core-concepts)
 - [Appointment Data](#appointment-data)
+- [Tasks](#tasks)
 - [Remote Data with `url`](#remote-data-with-url)
 - [Add, Edit, and Delete Workflow](#add-edit-and-delete-workflow)
 - [Options](#options)
@@ -66,7 +67,7 @@ Use CDN/script tags:
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.2.1/dist/bs-calendar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.3.0/dist/bs-calendar.min.js"></script>
 ```
 
 Or install via Composer:
@@ -227,6 +228,66 @@ Link object:
 }
 ```
 
+
+## Tasks
+
+`bs-calendar` supports tasks within the calendar. An appointment is automatically treated as a task if it contains a `task` object.
+
+```json
+{
+  "id": 125,
+  "title": "Complete project report",
+  "start": "2026-06-10 09:00:00",
+  "end": "2026-06-10 10:00:00",
+  "task": {
+    "checked": false,
+    "priority": "high",
+    "due": "2026-06-10 08:00:00"
+  }
+}
+```
+
+### Task Object Fields
+
+| Field      | Type      | Description                                                                 |
+|------------|-----------|-----------------------------------------------------------------------------|
+| `checked`  | `boolean` | Whether the task is completed.                                              |
+| `priority` | `string`  | Optional priority. Supported values are `"low"`, `"normal"`, and `"high"`. Missing or unsupported values are normalized to `"normal"`. |
+| `due`      | `string`  | Optional due date/time. Can be `null`. If in the past and not checked, task is "overdue". |
+
+### Tasks in Appointment Description
+
+Tasks can also be included within the `description` of a normal appointment. The default info window will render the description as HTML, so you can manually add task-like markup or let the user manage it. However, the interactive task checkbox logic applies to appointments that have a `task` object.
+
+### Task UI & Interaction
+
+- **Icons**: Tasks are rendered with a checkbox icon instead of the standard appointment icon.
+- **Toggling**: Clicking the task icon toggles the `checked` state and triggers the `task-status-changed.bs.calendar` event.
+- **Overdue**: Overdue tasks are highlighted (e.g., using a red icon or bold text) based on the current locale time.
+- **Styling**: Completed tasks are rendered with a strikethrough effect and muted colors.
+
+### Sidebar Control
+You can globally toggle the visibility of all tasks in the sidebar. This control is automatically added if `showTasks` is set to `true` (default).
+
+- **Consistency**: The task toggle in the sidebar is styled to match your calendar categories.
+- **Persistence**: If `storeState` is enabled, the visibility state of tasks is saved in the browser's local storage.
+
+
+### Task Events
+ 
+| Event                           | Callback option          | Payload       | Description                                  |
+|---------------------------------|--------------------------|---------------|----------------------------------------------|
+| `task-status-changed.bs.calendar`| `onTaskStatusChanged`    | `appointment` | Fired when a task's checked state is toggled.|
+Since tasks are handled as appointments, all standard appointment events apply. Additionally, the following task-specific event is available:
+
+| Event                           | Payload       | Description                                  |
+|---------------------------------|---------------|----------------------------------------------|
+
+```javascript
+$('#calendar').on('task-status-changed.bs.calendar', function(event, appointment) {
+    console.log('Task ID:', appointment.id, 'Done:', appointment.task.checked);
+});
+```
 ## Remote Data with `url`
 
 `url` can be `null`, a string URL, or a function.
@@ -254,8 +315,8 @@ Request data in normal views:
 
 | View                   | Request fields                              |
 |------------------------|---------------------------------------------|
-| `day`, `week`, `month` | `fromDate`, `toDate`, `view`, `calendarIds` |
-| `year`                 | `year`, `view`, `calendarIds`               |
+| `day`, `week`, `month` | `fromDate`, `toDate`, `view`, `calendarIds`, `showTasks` |
+| `year`                 | `year`, `view`, `calendarIds`, `showTasks`               |
 
 Request data in search mode:
 
@@ -265,6 +326,7 @@ Request data in search mode:
 | `limit`       | Page size from `options.search.limit`. |
 | `offset`      | Current search offset.                 |
 | `calendarIds` | Active calendar IDs.                   |
+| `showTasks`   | Global task visibility state.          |
 
 Normal response for `day`, `week`, and `month`:
 
@@ -465,6 +527,7 @@ Some options can be updated later with `updateOptions`.
 | `views`                | `array`                         | `["year", "month", "week", "4day", "day"]` | Enabled views.                                                                                    |
 | `holidays`             | `object` or `null`              | `null`                                     | OpenHolidays configuration.                                                                       |
 | `showAddButton`        | `boolean`                       | `true`                                     | Shows the toolbar add button.                                                                     |
+| `showTasks`            | `boolean`                       | `true`                                     | Enables task functionality and shows the global task toggle in the sidebar.                       |
 | `draggable`            | `boolean`                       | `false`                                    | Enables drag-create in day/week view and drag-move in day/week/month view. Touch uses long-press. |
 | `draggableSnapMinutes` | `number`                        | `5`                                        | Snap interval in minutes for drag-create/move in day/week view. Minimum is `1`.                   |
 | `translations`         | `object`                        | see below                                  | Search strings.                                                                                   |
@@ -487,6 +550,8 @@ Some options can be updated later with `updateOptions`.
 | `onView`               | `function` or `null`            | `null`                                     | Called when the view changes.                                                                     |
 | `onBeforeLoad`         | `function` or `null`            | `null`                                     | Called before loading appointments.                                                               |
 | `onAfterLoad`          | `function` or `null`            | `null`                                     | Called after appointments were processed.                                                         |
+| `onDuplicate`           | `function` or `null`            | `null`                                     | Same payload as `duplicate.bs.calendar`.                                                          |
+| `onTaskStatusChanged`   | `function` or `null`            | `null`                                     | Called when a task status is toggled.                                                             |
 | `onShowInfoWindow`     | `function` or `null`            | `null`                                     | Called before the info window is shown.                                                           |
 | `onHideInfoWindow`     | `function` or `null`            | `null`                                     | Called when the info window is hidden.                                                            |
 | `onNavigateForward`    | `function` or `null`            | `null`                                     | Called after forward navigation.                                                                  |
@@ -526,6 +591,8 @@ Translations:
 | `year`           | `"Year"`                 | Label for the year view.     |
 | `search`         | `"Type and press Enter"` | Search placeholder.          |
 | `searchNoResult` | `"No appointment found"` | Empty search message.        |
+| `tasks`          | `"Tasks"`                | Label for the task toggle in the sidebar.    |
+| `controls`       | `"Controls"`             | Header for the controls section in the sidebar. |
 
 Icons:
 
@@ -544,6 +611,9 @@ Icons:
 | `link`              | `"bi bi-box-arrow-up-right"`   |
 | `appointment`       | `"bi bi-clock"`                |
 | `appointmentAllDay` | `"bi bi-brightness-high"`      |
+| `task`              | `"bi bi-square"`               |
+| `taskDone`          | `"bi bi-check2-square"`        |
+| `taskOverdue`       | `"bi bi-exclamation-square text-danger"` |
 
 ## Events and Callbacks
 
@@ -572,6 +642,8 @@ $('#calendar').on('view.bs.calendar', function (event, view) {
 | `hide-info-window.bs.calendar` | `onHideInfoWindow()`                      | Info window closed.                           |
 | `before-load.bs.calendar`      | `onBeforeLoad(requestData)`               | Request data before loading.                  |
 | `after-load.bs.calendar`       | `onAfterLoad(appointments)`               | Processed appointments.                       |
+| `duplicate.bs.calendar`        | `onDuplicate(appointment, extras)`        | Fired when "Duplicate" is clicked in info window. |
+| `task-status-changed.bs.calendar`| `onTaskStatusChanged(appointment)`      | Fired when a task status is toggled.          |
 
 ## Methods
 
@@ -895,7 +967,7 @@ Changelog and support:
 
 ## Completeness Check
 
-This README is intended to cover the public surface of version `2.2.1`:
+This README is intended to cover the public surface of version `2.3.0`:
 
 - All `DEFAULTS` options from `dist/bs-calendar.js`
 - All public plugin methods in the method switch

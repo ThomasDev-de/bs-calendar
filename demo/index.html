@@ -18,6 +18,18 @@
             <option value="de">Deutsch</option>
         </select>
 
+        <div class="mb-3">
+            <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" role="switch" id="switchTriggeredEvents">
+                <label class="form-check-label" for="switchTriggeredEvents">Show triggered events.</label>
+            </div>
+            <div class="small text-body-secondary mb-3">
+                BS-Toast powered by<br>
+                <a href="https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-toast" target="_blank"
+                   rel="noopener noreferrer">ThomasDev-de/bs-toast</a>.
+            </div>
+        </div>
+
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday" data-view="week">setToday('week')</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday" data-view="4day">setToday('4day')</button>
         <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setLocale" data-locale="en-US">setLocale('en-US')</button>
@@ -49,8 +61,8 @@
 
                 <div class="mb-3">
                     <div id="appointmentDateRange">
-                        <input name="from_date" type="hidden"  id="appointmentFromDate">
-                        <input name="to_date" type="hidden"  id="appointmentToDate">
+                        <input name="from_date" type="hidden" id="appointmentFromDate">
+                        <input name="to_date" type="hidden" id="appointmentToDate">
                     </div>
                     <div class="small text-body-secondary mt-1">
                         Date selection powered by
@@ -125,6 +137,7 @@
 <script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-timepicker@main/dist/bs-timepicker.min.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-color-picker@main/dist/bs-color-picker.js?v=dev"></script>
 <script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-datepicker@main/dist/bs-datepicker.min.js?v=dev"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-toast@main/dist/bs-toast.min.js?v=dev"></script>
 <!--suppress JSUnresolvedReference -->
 <script>
     $(function () {
@@ -241,13 +254,14 @@
         bindSidebarActions();
 
         function initCalendar() {
+            let eventCounter = 1;
             $calendar.bsCalendar({
                 title: '<span class="h4 text-uppercase mb-0">$.fn.bsCalendar</span>',
                 locale: i18n[state.lang].locale,
                 startWeekOnSunday: false,
                 navigateOnWheel: false,
                 draggable: true,
-                storeState: false,
+                storeState: true,
                 debug: true,
                 url: loadAppointments,
                 holidays: {
@@ -260,13 +274,29 @@
                     height: 60
                 },
                 calendars: i18n[state.lang].calendars,
+                onDuplicate(appointment) {
+                    appointment.id = 'copy_of_' + appointment.id;
+                    $calendar.bsCalendar('addAppointment', appointment);
+                },
                 onAll(eventName, ...args) {
                     console.log(eventName, ...args);
+                    if ($('#switchTriggeredEvents').is(':checked')) {
+                        $.bsToast({
+                            title: 'Event ' + eventCounter,
+                            message: eventName
+                        });
+                        eventCounter++;
+                    } else {
+                        $.bsToast.closeAll();
+                    }
                 }
             });
         }
 
         function bindCalendarEvents() {
+            $(document).on('change', '#switchTriggeredEvents', function () {
+                $calendar.bsCalendar('refresh');
+            });
             $calendar
                 .on('add.bs.calendar', function (event, data, dragExtras) {
                     const start = dragExtras?.start || data.start;
@@ -610,23 +640,28 @@
         async function loadAppointments(query) {
             await sleep(100);
 
+            const showTasks = query.showTasks !== false;
+
             if (query.search) {
-                return searchAppointments(query.search, query.limit, query.offset, query.calendarIds);
+                return searchAppointments(query.search, query.limit, query.offset, query.calendarIds, showTasks);
             }
 
             if (query.view === 'year') {
                 return generateYearBuckets(query.year);
             }
 
-            return filterByCalendarIds(
-                generateAppointments(query.fromDate, query.toDate, query.view),
-                query.calendarIds
-            );
+            let appointments = generateAppointments(query.fromDate, query.toDate, query.view);
+            if (!showTasks) {
+                appointments = appointments.filter(a => !a.task);
+            }
+
+            return filterByCalendarIds(appointments, query.calendarIds);
         }
 
-        function searchAppointments(search, limit, offset, calendarIds) {
+        function searchAppointments(search, limit, offset, calendarIds, showTasks) {
             const searchLower = search.toLowerCase();
             const rows = generateSearchAppointments()
+                .filter(a => showTasks || !a.task)
                 .filter(appointment => shouldShowCalendar(appointment, calendarIds))
                 .filter(appointment => appointment.title.toLowerCase().includes(searchLower));
             const start = offset || 0;
@@ -732,9 +767,10 @@
             // Randomly turn some appointments into tasks (approx 20%)
             if (Math.random() < 0.2) {
                 const isDone = Math.random() < 0.5;
-                const isHighPrio = Math.random() < 0.3;
+                const priorities = ["low", "normal", "high"];
+                const priority = priorities[Math.floor(Math.random() * priorities.length)];
                 const hasDueDate = Math.random() < 0.7;
-                
+
                 // Create a due date relative to start time
                 let dueDate = null;
                 if (hasDueDate) {
@@ -744,12 +780,12 @@
 
                 appointment.task = {
                     checked: isDone,
-                    priority: isHighPrio ? "high" : "normal",
+                    priority: priority,
                     due: dueDate
                 };
-                
+
                 // Adjust title for tasks
-                appointment.title = (isHighPrio ? "[!] " : "") + "Task " + id;
+                appointment.title = (priority === "high" ? "[!] " : "") + "Task " + id;
             }
 
             return appointment;
