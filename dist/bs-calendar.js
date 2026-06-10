@@ -8833,11 +8833,27 @@
                 } else {
                     modalOptions.find('[data-edit]').remove();
                 }
-
+                modalOptions.find('[data-task-badge]').remove();
 
                 if (isTask) {
+
+                    let priorityColor = 'light';
+                    if (appointment.priority === 'high') {
+                        priorityColor = 'danger';
+                    }
+                    if (appointment.priority === 'low') {
+                        priorityColor = 'success';
+                    }
+
                     $('<span>', {
-                        class: 'badge me-auto',
+                        'data-task-badge': '',
+                        class: 'badge me-auto text-bg-' + priorityColor,
+                        text: appointment.task.priority,
+                    }).prependTo(modalOptions);
+
+                    $('<span>', {
+                        'data-task-badge': '',
+                        class: 'badge me-2',
                         css: {
                             backgroundColor: colors.backgroundColor,
                             color: colors.color,
