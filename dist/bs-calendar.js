@@ -74,6 +74,9 @@
                     search: 'اكتب واضغط Enter',
                     searchNoResult: 'لم يتم العثور على موعد',
                     tasks: 'المهام',
+                    taskPriorityHigh: 'عالية',
+                    taskPriorityNormal: 'متوسطة',
+                    taskPriorityLow: 'منخفضة',
                     duplicate: 'تكرار'
                 },
 
@@ -87,6 +90,9 @@
                     search: 'הקלד ולחץ על Enter',
                     searchNoResult: 'לא נמצא תור',
                     tasks: 'משימות',
+                    taskPriorityHigh: 'גבוהה',
+                    taskPriorityNormal: 'בינונית',
+                    taskPriorityLow: 'נמוכה',
                     duplicate: 'שכפול'
                 },
 
@@ -100,6 +106,9 @@
                     search: '输入并按 Enter',
                     searchNoResult: '未找到预约',
                     tasks: '任务',
+                    taskPriorityHigh: '高',
+                    taskPriorityNormal: '中',
+                    taskPriorityLow: '低',
                     duplicate: '复制'
                 },
 
@@ -113,6 +122,9 @@
                     search: 'Type and press Enter',
                     searchNoResult: 'No appointment found',
                     tasks: 'Tasks',
+                    taskPriorityHigh: 'High',
+                    taskPriorityNormal: 'Medium',
+                    taskPriorityLow: 'Low',
                     duplicate: 'Duplicate'
                 },
 
@@ -126,6 +138,9 @@
                     search: 'Tippen und Enter drücken',
                     searchNoResult: 'Kein Termin gefunden',
                     tasks: 'Aufgaben',
+                    taskPriorityHigh: 'Hoch',
+                    taskPriorityNormal: 'Mittel',
+                    taskPriorityLow: 'Niedrig',
                     duplicate: 'Duplizieren'
                 },
 
@@ -139,6 +154,9 @@
                     search: 'Escribe y pulsa Enter',
                     searchNoResult: 'No se encontró ninguna cita',
                     tasks: 'Tareas',
+                    taskPriorityHigh: 'Alta',
+                    taskPriorityNormal: 'Media',
+                    taskPriorityLow: 'Baja',
                     duplicate: 'Duplicar'
                 },
 
@@ -152,6 +170,9 @@
                     search: 'Tapez et appuyez sur Entrée',
                     searchNoResult: 'Aucun rendez-vous trouvé',
                     tasks: 'Tâches',
+                    taskPriorityHigh: 'Élevée',
+                    taskPriorityNormal: 'Moyenne',
+                    taskPriorityLow: 'Faible',
                     duplicate: 'Dupliquer'
                 },
 
@@ -165,6 +186,9 @@
                     search: 'Digita e premi Invio',
                     searchNoResult: 'Nessun appuntamento trovato',
                     tasks: 'Attività',
+                    taskPriorityHigh: 'Alta',
+                    taskPriorityNormal: 'Media',
+                    taskPriorityLow: 'Bassa',
                     duplicate: 'Duplica'
                 },
 
@@ -178,6 +202,9 @@
                     search: 'Digite e pressione Enter',
                     searchNoResult: 'Nenhum compromisso encontrado',
                     tasks: 'Tarefas',
+                    taskPriorityHigh: 'Alta',
+                    taskPriorityNormal: 'Média',
+                    taskPriorityLow: 'Baixa',
                     duplicate: 'Duplicar'
                 },
 
@@ -191,6 +218,9 @@
                     search: 'Typ en druk op Enter',
                     searchNoResult: 'Geen afspraak gevonden',
                     tasks: 'Taken',
+                    taskPriorityHigh: 'Hoog',
+                    taskPriorityNormal: 'Gemiddeld',
+                    taskPriorityLow: 'Laag',
                     duplicate: 'Dupliceren'
                 },
 
@@ -204,6 +234,9 @@
                     search: 'Wpisz i naciśnij Enter',
                     searchNoResult: 'Nie znaleziono terminu',
                     tasks: 'Zadania',
+                    taskPriorityHigh: 'Wysoki',
+                    taskPriorityNormal: 'Średni',
+                    taskPriorityLow: 'Niski',
                     duplicate: 'Duplikuj'
                 },
 
@@ -217,6 +250,9 @@
                     search: 'Введите и нажмите Enter',
                     searchNoResult: 'Встреча не найдена',
                     tasks: 'Задачи',
+                    taskPriorityHigh: 'Высокий',
+                    taskPriorityNormal: 'Средний',
+                    taskPriorityLow: 'Низкий',
                     duplicate: 'Дублировать'
                 },
 
@@ -230,6 +266,9 @@
                     search: 'Введіть і натисніть Enter',
                     searchNoResult: 'Запис не знайдено',
                     tasks: 'Завдання',
+                    taskPriorityHigh: 'Високий',
+                    taskPriorityNormal: 'Середній',
+                    taskPriorityLow: 'Низький',
                     duplicate: 'Дублювати'
                 },
 
@@ -243,6 +282,9 @@
                     search: 'Yazın ve Enter’a basın',
                     searchNoResult: 'Randevu bulunamadı',
                     tasks: 'Görevler',
+                    taskPriorityHigh: 'Yüksek',
+                    taskPriorityNormal: 'Orta',
+                    taskPriorityLow: 'Düşük',
                     duplicate: 'Çoğalt'
                 },
 
@@ -256,6 +298,9 @@
                     search: '入力して Enter を押してください',
                     searchNoResult: '予約が見つかりません',
                     tasks: 'タスク',
+                    taskPriorityHigh: '高',
+                    taskPriorityNormal: '中',
+                    taskPriorityLow: '低',
                     duplicate: '複製'
                 },
 
@@ -269,6 +314,9 @@
                     search: '입력 후 Enter를 누르세요',
                     searchNoResult: '예약을 찾을 수 없습니다',
                     tasks: '작업',
+                    taskPriorityHigh: '높음',
+                    taskPriorityNormal: '보통',
+                    taskPriorityLow: '낮음',
                     duplicate: '복제'
                 },
 
@@ -282,6 +330,9 @@
                     search: 'टाइप करें और Enter दबाएँ',
                     searchNoResult: 'कोई अपॉइंटमेंट नहीं मिला',
                     tasks: 'कार्य',
+                    taskPriorityHigh: 'उच्च',
+                    taskPriorityNormal: 'मध्यम',
+                    taskPriorityLow: 'निम्न',
                     duplicate: 'डुप्लिकेट करें'
                 },
 
@@ -295,6 +346,9 @@
                     search: 'Ketik lalu tekan Enter',
                     searchNoResult: 'Janji temu tidak ditemukan',
                     tasks: 'Tugas',
+                    taskPriorityHigh: 'Tinggi',
+                    taskPriorityNormal: 'Sedang',
+                    taskPriorityLow: 'Rendah',
                     duplicate: 'Duplikat'
                 },
 
@@ -308,6 +362,9 @@
                     search: 'Nhập và nhấn Enter',
                     searchNoResult: 'Không tìm thấy lịch hẹn',
                     tasks: 'Nhiệm vụ',
+                    taskPriorityHigh: 'Cao',
+                    taskPriorityNormal: 'Trung bình',
+                    taskPriorityLow: 'Thấp',
                     duplicate: 'Nhân bản'
                 },
 
@@ -321,6 +378,9 @@
                     search: 'พิมพ์แล้วกด Enter',
                     searchNoResult: 'ไม่พบการนัดหมาย',
                     tasks: 'งาน',
+                    taskPriorityHigh: 'สูง',
+                    taskPriorityNormal: 'ปานกลาง',
+                    taskPriorityLow: 'ต่ำ',
                     duplicate: 'ทำซ้ำ'
                 },
 
@@ -334,6 +394,9 @@
                     search: 'Napište a stiskněte Enter',
                     searchNoResult: 'Nebyla nalezena žádná schůzka',
                     tasks: 'Úkoly',
+                    taskPriorityHigh: 'Vysoká',
+                    taskPriorityNormal: 'Střední',
+                    taskPriorityLow: 'Nízká',
                     duplicate: 'Duplikovat'
                 },
 
@@ -347,6 +410,9 @@
                     search: 'Skriv och tryck på Enter',
                     searchNoResult: 'Ingen tid hittades',
                     tasks: 'Uppgifter',
+                    taskPriorityHigh: 'Hög',
+                    taskPriorityNormal: 'Medel',
+                    taskPriorityLow: 'Låg',
                     duplicate: 'Duplicera'
                 },
 
@@ -360,6 +426,9 @@
                     search: 'Skriv og tryk på Enter',
                     searchNoResult: 'Ingen aftale fundet',
                     tasks: 'Opgaver',
+                    taskPriorityHigh: 'Høj',
+                    taskPriorityNormal: 'Mellem',
+                    taskPriorityLow: 'Lav',
                     duplicate: 'Dupliker'
                 },
 
@@ -373,6 +442,9 @@
                     search: 'Skriv og trykk på Enter',
                     searchNoResult: 'Ingen avtale funnet',
                     tasks: 'Oppgaver',
+                    taskPriorityHigh: 'Høy',
+                    taskPriorityNormal: 'Middels',
+                    taskPriorityLow: 'Lav',
                     duplicate: 'Dupliser'
                 },
 
@@ -386,6 +458,9 @@
                     search: 'Kirjoita ja paina Enter',
                     searchNoResult: 'Aikaa ei löytynyt',
                     tasks: 'Tehtävät',
+                    taskPriorityHigh: 'Korkea',
+                    taskPriorityNormal: 'Keskitaso',
+                    taskPriorityLow: 'Matala',
                     duplicate: 'Monista'
                 },
 
@@ -399,6 +474,9 @@
                     search: 'Tastează și apasă Enter',
                     searchNoResult: 'Nu a fost găsită nicio programare',
                     tasks: 'Sarcini',
+                    taskPriorityHigh: 'Ridicată',
+                    taskPriorityNormal: 'Medie',
+                    taskPriorityLow: 'Scăzută',
                     duplicate: 'Duplică'
                 },
 
@@ -412,6 +490,9 @@
                     search: 'Πληκτρολογήστε και πατήστε Enter',
                     searchNoResult: 'Δεν βρέθηκε ραντεβού',
                     tasks: 'Εργασίες',
+                    taskPriorityHigh: 'Υψηλή',
+                    taskPriorityNormal: 'Μεσαία',
+                    taskPriorityLow: 'Χαμηλή',
                     duplicate: 'Διπλότυπο'
                 }
             };
@@ -8838,17 +8919,20 @@
                 if (isTask) {
 
                     let priorityColor = 'light';
+                    let priorityText = t.taskPriorityNormal;
                     if (appointment.priority === 'high') {
                         priorityColor = 'danger';
+                        priorityText = t.taskPriorityHigh;
                     }
                     if (appointment.priority === 'low') {
                         priorityColor = 'success';
+                        priorityText = t.taskPriorityLow;
                     }
 
                     $('<span>', {
                         'data-task-badge': '',
                         class: 'badge me-auto text-bg-' + priorityColor,
-                        text: appointment.task.priority,
+                        text: priorityText,
                     }).prependTo(modalOptions);
 
                     $('<span>', {
