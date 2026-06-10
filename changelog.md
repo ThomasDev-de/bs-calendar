@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
  
  - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.3.1**](#version-231)
     * [**Version 2.3.0**](#version-230)
     * [**Version 2.2.1**](#version-221)
     * [**Version 2.2.0**](#version-220)
@@ -44,6 +45,15 @@
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
 
+
+### Version 2.3.1
+
+- Bugfix: Fixed a race condition in the demo where appointments were not shown on the first load.
+- Feature: (Demo) Added task support with priority and due date in the appointment modal.
+- Bugfix: (Demo) Fixed task data structure to match README requirements (nested `task` object).
+- Bugfix: (Demo) Fixed task information not being correctly loaded into the modal when editing.
+- Improvement: Optimized appointment rendering in month view to be single-line with text truncation.
+- Files modified: `dist/bs-calendar.js`, `demo/index.html`, `changelog.md`, `composer.json`, `README.md`
 
 ### Version 2.3.0
 - *Improvement: Refined task formatting to exactly match all-day appointment styles (badges) across all views.*

@@ -83,6 +83,31 @@
                     <label class="form-check-label" for="appointmentOverlap">allow overlap (stack)</label>
                 </div>
 
+                <div class="form-check form-switch mb-1">
+                    <input class="form-check-input" type="checkbox" name="isTask" role="switch"
+                           id="appointmentIsTask">
+                    <label class="form-check-label" for="appointmentIsTask">task</label>
+                </div>
+
+                <div class="js-priority-fields mb-3" style="display: none;">
+                    <div class="btn-group w-100 mb-3" role="group" aria-label="Priority">
+                        <input type="radio" class="btn-check" name="priority" id="priorityLow" value="low" autocomplete="off">
+                        <label class="btn btn-outline-success" for="priorityLow">Low</label>
+
+                        <input type="radio" class="btn-check" name="priority" id="priorityMedium" value="medium" autocomplete="off" checked>
+                        <label class="btn btn-outline-warning" for="priorityMedium">Medium</label>
+
+                        <input type="radio" class="btn-check" name="priority" id="priorityHigh" value="high" autocomplete="off">
+                        <label class="btn btn-outline-danger" for="priorityHigh">High</label>
+                    </div>
+
+                    <div class="form-floating">
+                        <input name="due" type="datetime-local" class="form-control" id="appointmentDue"
+                               placeholder="due date">
+                        <label for="appointmentDue">Due date</label>
+                    </div>
+                </div>
+
                 <div class="js-time-fields">
                     <div class="d-flex justify-content-start align-items-center flex-nowrap mb-3 gap-2">
                         <div class="flex-fill-">
@@ -184,6 +209,11 @@
                 labelToDate: 'To date',
                 labelAllDay: 'all day',
                 labelOverlap: 'allow overlap (stack)',
+                labelIsTask: 'task',
+                labelPriorityLow: 'Low',
+                labelPriorityMedium: 'Medium',
+                labelPriorityHigh: 'High',
+                labelDue: 'Due date',
                 labelFromTime: 'From time',
                 labelToTime: 'To time',
                 inputDescriptionPlaceholder: 'Description',
@@ -225,6 +255,11 @@
                 labelToDate: 'Bis Datum',
                 labelAllDay: 'ganztägig',
                 labelOverlap: 'Überlappung erlauben (stapeln)',
+                labelIsTask: 'Aufgabe',
+                labelPriorityLow: 'Niedrig',
+                labelPriorityMedium: 'Mittel',
+                labelPriorityHigh: 'Hoch',
+                labelDue: 'Fällig am',
                 labelFromTime: 'Von Uhrzeit',
                 labelToTime: 'Bis Uhrzeit',
                 inputDescriptionPlaceholder: 'Beschreibung',
@@ -344,7 +379,8 @@
                         overlap: !!appointment.overlap,
                         description: appointment.description || '',
                         color: extras.colors.hex || '#0d6efd',
-                        link: appointment.link || ''
+                        link: appointment.link || '',
+                        task: appointment.task || null
                     });
                 })
                 .on('delete.bs.calendar', function (event, appointment) {
@@ -413,6 +449,11 @@
             $('label[for="appointmentToDate"]').text(t.labelToDate);
             $('label[for="appointmentAllDay"]').text(t.labelAllDay);
             $('label[for="appointmentOverlap"]').text(t.labelOverlap);
+            $('label[for="appointmentIsTask"]').text(t.labelIsTask);
+            $('label[for="priorityLow"]').text(t.labelPriorityLow);
+            $('label[for="priorityMedium"]').text(t.labelPriorityMedium);
+            $('label[for="priorityHigh"]').text(t.labelPriorityHigh);
+            $('label[for="appointmentDue"]').text(t.labelDue);
             $('label[for="appointmentFromTimePicker"]').text(t.labelFromTime);
             $('label[for="appointmentToTimePicker"]').text(t.labelToTime);
             $('textarea[name="description"]').attr('placeholder', t.inputDescriptionPlaceholder);
@@ -465,6 +506,9 @@
                 })
                 .on('change', 'input[name="allDay"]', function () {
                     $modal.find('.js-time-fields').toggle(!$(this).prop('checked'));
+                })
+                .on('change', 'input[name="isTask"]', function () {
+                    $modal.find('.js-priority-fields').toggle($(this).prop('checked'));
                 })
                 .on('click', '[data-save-appointment]', function () {
                     const appointment = readAppointmentModal();
@@ -523,6 +567,15 @@
             setModalTimeValue('to_time', appointment.endTime || '');
             $modal.find('input[name="allDay"]').prop('checked', !!appointment.allDay).trigger('change');
             $modal.find('input[name="overlap"]').prop('checked', !!appointment.overlap);
+            
+            const isTask = !!appointment.task;
+            const priority = isTask ? appointment.task.priority : 'medium';
+            const due = isTask ? appointment.task.due : '';
+            
+            $modal.find('input[name="isTask"]').prop('checked', isTask).trigger('change');
+            $modal.find(`input[name="priority"][value="${priority || 'medium'}"]`).prop('checked', true);
+            $modal.find('input[name="due"]').val(due ? due.substring(0, 16).replace(' ', 'T') : '');
+            
             $modal.find('textarea[name="description"]').val(appointment.description || '');
             $colorpicker.bsColorPicker('val', appointment.color);
             // $modal.find('input[name="color"]').val(normalizeColorInput(appointment.color));
@@ -557,6 +610,8 @@
         function readAppointmentModal() {
             const t = i18n[state.lang] || i18n.en;
             const allDay = $modal.find('input[name="allDay"]').prop('checked');
+            const isTask = $modal.find('input[name="isTask"]').is(':checked');
+            
             const appointment = {
                 title: $modal.find('input[name="title"]').val() || t.untitled,
                 start: buildDateTime(
@@ -571,7 +626,12 @@
                     true
                 ),
                 allDay: allDay,
-                overlap: $modal.find('input[name="overlap"]').prop('checked'),
+                overlap: $modal.find('input[name="overlap"]').is(':checked'),
+                task: isTask ? {
+                    checked: false,
+                    priority: $modal.find('input[name="priority"]:checked').val(),
+                    due: $modal.find('input[name="due"]').val() ? $modal.find('input[name="due"]').val().replace('T', ' ') + ':00' : null
+                } : null,
                 calendarId: 'personal',
                 description: $modal.find('textarea[name="description"]').val(),
                 color: $modal.find('input[name="color"]').val(),
@@ -580,6 +640,13 @@
 
             if (modalState.appointmentId) {
                 appointment.id = modalState.appointmentId;
+                if (isTask) {
+                    // Try to preserve checked state if editing
+                    const existing = $calendar.bsCalendar('getAppointment', appointment.id);
+                    if (existing && existing.task) {
+                        appointment.task.checked = existing.task.checked;
+                    }
+                }
             }
 
             return appointment;

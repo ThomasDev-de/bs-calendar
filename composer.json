@@ -1,6 +1,6 @@
 {
   "name": "webcito/bs-calendar",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "A jQuery-based Bootstrap calendar plugin with day/week/month/year views.",
   "type": "library",
   "license": "MIT",

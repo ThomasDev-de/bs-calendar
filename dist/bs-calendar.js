@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.2.1
- * @date 2026-06-09
+ * @version 2.3.1
+ * @date 2026-06-10
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -417,9 +417,9 @@
             };
 
         $.bsCalendar = {
-            version: '2.3.0',
+            version: '2.3.1',
             about: {
-                version: '2.3.0',
+                version: '2.3.1',
                 releaseDate: '2026-06-10',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
@@ -2378,9 +2378,9 @@
                 const textClass = appointment.task.checked ? 'text-decoration-line-through' : '';
                 const overdueClass = appointment.task.isOverdue ? 'text-danger fw-bold' : '';
                 return `
-                <div class="d-flex align-items-center flex-nowrap ${textClass}" style="font-size: 12px; line-height: 18px; color: ${extras.colors.color}">
+                <div class="d-flex align-items-center flex-nowrap ${textClass}" style="font-size: 12px; line-height: 18px; color: ${extras.colors.color}; height: 18px; overflow: hidden;">
                     <i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i>
-                    <span class="text-nowrap d-inline-block w-100 text-truncate">${appointment.title}</span>
+                    <span class="text-nowrap d-inline-block text-truncate" style="flex: 1; min-width: 0;">${appointment.title}</span>
                 </div>
             `;
             }
@@ -2393,13 +2393,15 @@
             const icon = `<i class="${extras.icon} me-1"></i>`;
             const styles = [
                 'font-size: 12px',
-                'line-height: 18px'
+                'line-height: 18px',
+                'height: 18px',
+                'overflow: hidden'
             ].join(';')
             return [
-                `<div class=" d-flex align-items-center flex-nowrap" style="${styles}">`,
+                `<div class=" d-flex align-items-center flex-nowrap" style="${styles}; color: ${extras.colors.color}">`,
                 icon,
                 timeToShow,
-                `<span class="text-nowrap d-inline-block w-100 text-truncate">${appointment.title}</span>`,
+                `<span class="text-nowrap d-inline-block text-truncate" style="flex: 1; min-width: 0;">${appointment.title}</span>`,
                 `</div>`
             ].join('')
         }
