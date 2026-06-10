@@ -711,12 +711,12 @@
 
         function createAppointment(id, start, end, allDay = false, overlap = false) {
             const t = i18n[state.lang] || i18n.en;
-            const calendars = ['personal', 'work', 'sports'];
-            const colors = ['primary opacity-75 gradient', 'danger opacity-75 gradient', 'success opacity-75 gradient'];
-            const normalizedId = typeof id === 'number' ? id : String(id).length;
+            const calendars = ["personal", "work", "sports"];
+            const colors = ["primary opacity-75 gradient", "danger opacity-75 gradient", "success opacity-75 gradient"];
+            const normalizedId = typeof id === "number" ? id : String(id).length;
             const calendarIndex = normalizedId % calendars.length;
 
-            return {
+            const appointment = {
                 id: `demo-${id}-${start.getTime()}`,
                 calendarId: calendars[calendarIndex],
                 title: `${t.appointmentPrefix} ${id}`,
@@ -726,8 +726,33 @@
                 allDay: allDay,
                 overlap: overlap,
                 color: colors[calendarIndex],
-                link: 'https://github.com/ThomasDev-de/bs-calendar'
+                link: "https://github.com/ThomasDev-de/bs-calendar"
             };
+
+            // Randomly turn some appointments into tasks (approx 20%)
+            if (Math.random() < 0.2) {
+                const isDone = Math.random() < 0.5;
+                const isHighPrio = Math.random() < 0.3;
+                const hasDueDate = Math.random() < 0.7;
+                
+                // Create a due date relative to start time
+                let dueDate = null;
+                if (hasDueDate) {
+                    const dueOffset = (Math.random() - 0.5) * 2 * 3600000; // +/- 1 hour
+                    dueDate = formatDateTime(new Date(start.getTime() + dueOffset));
+                }
+
+                appointment.task = {
+                    checked: isDone,
+                    priority: isHighPrio ? "high" : "normal",
+                    due: dueDate
+                };
+                
+                // Adjust title for tasks
+                appointment.title = (isHighPrio ? "[!] " : "") + "Task " + id;
+            }
+
+            return appointment;
         }
 
         function randomDateBetween(from, to) {
