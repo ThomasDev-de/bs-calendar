@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
  
  - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**dev-main**](#dev-main)
     * [**Version 2.3.2**](#version-232)
     * [**Version 2.3.1**](#version-231)
     * [**Version 2.3.0**](#version-230)
@@ -46,6 +47,13 @@
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
 
+
+### dev-main
+
+- Feature: Double-clicking an editable appointment now triggers the existing edit flow directly without opening the info modal first.
+- Improvement: Single-click appointment handling uses a short 150ms delay so double-click can cancel the info modal without making normal clicks feel sluggish.
+- Bugfix: Prevented the info modal from opening alongside the edit modal by cancelling the second pointer/click early and removing any already opened info modal synchronously.
+- Files modified: `dist/bs-calendar.js`, `dist/bs-calendar.min.js`, `changelog.md`
 
 ### Version 2.3.2
 

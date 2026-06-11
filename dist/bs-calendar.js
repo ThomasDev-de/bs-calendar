@@ -1689,7 +1689,9 @@
             pendingCreate: null,
             pendingMove: null,
             suppressSlotClickUntil: 0,
-            suppressAppointmentClickUntil: 0
+            suppressAppointmentClickUntil: 0,
+            appointmentClickTimer: null,
+            appointmentInfoToken: 0
         };
 
         const namespace = '.bs.calendar';
@@ -5357,6 +5359,20 @@
                     if (!isPrimaryButton) {
                         return;
                     }
+                    const $appointment = $(e.currentTarget);
+                    const appointment = $appointment.data('appointment');
+                    const editable = isAppointmentEditable(appointment);
+                    const pointerDetail = e.originalEvent && typeof e.originalEvent.detail === 'number'
+                        ? e.originalEvent.detail
+                        : e.detail;
+                    if (!isTouchEvent && pointerDetail > 1 && editable) {
+                        globalDragState.appointmentInfoToken++;
+                        globalDragState.suppressAppointmentClickUntil = Date.now() + 300;
+                        clearTimeout(globalDragState.appointmentClickTimer);
+                        globalDragState.appointmentClickTimer = null;
+                        removeInfoWindowModal();
+                        return;
+                    }
                     const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
                     const view = getView($eventWrapper);
                     if (view !== 'day' && view !== 'week' && view !== '4day' && view !== 'month') {
@@ -5370,9 +5386,6 @@
                     if ((e.type === 'pointerdown' || e.type === 'touchstart') && !isTouch) {
                         e.preventDefault();
                     }
-                    const $appointment = $(e.currentTarget);
-                    const appointment = $appointment.data('appointment');
-                    const editable = isAppointmentEditable(appointment);
                     if (!editable || !appointment) {
                         return;
                     }
@@ -5613,7 +5626,49 @@
                     e.preventDefault();
                     const element = $(e.currentTarget);
                     const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
-                    showInfoWindow($eventWrapper, element);
+                    const appointment = element.data('appointment');
+                    const editable = isAppointmentEditable(appointment);
+                    if (e.type === 'touchend') {
+                        showInfoWindow($eventWrapper, element);
+                        return;
+                    }
+                    const clickDetail = e.originalEvent && typeof e.originalEvent.detail === 'number'
+                        ? e.originalEvent.detail
+                        : e.detail;
+                    if (clickDetail > 1 && editable) {
+                        globalDragState.appointmentInfoToken++;
+                        clearTimeout(globalDragState.appointmentClickTimer);
+                        globalDragState.appointmentClickTimer = null;
+                        removeInfoWindowModal();
+                        return;
+                    }
+                    clearTimeout(globalDragState.appointmentClickTimer);
+                    const infoToken = ++globalDragState.appointmentInfoToken;
+                    globalDragState.appointmentClickTimer = setTimeout(() => {
+                        showInfoWindow($eventWrapper, element, () => infoToken === globalDragState.appointmentInfoToken);
+                        globalDragState.appointmentClickTimer = null;
+                    }, 150);
+                })
+                .off('dblclick' + namespace, '[data-appointment]')
+                .on('dblclick' + namespace, '[data-appointment]', function (e) {
+                    const element = $(e.currentTarget);
+                    const appointment = element.data('appointment');
+                    if (!appointment || !isAppointmentEditable(appointment)) {
+                        return;
+                    }
+
+                    e.preventDefault();
+                    e.stopPropagation();
+                    globalDragState.appointmentInfoToken++;
+                    globalDragState.suppressAppointmentClickUntil = Date.now() + 300;
+                    clearTimeout(globalDragState.appointmentClickTimer);
+                    globalDragState.appointmentClickTimer = null;
+
+                    const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
+                    const returnData = getAppointmentForReturn(appointment);
+                    removeInfoWindowModal();
+                    trigger($eventWrapper, 'edit', returnData.appointment, returnData.extras);
+                    setTimeout(removeInfoWindowModal, 0);
                 })
                 .off('click' + namespace, '[data-week-date]')
                 .on('click' + namespace, '[data-week-date]', function (e) {
@@ -7207,6 +7262,21 @@
                 return normalized === 'true' || normalized === '1' || normalized === 'yes';
             }
             return value === true || value === 1;
+        }
+
+        function removeInfoWindowModal() {
+            const modal = $(globalCalendarElements.infoModal);
+            if (!modal.length) {
+                return;
+            }
+            try {
+                modal.modal('dispose');
+            } catch (ignore) {
+            }
+            modal.remove();
+            if (!$('.modal.show').not(globalCalendarElements.infoModal).length) {
+                $('body').removeClass('modal-open').css({overflow: '', paddingRight: ''});
+            }
         }
 
         /**
@@ -8839,7 +8909,7 @@
          * @param {jQuery} $targetElement - The element that was clicked to trigger the modal, containing data about an appointment.
          * @return {void} Does not return a value, but shows a modal with the appointment's details.
          */
-        function showInfoWindow($wrapper, $targetElement) {
+        function showInfoWindow($wrapper, $targetElement, shouldShow = null) {
             const data = getBsCalendarData($wrapper);
             const settings = data.settings;
             // Extract the `appointment` data from the clicked target element (provided as a data attribute).
@@ -8858,6 +8928,9 @@
                 trigger($wrapper, 'show-info-window', returnData.appointment, returnData.extras);
             }
             settings.formatter.window(returnData.appointment, returnData.extras).then(html => {
+                if (typeof shouldShow === 'function' && !shouldShow()) {
+                    return;
+                }
                 // Check if the modal already exists on the page.
                 const modalExists = $modal.length > 0;
                 if (!modalExists) {
