@@ -504,10 +504,10 @@
             };
 
         $.bsCalendar = {
-            version: '2.3.1',
+            version: '2.3.2',
             about: {
-                version: '2.3.1',
-                releaseDate: '2026-06-10',
+                version: '2.3.2',
+                releaseDate: '2026-06-11',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
                 releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
