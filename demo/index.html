@@ -8,7 +8,7 @@
     <link href="../vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 <body class="p-1 p-lg-5">
-<div id="calendar" data-sidebar-addons="#sidebarAddons" data-topbar-addons="#topbarAddons"></div>
+<div id="calendar" data-sidebar-addons="#sidebarAddons"></div>
 
 <div id="sidebarAddons">
     <div class="card-body d-flex flex-column overflow-visible">
@@ -38,10 +38,7 @@
     </div>
 </div>
 
-<div id="topbarAddons" class="d-flex align-items-center justify-content-center">
-    <span class="bg-info-subtle py2 px-5 rounded-5 border border-light">You can move appointments in the day, month and week views using
-        drag&drop.</span>
-</div>
+
 
 <div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel"
      aria-hidden="true">
@@ -94,7 +91,7 @@
                         <input type="radio" class="btn-check" name="priority" id="priorityLow" value="low" autocomplete="off">
                         <label class="btn btn-outline-success" for="priorityLow">Low</label>
 
-                        <input type="radio" class="btn-check" name="priority" id="priorityMedium" value="medium" autocomplete="off" checked>
+                        <input type="radio" class="btn-check" name="priority" id="priorityMedium" value="normal" autocomplete="off" checked>
                         <label class="btn btn-outline-warning" for="priorityMedium">Medium</label>
 
                         <input type="radio" class="btn-check" name="priority" id="priorityHigh" value="high" autocomplete="off">
@@ -182,7 +179,8 @@
 
         const modalState = {
             mode: 'add',
-            appointmentId: null
+            appointmentId: null,
+            taskChecked: false
         };
         const i18n = {
             en: {
@@ -201,7 +199,7 @@
                 // btnSetToday: "setToday('week')",
                 btnRefresh: 'Refresh',
                 btnClear: 'Clear',
-                topbarHint: 'You can move appointments in day, 4day, month and week views using drag and drop.',
+                // topbarHint: 'You can move appointments in day, 4day, month and week views using drag and drop.',
                 modalTitle: 'Appointment',
                 inputTitlePlaceholder: 'appointment title',
                 labelTitle: 'Title',
@@ -247,7 +245,7 @@
                 // btnSetToday: "setToday('week')",
                 btnRefresh: 'Aktualisieren',
                 btnClear: 'Leeren',
-                topbarHint: 'Du kannst Termine in Tages-, Monats- und Wochenansicht per Drag-and-drop verschieben.',
+                // topbarHint: 'Du kannst Termine in Tages-, Monats- und Wochenansicht per Drag-and-drop verschieben.',
                 modalTitle: 'Termin',
                 inputTitlePlaceholder: 'Termintitel',
                 labelTitle: 'Titel',
@@ -440,7 +438,7 @@
             // $('[data-method="setToday"]').text(t.btnSetToday);
             $('[data-method="refresh"]').text(t.btnRefresh);
             $('[data-method="clear"]').text(t.btnClear);
-            $('#topbarAddons span').text(t.topbarHint);
+            // $('#topbarAddons span').text(t.topbarHint);
             $('#appointmentModalLabel').text(t.modalTitle);
 
             $('input[name="title"]').attr('placeholder', t.inputTitlePlaceholder);
@@ -550,6 +548,7 @@
             const t = i18n[state.lang] || i18n.en;
             modalState.mode = mode;
             modalState.appointmentId = appointment.id || null;
+            modalState.taskChecked = !!appointment.task?.checked;
 
             $modal.find('.modal-title').text(mode === 'edit' ? t.modalEditTitle : t.modalAddTitle);
             $modal.find('[data-save-appointment]').text(mode === 'edit' ? t.modalUpdate : t.modalCreate);
@@ -569,11 +568,11 @@
             $modal.find('input[name="overlap"]').prop('checked', !!appointment.overlap);
             
             const isTask = !!appointment.task;
-            const priority = isTask ? appointment.task.priority : 'medium';
+            const priority = isTask ? appointment.task.priority : 'normal';
             const due = isTask ? appointment.task.due : '';
             
             $modal.find('input[name="isTask"]').prop('checked', isTask).trigger('change');
-            $modal.find(`input[name="priority"][value="${priority || 'medium'}"]`).prop('checked', true);
+            $modal.find(`input[name="priority"][value="${priority || 'normal'}"]`).prop('checked', true);
             $modal.find('input[name="due"]').val(due ? due.substring(0, 16).replace(' ', 'T') : '');
             
             $modal.find('textarea[name="description"]').val(appointment.description || '');
@@ -628,7 +627,7 @@
                 allDay: allDay,
                 overlap: $modal.find('input[name="overlap"]').is(':checked'),
                 task: isTask ? {
-                    checked: false,
+                    checked: modalState.mode === 'edit' ? modalState.taskChecked : false,
                     priority: $modal.find('input[name="priority"]:checked').val(),
                     due: $modal.find('input[name="due"]').val() ? $modal.find('input[name="due"]').val().replace('T', ' ') + ':00' : null
                 } : null,
@@ -640,13 +639,6 @@
 
             if (modalState.appointmentId) {
                 appointment.id = modalState.appointmentId;
-                if (isTask) {
-                    // Try to preserve checked state if editing
-                    const existing = $calendar.bsCalendar('getAppointment', appointment.id);
-                    if (existing && existing.task) {
-                        appointment.task.checked = existing.task.checked;
-                    }
-                }
             }
 
             return appointment;

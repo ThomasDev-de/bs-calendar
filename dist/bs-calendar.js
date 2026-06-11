@@ -8918,13 +8918,14 @@
 
                 if (isTask) {
 
+                    const priority = appointment.task ? appointment.task.priority : 'normal';
                     let priorityColor = 'light';
                     let priorityText = t.taskPriorityNormal;
-                    if (appointment.priority === 'high') {
+                    if (priority === 'high') {
                         priorityColor = 'danger';
                         priorityText = t.taskPriorityHigh;
                     }
-                    if (appointment.priority === 'low') {
+                    if (priority === 'low') {
                         priorityColor = 'success';
                         priorityText = t.taskPriorityLow;
                     }
