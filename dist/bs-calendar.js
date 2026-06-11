@@ -8866,7 +8866,7 @@
                     // If the modal does not exist, create the modal's HTML structure and append it to the body.
                     const modalHtml = [
                         `<div class="modal fade pe-none" id="${globalCalendarElements.infoModal.substring(1)}" tabindex="-1" data-bs-backdrop="false">`,
-                        `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto rounded-3" style="max-height: calc(100% - var(--bs-modal-margin) * 2);">`,
+                        `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto rounded-3" style="min-width: min(360px, calc(100vw - var(--bs-modal-margin) * 2)); max-height: calc(100% - var(--bs-modal-margin) * 2);">`,
                         `<div class="modal-content border-0  bs-calendar-border-style " style="${shadowStyle}">`,
                         `<div class="modal-body d-flex flex-column align-items-stretch pb-4">`,
                         `<div class="d-flex justify-content-end align-items-center" data-modal-options>`,
