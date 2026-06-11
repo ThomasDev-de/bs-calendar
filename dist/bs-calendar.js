@@ -2370,8 +2370,9 @@
         }
 
         function formatterAllDay(appointment, extras, view) {
-            const classes = ['badge', 'd-flex', 'align-items-center', 'flex-nowrap', 'px-2'];
-            if (view === 'week' || view === '4day') {
+            const isStackedAllDayView = view === 'week' || view === '4day';
+            const classes = ['badge', isStackedAllDayView ? 'd-flex' : 'd-inline-flex', 'align-items-center', 'flex-nowrap', 'px-2'];
+            if (isStackedAllDayView) {
                 classes.push('w-100');
             }
 
@@ -6680,7 +6681,7 @@
                         const appointmentElement = $('<span>', {
                             'data-appointment': true,
                             html: settings.formatter.allDay(returnData.appointment, returnData.extras, view),
-                            class: `mx-1 mb-1 flex-fill`,
+                            class: view === 'day' ? 'mx-1 mb-1 d-inline-block' : 'mx-1 mb-1 flex-fill',
                         }).appendTo(allDayWrapper);
                         appointmentElement.data('appointment', appointment);
                     }
