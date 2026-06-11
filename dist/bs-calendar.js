@@ -1782,6 +1782,7 @@
                 if (bsCalendarData.settings.hasOwnProperty('ingoreStore')) {
                     delete bsCalendarData.settings.ingoreStore;
                 }
+                //
                 if (bsCalendarData.settings.hasOwnProperty('border')) {
                     bsCalendarData.borderBefore = bsCalendarData.settings.border;
                 }
