@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.3.1
- * @date 2026-06-10
+ * @version 2.3.2
+ * @date 2026-06-11
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -61,6 +61,12 @@
          * the calendar dynamically and tailor it based on specific application
          * requirements.
          */
+
+        const taskPriorityColors = {
+            high: 'danger',
+            normal: 'secondary',
+            low: 'success',
+        };
 
             // const localeKeys = ['today', 'day', 'week', 'month', 'year', 'search', 'searchNoResult'];
         const translations = {
@@ -3204,7 +3210,7 @@
                     // process location information
                     let location = "";
                     if (appointment.location) {
-                        if (Array.isArray(appointment.location)) {
+                        if (Array.isArray(appointment.lofcation)) {
                             location = appointment.location.join('<br>');
                         }
                         if (typeof appointment.location === 'string') {
@@ -3891,6 +3897,7 @@
                     href: '#',
                     class: `d-flex align-items-center py-1 ps-3 pe-1 rounded-end text-decoration-none user-select-none transition-base`,
                     css: {
+                        fontSize: '0.9rem',
                         cursor: 'pointer',
                         transition: 'all 0.2s ease-in-out',
                         ...getStyleCalendarButton(tasksControl)
@@ -3900,7 +3907,7 @@
 
                 $('<i>', {
                     class: settings.icons.taskDone + ' me-2',
-                    css: {fontSize: '0.9rem'},
+                    // css: {fontSize: '0.9rem'},
                 }).appendTo(itemContainer);
 
                 $('<span>', {
@@ -3965,16 +3972,21 @@
         }
 
         function getStyleCalendarButton(calendar) {
-            const color = calendar.color.backgroundColor;
+            const color = calendar.color || {};
+            const backgroundColor = color.backgroundColor || 'transparent';
+            const fadeColor = `color-mix(in srgb, ${backgroundColor}, transparent 85%)`;
+
             return calendar.active ? {
-                borderLeft: `4px solid ${color}`,
-                background: `linear-gradient(90deg, ${color}1A 0%, transparent 100%)`, // 1A = ca. 10% Opacity Hex
+                borderLeft: `4px solid ${backgroundColor}`,
+                backgroundColor: 'transparent',
+                backgroundImage: `linear-gradient(90deg, ${fadeColor} 0%, transparent 100%)`,
                 color: 'var(--bs-body-color)',
                 fontWeight: '600',
                 opacity: 1
             } : {
                 borderLeft: `4px solid transparent`,
-                background: 'transparent',
+                backgroundColor: 'transparent',
+                backgroundImage: 'none',
                 color: 'var(--bs-secondary-color)',
                 fontWeight: '400',
                 opacity: 0.7
@@ -5020,7 +5032,8 @@
                             // Hover OUT: Zurücksetzen auf "Ghost"-Modus
                             item.css({
                                 'border-left-color': 'transparent',
-                                'background': 'transparent',
+                                'background-color': 'transparent',
+                                'background-image': 'none',
                                 'color': 'var(--bs-secondary-color)',
                                 'opacity': 0.7
                             });
@@ -5256,6 +5269,7 @@
                     const $preview = $('<div>', {
                         class: 'position-absolute rounded',
                         css: {
+                            left: '2px',
                             right: '2px',
                             top: '0',
                             height: '0',
@@ -5723,9 +5737,9 @@
                             'data-role': 'time-label',
                             class: 'position-absolute badge',
                             css: {
+                                right: '2px',
                                 fontSize: '10px',
                                 padding: '2px 4px',
-                                right: '2px',
                                 transform: 'translateY(-50%)',
                                 zIndex: 11,
                                 whiteSpace: 'nowrap',
@@ -8888,13 +8902,14 @@
                 $modal.data('appointment', appointment);
 
                 const modalOptions = $modal.find('[data-modal-options]');
+                const $closeBtn = modalOptions.find('[data-bs-dismiss="modal"]'); // Der Schließen-Button als Anker
 
                 const deleteable = appointment.hasOwnProperty('deleteable') ? appointment.deleteable : true;
                 const editable = isAppointmentEditable(appointment);
                 if (editable) {
                     // If the edit button has not been inserted yet, do so.
                     if (!modalOptions.find('[data-edit]').length) {
-                        $(`<button type="button" data-edit class="btn"><i class="bi bi-pen"></i></button>`).prependTo(modalOptions);
+                        $(`<button type="button" data-edit class="btn ms-2"><i class="bi bi-pen"></i></button>`).insertBefore($closeBtn);
                     }
                 } else {
                     modalOptions.find('[data-edit]').remove();
@@ -8902,7 +8917,7 @@
                 if (deleteable) {
                     // If the delete button hasn't been inserted yet, do so.
                     if (!modalOptions.find('[data-remove]').length) {
-                        $(`<button type="button" data-remove data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i></button>`).prependTo(modalOptions);
+                        $(`<button type="button" data-remove data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i></button>`).insertBefore($closeBtn);
                     }
                 } else {
                     modalOptions.find('[data-remove]').remove();
@@ -8923,30 +8938,34 @@
                             `</ul>`,
                             `</div>`
                         ].join('');
-                        $(dropdownHTML).insertAfter(modalOptions.find('[data-edit]'));
+                        $(dropdownHTML).insertBefore($closeBtn);
                     }
                 } else {
-                    modalOptions.find('[data-edit]').remove();
+                    modalOptions.find('[data-modal-dropdown]').remove();
                 }
                 modalOptions.find('[data-task-badge]').remove();
 
                 if (isTask) {
 
                     const priority = appointment.task ? appointment.task.priority : 'normal';
-                    let priorityColor = 'light';
+                    const priorityColors = $.bsCalendar.utils.getColors(taskPriorityColors[priority]);
                     let priorityText = t.taskPriorityNormal;
                     if (priority === 'high') {
-                        priorityColor = 'danger';
+                        // priorityColor = 'danger';
                         priorityText = t.taskPriorityHigh;
                     }
                     if (priority === 'low') {
-                        priorityColor = 'success';
+                        // priorityColor = 'success';
                         priorityText = t.taskPriorityLow;
                     }
 
                     $('<span>', {
                         'data-task-badge': '',
-                        class: 'badge me-auto text-bg-' + priorityColor,
+                        class: 'badge me-auto',
+                        css: {
+                            backgroundColor: priorityColors.backgroundColor,
+                            color: priorityColors.color,
+                        },
                         text: priorityText,
                     }).prependTo(modalOptions);
 

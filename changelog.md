@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
  
  - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.3.2**](#version-232)
     * [**Version 2.3.1**](#version-231)
     * [**Version 2.3.0**](#version-230)
     * [**Version 2.2.1**](#version-221)
@@ -45,6 +46,12 @@
     * [**Version 1.2.3**](#version-123)
     * [**Version 1.2.2**](#version-122)
 
+
+### Version 2.3.2
+
+- Bugfix: Visibility of the drag area when creating new appointments improved (`left: 2px`).
+- Bugfix: Fixed the time badge in the hover indicator (width and position on the right).
+- Refactoring: Adjusted button order in the info modal (Edit, Delete, Dropdown, Close) and added spacing.
 
 ### Version 2.3.1
 
