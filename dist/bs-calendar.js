@@ -8844,7 +8844,7 @@
             const settings = data.settings;
             // Extract the `appointment` data from the clicked target element (provided as a data attribute).
             const appointment = $targetElement.data('appointment');
-            const isTask = appointment.hasOwnProperty('task');
+            const isTask = !!appointment.task;
             const colors = $.bsCalendar.utils.getColors(data.settings.mainColor);
 
             // Set a reference to the modal element using its ID.
