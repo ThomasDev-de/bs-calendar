@@ -3215,11 +3215,25 @@
                         }
                     }
 
+                    const taskDue = appointment.task && appointment.task.due
+                        ? $.bsCalendar.utils.parseDateInput(appointment.task.due)
+                        : null;
+                    const due = taskDue && !isNaN(taskDue.getTime()) ? [
+                        '<p class="d-flex align-items-center gap-2 mb-2">',
+                        '<i class="bi bi-calendar-check" aria-hidden="true"></i>',
+                        `<time datetime="${appointment.task.due}">${taskDue.toLocaleString(locale, {
+                            dateStyle: 'medium',
+                            timeStyle: 'short'
+                        })}</time>`,
+                        '</p>'
+                    ].join('') : "";
+
                     const desc = appointment.description ? `<p>${appointment.description}</p>` : "";
                     // assemble the result and dissolve the promise
                     const result = [
                         `<h3>${appointment.title}</h3>`,
                         `<p>${showTime}</p>`,
+                        due,
                         location,
                         `${desc}`,
                         link
