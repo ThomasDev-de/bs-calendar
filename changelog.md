@@ -49,7 +49,12 @@
 
 
 ### dev-main
+- Feature: Added `setHighlightedHours(object)` method to dynamically update highlighted time slots.
 
+- Feature: Added `highlightedHours` configuration (default: `null`) to visually highlight specific time slots in day and week views.
+- Improvement: Changed `highlightedHours` logic to highlight specific time slots instead of non-working hours based on user feedback.
+- Feature: Added `test/tests/highlighted-hours.test.js` to verify highlighted hours rendering.
+- Improvement: Integrated `highlightedHours` with `$.bsCalendar.utils.getColors` for consistent styling without extra CSS classes.
 - Feature: Double-clicking an editable appointment now triggers the existing edit flow directly without opening the info modal first.
 - Improvement: Single-click appointment handling uses a short 150ms delay so double-click can cancel the info modal without making normal clicks feel sluggish.
 - Bugfix: Prevented the info modal from opening alongside the edit modal by cancelling the second pointer/click early and removing any already opened info modal synchronously.

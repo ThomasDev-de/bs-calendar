@@ -314,6 +314,12 @@
                     height: 60
                 },
                 calendars: i18n[state.lang].calendars,
+                highlightedHours: {
+                    startTime: '08:00',
+                    endTime: '17:00',
+                    daysOfWeek: [1, 2, 3, 4, 5], // Monday to Friday
+                    color: 'rgba(0, 0, 0, 0.2)'
+                },
                 onDuplicate(appointment) {
                     appointment.id = 'copy_of_' + appointment.id;
                     $calendar.bsCalendar('addAppointment', appointment);

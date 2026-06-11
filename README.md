@@ -445,6 +445,11 @@ Options may also be supplied through jQuery `data-*` attributes. JavaScript opti
 | `hourSlots.height` | `number` | `30` | Height in pixels for one hour. Minimum normalized value is `1`. |
 | `hourSlots.start` | `number` | `0` | First visible hour. Normalized to `0` to `23`. |
 | `hourSlots.end` | `number` | `24` | Last visible hour boundary. Normalized to `1` to `24` and kept greater than `start`. |
+| `highlightedHours` | `object` or `null` | `null` | Visual highlighting for specific time slots. |
+| `highlightedHours.startTime` | `string` | `'08:00'` | Start time for the highlighted range (format `HH:mm`). |
+| `highlightedHours.endTime` | `string` | `'17:00'` | End time for the highlighted range (format `HH:mm`). |
+| `highlightedHours.daysOfWeek` | `array` | `[1,2,3,4,5]` | Days of the week (0-6, Sun-Sat) that are highlighted days. |
+| `highlightedHours.color` | `string` | `rgba(0,0,0,0.05)` | Color/styling for the highlighted slots, normalized with `getColors`. |
 | `calendars` | `array` or `null` | `null` | Sidebar calendar filters. |
 | `onAll` | `function`, function-name `string`, or `null` | `null` | Receives every event name and payload. |
 | `onInit` | `function`, function-name `string`, or `null` | `null` | Same payload as `init.bs.calendar`. |
@@ -581,6 +586,7 @@ $('#calendar').bsCalendar('refresh');
 | `setDate` | date string, `Date`, or `{date, view}` | Sets the visible reference date and optionally switches to an enabled view. Ignored in search mode. |
 | `setToday` | optional view string | Sets the reference date to today and optionally switches to an enabled view. Ignored in search mode. |
 | `setView` | view string | Switches to an enabled view and reloads/renders. Ignored in search mode. |
+| `setHighlightedHours` | `object` | Updates the highlighted hours configuration and refreshes the grid. |
 | `setLocale` | locale string | Normalizes the locale and applies it through `updateOptions`. Ignored in search mode. |
 
 Examples:
@@ -596,6 +602,7 @@ $('#calendar').bsCalendar('deleteAppointment', 123);
 $('#calendar').bsCalendar('setDate', {date: '2026-05-08', view: 'day'});
 $('#calendar').bsCalendar('setToday', 'week');
 $('#calendar').bsCalendar('setView', 'month');
+$(#calendar).bsCalendar(setHighlightedHours, {startTime: 08:00, endTime: 12:00, daysOfWeek: [1, 5], color: red});
 $('#calendar').bsCalendar('setLocale', 'de-DE');
 $('#calendar').bsCalendar('destroy');
 ```

@@ -605,6 +605,7 @@
                     start: 0, // starting hour as integer
                     end: 24 // ending hour as integer
                 },
+                highlightedHours: null,
                 calendars: null,
                 onAll: null,
                 onInit: null,
@@ -8562,11 +8563,34 @@
 
                 // Last row acts as a boundary line; others get a fixed height
                 const height = isLast ? 0 : settings.hourSlots.height;
-                const css = isLast ? {} : {
+                let css = isLast ? {} : {
                     boxSizing: 'border-box',
                     height: height + 'px',
                     cursor: 'copy', // indicates draggable/clone action when interacting
                 };
+
+                const hh = settings.highlightedHours;
+                if (hh && !isLast) {
+                    const day = date.getDay();
+                    const isHighlightedDay = hh.daysOfWeek.includes(day);
+                    let isHighlightedHour = false;
+
+                    if (isHighlightedDay) {
+                        const startH = parseInt(hh.startTime.split(":")[0], 10);
+                        const endH = parseInt(hh.endTime.split(":")[0], 10);
+                        if (hour >= startH && hour < endH) {
+                            isHighlightedHour = true;
+                        }
+                    }
+
+                    if (isHighlightedHour) {
+                        const hhColors = $.bsCalendar.utils.getColors(hh.color);
+                        css.backgroundColor = hhColors.backgroundColor;
+                        if (hhColors.backgroundImage && hhColors.backgroundImage !== "none") {
+                            css.backgroundImage = hhColors.backgroundImage;
+                        }
+                    }
+                }
 
                 // One row per hour with a top border to form the grid
                 const row = $('<div>', {
