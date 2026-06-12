@@ -5073,7 +5073,7 @@
                     const wrapperId = modal.attr('data-bs-calendar-wrapper-id');
                     const wrapper = $(`.bs-calendar[data-bs-calendar-id="${wrapperId}"]`);
                     const appointment = modal.data('appointment');
-                    if (appointment.task && typeof appointment.task === 'object' && appointment.task.checked !== checked){
+                    if (appointment.task && typeof appointment.task === 'object' && appointment.task.checked !== checked) {
                         methodToggleTaskStatus(wrapper, appointment, checked);
                         $(modal.data('target-element')).trigger('click');
                     }
@@ -9030,6 +9030,239 @@
             }
         }
 
+        function buildAppointmentModalOptions($wrapper, appointment) {
+            const $modal = $(globalCalendarElements.infoModal);
+            if (!$modal.length) return;
+
+            const data = getBsCalendarData($wrapper);
+            const settings = data.settings;
+            const isTask = !!appointment.task;
+            // const colors = $.bsCalendar.utils.getColors(data.settings.mainColor);
+            const isDeleteable = appointment.hasOwnProperty('deleteable') ? appointment.deleteable : true;
+            const isEditable = isAppointmentEditable(appointment);
+            const t = $.bsCalendar.getTranslations(data.settings.locale);
+
+            // Get the option wrapper and empty it
+            const $modalOptionsWrapper = $modal.find('[data-modal-options]').empty();
+
+            const $closeBtn = $(`<button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i></button>`);
+            const $editBtn = $(`<button type="button" data-edit class="btn"><i class="bi bi-pen"></i></button>`);
+            const $deleteBtn = $(`<button type="button" data-remove data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i></button>`);
+            const dropdownHTML = [
+                `<div class="dropdown" data-modal-dropdown>`,
+                `<button class="btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">`,
+                `<i class="bi bi-three-dots-vertical"></i>`,
+                `</button>`,
+                `<ul class="dropdown-menu">`,
+                `</ul>`,
+                `</div>`
+            ].join('');
+            const $btnDropdown = $(dropdownHTML);
+            const $dropDownItemDuplicate = $(`<li><a class="dropdown-item" data-duplicate href="#"><i class="${settings.icons.duplicate}"></i> ${t.duplicate}</a></li>`);
+            const $dropDownItemDivider = $(`<li><hr class="dropdown-divider"></li>`);
+
+
+            // first add the close button
+            $closeBtn.appendTo($modalOptionsWrapper);
+            if (isEditable) {
+                $btnDropdown.prependTo($modalOptionsWrapper);
+                const $dropdownMenu = $btnDropdown.find('.dropdown-menu');
+                $dropDownItemDuplicate.appendTo($dropdownMenu);
+                if (isTask) {
+                    $dropDownItemDivider.appendTo($dropdownMenu);
+                    const tastIsChecked = appointment.task.checked;
+                    const icon = tastIsChecked ? settings.icons.task : settings.icons.taskDone;
+                    const text = tastIsChecked ? t.task : t.taskDone;
+                    const status = tastIsChecked ? 'false' : 'true';
+                    $(`<li><a class="dropdown-item" data-task-option-status="${status}" href="#"><i class="${icon}"></i> ${text}</a></li>`).appendTo($dropdownMenu);
+                }
+            }
+
+            if (isDeleteable) {
+                $deleteBtn.prependTo($modalOptionsWrapper);
+            }
+
+            if (isEditable) {
+                $editBtn.prependTo($modalOptionsWrapper);
+            }
+
+        }
+        
+        function calcInfoModalPositionAndOpen(){
+            const $modal = $(globalCalendarElements.infoModal);
+            const modalExists = $modal.length > 0;
+            if (! modalExists) {
+                $modal.modal('show');
+                return;
+            }
+            const $targetElement = $modal.data('target-element');
+            if (! $targetElement || ! $targetElement.length) {
+                // $modal.modal('show');
+                return;
+            }
+
+            // Get relevant dimensions and positioning of the modal and target element.
+            const $modalDialog = $modal.find('.modal-dialog');
+            const $target = $($targetElement);
+            const targetOffset = $target.offset(); // Target element's position.
+            const targetWidth = $target.outerWidth(); // Width of the target element.
+            const targetHeight = $target.outerHeight(); // Height of the target element.
+
+            // Delay the positioning logic until the modal's dimensions are fully calculated.
+            setTimeout(() => {
+                const modalWidth = $modalDialog.outerWidth(); // Modal's width.
+                const modalHeight = $modalDialog.outerHeight(); // Modal's height.
+                const minSpaceFromEdge = 60; // Minimum allowed space from the viewport's edge.
+
+                // Get the dimensions of the viewport and the scroll offsets.
+                const viewportWidth = $(window).width();
+                const viewportHeight = $(window).height();
+                const scrollTop = $(window).scrollTop();
+                const scrollLeft = $(window).scrollLeft();
+
+                // Calculate the available space around the target element.
+                const spaceAbove = targetOffset.top - scrollTop; // Space above the target.
+                const spaceBelow = viewportHeight - (targetOffset.top - scrollTop + targetHeight); // Space below the target.
+                const spaceLeft = targetOffset.left - scrollLeft; // Space to the left of the target.
+                const spaceRight = viewportWidth - (targetOffset.left - scrollLeft + targetWidth); // Space to the right of the target.
+
+                // Determine the best positioning for the modal based on the available space.
+                let position = 'bottom';
+                if (spaceAbove >= Math.max(spaceBelow, spaceLeft, spaceRight)) {
+                    position = 'top'; // More space available above.
+                } else if (spaceBelow >= Math.max(spaceAbove, spaceLeft, spaceRight)) {
+                    position = 'bottom'; // More space available below.
+                } else if (spaceLeft >= Math.max(spaceAbove, spaceBelow, spaceRight)) {
+                    position = 'left'; // More space available to the left.
+                } else if (spaceRight >= Math.max(spaceAbove, spaceBelow, spaceLeft)) {
+                    position = 'right'; // More space available to the right.
+                }
+
+                // Initialize the top and left positions for the modal based on the determined position.
+                let top = 0;
+                let left = 0;
+                switch (position) {
+                    case 'top':
+                        top = targetOffset.top - scrollTop - modalHeight - 10;
+                        left = targetOffset.left - scrollLeft + (targetWidth / 2) - (modalWidth / 2);
+                        break;
+                    case 'bottom':
+                        top = targetOffset.top - scrollTop + targetHeight + 10;
+                        left = targetOffset.left - scrollLeft + (targetWidth / 2) - (modalWidth / 2);
+                        break;
+                    case 'left':
+                        top = targetOffset.top - scrollTop + (targetHeight / 2) - (modalHeight / 2);
+                        left = targetOffset.left - scrollLeft - modalWidth - 10;
+                        break;
+                    case 'right':
+                        top = targetOffset.top - scrollTop + (targetHeight / 2) - (modalHeight / 2);
+                        left = targetOffset.left - scrollLeft + targetWidth + 10;
+                        break;
+                }
+
+                // Ensure the modal does not exceed the visible viewport boundaries.
+                if (top < minSpaceFromEdge) {
+                    top = minSpaceFromEdge;
+                }
+                if (left < minSpaceFromEdge) {
+                    left = minSpaceFromEdge;
+                }
+                if (top + modalHeight > viewportHeight - minSpaceFromEdge) {
+                    top = viewportHeight - modalHeight - minSpaceFromEdge;
+                }
+                if (left + modalWidth > viewportWidth - minSpaceFromEdge) {
+                    left = viewportWidth - modalWidth - minSpaceFromEdge;
+                }
+                if (viewportWidth <= 768) {
+                    top = 0;
+                    left = 0;
+                }
+
+                // Position the modal based on its existence:
+                if (modalExists) {
+                    $modalDialog.animate({
+                        top: `${top}px`,
+                        left: `${left}px`
+                    }, "slow");
+                } else {
+                    $modalDialog.css({
+                        top: `${top}px`,
+                        left: `${left}px`
+                    });
+                }
+            }, 0);
+
+            // Display the modal.
+            $modal.modal('show');
+        }
+
+        function showAppointmentWindow($wrapper, appointment, $targetElement = null, shouldShow = null) {
+            const data = getBsCalendarData($wrapper);
+            const settings = data.settings;
+            const isTask = !!appointment.task;
+            // const colors = $.bsCalendar.utils.getColors(data.settings.mainColor);
+
+            // Set a reference to the modal element using its ID.
+            let $modal = $(globalCalendarElements.infoModal);
+
+            const returnData = getAppointmentForReturn(appointment);
+            // trigger($wrapper, 'show-info-window', returnData.appointment, returnData.extras);
+            // Create the HTML content for the modal body, displaying the appointment details.
+            const modalExists = $modal.length > 0;
+            if (!modalExists) {
+                trigger($wrapper, 'show-info-window', returnData.appointment, returnData.extras);
+            }
+            settings.formatter.window(returnData.appointment, returnData.extras).then(html => {
+                if (typeof shouldShow === 'function' && !shouldShow()) {
+                    return;
+                }
+                // Check if the modal already exists on the page.
+                // const modalExists = $modal.length > 0;
+                if (!modalExists) {
+                    const shadowStyle = 'box-shadow: rgba(0, 0, 0, 0.56) 0px 22px 70px 4px !important;';
+                    // If the modal does not exist, create the modal's HTML structure and append it to the body.
+                    const modalHtml = [
+                        `<div class="modal fade pe-none" id="${globalCalendarElements.infoModal.substring(1)}" tabindex="-1" data-bs-backdrop="false">`,
+                        `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto rounded-3" style="min-width: min(360px, calc(100vw - var(--bs-modal-margin) * 2)); max-height: calc(100% - var(--bs-modal-margin) * 2);">`,
+                        `<div class="modal-content border-0  bs-calendar-border-style " style="${shadowStyle}">`,
+                        `<div class="modal-body d-flex flex-column align-items-stretch p-0">`,
+                        `<div class="d-flex justify-content-end align-items-center ps-2" data-modal-options>`,
+                        `</div>`,
+                        `<div class="modal-appointment-content flex-fill overflow-y-auto px-3 pb-3 pt-1">`,
+                        html,
+                        `</div>`,
+                        `</div>`,
+                        `</div>`,
+                        `</div>`,
+                        `</div>`,
+                    ].join('');
+
+                    // Append the newly created modal to the body of the document.
+                    $('body').append(modalHtml);
+
+                    // Re-select the modal to get the updated reference.
+                    $modal = $(globalCalendarElements.infoModal);
+                    // save the calendar wrapper ID in the modal to find the wrapper again
+                    $modal.attr('data-bs-calendar-wrapper-id', $wrapper.attr('data-bs-calendar-id'));
+
+                    // Initialize the modal with specific settings.
+                    $modal.modal({
+                        backdrop: false,
+                        keyboard: true
+                    });
+                } else {
+                    // If the modal already exists, simply update its content with the new appointment details.
+                    $modal.find('.modal-appointment-content').html(html);
+                }
+
+                // Attach the `appointment` data to the modal for potential future usage.
+                $modal.data('appointment', appointment);
+                $modal.data('target-element', $targetElement);
+                buildAppointmentModalOptions($wrapper, appointment);
+                calcInfoModalPositionAndOpen();
+            });
+        }
+
         /**
          * Displays an information modal window containing details about the provided appointment element.
          *
@@ -9042,6 +9275,8 @@
             const settings = data.settings;
             // Extract the `appointment` data from the clicked target element (provided as a data attribute).
             const appointment = $targetElement.data('appointment');
+            // showAppointmentWindow($wrapper, appointment, $targetElement, shouldShow);
+            // return false;
             const isTask = !!appointment.task;
             const colors = $.bsCalendar.utils.getColors(data.settings.mainColor);
 
@@ -9060,7 +9295,7 @@
                     return;
                 }
                 // Check if the modal already exists on the page.
-                const modalExists = $modal.length > 0;
+                // const modalExists = $modal.length > 0;
                 if (!modalExists) {
                     const shadowStyle = 'box-shadow: rgba(0, 0, 0, 0.56) 0px 22px 70px 4px !important;';
                     // If the modal does not exist, create the modal's HTML structure and append it to the body.
