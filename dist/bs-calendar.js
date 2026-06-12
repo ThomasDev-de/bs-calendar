@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.3.2
- * @date 2026-06-11
+ * @version 2.3.3
+ * @date 2026-06-12
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -504,10 +504,10 @@
             };
 
         $.bsCalendar = {
-            version: '2.3.2',
+            version: '2.3.3',
             about: {
-                version: '2.3.2',
-                releaseDate: '2026-06-11',
+                version: '2.3.3',
+                releaseDate: '2026-06-12',
                 project: 'https://github.com/ThomasDev-de/bs-calendar/',
                 issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
                 releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
@@ -1619,10 +1619,10 @@
                     return prefix + result;
                 },
                 getLanguageAndCountry: (locale) => {
-                    const parts = locale.split('-'); // separate the string based on the bind screed
-                    let language = parts[0].toUpperCase(); // The first part is the language, always present
-                    let country = parts[1] ? parts[1].toUpperCase() : language; // The second part is the country, if available; Otherwise language as a fallback
-                    return {language: language, country: country}; // return as an object (language and country)
+                    const parts = locale.replace('_', '-').split('-');
+                    let language = parts[0].toLowerCase();
+                    let country = parts[1] ? parts[1].toUpperCase() : language.toUpperCase();
+                    return {language: language, country: country};
                 },
                 isValueEmpty: (value) => {
                     if (value === null || value === undefined) {
@@ -2204,6 +2204,26 @@
 
             // clamp helper
             const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
+
+            /**
+             * Parses a time value (string "HH:mm" or number) to a decimal hour.
+             *
+             * @param {string|number} value - The time value to parse.
+             * @return {number} The decimal hour (e.g., 8.5 for "08:30").
+             */
+            function parseTimeToDecimal(value) {
+                if (typeof value === 'number') {
+                    return value;
+                }
+                if (typeof value === 'string' && value.includes(':')) {
+                    const parts = value.split(':');
+                    const hours = parseInt(parts[0], 10) || 0;
+                    const minutes = parseInt(parts[1], 10) || 0;
+                    return hours + (minutes / 60);
+                }
+                const num = parseFloat(value);
+                return isNaN(num) ? 0 : num;
+            }
             const possibleViews = $.bsCalendar.possibleViews;
 
             // normalize locale format (e.g., en_US → en-US)
@@ -2299,9 +2319,9 @@
             }
 
             if (settings.hasOwnProperty('hourSlots') && typeof settings.hourSlots === 'object') {
-                // parse integers defensiv (keine NaN)
-                settings.hourSlots.start = Number.isFinite(Number(settings.hourSlots.start)) ? parseInt(settings.hourSlots.start, 10) : NaN;
-                settings.hourSlots.end = Number.isFinite(Number(settings.hourSlots.end)) ? parseInt(settings.hourSlots.end, 10) : NaN;
+                // parse values defensiv
+                settings.hourSlots.start = Number.isFinite(Number(parseTimeToDecimal(settings.hourSlots.start))) ? parseFloat(parseTimeToDecimal(settings.hourSlots.start)) : NaN;
+                settings.hourSlots.end = Number.isFinite(Number(parseTimeToDecimal(settings.hourSlots.end))) ? parseFloat(parseTimeToDecimal(settings.hourSlots.end)) : NaN;
                 settings.hourSlots.height = Number.isFinite(Number(settings.hourSlots.height)) ? parseInt(settings.hourSlots.height, 10) : NaN;
 
                 // Fallbacks für nicht-numerische Werte
@@ -2309,40 +2329,25 @@
                 if (Number.isNaN(settings.hourSlots.end)) settings.hourSlots.end = 24;
                 if (Number.isNaN(settings.hourSlots.height)) settings.hourSlots.height = 30;
 
-                // Hours must be integers in [0,24]
-                settings.hourSlots.start = Math.floor(settings.hourSlots.start);
-                settings.hourSlots.end = Math.floor(settings.hourSlots.end);
-
                 settings.hourSlots.start = clamp(settings.hourSlots.start, 0, 24);
                 settings.hourSlots.end = clamp(settings.hourSlots.end, 0, 24);
 
                 // height mindestens 1 (oder deine default 30)
                 settings.hourSlots.height = Math.max(Math.floor(settings.hourSlots.height), 1);
 
-                // Ensure at least 1 hour difference and start < end
-                // Wenn start >= end, versuche zu korrigieren: setze end = start + 1 (falls möglich), sonst setze start = end -1
+                // Ensure at least some difference and start < end
                 if (settings.hourSlots.start >= settings.hourSlots.end) {
                     if (settings.hourSlots.start < 24) {
-                        settings.hourSlots.end = settings.hourSlots.start + 1;
+                        settings.hourSlots.end = Math.min(24, settings.hourSlots.start + 1);
                     } else {
-                        // start == 24 -> setze start auf 23 und end auf 24
                         settings.hourSlots.start = 23;
                         settings.hourSlots.end = 24;
                     }
                 }
 
-                // Falls nach Korrekturen die Differenz < 1 (defensive), erzwinge 1 Stunde
-                if ((settings.hourSlots.end - settings.hourSlots.start) < 1) {
-                    if (settings.hourSlots.start <= 23) {
-                        settings.hourSlots.end = settings.hourSlots.start + 1;
-                    } else {
-                        settings.hourSlots.start = settings.hourSlots.end - 1;
-                    }
-                }
-
                 // finaler Clamp (sicherheitshalber)
-                settings.hourSlots.start = clamp(settings.hourSlots.start, 0, 23);
-                settings.hourSlots.end = clamp(settings.hourSlots.end, 1, 24);
+                settings.hourSlots.start = clamp(settings.hourSlots.start, 0, 23.99);
+                settings.hourSlots.end = clamp(settings.hourSlots.end, 0.01, 24);
             }
 
             // Validate draggable snap interval (minutes)
@@ -2365,9 +2370,9 @@
          */
         function formatterDay(appointment, extras) {
             if (appointment.task) {
-                const textClass = appointment.task.checked ? 'text-decoration-line-through text-muted' : '';
+                const textClass = appointment.task.checked ? 'text-decoration-line-through' : '';
                 const overdueClass = appointment.task.isOverdue ? '' : '';
-                return `<div class="badge d-flex align-items-center flex-nowrap ${textClass} ${overdueClass}" style="color: ${extras.colors.color}; background-color: ${extras.colors.backgroundColor}; background-image: ${extras.colors.backgroundImage}"><i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i> <span class="text-truncate">${appointment.title}</span></div>`;
+                return `<div class="badge d-flex align-items-center flex-nowrap ${textClass} ${overdueClass}" style=""><i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i> <span class="text-truncate">${appointment.title}</span></div>`;
             }
             void extras;
             return `<small class="px-2">${appointment.title}</small>`;
@@ -2381,13 +2386,13 @@
             }
 
             if (appointment.task) {
-                const textClass = appointment.task.checked ? 'text-decoration-line-through text-muted' : '';
+                const textClass = appointment.task.checked ? 'text-decoration-line-through' : '';
                 const overdueClass = appointment.task.isOverdue ? '' : '';
                 classes.push(textClass);
                 classes.push('justify-content-start');
 
                 return `
-                    <div class="${classes.join(' ')}" style="font-size: 12px; line-height: 18px; background-color: ${extras.colors.backgroundColor}; background-image: ${extras.colors.backgroundImage}; color: ${extras.colors.color}">
+                    <div class="${classes.join(' ')}" style="background-color: ${extras.colors.backgroundColor}; background-image: ${extras.colors.backgroundImage}; color: ${extras.colors.color}">
                         <i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i>
                         <span class="text-nowrap d-inline-block text-truncate">${appointment.title}</span>
                     </div>
@@ -2450,9 +2455,9 @@
          */
         function formatterWeek(appointment, extras) {
             if (appointment.task) {
-                const textClass = appointment.task.checked ? 'text-decoration-line-through text-muted' : '';
+                const textClass = appointment.task.checked ? 'text-decoration-line-through' : '';
                 const overdueClass = appointment.task.isOverdue ? '' : '';
-                return `<div class="badge d-flex align-items-center flex-nowrap ${textClass} ${overdueClass}" style="font-size: 10px; color: ${extras.colors.color}; background-color: ${extras.colors.backgroundColor}; background-image: ${extras.colors.backgroundImage}"><i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i> <span class="text-truncate">${appointment.title}</span></div>`;
+                return `<div class="badge d-flex align-items-center flex-nowrap ${textClass} ${overdueClass}" style="font-size: 10px;"><i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i> <span class="text-truncate">${appointment.title}</span></div>`;
             }
             void extras;
             return `<small class="px-2" style="font-size: 10px">${appointment.title}</small>`;
@@ -4418,18 +4423,18 @@
                 return fallbackWrapper;
             }
 
-            function getMinutesFromPointer($wrapperRef, $slotContainer, pageY) {
-                const settings = getSettings($wrapperRef);
-                const offset = $slotContainer.offset();
-                const slotHeight = settings.hourSlots.height;
-                const totalMinutes = Math.max(0, (settings.hourSlots.end - settings.hourSlots.start) * 60);
-                const totalHeightPx = Math.max(1, (settings.hourSlots.end - settings.hourSlots.start) * slotHeight);
-                const relativeY = Math.max(0, Math.min(totalHeightPx, pageY - offset.top));
-                const minutesFloat = (relativeY / totalHeightPx) * totalMinutes;
-                const snap = getSnapMinutes($wrapperRef);
-                const snapped = Math.round(minutesFloat / snap) * snap;
-                return Math.max(0, Math.min(totalMinutes, snapped));
-            }
+        function getMinutesFromPointer($wrapperRef, $slotContainer, pageY) {
+            const settings = getSettings($wrapperRef);
+            const offset = $slotContainer.offset();
+            const slotHeight = settings.hourSlots.height;
+            const totalMinutes = Math.max(0, (settings.hourSlots.end - settings.hourSlots.start) * 60);
+            const totalHeightPx = Math.max(0.1, (settings.hourSlots.end - settings.hourSlots.start) * slotHeight);
+            const relativeY = Math.max(0, Math.min(totalHeightPx, pageY - offset.top));
+            const minutesFloat = (relativeY / totalHeightPx) * totalMinutes;
+            const snap = getSnapMinutes($wrapperRef);
+            const snapped = Math.round(minutesFloat / snap) * snap;
+            return Math.max(0, Math.min(totalMinutes, snapped));
+        }
 
             function getMoveSlotContainerFromPointer($wrapperRef, point, $fallbackSlotContainer) {
                 const view = getView($wrapperRef);
@@ -4545,7 +4550,9 @@
             function buildDateTimeByMinutes($wrapperRef, dateString, minutesFromStart) {
                 const settings = getSettings($wrapperRef);
                 const date = $.bsCalendar.utils.parseDateInput(dateString);
-                date.setHours(settings.hourSlots.start, 0, 0, 0);
+                const startHour = Math.floor(settings.hourSlots.start);
+                const startMin = Math.round((settings.hourSlots.start % 1) * 60);
+                date.setHours(startHour, startMin, 0, 0);
                 date.setMinutes(date.getMinutes() + minutesFromStart);
                 return date;
             }
@@ -4760,10 +4767,13 @@
                         globalDragState.createDragState.$preview.css({top: `${topPx}px`, height: `${heightPx}px`, display: 'block'});
 
                         // Update time labels
-                        const startHour = Math.floor(startMinutes / 60) + settings.hourSlots.start;
-                        const startMinute = startMinutes % 60;
-                        const endHour = Math.floor(endMinutes / 60) + settings.hourSlots.start;
-                        const endMinute = endMinutes % 60;
+                        const totalStartMinutes = startMinutes + (settings.hourSlots.start * 60);
+                        const totalEndMinutes = endMinutes + (settings.hourSlots.start * 60);
+
+                        const startHour = Math.floor(totalStartMinutes / 60);
+                        const startMinute = Math.round(totalStartMinutes % 60);
+                        const endHour = Math.floor(totalEndMinutes / 60);
+                        const endMinute = Math.round(totalEndMinutes % 60);
                         const startTimeStr = `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
                         const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(endMinute).padStart(2, '0')}`;
                         globalDragState.createDragState.$startTimeLabel.text(startTimeStr);
@@ -4823,8 +4833,9 @@
                         );
 
                         // Update time display badge
-                        const startHour = Math.floor(snappedStart / 60) + settings.hourSlots.start;
-                        const startMinute = snappedStart % 60;
+                        const totalStartMinutes = snappedStart + (settings.hourSlots.start * 60);
+                        const startHour = Math.floor(totalStartMinutes / 60);
+                        const startMinute = Math.round(totalStartMinutes % 60);
                         const timeStr = `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
                         globalDragState.moveDragState.$timeDisplay.text(timeStr);
 
@@ -8557,28 +8568,39 @@
                 class: 'wc-day-view-time-slots d-flex flex-column position-relative'
             }).appendTo($container);
 
-            // Render an hourly grid from configured start to end hour (inclusive)
-            for (let hour = settings.hourSlots.start; hour <= settings.hourSlots.end; hour++) {
-                const isLast = hour === settings.hourSlots.end;
+                // Render an hourly grid from configured start to end hour (inclusive)
+                for (let hour = Math.floor(settings.hourSlots.start); hour <= Math.ceil(settings.hourSlots.end); hour++) {
+                    const rowHour = Math.max(hour, settings.hourSlots.start);
+                    if (rowHour >= settings.hourSlots.end && hour > Math.floor(settings.hourSlots.start)) {
+                        if (hour > settings.hourSlots.end) break;
+                    }
 
-                // Last row acts as a boundary line; others get a fixed height
-                const height = isLast ? 0 : settings.hourSlots.height;
+                    const isLast = rowHour >= settings.hourSlots.end;
+                    const isFirst = rowHour === settings.hourSlots.start;
+
+                    // Calculate height for partial first/last hours
+                    let rowHeight = settings.hourSlots.height;
+                    if (isFirst && !isLast) {
+                        rowHeight = (Math.ceil(rowHour) - rowHour) * settings.hourSlots.height;
+                        if (rowHeight <= 0) rowHeight = settings.hourSlots.height;
+                    }
+                    if (isLast) rowHeight = 0;
                 let css = isLast ? {} : {
                     boxSizing: 'border-box',
-                    height: height + 'px',
+                    height: rowHeight + 'px',
                     cursor: 'copy', // indicates draggable/clone action when interacting
                 };
 
                 const hh = settings.highlightedHours;
                 if (hh && !isLast) {
                     const day = date.getDay();
-                    const isHighlightedDay = hh.daysOfWeek.includes(day);
+                    const isHighlightedDay = Array.isArray(hh.daysOfWeek) ? hh.daysOfWeek.includes(day) : false;
                     let isHighlightedHour = false;
 
                     if (isHighlightedDay) {
-                        const startH = parseInt(hh.startTime.split(":")[0], 10);
-                        const endH = parseInt(hh.endTime.split(":")[0], 10);
-                        if (hour >= startH && hour < endH) {
+                        const startH = parseTimeToDecimal(hh.startTime || '08:00');
+                        const endH = parseTimeToDecimal(hh.endTime || '17:00');
+                        if (rowHour >= startH && rowHour < endH) {
                             isHighlightedHour = true;
                         }
                     }
@@ -8594,26 +8616,26 @@
 
                 // One row per hour with a top border to form the grid
                 const row = $('<div>', {
-                    'data-day-hour': hour,
+                    'data-day-hour': rowHour,
                     css: css,
                     class: 'd-flex align-items-center border-top position-relative'
                 }).appendTo(timeSlots);
 
                 // Store contextual info for event handlers (e.g., click/drag)
                 row.data('details', {
-                    hour: hour,
+                    hour: rowHour,
                     date: date,
                     isToday: isToday,
                     isLast: isLast
                 });
 
                 // Half-hour dashed line: only when row-height is even and sufficiently tall (> 30px)
-                if (!isLast && Number.isFinite(height) && height > 30 && height % 2 === 0) {
+                if (!isLast && Number.isFinite(rowHeight) && rowHeight > 30 && rowHeight % 2 === 0 && (rowHour % 1 === 0)) {
                     $('<div>', {
                         class: 'position-absolute w-100',
                         css: {
                             // position slightly above the exact middle to account for border thickness
-                            top: Math.max(0, Math.floor(height / 2) - 1) + 'px',
+                            top: Math.max(0, Math.floor(rowHeight / 2) - 1) + 'px',
                             left: 0,
                             borderTop: '1px dashed var(--bs-border-color, #dee2e6)',
                             pointerEvents: 'none'
@@ -8629,7 +8651,9 @@
                     ].join(';');
 
                     // Create a Date object for formatting the hour label
-                    const hourDate = new Date(2023, 0, 1, hour); // fixed date, hour varies
+                    const labelHour = Math.floor(rowHour);
+                    const labelMinutes = Math.round((rowHour % 1) * 60);
+                    const hourDate = new Date(2023, 0, 1, labelHour, labelMinutes); // fixed date, hour varies
 
                     // Render the hour label (e.g., 08:00) aligned to the row's top
                     $('<div>', {
@@ -8807,65 +8831,47 @@
             }
 
             // Extract hours and minutes from the startDate.
-            const startHours = startDate.getHours();
-            const startMinutes = startDate.getMinutes();
+            const startTotalMinutes = startDate.getHours() * 60 + startDate.getMinutes();
 
             // Extract hours and minutes from the endDate, if provided.
-            const endHours = endDate ? endDate.getHours() : null;
-            const endMinutes = endDate ? endDate.getMinutes() : null;
+            const endTotalMinutes = endDate ? (endDate.getHours() * 60 + endDate.getMinutes()) : null;
+
+            const calendarStartMinutes = settings.hourSlots.start * 60;
+            const calendarEndMinutes = settings.hourSlots.end * 60;
 
             /**
              * Case 1: Event occurs completely outside the visible time range.
-             * - If the start time is before the calendar start and the end is also before or at the start, OR
-             * - If the start time is at or beyond the calendar end time.
-             * Return early with `top = 0` and `height = 0` to hide the event.
              */
-            if ((startHours < settings.hourSlots.start && (!endHours || endHours <= settings.hourSlots.start)) ||
-                (startHours >= settings.hourSlots.end)) {
+            if ((startTotalMinutes < calendarStartMinutes && (endTotalMinutes === null || endTotalMinutes <= calendarStartMinutes)) ||
+                (startTotalMinutes >= calendarEndMinutes)) {
                 return {top: 0, height: 0};
             }
 
             /**
              * Adjust the start and end times to fit them within the visible bounds (hour slots) of the calendar.
              */
-            let adjustedStartHours = Math.max(startHours, settings.hourSlots.start); // Ensure an event starts no earlier than the calendar's start hour.
-            let adjustedStartMinutes = startHours < settings.hourSlots.start ? 0 : startMinutes; // Ignore minutes if an event starts before the calendar.
-
-            let adjustedEndHours = endHours !== null ? Math.min(endHours, settings.hourSlots.end) : null; // Restrict end time to within the calendar's end hour.
-            let adjustedEndMinutes =
-                endHours !== null && endHours >= settings.hourSlots.end ? 0 : endMinutes; // Ignore minutes if the event ends after the calendar.
+            let adjustedStartMinutes = Math.max(startTotalMinutes, calendarStartMinutes);
+            let adjustedEndMinutes = endTotalMinutes !== null ? Math.min(endTotalMinutes, calendarEndMinutes) : null;
 
             /**
              * Case 2: Calculate the top position of the slot:
-             * - `adjustedStartHours`: The hour difference from the calendar start multiplied by the slot height.
-             * - `adjustedStartMinutes`: Convert minutes to a fraction of an hour and multiply by slot height.
-             * - The value `4` ensures consistent alignment adjustment, applied across the calendar.
              */
-            const top =
-                ((adjustedStartHours - settings.hourSlots.start) * settings.hourSlots.height) +
-                ((adjustedStartMinutes / 60) * settings.hourSlots.height) +
-                4;
+            const top = ((adjustedStartMinutes - calendarStartMinutes) / 60) * settings.hourSlots.height;
 
             let height = 0; // Default height is 0.
 
             /**
              * Case 3: If `endDate` is provided, calculate the total duration in minutes:
-             * - Duration = Total minutes from the start time to the end time.
-             * - The height of the slot is proportional to the duration and the slot height setting.
              */
             if (endDate) {
-                const durationMinutes =
-                    (adjustedEndHours * 60 + adjustedEndMinutes) - (adjustedStartHours * 60 + adjustedStartMinutes);
-
+                const durationMinutes = adjustedEndMinutes - adjustedStartMinutes;
                 height = (durationMinutes / 60) * settings.hourSlots.height; // Convert duration to height based on hours.
             }
 
             /**
              * Case 4: Return the calculated `top` position and `height` of the slot.
-             * - Subtract `4` from the top position to ensure alignment with the adjusted offset.
-             * - If the height is negative (invalid), default it to 0.
              */
-            return {top: top - 4, height: height > 0 ? height : 0};
+            return {top: top, height: height > 0 ? height : 0};
         }
 
         /**
@@ -8959,18 +8965,17 @@
                 // Check if the modal already exists on the page.
                 const modalExists = $modal.length > 0;
                 if (!modalExists) {
-                    const borderClass = settings.border;
                     const shadowStyle = 'box-shadow: rgba(0, 0, 0, 0.56) 0px 22px 70px 4px !important;';
                     // If the modal does not exist, create the modal's HTML structure and append it to the body.
                     const modalHtml = [
                         `<div class="modal fade pe-none" id="${globalCalendarElements.infoModal.substring(1)}" tabindex="-1" data-bs-backdrop="false">`,
                         `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto rounded-3" style="min-width: min(360px, calc(100vw - var(--bs-modal-margin) * 2)); max-height: calc(100% - var(--bs-modal-margin) * 2);">`,
                         `<div class="modal-content border-0  bs-calendar-border-style " style="${shadowStyle}">`,
-                        `<div class="modal-body d-flex flex-column align-items-stretch pb-4">`,
-                        `<div class="d-flex justify-content-end align-items-center" data-modal-options>`,
+                        `<div class="modal-body d-flex flex-column align-items-stretch p-0">`,
+                        `<div class="d-flex justify-content-end align-items-center ps-2" data-modal-options>`,
                         `<button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i></button>`,
                         `</div>`,
-                        `<div class="modal-appointment-content flex-fill overflow-y-auto">`,
+                        `<div class="modal-appointment-content flex-fill overflow-y-auto px-3 pb-3 pt-1">`,
                         html,
                         `</div>`,
                         `</div>`,

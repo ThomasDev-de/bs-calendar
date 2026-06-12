@@ -2,6 +2,7 @@
  
  - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
     * [**dev-main**](#dev-main)
+    * [**Version 2.3.3**](#version-233)
     * [**Version 2.3.2**](#version-232)
     * [**Version 2.3.1**](#version-231)
     * [**Version 2.3.0**](#version-230)
@@ -49,8 +50,14 @@
 
 
 ### dev-main
-- Feature: Added `setHighlightedHours(object)` method to dynamically update highlighted time slots.
+- no change
 
+### Version 2.3.3
+2026-06-12
+- Improvement: `hourSlots.start` and `hourSlots.end` now support decimal values and `HH:mm` strings for more detailed grid configuration.
+- Improvement: Updated grid rendering and appointment positioning to handle fractional start hours correctly.
+- Improvement: `highlightedHours` now uses the same time parsing logic as `hourSlots`.
+- Feature: Added `setHighlightedHours(object)` method to dynamically update highlighted time slots.
 - Feature: Added `highlightedHours` configuration (default: `null`) to visually highlight specific time slots in day and week views.
 - Improvement: Changed `highlightedHours` logic to highlight specific time slots instead of non-working hours based on user feedback.
 - Feature: Added `test/tests/highlighted-hours.test.js` to verify highlighted hours rendering.

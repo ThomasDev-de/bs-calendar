@@ -6,9 +6,29 @@ QUnit.module('Plugin — Methods', function (hooks) {
     });
 
     hooks.afterEach(function () {
+        $('#cal').find('*').stop(true);
         try { $('#cal').bsCalendar('destroy'); } catch (e) { /* */ }
         $('.bs-calendar-info-modal').remove();
     });
+
+    // Calls assertFn after any pending fetchAppointments cycle completes.
+    // If loading=true a fetch is in flight; wait for after-load.bs.calendar.
+    // Otherwise drain microtasks via setTimeout(0) and then assert.
+    function awaitFetch(assert, assertFn) {
+        var done = assert.async(1);
+        var data = $('#cal').data('bsCalendar');
+        if (data && data.loading) {
+            $('#cal').one('after-load.bs.calendar', function () {
+                assertFn();
+                done();
+            });
+        } else {
+            setTimeout(function () {
+                assertFn();
+                done();
+            }, 0);
+        }
+    }
 
     // ── setView ───────────────────────────────────────────────────────────────
 
@@ -16,8 +36,9 @@ QUnit.module('Plugin — Methods', function (hooks) {
         ['day', '4day', 'week', 'month', 'year'].forEach(function (view) {
             QUnit.test('switches to "' + view + '"', function (assert) {
                 $('#cal').bsCalendar('setView', view);
-                const data = $('#cal').data('bsCalendar');
-                assert.strictEqual(data.settings.startView, view);
+                awaitFetch(assert, function () {
+                    assert.strictEqual($('#cal').data('bsCalendar').view, view);
+                });
             });
         });
     });
@@ -27,14 +48,16 @@ QUnit.module('Plugin — Methods', function (hooks) {
     QUnit.module('setDate', function () {
         QUnit.test('accepts a date string and updates currentDate', function (assert) {
             $('#cal').bsCalendar('setDate', '2025-01-15');
-            // The plugin stores the current date — verify render did not throw
-            assert.ok($('#cal').data('bsCalendar') !== undefined);
+            awaitFetch(assert, function () {
+                assert.ok($('#cal').data('bsCalendar') !== undefined);
+            });
         });
 
         QUnit.test('accepts { date, view } object and switches view', function (assert) {
             $('#cal').bsCalendar('setDate', { date: '2025-06-01', view: 'week' });
-            const data = $('#cal').data('bsCalendar');
-            assert.strictEqual(data.settings.startView, 'week');
+            awaitFetch(assert, function () {
+                assert.strictEqual($('#cal').data('bsCalendar').view, 'week');
+            });
         });
     });
 
@@ -44,13 +67,16 @@ QUnit.module('Plugin — Methods', function (hooks) {
         QUnit.test('resets to today without throwing', function (assert) {
             $('#cal').bsCalendar('setDate', '2020-01-01');
             $('#cal').bsCalendar('setToday');
-            assert.ok($('#cal').data('bsCalendar') !== undefined);
+            awaitFetch(assert, function () {
+                assert.ok($('#cal').data('bsCalendar') !== undefined);
+            });
         });
 
         QUnit.test('switches view when view argument is passed', function (assert) {
             $('#cal').bsCalendar('setToday', 'day');
-            const data = $('#cal').data('bsCalendar');
-            assert.strictEqual(data.settings.startView, 'day');
+            awaitFetch(assert, function () {
+                assert.strictEqual($('#cal').data('bsCalendar').view, 'day');
+            });
         });
     });
 
@@ -112,15 +138,17 @@ QUnit.module('Plugin — Methods', function (hooks) {
 
     QUnit.module('refresh', function () {
         QUnit.test('executes without throwing (no url)', function (assert) {
-            assert.expect(1);
             $('#cal').bsCalendar('refresh');
-            assert.ok(true);
+            awaitFetch(assert, function () {
+                assert.ok(true);
+            });
         });
 
         QUnit.test('updates url when passed as option', function (assert) {
             $('#cal').bsCalendar('refresh', { url: '/api/test' });
-            const data = $('#cal').data('bsCalendar');
-            assert.strictEqual(data.settings.url, '/api/test');
+            awaitFetch(assert, function () {
+                assert.strictEqual($('#cal').data('bsCalendar').settings.url, '/api/test');
+            });
         });
     });
 
@@ -128,16 +156,20 @@ QUnit.module('Plugin — Methods', function (hooks) {
 
     QUnit.module('editApointment (misspelled alias)', function () {
         QUnit.test('alias exists and does not throw', function (assert) {
-            assert.expect(1);
-            // Add an appointment first so the alias has something to edit
+            var done = assert.async(1);
+            $('#cal').one('added.bs.calendar', function () {
+                $('#cal').one('edited.bs.calendar', function () {
+                    assert.ok(true);
+                    done();
+                });
+                $('#cal').bsCalendar('editApointment', { id: 'alias-test', title: 'Updated' });
+            });
             $('#cal').bsCalendar('addAppointment', {
                 id: 'alias-test',
                 title: 'Alias Test',
                 start: '2026-05-08 10:00:00',
                 end: '2026-05-08 11:00:00'
             });
-            $('#cal').bsCalendar('editApointment', { id: 'alias-test', title: 'Updated' });
-            assert.ok(true);
         });
     });
 });
