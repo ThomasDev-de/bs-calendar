@@ -30,11 +30,13 @@
             </div>
         </div>
 
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday" data-view="week">setToday('week')</button>
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setToday" data-view="4day">setToday('4day')</button>
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="setLocale" data-locale="en-US">setLocale('en-US')</button>
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="refresh">Refresh</button>
-        <button type="button" class="btn btn-primary btn-sm mb-1" data-method="clear">Clear</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1 rounded-pill" data-method="setToday" data-view="week">setToday
+            ('week')</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1 rounded-pill" data-method="setToday" data-view="4day">setToday('4day')</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1 rounded-pill" data-method="setLocale" data-locale="en-US">setLocale('en-US')</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1 rounded-pill" data-method="render">Render</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1 rounded-pill" data-method="refresh">Refresh</button>
+        <button type="button" class="btn btn-primary btn-sm mb-1 rounded-pill" data-method="clear">Clear</button>
     </div>
 </div>
 
@@ -280,6 +282,11 @@
             lang: 'en'
         };
 
+        // Temporary in-memory store. Each year is generated once and then reused.
+        // Example: appointmentStore[2026] = [{...}, {...}]
+        const appointmentStore = {};
+        let appointmentIdCounter = 1;
+
         initAppointmentModal();
         initCalendar();
         initLanguageControls();
@@ -298,39 +305,45 @@
             $calendar.bsCalendar({
                 title: '<span class="h4 text-uppercase mb-0">$.fn.bsCalendar</span>',
                 locale: i18n[state.lang].locale,
+                startView: '4day',
                 startWeekOnSunday: false,
                 navigateOnWheel: false,
                 draggable: true,
-                storeState: true,
-                debug: true,
+                storeState: false,
+                debug: false,
                 url: loadAppointments,
                 holidays: {
                     country: i18n[state.lang].holidays.country,
                     federalState: i18n[state.lang].holidays.federalState
                 },
                 hourSlots: {
-                    start: 6,
-                    end: 20,
+                    start: '06:30',
+                    end: '20:30',
                     height: 60
                 },
                 calendars: i18n[state.lang].calendars,
                 highlightedHours: {
                     startTime: '08:00',
                     endTime: '17:00',
-                    daysOfWeek: [1, 2, 3, 4, 5], // Monday to Friday
+                    daysOfWeek: [1, 2, 3], // Monday to Friday
                     color: 'rgba(0, 0, 0, 0.2)'
                 },
                 onDuplicate(appointment) {
                     appointment.id = 'copy_of_' + appointment.id;
+                    upsertAppointmentInStore(appointment);
                     $calendar.bsCalendar('addAppointment', appointment);
                 },
                 onAll(eventName, ...args) {
-                    console.log(eventName, ...args);
+
                     if ($('#switchTriggeredEvents').is(':checked')) {
                         $.bsToast({
                             title: 'Event ' + eventCounter,
-                            message: eventName
+                            message: [
+                                eventName + ' (' + args.length + ' args)',
+                                `<i class="small text-muted">For more details see the console</i>`
+                            ].join('<br>')
                         });
+                        console.log(eventCounter, eventName, ...args);
                         eventCounter++;
                     } else {
                         $.bsToast.closeAll();
@@ -389,6 +402,7 @@
                 })
                 .on('delete.bs.calendar', function (event, appointment) {
                     event.preventDefault();
+                    removeAppointmentFromStore(appointment.id);
                     $calendar.bsCalendar('deleteAppointment', appointment.id);
                 });
         }
@@ -403,6 +417,9 @@
                         break;
                     case 'refresh':
                         $calendar.bsCalendar('refresh');
+                        break;
+                    case 'render':
+                        $calendar.bsCalendar('render');
                         break;
                     case 'setToday':
                         $calendar.bsCalendar('setToday', $(this).data('view') || 'week');
@@ -439,7 +456,7 @@
             state.lang = lang;
             $('#selectLanguage').val(lang);
             $('html').attr('lang', t.htmlLang);
-            
+
             $('label[for="selectLanguage"]').text(t.sidebarLanguage);
             // $('[data-method="setToday"]').text(t.btnSetToday);
             $('[data-method="refresh"]').text(t.btnRefresh);
@@ -518,6 +535,7 @@
                     const appointment = readAppointmentModal();
                     const method = modalState.mode === 'edit' ? 'editAppointment' : 'addAppointment';
 
+                    upsertAppointmentInStore(appointment);
                     $calendar.bsCalendar(method, appointment);
                     $modal.modal('hide');
                 });
@@ -572,15 +590,15 @@
             setModalTimeValue('to_time', appointment.endTime || '');
             $modal.find('input[name="allDay"]').prop('checked', !!appointment.allDay).trigger('change');
             $modal.find('input[name="overlap"]').prop('checked', !!appointment.overlap);
-            
+
             const isTask = !!appointment.task;
             const priority = isTask ? appointment.task.priority : 'normal';
             const due = isTask ? appointment.task.due : '';
-            
+
             $modal.find('input[name="isTask"]').prop('checked', isTask).trigger('change');
             $modal.find(`input[name="priority"][value="${priority || 'normal'}"]`).prop('checked', true);
             $modal.find('input[name="due"]').val(due ? due.substring(0, 16).replace(' ', 'T') : '');
-            
+
             $modal.find('textarea[name="description"]').val(appointment.description || '');
             $colorpicker.bsColorPicker('val', appointment.color);
             // $modal.find('input[name="color"]').val(normalizeColorInput(appointment.color));
@@ -616,7 +634,7 @@
             const t = i18n[state.lang] || i18n.en;
             const allDay = $modal.find('input[name="allDay"]').prop('checked');
             const isTask = $modal.find('input[name="isTask"]').is(':checked');
-            
+
             const appointment = {
                 title: $modal.find('input[name="title"]').val() || t.untitled,
                 start: buildDateTime(
@@ -719,10 +737,20 @@
             }
 
             if (query.view === 'year') {
-                return generateYearBuckets(query.year);
+                const year = Number(query.year) || new Date().getFullYear();
+                ensureYearAppointments(year);
+                return generateYearBuckets(year, query.calendarIds, showTasks);
             }
 
-            let appointments = generateAppointments(query.fromDate, query.toDate, query.view);
+            const fromYear = getYearFromDateString(query.fromDate);
+            const toYear = getYearFromDateString(query.toDate);
+
+            for (let year = fromYear; year <= toYear; year++) {
+                ensureYearAppointments(year);
+            }
+
+            let appointments = getAppointmentsBetween(query.fromDate, query.toDate);
+
             if (!showTasks) {
                 appointments = appointments.filter(a => !a.task);
             }
@@ -730,12 +758,144 @@
             return filterByCalendarIds(appointments, query.calendarIds);
         }
 
+        function ensureYearAppointments(year) {
+            year = Number(year) || new Date().getFullYear();
+
+            if (!appointmentStore[year]) {
+                appointmentStore[year] = createFixedYearAppointments(year);
+            }
+
+            return appointmentStore[year];
+        }
+
+        const APPOINTMENTS_PER_YEAR = 700;
+
+        function createSeededRandom(seed) {
+            let value = seed % 2147483647;
+
+            if (value <= 0) {
+                value += 2147483646;
+            }
+
+            return function () {
+                value = value * 16807 % 2147483647;
+                return (value - 1) / 2147483646;
+            };
+        }
+
+        function createFixedYearAppointments(year) {
+            const appointments = [];
+            const random = createSeededRandom(year);
+            const calendars = ['personal', 'work', 'sports'];
+            const colors = {
+                personal: 'primary opacity-75 gradient',
+                work: 'danger opacity-75 gradient',
+                sports: 'success opacity-75 gradient'
+            };
+
+            for (let index = 0; index < 200; index++) {
+                const month = Math.floor(random() * 12);
+                const day = Math.floor(random() * 28) + 1;
+                const hour = Math.floor(random() * 10) + 8;
+                const minute = [0, 15, 30, 45][Math.floor(random() * 4)];
+                const durationMinutes = [45, 60, 90, 120][Math.floor(random() * 4)];
+
+                const start = new Date(year, month, day, hour, minute, 0, 0);
+                const end = new Date(start.getTime() + durationMinutes * 60000);
+
+                const calendarId = calendars[Math.floor(random() * calendars.length)];
+                const isTask = random() < 0.2;
+
+                const appointment = {
+                    id: `${year}-generated-${index + 1}`,
+                    calendarId: calendarId,
+                    title: isTask ? `Task ${index + 1}` : `Termin ${index + 1}`,
+                    description: `Automatisch erzeugter Termin ${index + 1} für ${year}`,
+                    start: formatDateTime(start),
+                    end: formatDateTime(end),
+                    allDay: false,
+                    overlap: random() < 0.15,
+                    color: colors[calendarId],
+                    link: 'https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-calendar'
+                };
+
+                if (isTask) {
+                    appointment.task = {
+                        checked: random() < 0.5,
+                        priority: ['low', 'normal', 'high'][Math.floor(random() * 3)],
+                        due: formatDateTime(end)
+                    };
+                }
+
+                appointments.push(appointment);
+            }
+
+            return appointments;
+        }
+
+        function createStoredAppointment(year, item, fallbackId, t) {
+            const start = buildDateFromParts(year, item.month, item.day, item.start);
+            const end = buildDateFromParts(year, item.month, item.day, item.end);
+            const appointment = {
+                id: `${year}-${item.id || fallbackId}`,
+                calendarId: item.calendarId || 'personal',
+                title: item.title || `${t.appointmentPrefix} ${fallbackId}`,
+                description: item.description || `${t.appointmentDescriptionPrefix} ${fallbackId}`,
+                start: formatDateTime(start),
+                end: formatDateTime(end),
+                allDay: !!item.allDay,
+                overlap: !!item.overlap,
+                color: item.color || 'primary opacity-75 gradient',
+                link: item.link || 'https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-calendar'
+            };
+
+            if (item.task) {
+                appointment.task = {
+                    checked: !!item.task.checked,
+                    priority: item.task.priority || 'normal',
+                    due: formatDateTime(buildDateFromParts(year, item.month, item.day, item.task.due || item.end))
+                };
+            }
+
+            return appointment;
+        }
+
+        function buildDateFromParts(year, month, day, time) {
+            const parts = String(time || '00:00').split(':');
+            const hours = Number(parts[0] || 0);
+            const minutes = Number(parts[1] || 0);
+            return new Date(year, month, day, hours, minutes, 0, 0);
+        }
+
+        function getAppointmentsBetween(fromDate, toDate) {
+            const from = new Date(`${fromDate}T00:00:00`);
+            const to = new Date(`${toDate}T23:59:59`);
+
+            return Object.values(appointmentStore)
+                .flat()
+                .filter(function (appointment) {
+                    const start = parseDateTimeString(appointment.start);
+                    const end = parseDateTimeString(appointment.end);
+
+                    if (!start || !end) {
+                        return false;
+                    }
+
+                    return start <= to && end >= from;
+                });
+        }
+
         function searchAppointments(search, limit, offset, calendarIds, showTasks) {
-            const searchLower = search.toLowerCase();
-            const rows = generateSearchAppointments()
+            const searchLower = String(search || '').toLowerCase();
+            const currentYear = new Date().getFullYear();
+            ensureYearAppointments(currentYear);
+
+            const rows = Object.values(appointmentStore)
+                .flat()
                 .filter(a => showTasks || !a.task)
                 .filter(appointment => shouldShowCalendar(appointment, calendarIds))
-                .filter(appointment => appointment.title.toLowerCase().includes(searchLower));
+                .filter(appointment => String(appointment.title || '').toLowerCase().includes(searchLower));
+
             const start = offset || 0;
             const end = limit ? start + limit : rows.length;
 
@@ -743,6 +903,33 @@
                 rows: rows.slice(start, end),
                 total: rows.length
             };
+        }
+
+        function generateYearBuckets(year, calendarIds, showTasks) {
+            const t = i18n[state.lang] || i18n.en;
+            const grouped = ensureYearAppointments(year)
+                .filter(a => showTasks || !a.task)
+                .filter(appointment => shouldShowCalendar(appointment, calendarIds))
+                .reduce(function (acc, appointment) {
+                    const date = String(appointment.start || '').substring(0, 10);
+
+                    if (!date) {
+                        return acc;
+                    }
+
+                    acc[date] = (acc[date] || 0) + 1;
+                    return acc;
+                }, {});
+
+            return Object.keys(grouped).sort().map(function (date) {
+                const total = grouped[date];
+
+                return {
+                    date: date,
+                    total: total,
+                    content: `<strong>${total} ${t.yearAppointments}</strong><br><small>${date}</small>`
+                };
+            });
         }
 
         function filterByCalendarIds(appointments, calendarIds) {
@@ -756,118 +943,44 @@
             return calendarIds.includes(appointment.calendarId);
         }
 
-        function generateSearchAppointments() {
-            return Array.from({length: 36}, function (_, index) {
-                const start = new Date(2026, index % 12, (index % 24) + 1, 9 + (index % 8), 0, 0);
-                const end = new Date(start.getTime() + 60 * 60 * 1000);
+        function upsertAppointmentInStore(appointment) {
+            if (!appointment.id) {
+                appointment.id = createAppointmentId();
+            }
 
-                return createAppointment(index + 1, start, end, index % 9 === 0);
+            removeAppointmentFromStore(appointment.id);
+
+            const year = getAppointmentYear(appointment);
+            ensureYearAppointments(year);
+            appointmentStore[year].push(appointment);
+        }
+
+        function removeAppointmentFromStore(appointmentId) {
+            if (!appointmentId) {
+                return;
+            }
+
+            Object.keys(appointmentStore).forEach(function (year) {
+                appointmentStore[year] = appointmentStore[year].filter(function (appointment) {
+                    return appointment.id !== appointmentId;
+                });
             });
         }
 
-        function generateAppointments(fromDate, toDate, view) {
-            const from = new Date(`${fromDate}T00:00:00`);
-            const to = new Date(`${toDate}T23:59:59`);
-            const count = view === 'day' ? 4 : view === 'week' ? 12 : 24;
-            const appointments = [];
-
-            for (let index = 0; index < count; index++) {
-                const start = randomDateBetween(from, to);
-                const durationMinutes = [45, 60, 90, 120][index % 4];
-                const end = new Date(start.getTime() + durationMinutes * 60000);
-
-                if (end <= to) {
-                    appointments.push(createAppointment(index + 1, start, end, index % 14 === 0));
-                }
-            }
-
-            if (view === 'day' || view === 'week') {
-                const anchor = new Date(from);
-                anchor.setHours(0, 0, 0, 0);
-                const overlapStartA = new Date(anchor);
-                overlapStartA.setHours(10, 0, 0, 0);
-                const overlapEndA = new Date(anchor);
-                overlapEndA.setHours(11, 30, 0, 0);
-                const overlapStartB = new Date(anchor);
-                overlapStartB.setHours(10, 30, 0, 0);
-                const overlapEndB = new Date(anchor);
-                overlapEndB.setHours(12, 0, 0, 0);
-
-                appointments.push(createAppointment('overlap-a', overlapStartA, overlapEndA, false, true));
-                appointments.push(createAppointment('overlap-b', overlapStartB, overlapEndB, false, true));
-                appointments.push(createAppointment('normal-c', overlapStartB, overlapEndB, false, false));
-            }
-
-            return appointments;
+        function getAppointmentYear(appointment) {
+            const date = parseDateTimeString(appointment.start);
+            return date ? date.getFullYear() : new Date().getFullYear();
         }
 
-        function generateYearBuckets(year) {
-            const t = i18n[state.lang] || i18n.en;
-            return Array.from({length: 24}, function (_, index) {
-                const date = new Date(year, index % 12, (index * 3) % 27 + 1);
-                const dateString = date.toISOString().split('T')[0];
-                const total = (index % 6) + 1;
-
-                return {
-                    date: dateString,
-                    total: total,
-                    content: `<strong>${total} ${t.yearAppointments}</strong><br><small>${dateString}</small>`
-                };
-            });
+        function getYearFromDateString(dateString) {
+            const match = String(dateString || '').match(/^(\d{4})-/);
+            return match ? Number(match[1]) : new Date().getFullYear();
         }
 
-        function createAppointment(id, start, end, allDay = false, overlap = false) {
-            const t = i18n[state.lang] || i18n.en;
-            const calendars = ["personal", "work", "sports"];
-            const colors = ["primary opacity-75 gradient", "danger opacity-75 gradient", "success opacity-75 gradient"];
-            const normalizedId = typeof id === "number" ? id : String(id).length;
-            const calendarIndex = normalizedId % calendars.length;
-
-            const appointment = {
-                id: `demo-${id}-${start.getTime()}`,
-                calendarId: calendars[calendarIndex],
-                title: `${t.appointmentPrefix} ${id}`,
-                description: `${t.appointmentDescriptionPrefix} ${id}`,
-                start: formatDateTime(start),
-                end: formatDateTime(end),
-                allDay: allDay,
-                overlap: overlap,
-                color: colors[calendarIndex],
-                link: "https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-calendar"
-            };
-
-            // Randomly turn some appointments into tasks (approx 20%)
-            if (Math.random() < 0.2) {
-                const isDone = Math.random() < 0.5;
-                const priorities = ["low", "normal", "high"];
-                const priority = priorities[Math.floor(Math.random() * priorities.length)];
-                const hasDueDate = Math.random() < 0.7;
-
-                // Create a due date relative to start time
-                let dueDate = null;
-                if (hasDueDate) {
-                    const dueOffset = (Math.random() - 0.5) * 2 * 3600000; // +/- 1 hour
-                    dueDate = formatDateTime(new Date(start.getTime() + dueOffset));
-                }
-
-                appointment.task = {
-                    checked: isDone,
-                    priority: priority,
-                    due: dueDate
-                };
-
-                // Adjust title for tasks
-                appointment.title = (priority === "high" ? "" : "") + "Task " + id;
-            }
-
-            return appointment;
-        }
-
-        function randomDateBetween(from, to) {
-            const date = new Date(from.getTime() + Math.random() * (to.getTime() - from.getTime()));
-            date.setMinutes([0, 15, 30, 45][Math.floor(Math.random() * 4)]);
-            date.setSeconds(0, 0);
-            return date;
+        function createAppointmentId() {
+            const id = `custom-${Date.now()}-${appointmentIdCounter}`;
+            appointmentIdCounter++;
+            return id;
         }
 
         function formatDateTime(date) {

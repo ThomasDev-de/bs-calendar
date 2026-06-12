@@ -68,440 +68,494 @@
             low: 'success',
         };
 
-            // const localeKeys = ['today', 'day', 'week', 'month', 'year', 'search', 'searchNoResult'];
+        // const localeKeys = ['today', 'day', 'week', 'month', 'year', 'search', 'searchNoResult'];
         const translations = {
-                'ar': { // Arabic
-                    today: 'اليوم',
-                    day: 'يوم',
-                    '4day': '٤ أيام',
-                    week: 'أسبوع',
-                    month: 'شهر',
-                    year: 'سنة',
-                    search: 'اكتب واضغط Enter',
-                    searchNoResult: 'لم يتم العثور على موعد',
-                    tasks: 'المهام',
-                    taskPriorityHigh: 'عالية',
-                    taskPriorityNormal: 'متوسطة',
-                    taskPriorityLow: 'منخفضة',
-                    duplicate: 'تكرار'
-                },
+            'ar': { // Arabic
+                today: 'اليوم',
+                day: 'يوم',
+                '4day': '٤ أيام',
+                week: 'أسبوع',
+                month: 'شهر',
+                year: 'سنة',
+                search: 'اكتب واضغط Enter',
+                searchNoResult: 'لم يتم العثور على موعد',
+                tasks: 'المهام',
+                taskOpen: 'مفتوحة',
+                taskDone: 'مكتملة',
+                taskPriorityHigh: 'عالية',
+                taskPriorityNormal: 'متوسطة',
+                taskPriorityLow: 'منخفضة',
+                duplicate: 'تكرار'
+            },
 
-                'he': { // Hebrew
-                    today: 'היום',
-                    day: 'יום',
-                    '4day': '4 ימים',
-                    week: 'שבוע',
-                    month: 'חודש',
-                    year: 'שנה',
-                    search: 'הקלד ולחץ על Enter',
-                    searchNoResult: 'לא נמצא תור',
-                    tasks: 'משימות',
-                    taskPriorityHigh: 'גבוהה',
-                    taskPriorityNormal: 'בינונית',
-                    taskPriorityLow: 'נמוכה',
-                    duplicate: 'שכפול'
-                },
+            'he': { // Hebrew
+                today: 'היום',
+                day: 'יום',
+                '4day': '4 ימים',
+                week: 'שבוע',
+                month: 'חודש',
+                year: 'שנה',
+                search: 'הקלד ולחץ על Enter',
+                searchNoResult: 'לא נמצא תור',
+                tasks: 'משימות',
+                taskOpen: 'פתוחות',
+                taskDone: 'בוצעו',
+                taskPriorityHigh: 'גבוהה',
+                taskPriorityNormal: 'בינונית',
+                taskPriorityLow: 'נמוכה',
+                duplicate: 'שכפול'
+            },
 
-                'zh': { // Chinese Simplified
-                    today: '今天',
-                    day: '天',
-                    '4day': '4天',
-                    week: '周',
-                    month: '月',
-                    year: '年',
-                    search: '输入并按 Enter',
-                    searchNoResult: '未找到预约',
-                    tasks: '任务',
-                    taskPriorityHigh: '高',
-                    taskPriorityNormal: '中',
-                    taskPriorityLow: '低',
-                    duplicate: '复制'
-                },
+            'zh': { // Chinese Simplified
+                today: '今天',
+                day: '天',
+                '4day': '4天',
+                week: '周',
+                month: '月',
+                year: '年',
+                search: '输入并按 Enter',
+                searchNoResult: '未找到预约',
+                tasks: '任务',
+                taskOpen: '未完成',
+                taskDone: '已完成',
+                taskPriorityHigh: '高',
+                taskPriorityNormal: '中',
+                taskPriorityLow: '低',
+                duplicate: '复制'
+            },
 
-                'en': { // English
-                    today: 'Today',
-                    day: 'Day',
-                    '4day': '4 Days',
-                    week: 'Week',
-                    month: 'Month',
-                    year: 'Year',
-                    search: 'Type and press Enter',
-                    searchNoResult: 'No appointment found',
-                    tasks: 'Tasks',
-                    taskPriorityHigh: 'High',
-                    taskPriorityNormal: 'Medium',
-                    taskPriorityLow: 'Low',
-                    duplicate: 'Duplicate'
-                },
+            'en': { // English
+                today: 'Today',
+                day: 'Day',
+                '4day': '4 Days',
+                week: 'Week',
+                month: 'Month',
+                year: 'Year',
+                search: 'Type and press Enter',
+                searchNoResult: 'No appointment found',
+                tasks: 'Tasks',
+                taskOpen: 'Open',
+                taskDone: 'Done',
+                taskPriorityHigh: 'High',
+                taskPriorityNormal: 'Medium',
+                taskPriorityLow: 'Low',
+                duplicate: 'Duplicate'
+            },
 
-                'de': { // German
-                    today: 'Heute',
-                    day: 'Tag',
-                    '4day': '4 Tage',
-                    week: 'Woche',
-                    month: 'Monat',
-                    year: 'Jahr',
-                    search: 'Tippen und Enter drücken',
-                    searchNoResult: 'Kein Termin gefunden',
-                    tasks: 'Aufgaben',
-                    taskPriorityHigh: 'Hoch',
-                    taskPriorityNormal: 'Mittel',
-                    taskPriorityLow: 'Niedrig',
-                    duplicate: 'Duplizieren'
-                },
+            'de': { // German
+                today: 'Heute',
+                day: 'Tag',
+                '4day': '4 Tage',
+                week: 'Woche',
+                month: 'Monat',
+                year: 'Jahr',
+                search: 'Tippen und Enter drücken',
+                searchNoResult: 'Kein Termin gefunden',
+                tasks: 'Aufgaben',
+                taskOpen: 'Offen',
+                taskDone: 'Erledigt',
+                taskPriorityHigh: 'Hoch',
+                taskPriorityNormal: 'Mittel',
+                taskPriorityLow: 'Niedrig',
+                duplicate: 'Duplizieren'
+            },
 
-                'es': { // Spanish
-                    today: 'Hoy',
-                    day: 'Día',
-                    '4day': '4 días',
-                    week: 'Semana',
-                    month: 'Mes',
-                    year: 'Año',
-                    search: 'Escribe y pulsa Enter',
-                    searchNoResult: 'No se encontró ninguna cita',
-                    tasks: 'Tareas',
-                    taskPriorityHigh: 'Alta',
-                    taskPriorityNormal: 'Media',
-                    taskPriorityLow: 'Baja',
-                    duplicate: 'Duplicar'
-                },
+            'es': { // Spanish
+                today: 'Hoy',
+                day: 'Día',
+                '4day': '4 días',
+                week: 'Semana',
+                month: 'Mes',
+                year: 'Año',
+                search: 'Escribe y pulsa Enter',
+                searchNoResult: 'No se encontró ninguna cita',
+                tasks: 'Tareas',
+                taskOpen: 'Abiertas',
+                taskDone: 'Completadas',
+                taskPriorityHigh: 'Alta',
+                taskPriorityNormal: 'Media',
+                taskPriorityLow: 'Baja',
+                duplicate: 'Duplicar'
+            },
 
-                'fr': { // French
-                    today: 'Aujourd’hui',
-                    day: 'Jour',
-                    '4day': '4 jours',
-                    week: 'Semaine',
-                    month: 'Mois',
-                    year: 'Année',
-                    search: 'Tapez et appuyez sur Entrée',
-                    searchNoResult: 'Aucun rendez-vous trouvé',
-                    tasks: 'Tâches',
-                    taskPriorityHigh: 'Élevée',
-                    taskPriorityNormal: 'Moyenne',
-                    taskPriorityLow: 'Faible',
-                    duplicate: 'Dupliquer'
-                },
+            'fr': { // French
+                today: 'Aujourd’hui',
+                day: 'Jour',
+                '4day': '4 jours',
+                week: 'Semaine',
+                month: 'Mois',
+                year: 'Année',
+                search: 'Tapez et appuyez sur Entrée',
+                searchNoResult: 'Aucun rendez-vous trouvé',
+                tasks: 'Tâches',
+                taskOpen: 'Ouvertes',
+                taskDone: 'Terminées',
+                taskPriorityHigh: 'Élevée',
+                taskPriorityNormal: 'Moyenne',
+                taskPriorityLow: 'Faible',
+                duplicate: 'Dupliquer'
+            },
 
-                'it': { // Italian
-                    today: 'Oggi',
-                    day: 'Giorno',
-                    '4day': '4 giorni',
-                    week: 'Settimana',
-                    month: 'Mese',
-                    year: 'Anno',
-                    search: 'Digita e premi Invio',
-                    searchNoResult: 'Nessun appuntamento trovato',
-                    tasks: 'Attività',
-                    taskPriorityHigh: 'Alta',
-                    taskPriorityNormal: 'Media',
-                    taskPriorityLow: 'Bassa',
-                    duplicate: 'Duplica'
-                },
+            'it': { // Italian
+                today: 'Oggi',
+                day: 'Giorno',
+                '4day': '4 giorni',
+                week: 'Settimana',
+                month: 'Mese',
+                year: 'Anno',
+                search: 'Digita e premi Invio',
+                searchNoResult: 'Nessun appuntamento trovato',
+                tasks: 'Attività',
+                taskOpen: 'Aperte',
+                taskDone: 'Completate',
+                taskPriorityHigh: 'Alta',
+                taskPriorityNormal: 'Media',
+                taskPriorityLow: 'Bassa',
+                duplicate: 'Duplica'
+            },
 
-                'pt': { // Portuguese
-                    today: 'Hoje',
-                    day: 'Dia',
-                    '4day': '4 dias',
-                    week: 'Semana',
-                    month: 'Mês',
-                    year: 'Ano',
-                    search: 'Digite e pressione Enter',
-                    searchNoResult: 'Nenhum compromisso encontrado',
-                    tasks: 'Tarefas',
-                    taskPriorityHigh: 'Alta',
-                    taskPriorityNormal: 'Média',
-                    taskPriorityLow: 'Baixa',
-                    duplicate: 'Duplicar'
-                },
+            'pt': { // Portuguese
+                today: 'Hoje',
+                day: 'Dia',
+                '4day': '4 dias',
+                week: 'Semana',
+                month: 'Mês',
+                year: 'Ano',
+                search: 'Digite e pressione Enter',
+                searchNoResult: 'Nenhum compromisso encontrado',
+                tasks: 'Tarefas',
+                taskOpen: 'Abertas',
+                taskDone: 'Concluídas',
+                taskPriorityHigh: 'Alta',
+                taskPriorityNormal: 'Média',
+                taskPriorityLow: 'Baixa',
+                duplicate: 'Duplicar'
+            },
 
-                'nl': { // Dutch
-                    today: 'Vandaag',
-                    day: 'Dag',
-                    '4day': '4 dagen',
-                    week: 'Week',
-                    month: 'Maand',
-                    year: 'Jaar',
-                    search: 'Typ en druk op Enter',
-                    searchNoResult: 'Geen afspraak gevonden',
-                    tasks: 'Taken',
-                    taskPriorityHigh: 'Hoog',
-                    taskPriorityNormal: 'Gemiddeld',
-                    taskPriorityLow: 'Laag',
-                    duplicate: 'Dupliceren'
-                },
+            'nl': { // Dutch
+                today: 'Vandaag',
+                day: 'Dag',
+                '4day': '4 dagen',
+                week: 'Week',
+                month: 'Maand',
+                year: 'Jaar',
+                search: 'Typ en druk op Enter',
+                searchNoResult: 'Geen afspraak gevonden',
+                tasks: 'Taken',
+                taskOpen: 'Open',
+                taskDone: 'Voltooid',
+                taskPriorityHigh: 'Hoog',
+                taskPriorityNormal: 'Gemiddeld',
+                taskPriorityLow: 'Laag',
+                duplicate: 'Dupliceren'
+            },
 
-                'pl': { // Polish
-                    today: 'Dzisiaj',
-                    day: 'Dzień',
-                    '4day': '4 dni',
-                    week: 'Tydzień',
-                    month: 'Miesiąc',
-                    year: 'Rok',
-                    search: 'Wpisz i naciśnij Enter',
-                    searchNoResult: 'Nie znaleziono terminu',
-                    tasks: 'Zadania',
-                    taskPriorityHigh: 'Wysoki',
-                    taskPriorityNormal: 'Średni',
-                    taskPriorityLow: 'Niski',
-                    duplicate: 'Duplikuj'
-                },
+            'pl': { // Polish
+                today: 'Dzisiaj',
+                day: 'Dzień',
+                '4day': '4 dni',
+                week: 'Tydzień',
+                month: 'Miesiąc',
+                year: 'Rok',
+                search: 'Wpisz i naciśnij Enter',
+                searchNoResult: 'Nie znaleziono terminu',
+                tasks: 'Zadania',
+                taskOpen: 'Otwarte',
+                taskDone: 'Ukończone',
+                taskPriorityHigh: 'Wysoki',
+                taskPriorityNormal: 'Średni',
+                taskPriorityLow: 'Niski',
+                duplicate: 'Duplikuj'
+            },
 
-                'ru': { // Russian
-                    today: 'Сегодня',
-                    day: 'День',
-                    '4day': '4 дня',
-                    week: 'Неделя',
-                    month: 'Месяц',
-                    year: 'Год',
-                    search: 'Введите и нажмите Enter',
-                    searchNoResult: 'Встреча не найдена',
-                    tasks: 'Задачи',
-                    taskPriorityHigh: 'Высокий',
-                    taskPriorityNormal: 'Средний',
-                    taskPriorityLow: 'Низкий',
-                    duplicate: 'Дублировать'
-                },
+            'ru': { // Russian
+                today: 'Сегодня',
+                day: 'День',
+                '4day': '4 дня',
+                week: 'Неделя',
+                month: 'Месяц',
+                year: 'Год',
+                search: 'Введите и нажмите Enter',
+                searchNoResult: 'Встреча не найдена',
+                tasks: 'Задачи',
+                taskOpen: 'Открытые',
+                taskDone: 'Выполненные',
+                taskPriorityHigh: 'Высокий',
+                taskPriorityNormal: 'Средний',
+                taskPriorityLow: 'Низкий',
+                duplicate: 'Дублировать'
+            },
 
-                'uk': { // Ukrainian
-                    today: 'Сьогодні',
-                    day: 'День',
-                    '4day': '4 дні',
-                    week: 'Тиждень',
-                    month: 'Місяць',
-                    year: 'Рік',
-                    search: 'Введіть і натисніть Enter',
-                    searchNoResult: 'Запис не знайдено',
-                    tasks: 'Завдання',
-                    taskPriorityHigh: 'Високий',
-                    taskPriorityNormal: 'Середній',
-                    taskPriorityLow: 'Низький',
-                    duplicate: 'Дублювати'
-                },
+            'uk': { // Ukrainian
+                today: 'Сьогодні',
+                day: 'День',
+                '4day': '4 дні',
+                week: 'Тиждень',
+                month: 'Місяць',
+                year: 'Рік',
+                search: 'Введіть і натисніть Enter',
+                searchNoResult: 'Запис не знайдено',
+                tasks: 'Завдання',
+                taskOpen: 'Відкриті',
+                taskDone: 'Виконані',
+                taskPriorityHigh: 'Високий',
+                taskPriorityNormal: 'Середній',
+                taskPriorityLow: 'Низький',
+                duplicate: 'Дублювати'
+            },
 
-                'tr': { // Turkish
-                    today: 'Bugün',
-                    day: 'Gün',
-                    '4day': '4 gün',
-                    week: 'Hafta',
-                    month: 'Ay',
-                    year: 'Yıl',
-                    search: 'Yazın ve Enter’a basın',
-                    searchNoResult: 'Randevu bulunamadı',
-                    tasks: 'Görevler',
-                    taskPriorityHigh: 'Yüksek',
-                    taskPriorityNormal: 'Orta',
-                    taskPriorityLow: 'Düşük',
-                    duplicate: 'Çoğalt'
-                },
+            'tr': { // Turkish
+                today: 'Bugün',
+                day: 'Gün',
+                '4day': '4 gün',
+                week: 'Hafta',
+                month: 'Ay',
+                year: 'Yıl',
+                search: 'Yazın ve Enter’a basın',
+                searchNoResult: 'Randevu bulunamadı',
+                tasks: 'Görevler',
+                taskOpen: 'Açık',
+                taskDone: 'Tamamlandı',
+                taskPriorityHigh: 'Yüksek',
+                taskPriorityNormal: 'Orta',
+                taskPriorityLow: 'Düşük',
+                duplicate: 'Çoğalt'
+            },
 
-                'ja': { // Japanese
-                    today: '今日',
-                    day: '日',
-                    '4day': '4日間',
-                    week: '週',
-                    month: '月',
-                    year: '年',
-                    search: '入力して Enter を押してください',
-                    searchNoResult: '予約が見つかりません',
-                    tasks: 'タスク',
-                    taskPriorityHigh: '高',
-                    taskPriorityNormal: '中',
-                    taskPriorityLow: '低',
-                    duplicate: '複製'
-                },
+            'ja': { // Japanese
+                today: '今日',
+                day: '日',
+                '4day': '4日間',
+                week: '週',
+                month: '月',
+                year: '年',
+                search: '入力して Enter を押してください',
+                searchNoResult: '予約が見つかりません',
+                tasks: 'タスク',
+                taskOpen: '未完了',
+                taskDone: '完了',
+                taskPriorityHigh: '高',
+                taskPriorityNormal: '中',
+                taskPriorityLow: '低',
+                duplicate: '複製'
+            },
 
-                'ko': { // Korean
-                    today: '오늘',
-                    day: '일',
-                    '4day': '4일',
-                    week: '주',
-                    month: '월',
-                    year: '년',
-                    search: '입력 후 Enter를 누르세요',
-                    searchNoResult: '예약을 찾을 수 없습니다',
-                    tasks: '작업',
-                    taskPriorityHigh: '높음',
-                    taskPriorityNormal: '보통',
-                    taskPriorityLow: '낮음',
-                    duplicate: '복제'
-                },
+            'ko': { // Korean
+                today: '오늘',
+                day: '일',
+                '4day': '4일',
+                week: '주',
+                month: '월',
+                year: '년',
+                search: '입력 후 Enter를 누르세요',
+                searchNoResult: '예약을 찾을 수 없습니다',
+                tasks: '작업',
+                taskOpen: '미완료',
+                taskDone: '완료',
+                taskPriorityHigh: '높음',
+                taskPriorityNormal: '보통',
+                taskPriorityLow: '낮음',
+                duplicate: '복제'
+            },
 
-                'hi': { // Hindi
-                    today: 'आज',
-                    day: 'दिन',
-                    '4day': '4 दिन',
-                    week: 'सप्ताह',
-                    month: 'महीना',
-                    year: 'वर्ष',
-                    search: 'टाइप करें और Enter दबाएँ',
-                    searchNoResult: 'कोई अपॉइंटमेंट नहीं मिला',
-                    tasks: 'कार्य',
-                    taskPriorityHigh: 'उच्च',
-                    taskPriorityNormal: 'मध्यम',
-                    taskPriorityLow: 'निम्न',
-                    duplicate: 'डुप्लिकेट करें'
-                },
+            'hi': { // Hindi
+                today: 'आज',
+                day: 'दिन',
+                '4day': '4 दिन',
+                week: 'सप्ताह',
+                month: 'महीना',
+                year: 'वर्ष',
+                search: 'टाइप करें और Enter दबाएँ',
+                searchNoResult: 'कोई अपॉइंटमेंट नहीं मिला',
+                tasks: 'कार्य',
+                taskOpen: 'खुला',
+                taskDone: 'पूर्ण',
+                taskPriorityHigh: 'उच्च',
+                taskPriorityNormal: 'मध्यम',
+                taskPriorityLow: 'निम्न',
+                duplicate: 'डुप्लिकेट करें'
+            },
 
-                'id': { // Indonesian
-                    today: 'Hari ini',
-                    day: 'Hari',
-                    '4day': '4 hari',
-                    week: 'Minggu',
-                    month: 'Bulan',
-                    year: 'Tahun',
-                    search: 'Ketik lalu tekan Enter',
-                    searchNoResult: 'Janji temu tidak ditemukan',
-                    tasks: 'Tugas',
-                    taskPriorityHigh: 'Tinggi',
-                    taskPriorityNormal: 'Sedang',
-                    taskPriorityLow: 'Rendah',
-                    duplicate: 'Duplikat'
-                },
+            'id': { // Indonesian
+                today: 'Hari ini',
+                day: 'Hari',
+                '4day': '4 hari',
+                week: 'Minggu',
+                month: 'Bulan',
+                year: 'Tahun',
+                search: 'Ketik lalu tekan Enter',
+                searchNoResult: 'Janji temu tidak ditemukan',
+                tasks: 'Tugas',
+                taskOpen: 'Terbuka',
+                taskDone: 'Selesai',
+                taskPriorityHigh: 'Tinggi',
+                taskPriorityNormal: 'Sedang',
+                taskPriorityLow: 'Rendah',
+                duplicate: 'Duplikat'
+            },
 
-                'vi': { // Vietnamese
-                    today: 'Hôm nay',
-                    day: 'Ngày',
-                    '4day': '4 ngày',
-                    week: 'Tuần',
-                    month: 'Tháng',
-                    year: 'Năm',
-                    search: 'Nhập và nhấn Enter',
-                    searchNoResult: 'Không tìm thấy lịch hẹn',
-                    tasks: 'Nhiệm vụ',
-                    taskPriorityHigh: 'Cao',
-                    taskPriorityNormal: 'Trung bình',
-                    taskPriorityLow: 'Thấp',
-                    duplicate: 'Nhân bản'
-                },
+            'vi': { // Vietnamese
+                today: 'Hôm nay',
+                day: 'Ngày',
+                '4day': '4 ngày',
+                week: 'Tuần',
+                month: 'Tháng',
+                year: 'Năm',
+                search: 'Nhập và nhấn Enter',
+                searchNoResult: 'Không tìm thấy lịch hẹn',
+                tasks: 'Nhiệm vụ',
+                taskOpen: 'Đang mở',
+                taskDone: 'Hoàn thành',
+                taskPriorityHigh: 'Cao',
+                taskPriorityNormal: 'Trung bình',
+                taskPriorityLow: 'Thấp',
+                duplicate: 'Nhân bản'
+            },
 
-                'th': { // Thai
-                    today: 'วันนี้',
-                    day: 'วัน',
-                    '4day': '4 วัน',
-                    week: 'สัปดาห์',
-                    month: 'เดือน',
-                    year: 'ปี',
-                    search: 'พิมพ์แล้วกด Enter',
-                    searchNoResult: 'ไม่พบการนัดหมาย',
-                    tasks: 'งาน',
-                    taskPriorityHigh: 'สูง',
-                    taskPriorityNormal: 'ปานกลาง',
-                    taskPriorityLow: 'ต่ำ',
-                    duplicate: 'ทำซ้ำ'
-                },
+            'th': { // Thai
+                today: 'วันนี้',
+                day: 'วัน',
+                '4day': '4 วัน',
+                week: 'สัปดาห์',
+                month: 'เดือน',
+                year: 'ปี',
+                search: 'พิมพ์แล้วกด Enter',
+                searchNoResult: 'ไม่พบการนัดหมาย',
+                tasks: 'งาน',
+                taskOpen: 'เปิดอยู่',
+                taskDone: 'เสร็จสิ้น',
+                taskPriorityHigh: 'สูง',
+                taskPriorityNormal: 'ปานกลาง',
+                taskPriorityLow: 'ต่ำ',
+                duplicate: 'ทำซ้ำ'
+            },
 
-                'cs': { // Czech
-                    today: 'Dnes',
-                    day: 'Den',
-                    '4day': '4 dny',
-                    week: 'Týden',
-                    month: 'Měsíc',
-                    year: 'Rok',
-                    search: 'Napište a stiskněte Enter',
-                    searchNoResult: 'Nebyla nalezena žádná schůzka',
-                    tasks: 'Úkoly',
-                    taskPriorityHigh: 'Vysoká',
-                    taskPriorityNormal: 'Střední',
-                    taskPriorityLow: 'Nízká',
-                    duplicate: 'Duplikovat'
-                },
+            'cs': { // Czech
+                today: 'Dnes',
+                day: 'Den',
+                '4day': '4 dny',
+                week: 'Týden',
+                month: 'Měsíc',
+                year: 'Rok',
+                search: 'Napište a stiskněte Enter',
+                searchNoResult: 'Nebyla nalezena žádná schůzka',
+                tasks: 'Úkoly',
+                taskOpen: 'Otevřené',
+                taskDone: 'Hotové',
+                taskPriorityHigh: 'Vysoká',
+                taskPriorityNormal: 'Střední',
+                taskPriorityLow: 'Nízká',
+                duplicate: 'Duplikovat'
+            },
 
-                'sv': { // Swedish
-                    today: 'Idag',
-                    day: 'Dag',
-                    '4day': '4 dagar',
-                    week: 'Vecka',
-                    month: 'Månad',
-                    year: 'År',
-                    search: 'Skriv och tryck på Enter',
-                    searchNoResult: 'Ingen tid hittades',
-                    tasks: 'Uppgifter',
-                    taskPriorityHigh: 'Hög',
-                    taskPriorityNormal: 'Medel',
-                    taskPriorityLow: 'Låg',
-                    duplicate: 'Duplicera'
-                },
+            'sv': { // Swedish
+                today: 'Idag',
+                day: 'Dag',
+                '4day': '4 dagar',
+                week: 'Vecka',
+                month: 'Månad',
+                year: 'År',
+                search: 'Skriv och tryck på Enter',
+                searchNoResult: 'Ingen tid hittades',
+                tasks: 'Uppgifter',
+                taskOpen: 'Öppna',
+                taskDone: 'Klarmarkerade',
+                taskPriorityHigh: 'Hög',
+                taskPriorityNormal: 'Medel',
+                taskPriorityLow: 'Låg',
+                duplicate: 'Duplicera'
+            },
 
-                'da': { // Danish
-                    today: 'I dag',
-                    day: 'Dag',
-                    '4day': '4 dage',
-                    week: 'Uge',
-                    month: 'Måned',
-                    year: 'År',
-                    search: 'Skriv og tryk på Enter',
-                    searchNoResult: 'Ingen aftale fundet',
-                    tasks: 'Opgaver',
-                    taskPriorityHigh: 'Høj',
-                    taskPriorityNormal: 'Mellem',
-                    taskPriorityLow: 'Lav',
-                    duplicate: 'Dupliker'
-                },
+            'da': { // Danish
+                today: 'I dag',
+                day: 'Dag',
+                '4day': '4 dage',
+                week: 'Uge',
+                month: 'Måned',
+                year: 'År',
+                search: 'Skriv og tryk på Enter',
+                searchNoResult: 'Ingen aftale fundet',
+                tasks: 'Opgaver',
+                taskOpen: 'Åbne',
+                taskDone: 'Fuldførte',
+                taskPriorityHigh: 'Høj',
+                taskPriorityNormal: 'Mellem',
+                taskPriorityLow: 'Lav',
+                duplicate: 'Dupliker'
+            },
 
-                'no': { // Norwegian
-                    today: 'I dag',
-                    day: 'Dag',
-                    '4day': '4 dager',
-                    week: 'Uke',
-                    month: 'Måned',
-                    year: 'År',
-                    search: 'Skriv og trykk på Enter',
-                    searchNoResult: 'Ingen avtale funnet',
-                    tasks: 'Oppgaver',
-                    taskPriorityHigh: 'Høy',
-                    taskPriorityNormal: 'Middels',
-                    taskPriorityLow: 'Lav',
-                    duplicate: 'Dupliser'
-                },
+            'no': { // Norwegian
+                today: 'I dag',
+                day: 'Dag',
+                '4day': '4 dager',
+                week: 'Uke',
+                month: 'Måned',
+                year: 'År',
+                search: 'Skriv og trykk på Enter',
+                searchNoResult: 'Ingen avtale funnet',
+                tasks: 'Oppgaver',
+                taskOpen: 'Åpne',
+                taskDone: 'Fullført',
+                taskPriorityHigh: 'Høy',
+                taskPriorityNormal: 'Middels',
+                taskPriorityLow: 'Lav',
+                duplicate: 'Dupliser'
+            },
 
-                'fi': { // Finnish
-                    today: 'Tänään',
-                    day: 'Päivä',
-                    '4day': '4 päivää',
-                    week: 'Viikko',
-                    month: 'Kuukausi',
-                    year: 'Vuosi',
-                    search: 'Kirjoita ja paina Enter',
-                    searchNoResult: 'Aikaa ei löytynyt',
-                    tasks: 'Tehtävät',
-                    taskPriorityHigh: 'Korkea',
-                    taskPriorityNormal: 'Keskitaso',
-                    taskPriorityLow: 'Matala',
-                    duplicate: 'Monista'
-                },
+            'fi': { // Finnish
+                today: 'Tänään',
+                day: 'Päivä',
+                '4day': '4 päivää',
+                week: 'Viikko',
+                month: 'Kuukausi',
+                year: 'Vuosi',
+                search: 'Kirjoita ja paina Enter',
+                searchNoResult: 'Aikaa ei löytynyt',
+                tasks: 'Tehtävät',
+                taskOpen: 'Avoimet',
+                taskDone: 'Valmiit',
+                taskPriorityHigh: 'Korkea',
+                taskPriorityNormal: 'Keskitaso',
+                taskPriorityLow: 'Matala',
+                duplicate: 'Monista'
+            },
 
-                'ro': { // Romanian
-                    today: 'Astăzi',
-                    day: 'Zi',
-                    '4day': '4 zile',
-                    week: 'Săptămână',
-                    month: 'Lună',
-                    year: 'An',
-                    search: 'Tastează și apasă Enter',
-                    searchNoResult: 'Nu a fost găsită nicio programare',
-                    tasks: 'Sarcini',
-                    taskPriorityHigh: 'Ridicată',
-                    taskPriorityNormal: 'Medie',
-                    taskPriorityLow: 'Scăzută',
-                    duplicate: 'Duplică'
-                },
+            'ro': { // Romanian
+                today: 'Astăzi',
+                day: 'Zi',
+                '4day': '4 zile',
+                week: 'Săptămână',
+                month: 'Lună',
+                year: 'An',
+                search: 'Tastează și apasă Enter',
+                searchNoResult: 'Nu a fost găsită nicio programare',
+                tasks: 'Sarcini',
+                taskOpen: 'Deschise',
+                taskDone: 'Finalizate',
+                taskPriorityHigh: 'Ridicată',
+                taskPriorityNormal: 'Medie',
+                taskPriorityLow: 'Scăzută',
+                duplicate: 'Duplică'
+            },
 
-                'el': { // Greek
-                    today: 'Σήμερα',
-                    day: 'Ημέρα',
-                    '4day': '4 ημέρες',
-                    week: 'Εβδομάδα',
-                    month: 'Μήνας',
-                    year: 'Έτος',
-                    search: 'Πληκτρολογήστε και πατήστε Enter',
-                    searchNoResult: 'Δεν βρέθηκε ραντεβού',
-                    tasks: 'Εργασίες',
-                    taskPriorityHigh: 'Υψηλή',
-                    taskPriorityNormal: 'Μεσαία',
-                    taskPriorityLow: 'Χαμηλή',
-                    duplicate: 'Διπλότυπο'
-                }
-            };
+            'el': { // Greek
+                today: 'Σήμερα',
+                day: 'Ημέρα',
+                '4day': '4 ημέρες',
+                week: 'Εβδομάδα',
+                month: 'Μήνας',
+                year: 'Έτος',
+                search: 'Πληκτρολογήστε και πατήστε Enter',
+                searchNoResult: 'Δεν βρέθηκε ραντεβού',
+                tasks: 'Εργασίες',
+                taskOpen: 'Ανοιχτές',
+                taskDone: 'Ολοκληρωμένες',
+                taskPriorityHigh: 'Υψηλή',
+                taskPriorityNormal: 'Μεσαία',
+                taskPriorityLow: 'Χαμηλή',
+                duplicate: 'Διπλότυπο'
+            }
+        };
 
         $.bsCalendar = {
             version: '2.3.3',
@@ -582,6 +636,7 @@
                     link: 'bi bi-box-arrow-up-right',
                     appointment: 'bi bi-clock',
                     appointmentAllDay: 'bi bi-brightness-high',
+                    duplicate: 'bi bi-copy',
                     task: 'bi bi-circle',
                     taskDone: 'bi bi-check2-circle',
                     taskOverdue: 'bi bi-exclamation-circle'
@@ -1879,7 +1934,6 @@
                         methodAddAppointment(wrapper, params);
                         break;
                     case 'editAppointment':
-                    case 'editApointment':
                         methodEditAppointment(wrapper, params);
                         break;
                     case 'deleteAppointment':
@@ -2085,7 +2139,7 @@
          */
         function setBsCalendarData(wrapper, data) {
             if (data.settings.debug) {
-                log('**************** setBsCalendarData', data);
+                log('setBsCalendarData:', data);
             }
             wrapper.data('bsCalendar', data);
         }
@@ -2200,30 +2254,32 @@
             return null;
         }
 
+        /**
+         * Parses a time value (string "HH:mm" or number) to a decimal hour.
+         *
+         * @param {string|number} value - The time value to parse.
+         * @return {number} The decimal hour (e.g., 8.5 for "08:30").
+         */
+        function parseTimeToDecimal(value) {
+            if (typeof value === 'number') {
+                return value;
+            }
+            if (typeof value === 'string' && value.includes(':')) {
+                const parts = value.split(':');
+                const hours = parseInt(parts[0], 10) || 0;
+                const minutes = parseInt(parts[1], 10) || 0;
+                return hours + (minutes / 60);
+            }
+            const num = parseFloat(value);
+            return isNaN(num) ? 0 : num;
+        }
+
         function normalizeSettings(settings) {
 
             // clamp helper
             const clamp = (v, min, max) => Math.min(Math.max(v, min), max);
 
-            /**
-             * Parses a time value (string "HH:mm" or number) to a decimal hour.
-             *
-             * @param {string|number} value - The time value to parse.
-             * @return {number} The decimal hour (e.g., 8.5 for "08:30").
-             */
-            function parseTimeToDecimal(value) {
-                if (typeof value === 'number') {
-                    return value;
-                }
-                if (typeof value === 'string' && value.includes(':')) {
-                    const parts = value.split(':');
-                    const hours = parseInt(parts[0], 10) || 0;
-                    const minutes = parseInt(parts[1], 10) || 0;
-                    return hours + (minutes / 60);
-                }
-                const num = parseFloat(value);
-                return isNaN(num) ? 0 : num;
-            }
+
             const possibleViews = $.bsCalendar.possibleViews;
 
             // normalize locale format (e.g., en_US → en-US)
@@ -2653,14 +2709,21 @@
          * @return {void} Returns nothing.
          */
         function methodSetLocale($wrapper, locale) {
-            log('methodSetLocale called with locale:', locale);
+            const data = getBsCalendarData($wrapper);
+            const settings = data.settings;
+            if (settings.debug) {
+                log('methodSetLocale called with locale:', locale);
+            }
             if (!locale) {
-                log('methodSetLocale: locale is not provided');
+                if (settings.debug) {
+                    log('methodSetLocale: locale is not provided');
+                }
                 return;
             }
-            const data = getBsCalendarData($wrapper);
             if (data.settings.locale === locale) {
-                log('methodSetLocale: locale is already set to', locale);
+                if (settings.debug) {
+                    log('methodSetLocale: locale is already set to', locale);
+                }
                 return;
             }
 
@@ -2677,19 +2740,27 @@
          * @return {void} This method does not return a value.
          */
         function methodSetView($wrapper, view) {
-            log('methodSetView called with view:', view);
-            if (!view) {
-                log('methodSetView: view is not provided');
-                return;
-            }
             const data = getBsCalendarData($wrapper);
-            if (data.view === view) {
-                log('methodSetView: view is already set to', view);
+            const settings = data.settings;
+            if (settings.debug) {
+                log('methodSetView called with view:', view);
+            }
+            if (!view) {
+                if (settings.debug) {
+                    log('methodSetView: view is not provided');
+                }
                 return;
             }
-            const settings = data.settings;
+            if (data.view === view) {
+                if (settings.debug) {
+                    log('methodSetView: view is already set to', view);
+                }
+                return;
+            }
             if (!settings.views.includes(view)) {
-                log('methodSetView: view', view, 'is not in available views', settings.views);
+                if (settings.debug) {
+                    log('methodSetView: view', view, 'is not in available views', settings.views);
+                }
                 return;
             }
             setView($wrapper, view);
@@ -2836,6 +2907,26 @@
             $wrapper.removeData("bsCalendar");
             if (typeof callback === 'function') {
                 callback();
+            }
+        }
+
+        function methodToggleTaskStatus($wrapper, appointment, status) {
+            if (appointment && appointment.task) {
+                appointment.task.checked = !appointment.task.checked;
+
+                // Update in global array
+                const data = getBsCalendarData($wrapper);
+                const idx = data.appointments.findIndex(a => a.id === appointment.id);
+                if (idx !== -1) {
+                    data.appointments[idx].task.checked = status;
+                    setBsCalendarData($wrapper, data);
+                }
+
+                // Re-calculate extras for icons
+                setAppointmentExtras($wrapper, data.appointments);
+
+                buildByView($wrapper, false, false);
+                trigger($wrapper, 'task-status-changed', appointment, status);
             }
         }
 
@@ -3120,6 +3211,7 @@
             }
 
             buildByView($wrapper, changeView);
+            trigger($wrapper, 'refresh');
         }
 
         /**
@@ -4423,18 +4515,18 @@
                 return fallbackWrapper;
             }
 
-        function getMinutesFromPointer($wrapperRef, $slotContainer, pageY) {
-            const settings = getSettings($wrapperRef);
-            const offset = $slotContainer.offset();
-            const slotHeight = settings.hourSlots.height;
-            const totalMinutes = Math.max(0, (settings.hourSlots.end - settings.hourSlots.start) * 60);
-            const totalHeightPx = Math.max(0.1, (settings.hourSlots.end - settings.hourSlots.start) * slotHeight);
-            const relativeY = Math.max(0, Math.min(totalHeightPx, pageY - offset.top));
-            const minutesFloat = (relativeY / totalHeightPx) * totalMinutes;
-            const snap = getSnapMinutes($wrapperRef);
-            const snapped = Math.round(minutesFloat / snap) * snap;
-            return Math.max(0, Math.min(totalMinutes, snapped));
-        }
+            function getMinutesFromPointer($wrapperRef, $slotContainer, pageY) {
+                const settings = getSettings($wrapperRef);
+                const offset = $slotContainer.offset();
+                const slotHeight = settings.hourSlots.height;
+                const totalMinutes = Math.max(0, (settings.hourSlots.end - settings.hourSlots.start) * 60);
+                const totalHeightPx = Math.max(0.1, (settings.hourSlots.end - settings.hourSlots.start) * slotHeight);
+                const relativeY = Math.max(0, Math.min(totalHeightPx, pageY - offset.top));
+                const minutesFloat = (relativeY / totalHeightPx) * totalMinutes;
+                const snap = getSnapMinutes($wrapperRef);
+                const snapped = Math.round(minutesFloat / snap) * snap;
+                return Math.max(0, Math.min(totalMinutes, snapped));
+            }
 
             function getMoveSlotContainerFromPointer($wrapperRef, point, $fallbackSlotContainer) {
                 const view = getView($wrapperRef);
@@ -4972,6 +5064,22 @@
                     trigger(wrapper, 'delete', returnData.appointment, returnData.extras);
                     $(globalCalendarElements.infoModal).modal('hide');
                 })
+                .on('click' + namespace, globalCalendarElements.infoModal + ' [data-task-option-status]', function (e) {
+                    e.preventDefault();
+                    const $this = $(this);
+                    const status = $this.data('task-option-status');
+                    const checked = (status === true || status === 'true');
+                    const modal = $(globalCalendarElements.infoModal);
+                    const wrapperId = modal.attr('data-bs-calendar-wrapper-id');
+                    const wrapper = $(`.bs-calendar[data-bs-calendar-id="${wrapperId}"]`);
+                    const appointment = modal.data('appointment');
+                    if (appointment.task && typeof appointment.task === 'object' && appointment.task.checked !== checked){
+                        methodToggleTaskStatus(wrapper, appointment, checked);
+                        $(modal.data('target-element')).trigger('click');
+                    }
+
+                    // showInfoWindow(wrapper, modal.data('target-element'));
+                })
                 .on('click' + namespace, function (e) {
                     const $target = $(e.target);
                     const isInsideModal = $target.closest(globalCalendarElements.infoModal).length > 0; // checks for modal or child elements
@@ -5130,24 +5238,8 @@
 
                     const $appointmentEl = $(this).closest('[data-appointment]');
                     const appointment = $appointmentEl.data('appointment');
+                    methodToggleTaskStatus($wrapper, appointment, !appointment.task.checked);
 
-                    if (appointment && appointment.task) {
-                        appointment.task.checked = !appointment.task.checked;
-
-                        // Update in global array
-                        const data = getBsCalendarData($wrapper);
-                        const idx = data.appointments.findIndex(a => a.id === appointment.id);
-                        if (idx !== -1) {
-                            data.appointments[idx].task.checked = appointment.task.checked;
-                            setBsCalendarData($wrapper, data);
-                        }
-
-                        // Re-calculate extras for icons
-                        setAppointmentExtras($wrapper, data.appointments);
-
-                        buildByView($wrapper, false, false);
-                        trigger($wrapper, 'task-status-changed', appointment);
-                    }
                 })
                 .off('wheel', '.wc-calendar-view-container')
                 .on('wheel', '.wc-calendar-view-container', debounce(function (e) {
@@ -5232,7 +5324,9 @@
                     if (settings.debug) {
                         log('Day hour clicked:', details);
                     }
-                    const start = new Date(`${$.bsCalendar.utils.formatDateToDateString(details.date)} ${String(details.hour).padStart(2, '0')}:00:00`);
+                    const clickHour = Math.floor(details.hour);
+                    const clickMin = Math.round((details.hour % 1) * 60);
+                    const start = new Date(`${$.bsCalendar.utils.formatDateToDateString(details.date)} ${String(clickHour).padStart(2, '0')}:${String(clickMin).padStart(2, '0')}:00`);
                     const end = new Date(start);
                     end.setMinutes(end.getMinutes() + 30);
 
@@ -5825,8 +5919,10 @@
                     // Update indicator position and time
                     const pageY = e.pageY;
                     const minutes = getMinutesFromPointer($eventWrapper, $slotContainer, pageY);
-                    const startHour = Math.floor(minutes / 60) + settings.hourSlots.start;
-                    const startMinute = minutes % 60;
+
+                    const totalMinutes = minutes + (settings.hourSlots.start * 60);
+                    const startHour = Math.floor(totalMinutes / 60);
+                    const startMinute = Math.round(totalMinutes % 60);
                     const timeStr = `${String(startHour).padStart(2, '0')}:${String(startMinute).padStart(2, '0')}`;
 
                     const offset = $slotContainer.offset();
@@ -5882,8 +5978,8 @@
                 log('Saving element data to local storage: ' + key + ' = ' + value);
             }
             if (!settings.storeState) {
+                removeFromLocalStorage($wrapper, key);
                 if (settings.debug) {
-                    removeFromLocalStorage($wrapper, key);
                     log('Saving is disabled. Please enable it in the settings.');
                 }
                 return;
@@ -5954,8 +6050,8 @@
                 return;
             }
             if (!settings.storeState) {
+                removeFromLocalStorage($wrapper, key);
                 if (settings.debug) {
-                    removeFromLocalStorage($wrapper, key);
                     log('Getting is disabled. Please enable it in the settings.');
                 }
                 return;
@@ -6304,6 +6400,7 @@
          */
         function methodRender($wrapper) {
             buildByView($wrapper, false, false);
+            trigger($wrapper, 'render');
         }
 
         function executeFunction(functionOrName, ...args) {
@@ -8568,23 +8665,23 @@
                 class: 'wc-day-view-time-slots d-flex flex-column position-relative'
             }).appendTo($container);
 
-                // Render an hourly grid from configured start to end hour (inclusive)
-                for (let hour = Math.floor(settings.hourSlots.start); hour <= Math.ceil(settings.hourSlots.end); hour++) {
-                    const rowHour = Math.max(hour, settings.hourSlots.start);
-                    if (rowHour >= settings.hourSlots.end && hour > Math.floor(settings.hourSlots.start)) {
-                        if (hour > settings.hourSlots.end) break;
-                    }
+            // Render an hourly grid from configured start to end hour (inclusive)
+            for (let hour = Math.floor(settings.hourSlots.start); hour <= Math.ceil(settings.hourSlots.end); hour++) {
+                const rowHour = Math.max(hour, settings.hourSlots.start);
+                if (rowHour >= settings.hourSlots.end && hour > Math.floor(settings.hourSlots.start)) {
+                    if (hour > settings.hourSlots.end) break;
+                }
 
-                    const isLast = rowHour >= settings.hourSlots.end;
-                    const isFirst = rowHour === settings.hourSlots.start;
+                const isLast = rowHour >= settings.hourSlots.end;
+                const isFirst = rowHour === settings.hourSlots.start;
 
-                    // Calculate height for partial first/last hours
-                    let rowHeight = settings.hourSlots.height;
-                    if (isFirst && !isLast) {
-                        rowHeight = (Math.ceil(rowHour) - rowHour) * settings.hourSlots.height;
-                        if (rowHeight <= 0) rowHeight = settings.hourSlots.height;
-                    }
-                    if (isLast) rowHeight = 0;
+                // Calculate height for partial first/last hours
+                let rowHeight = settings.hourSlots.height;
+                if (isFirst && !isLast) {
+                    rowHeight = (Math.ceil(rowHour) - rowHour) * settings.hourSlots.height;
+                    if (rowHeight <= 0) rowHeight = settings.hourSlots.height;
+                }
+                if (isLast) rowHeight = 0;
                 let css = isLast ? {} : {
                     boxSizing: 'border-box',
                     height: rowHeight + 'px',
@@ -8955,7 +9052,7 @@
             // trigger($wrapper, 'show-info-window', returnData.appointment, returnData.extras);
             // Create the HTML content for the modal body, displaying the appointment details.
             const modalExists = $modal.length > 0;
-            if (! modalExists) {
+            if (!modalExists) {
                 trigger($wrapper, 'show-info-window', returnData.appointment, returnData.extras);
             }
             settings.formatter.window(returnData.appointment, returnData.extras).then(html => {
@@ -9004,6 +9101,7 @@
 
                 // Attach the `appointment` data to the modal for potential future usage.
                 $modal.data('appointment', appointment);
+                $modal.data('target-element', $targetElement);
 
                 const modalOptions = $modal.find('[data-modal-options]');
                 const $closeBtn = modalOptions.find('[data-bs-dismiss="modal"]'); // Der Schließen-Button als Anker
@@ -9027,30 +9125,48 @@
                     modalOptions.find('[data-remove]').remove();
                 }
                 const t = $.bsCalendar.getTranslations(data.settings.locale);
+                let hasDropdown = modalOptions.find('[data-modal-dropdown]').length > 0;
 
                 if (editable) {
                     // If the custom dropdown hasn't been added yet, do so.
-                    if (!modalOptions.find('[data-modal-dropdown]').length) {
+                    if (!hasDropdown) {
                         const dropdownHTML = [
                             `<div class="dropdown" data-modal-dropdown>`,
                             `<button class="btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">`,
                             `<i class="bi bi-three-dots-vertical"></i>`,
                             `</button>`,
                             `<ul class="dropdown-menu">`,
-                            `<li><a class="dropdown-item" data-duplicate href="#">${t.duplicate}</a></li>`,
+                            `<li><a class="dropdown-item" data-duplicate href="#"><i class="${settings.icons.duplicate}"></i> ${t.duplicate}</a></li>`,
                             // space for more...
                             `</ul>`,
                             `</div>`
                         ].join('');
                         $(dropdownHTML).insertBefore($closeBtn);
+                        hasDropdown = true;
                     }
                 } else {
+                    hasDropdown = false;
                     modalOptions.find('[data-modal-dropdown]').remove();
                 }
                 modalOptions.find('[data-task-badge]').remove();
 
                 if (isTask) {
+                    if (hasDropdown) {
+                        const taskIsChecked = appointment.task ? appointment.task.checked : false;
+                        const dropdownMenu = modalOptions.find('[data-modal-dropdown] .dropdown-menu');
+                        const hasTaskToggles = dropdownMenu.find('[data-task-option-status]');
+                        if (hasTaskToggles.length) {
+                            hasTaskToggles.remove();
+                        }
 
+                        let taskCheckedIcon = settings.icons.task;
+                        let taskUncheckedIcon = settings.icons.taskDone;
+                        $(`<li><hr class="dropdown-divider"></li>`).appendTo(dropdownMenu);
+                        $(`<li><h6 class="dropdown-header">${t.tasks}</h6></li>`).appendTo(dropdownMenu);
+                        $(`<li><a class="dropdown-item" data-task-option-status="true" href="#"><i class="${taskUncheckedIcon}"></i> ${t.taskDone}</a></li>`).appendTo(dropdownMenu);
+                        $(`<li><a class="dropdown-item" data-task-option-status="false" href="#"><i class="${taskCheckedIcon}"></i> ${t.taskOpen}</a></li>`).appendTo(dropdownMenu);
+
+                    }
                     const priority = appointment.task ? appointment.task.priority : 'normal';
                     const priorityColors = $.bsCalendar.utils.getColors(taskPriorityColors[priority]);
                     let priorityText = t.taskPriorityNormal;
@@ -9082,6 +9198,11 @@
                         },
                         text: t.tasks
                     }).prependTo(modalOptions);
+                } else {
+                    if (hasDropdown) {
+                        const dropdown = modalOptions.find('[data-modal-dropdown] .dropdown-menu');
+                        dropdown.find('[data-task-option-status]').remove();
+                    }
                 }
 
                 // Get relevant dimensions and positioning of the modal and target element.

@@ -50,7 +50,9 @@
 
 
 ### dev-main
-- no change
+- Bugfix: Corrected time display in the hover indicator (time badge) when using non-integer `hourSlots.start` values.
+- Bugfix: Fixed incorrect start time calculation when clicking on a time slot in calendars with fractional start times.
+- Improvement: Time formatting for the hover badge and click events now correctly handles minutes (e.g., "07:30" instead of "7.5:00").
 
 ### Version 2.3.3
 2026-06-12
