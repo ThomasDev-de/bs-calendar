@@ -371,7 +371,7 @@
                         allDay: isAllDay,
                         overlap: false,
                         description: '',
-                        color: '#0d6efd',
+                        color: getRandomAppointmentColor(),
                         link: ''
                     });
                 })
@@ -405,6 +405,13 @@
                     removeAppointmentFromStore(appointment.id);
                     $calendar.bsCalendar('deleteAppointment', appointment.id);
                 });
+        }
+
+        function getRandomAppointmentColor() {
+            if ($.bsColorPicker?.utils?.getRandomColor) {
+                return $.bsColorPicker.utils.getRandomColor('rgba', .7);
+            }
+            return '#0d6efd';
         }
 
         function bindSidebarActions() {

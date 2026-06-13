@@ -2912,7 +2912,7 @@
 
         function methodToggleTaskStatus($wrapper, appointment, status) {
             if (appointment && appointment.task) {
-                appointment.task.checked = !appointment.task.checked;
+                appointment.task.checked = status;
 
                 // Update in global array
                 const data = getBsCalendarData($wrapper);
@@ -5066,6 +5066,7 @@
                 })
                 .on('click' + namespace, globalCalendarElements.infoModal + ' [data-task-option-status]', function (e) {
                     e.preventDefault();
+                    e.stopPropagation();
                     const $this = $(this);
                     const status = $this.data('task-option-status');
                     const checked = (status === true || status === 'true');
@@ -5075,10 +5076,10 @@
                     const appointment = modal.data('appointment');
                     if (appointment.task && typeof appointment.task === 'object' && appointment.task.checked !== checked) {
                         methodToggleTaskStatus(wrapper, appointment, checked);
-                        $(modal.data('target-element')).trigger('click');
+                        modal.data('appointment', appointment);
+                        buildAppointmentModalOptions(wrapper, appointment);
                     }
 
-                    // showInfoWindow(wrapper, modal.data('target-element'));
                 })
                 .on('click' + namespace, function (e) {
                     const $target = $(e.target);
@@ -5736,7 +5737,7 @@
                     const appointment = element.data('appointment');
                     const editable = isAppointmentEditable(appointment);
                     if (e.type === 'touchend') {
-                        showInfoWindow($eventWrapper, element);
+                        showAppointmentWindow($eventWrapper, appointment, element);
                         return;
                     }
                     const clickDetail = e.originalEvent && typeof e.originalEvent.detail === 'number'
@@ -5752,7 +5753,7 @@
                     clearTimeout(globalDragState.appointmentClickTimer);
                     const infoToken = ++globalDragState.appointmentInfoToken;
                     globalDragState.appointmentClickTimer = setTimeout(() => {
-                        showInfoWindow($eventWrapper, element, () => infoToken === globalDragState.appointmentInfoToken);
+                        showAppointmentWindow($eventWrapper, appointment, element, () => infoToken === globalDragState.appointmentInfoToken);
                         globalDragState.appointmentClickTimer = null;
                     }, 150);
                 })
@@ -9037,7 +9038,7 @@
             const data = getBsCalendarData($wrapper);
             const settings = data.settings;
             const isTask = !!appointment.task;
-            // const colors = $.bsCalendar.utils.getColors(data.settings.mainColor);
+            const colors = $.bsCalendar.utils.getColors(data.settings.mainColor);
             const isDeleteable = appointment.hasOwnProperty('deleteable') ? appointment.deleteable : true;
             const isEditable = isAppointmentEditable(appointment);
             const t = $.bsCalendar.getTranslations(data.settings.locale);
@@ -9070,10 +9071,10 @@
                 $dropDownItemDuplicate.appendTo($dropdownMenu);
                 if (isTask) {
                     $dropDownItemDivider.appendTo($dropdownMenu);
-                    const tastIsChecked = appointment.task.checked;
-                    const icon = tastIsChecked ? settings.icons.task : settings.icons.taskDone;
-                    const text = tastIsChecked ? t.task : t.taskDone;
-                    const status = tastIsChecked ? 'false' : 'true';
+                    const taskIsChecked = appointment.task ? appointment.task.checked : false;
+                    const icon = taskIsChecked ? settings.icons.task : settings.icons.taskDone;
+                    const text = taskIsChecked ? t.taskOpen : t.taskDone;
+                    const status = taskIsChecked ? 'false' : 'true';
                     $(`<li><a class="dropdown-item" data-task-option-status="${status}" href="#"><i class="${icon}"></i> ${text}</a></li>`).appendTo($dropdownMenu);
                 }
             }
@@ -9086,9 +9087,41 @@
                 $editBtn.prependTo($modalOptionsWrapper);
             }
 
+            if (isTask) {
+                const priority = appointment.task ? appointment.task.priority : 'normal';
+                const priorityColors = $.bsCalendar.utils.getColors(taskPriorityColors[priority]);
+                let priorityText = t.taskPriorityNormal;
+                if (priority === 'high') {
+                    priorityText = t.taskPriorityHigh;
+                }
+                if (priority === 'low') {
+                    priorityText = t.taskPriorityLow;
+                }
+
+                $('<span>', {
+                    'data-task-badge': '',
+                    class: 'badge me-auto',
+                    css: {
+                        backgroundColor: priorityColors.backgroundColor,
+                        color: priorityColors.color,
+                    },
+                    text: priorityText,
+                }).prependTo($modalOptionsWrapper);
+
+                $('<span>', {
+                    'data-task-badge': '',
+                    class: 'badge me-2',
+                    css: {
+                        backgroundColor: colors.backgroundColor,
+                        color: colors.color,
+                    },
+                    text: t.tasks
+                }).prependTo($modalOptionsWrapper);
+            }
+
         }
         
-        function calcInfoModalPositionAndOpen(){
+        function calcInfoModalPositionAndOpen(modalAlreadyExisted = true){
             const $modal = $(globalCalendarElements.infoModal);
             const modalExists = $modal.length > 0;
             if (! modalExists) {
@@ -9179,7 +9212,7 @@
                 }
 
                 // Position the modal based on its existence:
-                if (modalExists) {
+                if (modalAlreadyExisted) {
                     $modalDialog.animate({
                         top: `${top}px`,
                         left: `${left}px`
@@ -9212,7 +9245,8 @@
             if (!modalExists) {
                 trigger($wrapper, 'show-info-window', returnData.appointment, returnData.extras);
             }
-            settings.formatter.window(returnData.appointment, returnData.extras).then(html => {
+            settings.formatter.window(returnData.appointment, returnData.extras)
+                .then(html => {
                 if (typeof shouldShow === 'function' && !shouldShow()) {
                     return;
                 }
@@ -9259,282 +9293,10 @@
                 $modal.data('appointment', appointment);
                 $modal.data('target-element', $targetElement);
                 buildAppointmentModalOptions($wrapper, appointment);
-                calcInfoModalPositionAndOpen();
+                calcInfoModalPositionAndOpen(modalExists);
             });
         }
 
-        /**
-         * Displays an information modal window containing details about the provided appointment element.
-         *
-         * @param {jQuery} $wrapper - A wrapper element for the calendar DOM containing settings and references.
-         * @param {jQuery} $targetElement - The element that was clicked to trigger the modal, containing data about an appointment.
-         * @return {void} Does not return a value, but shows a modal with the appointment's details.
-         */
-        function showInfoWindow($wrapper, $targetElement, shouldShow = null) {
-            const data = getBsCalendarData($wrapper);
-            const settings = data.settings;
-            // Extract the `appointment` data from the clicked target element (provided as a data attribute).
-            const appointment = $targetElement.data('appointment');
-            // showAppointmentWindow($wrapper, appointment, $targetElement, shouldShow);
-            // return false;
-            const isTask = !!appointment.task;
-            const colors = $.bsCalendar.utils.getColors(data.settings.mainColor);
-
-            // Set a reference to the modal element using its ID.
-            let $modal = $(globalCalendarElements.infoModal);
-
-            const returnData = getAppointmentForReturn(appointment);
-            // trigger($wrapper, 'show-info-window', returnData.appointment, returnData.extras);
-            // Create the HTML content for the modal body, displaying the appointment details.
-            const modalExists = $modal.length > 0;
-            if (!modalExists) {
-                trigger($wrapper, 'show-info-window', returnData.appointment, returnData.extras);
-            }
-            settings.formatter.window(returnData.appointment, returnData.extras).then(html => {
-                if (typeof shouldShow === 'function' && !shouldShow()) {
-                    return;
-                }
-                // Check if the modal already exists on the page.
-                // const modalExists = $modal.length > 0;
-                if (!modalExists) {
-                    const shadowStyle = 'box-shadow: rgba(0, 0, 0, 0.56) 0px 22px 70px 4px !important;';
-                    // If the modal does not exist, create the modal's HTML structure and append it to the body.
-                    const modalHtml = [
-                        `<div class="modal fade pe-none" id="${globalCalendarElements.infoModal.substring(1)}" tabindex="-1" data-bs-backdrop="false">`,
-                        `<div class="modal-dialog modal-fullscreen-sm-down position-absolute pe-auto rounded-3" style="min-width: min(360px, calc(100vw - var(--bs-modal-margin) * 2)); max-height: calc(100% - var(--bs-modal-margin) * 2);">`,
-                        `<div class="modal-content border-0  bs-calendar-border-style " style="${shadowStyle}">`,
-                        `<div class="modal-body d-flex flex-column align-items-stretch p-0">`,
-                        `<div class="d-flex justify-content-end align-items-center ps-2" data-modal-options>`,
-                        `<button type="button" data-bs-dismiss="modal" class="btn"><i class="bi bi-x-lg"></i></button>`,
-                        `</div>`,
-                        `<div class="modal-appointment-content flex-fill overflow-y-auto px-3 pb-3 pt-1">`,
-                        html,
-                        `</div>`,
-                        `</div>`,
-                        `</div>`,
-                        `</div>`,
-                        `</div>`,
-                    ].join('');
-
-                    // Append the newly created modal to the body of the document.
-                    $('body').append(modalHtml);
-
-                    // Re-select the modal to get the updated reference.
-                    $modal = $(globalCalendarElements.infoModal);
-                    // save the calendar wrapper ID in the modal to find the wrapper again
-                    $modal.attr('data-bs-calendar-wrapper-id', $wrapper.attr('data-bs-calendar-id'));
-
-                    // Initialize the modal with specific settings.
-                    $modal.modal({
-                        backdrop: false,
-                        keyboard: true
-                    });
-                } else {
-                    // If the modal already exists, simply update its content with the new appointment details.
-                    $modal.find('.modal-appointment-content').html(html);
-                }
-
-                // Attach the `appointment` data to the modal for potential future usage.
-                $modal.data('appointment', appointment);
-                $modal.data('target-element', $targetElement);
-
-                const modalOptions = $modal.find('[data-modal-options]');
-                const $closeBtn = modalOptions.find('[data-bs-dismiss="modal"]'); // Der Schließen-Button als Anker
-
-                const deleteable = appointment.hasOwnProperty('deleteable') ? appointment.deleteable : true;
-                const editable = isAppointmentEditable(appointment);
-                if (editable) {
-                    // If the edit button has not been inserted yet, do so.
-                    if (!modalOptions.find('[data-edit]').length) {
-                        $(`<button type="button" data-edit class="btn ms-2"><i class="bi bi-pen"></i></button>`).insertBefore($closeBtn);
-                    }
-                } else {
-                    modalOptions.find('[data-edit]').remove();
-                }
-                if (deleteable) {
-                    // If the delete button hasn't been inserted yet, do so.
-                    if (!modalOptions.find('[data-remove]').length) {
-                        $(`<button type="button" data-remove data-bs-dismiss="modal" class="btn"><i class="bi bi-trash3"></i></button>`).insertBefore($closeBtn);
-                    }
-                } else {
-                    modalOptions.find('[data-remove]').remove();
-                }
-                const t = $.bsCalendar.getTranslations(data.settings.locale);
-                let hasDropdown = modalOptions.find('[data-modal-dropdown]').length > 0;
-
-                if (editable) {
-                    // If the custom dropdown hasn't been added yet, do so.
-                    if (!hasDropdown) {
-                        const dropdownHTML = [
-                            `<div class="dropdown" data-modal-dropdown>`,
-                            `<button class="btn" type="button" data-bs-toggle="dropdown" aria-expanded="false">`,
-                            `<i class="bi bi-three-dots-vertical"></i>`,
-                            `</button>`,
-                            `<ul class="dropdown-menu">`,
-                            `<li><a class="dropdown-item" data-duplicate href="#"><i class="${settings.icons.duplicate}"></i> ${t.duplicate}</a></li>`,
-                            // space for more...
-                            `</ul>`,
-                            `</div>`
-                        ].join('');
-                        $(dropdownHTML).insertBefore($closeBtn);
-                        hasDropdown = true;
-                    }
-                } else {
-                    hasDropdown = false;
-                    modalOptions.find('[data-modal-dropdown]').remove();
-                }
-                modalOptions.find('[data-task-badge]').remove();
-
-                if (isTask) {
-                    if (hasDropdown) {
-                        const taskIsChecked = appointment.task ? appointment.task.checked : false;
-                        const dropdownMenu = modalOptions.find('[data-modal-dropdown] .dropdown-menu');
-                        const hasTaskToggles = dropdownMenu.find('[data-task-option-status]');
-                        if (hasTaskToggles.length) {
-                            hasTaskToggles.remove();
-                        }
-
-                        let taskCheckedIcon = settings.icons.task;
-                        let taskUncheckedIcon = settings.icons.taskDone;
-                        $(`<li><hr class="dropdown-divider"></li>`).appendTo(dropdownMenu);
-                        $(`<li><h6 class="dropdown-header">${t.tasks}</h6></li>`).appendTo(dropdownMenu);
-                        $(`<li><a class="dropdown-item" data-task-option-status="true" href="#"><i class="${taskUncheckedIcon}"></i> ${t.taskDone}</a></li>`).appendTo(dropdownMenu);
-                        $(`<li><a class="dropdown-item" data-task-option-status="false" href="#"><i class="${taskCheckedIcon}"></i> ${t.taskOpen}</a></li>`).appendTo(dropdownMenu);
-
-                    }
-                    const priority = appointment.task ? appointment.task.priority : 'normal';
-                    const priorityColors = $.bsCalendar.utils.getColors(taskPriorityColors[priority]);
-                    let priorityText = t.taskPriorityNormal;
-                    if (priority === 'high') {
-                        // priorityColor = 'danger';
-                        priorityText = t.taskPriorityHigh;
-                    }
-                    if (priority === 'low') {
-                        // priorityColor = 'success';
-                        priorityText = t.taskPriorityLow;
-                    }
-
-                    $('<span>', {
-                        'data-task-badge': '',
-                        class: 'badge me-auto',
-                        css: {
-                            backgroundColor: priorityColors.backgroundColor,
-                            color: priorityColors.color,
-                        },
-                        text: priorityText,
-                    }).prependTo(modalOptions);
-
-                    $('<span>', {
-                        'data-task-badge': '',
-                        class: 'badge me-2',
-                        css: {
-                            backgroundColor: colors.backgroundColor,
-                            color: colors.color,
-                        },
-                        text: t.tasks
-                    }).prependTo(modalOptions);
-                } else {
-                    if (hasDropdown) {
-                        const dropdown = modalOptions.find('[data-modal-dropdown] .dropdown-menu');
-                        dropdown.find('[data-task-option-status]').remove();
-                    }
-                }
-
-                // Get relevant dimensions and positioning of the modal and target element.
-                const $modalDialog = $modal.find('.modal-dialog');
-                const $target = $($targetElement);
-                const targetOffset = $target.offset(); // Target element's position.
-                const targetWidth = $target.outerWidth(); // Width of the target element.
-                const targetHeight = $target.outerHeight(); // Height of the target element.
-
-                // Delay the positioning logic until the modal's dimensions are fully calculated.
-                setTimeout(() => {
-                    const modalWidth = $modalDialog.outerWidth(); // Modal's width.
-                    const modalHeight = $modalDialog.outerHeight(); // Modal's height.
-                    const minSpaceFromEdge = 60; // Minimum allowed space from the viewport's edge.
-
-                    // Get the dimensions of the viewport and the scroll offsets.
-                    const viewportWidth = $(window).width();
-                    const viewportHeight = $(window).height();
-                    const scrollTop = $(window).scrollTop();
-                    const scrollLeft = $(window).scrollLeft();
-
-                    // Calculate the available space around the target element.
-                    const spaceAbove = targetOffset.top - scrollTop; // Space above the target.
-                    const spaceBelow = viewportHeight - (targetOffset.top - scrollTop + targetHeight); // Space below the target.
-                    const spaceLeft = targetOffset.left - scrollLeft; // Space to the left of the target.
-                    const spaceRight = viewportWidth - (targetOffset.left - scrollLeft + targetWidth); // Space to the right of the target.
-
-                    // Determine the best positioning for the modal based on the available space.
-                    let position = 'bottom';
-                    if (spaceAbove >= Math.max(spaceBelow, spaceLeft, spaceRight)) {
-                        position = 'top'; // More space available above.
-                    } else if (spaceBelow >= Math.max(spaceAbove, spaceLeft, spaceRight)) {
-                        position = 'bottom'; // More space available below.
-                    } else if (spaceLeft >= Math.max(spaceAbove, spaceBelow, spaceRight)) {
-                        position = 'left'; // More space available to the left.
-                    } else if (spaceRight >= Math.max(spaceAbove, spaceBelow, spaceLeft)) {
-                        position = 'right'; // More space available to the right.
-                    }
-
-                    // Initialize the top and left positions for the modal based on the determined position.
-                    let top = 0;
-                    let left = 0;
-                    switch (position) {
-                        case 'top':
-                            top = targetOffset.top - scrollTop - modalHeight - 10;
-                            left = targetOffset.left - scrollLeft + (targetWidth / 2) - (modalWidth / 2);
-                            break;
-                        case 'bottom':
-                            top = targetOffset.top - scrollTop + targetHeight + 10;
-                            left = targetOffset.left - scrollLeft + (targetWidth / 2) - (modalWidth / 2);
-                            break;
-                        case 'left':
-                            top = targetOffset.top - scrollTop + (targetHeight / 2) - (modalHeight / 2);
-                            left = targetOffset.left - scrollLeft - modalWidth - 10;
-                            break;
-                        case 'right':
-                            top = targetOffset.top - scrollTop + (targetHeight / 2) - (modalHeight / 2);
-                            left = targetOffset.left - scrollLeft + targetWidth + 10;
-                            break;
-                    }
-
-                    // Ensure the modal does not exceed the visible viewport boundaries.
-                    if (top < minSpaceFromEdge) {
-                        top = minSpaceFromEdge;
-                    }
-                    if (left < minSpaceFromEdge) {
-                        left = minSpaceFromEdge;
-                    }
-                    if (top + modalHeight > viewportHeight - minSpaceFromEdge) {
-                        top = viewportHeight - modalHeight - minSpaceFromEdge;
-                    }
-                    if (left + modalWidth > viewportWidth - minSpaceFromEdge) {
-                        left = viewportWidth - modalWidth - minSpaceFromEdge;
-                    }
-                    if (viewportWidth <= 768) {
-                        top = 0;
-                        left = 0;
-                    }
-
-                    // Position the modal based on its existence:
-                    if (modalExists) {
-                        $modalDialog.animate({
-                            top: `${top}px`,
-                            left: `${left}px`
-                        }, "slow");
-                    } else {
-                        $modalDialog.css({
-                            top: `${top}px`,
-                            left: `${left}px`
-                        });
-                    }
-                }, 0);
-
-                // Display the modal.
-                $modal.modal('show');
-            });
-        }
     }
     (jQuery)
 )
