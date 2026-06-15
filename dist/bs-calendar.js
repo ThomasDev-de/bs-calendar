@@ -657,9 +657,9 @@
             hourSlots: {
                 height: 30, // one hour in px
                 start: 0, // starting hour as integer
-                end: 24 // ending hour as integer
+                end: 24, // ending hour as integer
+                rules: null
             },
-            highlightedHours: null,
             calendars: null,
             onAll: null,
             onInit: null,
@@ -1762,6 +1762,7 @@
         monthMoveDragState: null,
         pendingCreate: null,
         pendingMove: null,
+        touchDragLock: null,
         suppressSlotClickUntil: 0,
         suppressAppointmentClickUntil: 0,
         appointmentClickTimer: null,
@@ -1988,12 +1989,12 @@
                         }
                     }
                     break;
-                case 'setHighlightedHours':
+                case 'setHourSlotRules':
                     if (!inSearchMode) {
-                        methods.setHighlightedHours(wrapper, params);
+                        methods.setHourSlotRules(wrapper, params);
                     } else {
                         if (getSettings(wrapper).debug) {
-                            log('Attempt to call setHighlightedHours() in search mode — ignored.');
+                            log('Attempt to call setHourSlotRules() in search mode — ignored.');
                         }
                     }
                     break;
@@ -2160,8 +2161,12 @@
             if (Object.prototype.hasOwnProperty.call(options, 'topbarAddons')) {
                 merged.topbarAddons = Array.isArray(options.topbarAddons) ? [...options.topbarAddons] : options.topbarAddons;
             }
-            if (Object.prototype.hasOwnProperty.call(options, 'highlightedHours')) {
-                merged.highlightedHours = copyHighlightedHours(options.highlightedHours);
+            if (
+                options.hourSlots &&
+                typeof options.hourSlots === 'object' &&
+                Object.prototype.hasOwnProperty.call(options.hourSlots, 'rules')
+            ) {
+                merged.hourSlots.rules = copyHourSlotRules(options.hourSlots.rules);
             }
             if (Object.prototype.hasOwnProperty.call(options, 'calendars')) {
                 if (Array.isArray(options.calendars) && Array.isArray(prevSettings.calendars)) {
@@ -2485,16 +2490,18 @@
             buildByView($wrapper, true);
         },
         /**
-         * Updates highlighted hours and refreshes the current view.
+         * Updates hour slot rules and refreshes the current view.
          *
          * @param {jQuery} $wrapper - The calendar wrapper.
-         * @param {Object|Object[]|null} highlightedHours - A highlighted-hours object,
-         * an array of highlighted-hours objects, or null to disable highlights.
+         * @param {Object|Object[]|null} hourSlotRules - A rule object,
+         * an array of rule objects, or null to disable rules.
          * @return {void}
          */
-        setHighlightedHours($wrapper, highlightedHours) {
+        setHourSlotRules($wrapper, hourSlotRules) {
             methods.updateOptions($wrapper, {
-                highlightedHours: highlightedHours
+                hourSlots: {
+                    rules: hourSlotRules
+                }
             });
         },
         /**
@@ -4655,7 +4662,7 @@
                 return;
             }
 
-            dragState.$appointment.css({opacity: '', zIndex: ''});
+            dragState.$appointment.css({opacity: '', zIndex: '', cursor: ''});
             if (dragState.$placeholder && dragState.$placeholder.length) {
                 dragState.$placeholder.remove();
             }
@@ -4675,6 +4682,87 @@
             date.setHours(startHour, startMin, 0, 0);
             date.setMinutes(date.getMinutes() + minutesFromStart);
             return date;
+        }
+
+        function setInteractionCursor(canWork) {
+            $('body').css('cursor', canWork ? '' : 'not-allowed');
+        }
+
+        function clearInteractionCursor() {
+            $('body').css('cursor', '');
+        }
+
+        function getTouchLockTarget(target) {
+            return $(target).closest('[data-day-hour], [data-appointment], [data-month-date], .wc-day-view-time-slots').get(0) || null;
+        }
+
+        function touchDragMoveGuard(ev) {
+            const lock = globalDragState.touchDragLock;
+            if (!lock) {
+                return;
+            }
+
+            if (globalDragState.createDragState || globalDragState.moveDragState || globalDragState.monthMoveDragState) {
+                ev.preventDefault();
+                return;
+            }
+
+            if (!globalDragState.pendingCreate && !globalDragState.pendingMove) {
+                return;
+            }
+
+            const point = getEventPageXY(ev);
+            const x = Number.isFinite(point.x) ? point.x : lock.startX;
+            const y = Number.isFinite(point.y) ? point.y : lock.startY;
+            const deltaX = Math.abs(x - lock.startX);
+            const deltaY = Math.abs(y - lock.startY);
+
+            if (deltaX <= lock.cancelDistance && deltaY <= lock.cancelDistance) {
+                ev.preventDefault();
+            }
+        }
+
+        function lockTouchDrag(target, startPoint) {
+            unlockTouchDrag();
+
+            const $target = $(getTouchLockTarget(target));
+            const originalStyles = [];
+            const $styled = $target.length ? $target.add($target.closest(globalCalendarElements.wrapper)) : $();
+
+            $styled.each(function () {
+                const el = this;
+                originalStyles.push({
+                    el: el,
+                    touchAction: el.style.touchAction,
+                    userSelect: el.style.userSelect,
+                    webkitUserSelect: el.style.webkitUserSelect
+                });
+                el.style.touchAction = 'none';
+                el.style.userSelect = 'none';
+                el.style.webkitUserSelect = 'none';
+            });
+
+            document.addEventListener('touchmove', touchDragMoveGuard, {passive: false, capture: true});
+
+            globalDragState.touchDragLock = {
+                startX: Number.isFinite(startPoint.x) ? startPoint.x : 0,
+                startY: Number.isFinite(startPoint.y) ? startPoint.y : 0,
+                cancelDistance: 8,
+                originalStyles: originalStyles
+            };
+        }
+
+        function unlockTouchDrag() {
+            const lock = globalDragState.touchDragLock;
+            if (lock && Array.isArray(lock.originalStyles)) {
+                lock.originalStyles.forEach(item => {
+                    item.el.style.touchAction = item.touchAction;
+                    item.el.style.userSelect = item.userSelect;
+                    item.el.style.webkitUserSelect = item.webkitUserSelect;
+                });
+            }
+            document.removeEventListener('touchmove', touchDragMoveGuard, {capture: true});
+            globalDragState.touchDragLock = null;
         }
 
         function appointmentsOverlap(a, b) {
@@ -4866,6 +4954,21 @@
                         removeInfoWindowModal();
                     }
                     globalDragState.monthMoveDragState.$appointment.css({opacity: 0.8});
+                    const monthAppointment = globalDragState.monthMoveDragState.$appointment.data('appointment');
+                    if (monthAppointment) {
+                        const start = $.bsCalendar.utils.parseDateInput(monthAppointment.start);
+                        const end = $.bsCalendar.utils.parseDateInput(monthAppointment.end);
+                        if (start && end && !isNaN(start.getTime()) && !isNaN(end.getTime())) {
+                            const dayDelta = getLocalDateIndex(globalDragState.monthMoveDragState.targetDateLocal) -
+                                getLocalDateIndex(globalDragState.monthMoveDragState.sourceDateLocal);
+                            const tempStart = addDaysPreservingTime(start, dayDelta);
+                            const tempEnd = addDaysPreservingTime(end, dayDelta);
+                            const canWork = isHourSlotRuleRangeAllowed(globalDragState.monthMoveDragState.$wrapper, tempStart, tempEnd);
+                            globalDragState.monthMoveDragState.canWork = canWork;
+                            globalDragState.monthMoveDragState.$appointment.css('cursor', canWork ? 'grabbing' : 'not-allowed');
+                            setInteractionCursor(canWork);
+                        }
+                    }
                     globalDragState.monthMoveDragState.dragged = true;
                 }
 
@@ -4881,10 +4984,30 @@
                     if (endMinutes - startMinutes < snap) {
                         endMinutes = Math.min(endMinutes + snap, (settings.hourSlots.end - settings.hourSlots.start) * 60);
                     }
+                    const clampedRange = clampCreateMinutesToHourSlotRules(
+                        globalDragState.createDragState.$wrapper,
+                        globalDragState.createDragState.dateLocal,
+                        globalDragState.createDragState.startMinutes,
+                        endMinutesRaw,
+                        snap
+                    );
+                    startMinutes = clampedRange.startMinutes;
+                    endMinutes = clampedRange.endMinutes;
 
                     const topPx = (startMinutes / 60) * settings.hourSlots.height;
                     const heightPx = Math.max(10, ((endMinutes - startMinutes) / 60) * settings.hourSlots.height);
-                    globalDragState.createDragState.$preview.css({top: `${topPx}px`, height: `${heightPx}px`, display: 'block'});
+                    const previewStart = buildDateTimeByMinutes(globalDragState.createDragState.$wrapper, globalDragState.createDragState.dateLocal, startMinutes);
+                    const previewEnd = buildDateTimeByMinutes(globalDragState.createDragState.$wrapper, globalDragState.createDragState.dateLocal, endMinutes);
+                    const canWork = isHourSlotRuleRangeAllowed(globalDragState.createDragState.$wrapper, previewStart, previewEnd);
+
+                    globalDragState.createDragState.$preview.css({
+                        top: `${topPx}px`,
+                        height: `${heightPx}px`,
+                        display: 'block',
+                        cursor: canWork ? 'copy' : 'not-allowed',
+                        opacity: canWork ? 0.2 : 0.1
+                    });
+                    setInteractionCursor(canWork);
 
                     // Update time labels
                     const totalStartMinutes = startMinutes + (settings.hourSlots.start * 60);
@@ -4904,6 +5027,7 @@
                     }
                     globalDragState.createDragState.currentStartMinutes = startMinutes;
                     globalDragState.createDragState.currentEndMinutes = endMinutes;
+                    globalDragState.createDragState.canWork = canWork;
                     globalDragState.createDragState.dragged = true;
                 }
 
@@ -4937,13 +5061,21 @@
                     const maxStart = Math.max(0, ((settings.hourSlots.end - settings.hourSlots.start) * 60) - durationMinutes);
                     const newStartMinutes = Math.max(0, Math.min(maxStart, pointerMinutes - globalDragState.moveDragState.offsetMinutes));
                     const snap = getSnapMinutes(globalDragState.moveDragState.$wrapper);
-                    const snappedStart = Math.round(newStartMinutes / snap) * snap;
+                    let snappedStart = Math.round(newStartMinutes / snap) * snap;
+                    const clampedMove = clampMoveMinutesToHourSlotRules(
+                        globalDragState.moveDragState.$wrapper,
+                        globalDragState.moveDragState.dateLocal,
+                        snappedStart,
+                        durationMinutes
+                    );
+                    snappedStart = clampedMove.startMinutes;
                     const tempStart = buildDateTimeByMinutes(
                         globalDragState.moveDragState.$wrapper,
                         globalDragState.moveDragState.dateLocal,
                         snappedStart
                     );
                     const tempEnd = new Date(tempStart.getTime() + globalDragState.moveDragState.durationMs);
+                    const canWork = isHourSlotRuleRangeAllowed(globalDragState.moveDragState.$wrapper, tempStart, tempEnd);
                     relayoutDayContainerForDrag(
                         globalDragState.moveDragState.$wrapper,
                         globalDragState.moveDragState.$slotContainer,
@@ -4960,14 +5092,19 @@
                     globalDragState.moveDragState.$timeDisplay.text(timeStr);
 
                     globalDragState.moveDragState.$appointment.css({opacity: 0.8});
+                    globalDragState.moveDragState.$appointment.css('cursor', canWork ? 'grabbing' : 'not-allowed');
+                    setInteractionCursor(canWork);
                     if (!globalDragState.moveDragState.dragged) {
                         removeInfoWindowModal();
                     }
                     globalDragState.moveDragState.currentStartMinutes = snappedStart;
+                    globalDragState.moveDragState.canWork = canWork;
                     globalDragState.moveDragState.dragged = true;
                 }
             })
             .on('mouseup' + namespace + ' pointerup' + namespace + ' touchend' + namespace + ' touchcancel' + namespace, function () {
+                clearInteractionCursor();
+                unlockTouchDrag();
                 if (globalDragState.pendingCreate?.timer) {
                     clearTimeout(globalDragState.pendingCreate.timer);
                 }
@@ -4992,27 +5129,31 @@
                         globalDragState.suppressSlotClickUntil = Date.now() + 250;
                         const start = buildDateTimeByMinutes(globalDragState.createDragState.$wrapper, globalDragState.createDragState.dateLocal, globalDragState.createDragState.currentStartMinutes);
                         const end = buildDateTimeByMinutes(globalDragState.createDragState.$wrapper, globalDragState.createDragState.dateLocal, globalDragState.createDragState.currentEndMinutes);
-                        const payload = {
-                            start: {
-                                date: $.bsCalendar.utils.formatDateToDateString(start),
-                                time: start.toTimeString().slice(0, 5)
-                            },
-                            end: {
-                                date: $.bsCalendar.utils.formatDateToDateString(end),
-                                time: end.toTimeString().slice(0, 5)
-                            },
-                            view: getView(globalDragState.createDragState.$wrapper)
-                        };
                         const dragExtras = getDragAppointmentExtras(globalDragState.createDragState.$wrapper, start, end);
-                        trigger(globalDragState.createDragState.$wrapper, 'add', payload, dragExtras);
-                        removeInfoWindowModal();
+                        if (!dragExtras.hourSlotRules.canWork) {
+                            globalDragState.createDragState = null;
+                        } else {
+                            const payload = {
+                                start: {
+                                    date: $.bsCalendar.utils.formatDateToDateString(start),
+                                    time: start.toTimeString().slice(0, 5)
+                                },
+                                end: {
+                                    date: $.bsCalendar.utils.formatDateToDateString(end),
+                                    time: end.toTimeString().slice(0, 5)
+                                },
+                                view: getView(globalDragState.createDragState.$wrapper)
+                            };
+                            trigger(globalDragState.createDragState.$wrapper, 'add', payload, dragExtras);
+                            removeInfoWindowModal();
+                        }
                     }
                     globalDragState.createDragState = null;
                 }
 
                 if (globalDragState.moveDragState) {
                     const $appointment = globalDragState.moveDragState.$appointment;
-                    $appointment.css({opacity: ''});
+                    $appointment.css({opacity: '', cursor: ''});
                     // Remove time display badge
                     if (globalDragState.moveDragState.$timeDisplay) {
                         globalDragState.moveDragState.$timeDisplay.remove();
@@ -5026,8 +5167,13 @@
 
                             const returnData = getAppointmentForReturn(appointment);
                             const dragExtras = getDragAppointmentExtras(globalDragState.moveDragState.$wrapper, newStart, newEnd);
-                            trigger(globalDragState.moveDragState.$wrapper, 'edit', returnData.appointment, returnData.extras, dragExtras);
-                            removeInfoWindowModal();
+                            if (!dragExtras.hourSlotRules.canWork) {
+                                buildAppointmentsForView(globalDragState.moveDragState.$wrapper);
+                                globalDragState.moveDragState = null;
+                            } else {
+                                trigger(globalDragState.moveDragState.$wrapper, 'edit', returnData.appointment, returnData.extras, dragExtras);
+                                removeInfoWindowModal();
+                            }
                         }
                     }
                     globalDragState.moveDragState = null;
@@ -5055,8 +5201,13 @@
                                 const newEnd = addDaysPreservingTime(end, dayDelta);
                                 const returnData = getAppointmentForReturn(appointment);
                                 const dragExtras = getDragAppointmentExtras(dragState.$wrapper, newStart, newEnd);
-                                trigger(dragState.$wrapper, 'edit', returnData.appointment, returnData.extras, dragExtras);
-                                removeInfoWindowModal();
+                                if (!dragExtras.hourSlotRules.canWork) {
+                                    buildAppointmentsForView(dragState.$wrapper);
+                                    globalDragState.monthMoveDragState = null;
+                                } else {
+                                    trigger(dragState.$wrapper, 'edit', returnData.appointment, returnData.extras, dragExtras);
+                                    removeInfoWindowModal();
+                                }
                             }
                         }
                     }
@@ -5359,6 +5510,12 @@
                 const start = new Date(`${$.bsCalendar.utils.formatDateToDateString(details.date)} ${String(clickHour).padStart(2, '0')}:${String(clickMin).padStart(2, '0')}:00`);
                 const end = new Date(start);
                 end.setMinutes(end.getMinutes() + 30);
+                const dragExtras = getDragAppointmentExtras($eventWrapper, start, end);
+                if (!dragExtras.hourSlotRules.canWork) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
 
                 const data = {
                     start: {
@@ -5371,7 +5528,7 @@
                     },
                     view: getView($eventWrapper)
                 };
-                trigger($eventWrapper, 'add', data, getDragAppointmentExtras($eventWrapper, start, end));
+                trigger($eventWrapper, 'add', data, dragExtras);
                 removeInfoWindowModal();
             })
             .off('mousedown' + namespace + ' pointerdown' + namespace + ' touchstart' + namespace, '[data-day-hour]')
@@ -5405,6 +5562,14 @@
                 }
                 const startMinutes = getMinutesFromPointer($eventWrapper, $slotContainer, startPoint.y);
                 const mainColors = $.bsCalendar.utils.getColors(settings.mainColor);
+                const initialStart = buildDateTimeByMinutes($eventWrapper, String($slotContainer.attr('data-date-local')), startMinutes);
+                const initialEnd = new Date(initialStart.getTime());
+                initialEnd.setMinutes(initialEnd.getMinutes() + getSnapMinutes($eventWrapper));
+                if (!isHourSlotRuleRangeAllowed($eventWrapper, initialStart, initialEnd)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
 
                 const $preview = $('<div>', {
                     class: 'position-absolute rounded',
@@ -5467,6 +5632,7 @@
                 if (isTouch) {
                     const startX = startPoint.x || 0;
                     const startY = startPoint.y || 0;
+                    lockTouchDrag(e.currentTarget, startPoint);
                     const timer = setTimeout(() => {
                         if (!globalDragState.pendingCreate) return;
                         activateCreateDrag();
@@ -5481,6 +5647,7 @@
                         if (Math.abs(x - startX) > 8 || Math.abs(y - startY) > 8) {
                             clearTimeout(globalDragState.pendingCreate.timer);
                             globalDragState.pendingCreate = null;
+                            unlockTouchDrag();
                             $preview.remove();
                         }
                     });
@@ -5562,6 +5729,7 @@
                     if (isTouch) {
                         const startX = startPoint.x || 0;
                         const startY = startPoint.y || 0;
+                        lockTouchDrag(e.currentTarget, startPoint);
                         const timer = setTimeout(() => {
                             if (!globalDragState.pendingMove) return;
                             activateMonthMoveDrag();
@@ -5576,6 +5744,7 @@
                             if (Math.abs(x - startX) > 8 || Math.abs(y - startY) > 8) {
                                 clearTimeout(globalDragState.pendingMove.timer);
                                 globalDragState.pendingMove = null;
+                                unlockTouchDrag();
                             }
                         });
                     } else {
@@ -5645,6 +5814,7 @@
                 if (isTouch) {
                     const startX = startPoint.x || 0;
                     const startY = startPoint.y || 0;
+                    lockTouchDrag(e.currentTarget, startPoint);
                     const timer = setTimeout(() => {
                         if (!globalDragState.pendingMove) return;
                         activateMoveDrag();
@@ -5659,6 +5829,7 @@
                         if (Math.abs(x - startX) > 8 || Math.abs(y - startY) > 8) {
                             clearTimeout(globalDragState.pendingMove.timer);
                             globalDragState.pendingMove = null;
+                            unlockTouchDrag();
                         }
                     });
                 } else {
@@ -5690,6 +5861,12 @@
 
 
                 end.setMinutes(end.getMinutes() + 30);
+                const dragExtras = getDragAppointmentExtras($eventWrapper, start, end);
+                if (!dragExtras.hourSlotRules.canWork) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
 
                 const data = {
                     start: {
@@ -5702,7 +5879,7 @@
                     },
                     view: getView($eventWrapper)
                 };
-                trigger($eventWrapper, 'add', data);
+                trigger($eventWrapper, 'add', data, dragExtras);
                 removeInfoWindowModal();
             })
             .off('click' + namespace, '[data-add-appointment]')
@@ -8279,13 +8456,7 @@
      */
     function getDragAppointmentExtras($wrapper, start, end) {
         const settings = getSettings($wrapper);
-        const day = start.getDay();
-        const highlightedHoursAvailability = evaluateHighlightedHoursAvailability(
-            settings.highlightedHours,
-            day,
-            $.bsCalendar.utils.formatTime(start, false),
-            $.bsCalendar.utils.formatTime(end, false)
-        );
+        const hourSlotRulesAvailability = getHourSlotRulesAvailabilityForRange($wrapper, start, end);
 
         return {
             start: {
@@ -8296,10 +8467,182 @@
                 date: $.bsCalendar.utils.formatDateToDateString(end),
                 time: $.bsCalendar.utils.formatTime(end, false)
             },
-            highlightedHours: highlightedHoursAvailability,
-            inHighlightedHours: highlightedHoursAvailability.inRange,
-            canWorkInHighlightedHours: highlightedHoursAvailability.canWork,
-            highlightedHoursMode: highlightedHoursAvailability.mode
+            hourSlotRules: hourSlotRulesAvailability
+        };
+    }
+
+    function getHourSlotRulesAvailabilityForRange($wrapper, start, end) {
+        const settings = getSettings($wrapper);
+
+        if ($.bsCalendar.utils.isValueEmpty(settings.hourSlots.rules)) {
+            return getDefaultHourSlotRulesAvailability();
+        }
+
+        return evaluateHourSlotRulesAvailability(
+            settings.hourSlots.rules,
+            start.getDay(),
+            $.bsCalendar.utils.formatTime(start, false),
+            $.bsCalendar.utils.formatTime(end, false)
+        );
+    }
+
+    function isHourSlotRuleRangeAllowed($wrapper, start, end) {
+        return getHourSlotRulesAvailabilityForRange($wrapper, start, end).canWork;
+    }
+
+    function getHourSlotRulesAllowedIntervals($wrapper, day) {
+        const settings = getSettings($wrapper);
+        const visibleStart = settings.hourSlots.start * 60;
+        const visibleEnd = settings.hourSlots.end * 60;
+        const ranges = getHourSlotRulesList(settings.hourSlots.rules)
+            .filter(item => hourSlotRulesMatchesDay(item, day));
+        const exclusiveRanges = ranges.filter(item => normalizeHourSlotRulesMode(item.mode) === 'exclusive');
+        const blockedRanges = ranges.filter(item => normalizeHourSlotRulesMode(item.mode) === 'blocked');
+        let intervals = exclusiveRanges.length
+            ? exclusiveRanges.map(item => getHourSlotRulesTimeRange(item))
+            : [{start: settings.hourSlots.start, end: settings.hourSlots.end}];
+
+        intervals = intervals
+            .map(interval => ({
+                start: Math.max(visibleStart, interval.start * 60),
+                end: Math.min(visibleEnd, interval.end * 60)
+            }))
+            .filter(interval => interval.end > interval.start)
+            .sort((a, b) => a.start - b.start || a.end - b.end);
+
+        intervals = mergeHourSlotRulesIntervals(intervals);
+
+        blockedRanges.forEach(blockedRange => {
+            const range = getHourSlotRulesTimeRange(blockedRange);
+            const blockedStart = Math.max(visibleStart, range.start * 60);
+            const blockedEnd = Math.min(visibleEnd, range.end * 60);
+            if (blockedEnd <= blockedStart) {
+                return;
+            }
+
+            const nextIntervals = [];
+            intervals.forEach(interval => {
+                if (blockedEnd <= interval.start || blockedStart >= interval.end) {
+                    nextIntervals.push(interval);
+                    return;
+                }
+                if (blockedStart > interval.start) {
+                    nextIntervals.push({
+                        start: interval.start,
+                        end: Math.min(blockedStart, interval.end)
+                    });
+                }
+                if (blockedEnd < interval.end) {
+                    nextIntervals.push({
+                        start: Math.max(blockedEnd, interval.start),
+                        end: interval.end
+                    });
+                }
+            });
+            intervals = nextIntervals.filter(interval => interval.end > interval.start);
+        });
+
+        return intervals;
+    }
+
+    function mergeHourSlotRulesIntervals(intervals) {
+        const merged = [];
+
+        intervals.forEach(interval => {
+            const previous = merged[merged.length - 1];
+            if (!previous || interval.start > previous.end) {
+                merged.push($.extend({}, interval));
+                return;
+            }
+            previous.end = Math.max(previous.end, interval.end);
+        });
+
+        return merged;
+    }
+
+    function clampCreateMinutesToHourSlotRules($wrapper, dateLocal, anchorMinutes, floatingMinutes, minDurationMinutes) {
+        const settings = getSettings($wrapper);
+        const visibleStart = settings.hourSlots.start * 60;
+        const date = $.bsCalendar.utils.parseDateInput(dateLocal);
+        const day = date.getDay();
+        const anchor = visibleStart + anchorMinutes;
+        const floating = visibleStart + floatingMinutes;
+        const minDuration = Math.max(1, minDurationMinutes || 1);
+        const intervals = getHourSlotRulesAllowedIntervals($wrapper, day)
+            .filter(interval => interval.end - interval.start >= minDuration);
+
+        if (!intervals.length) {
+            return {
+                startMinutes: Math.min(anchorMinutes, floatingMinutes),
+                endMinutes: Math.max(anchorMinutes, floatingMinutes),
+                canWork: false,
+                clamped: false
+            };
+        }
+
+        let interval = intervals.find(item => anchor >= item.start && anchor <= item.end);
+        if (!interval) {
+            interval = intervals
+                .map(item => ({
+                    interval: item,
+                    distance: Math.min(Math.abs(anchor - item.start), Math.abs(anchor - item.end))
+                }))
+                .sort((a, b) => a.distance - b.distance)[0].interval;
+        }
+
+        let start = anchor;
+        let end = floating;
+        if (floating >= anchor) {
+            end = Math.max(anchor + minDuration, Math.min(floating, interval.end));
+        } else {
+            start = Math.min(anchor - minDuration, Math.max(floating, interval.start));
+            end = anchor;
+        }
+
+        start = Math.max(interval.start, Math.min(start, interval.end - minDuration));
+        end = Math.min(interval.end, Math.max(end, start + minDuration));
+
+        const startMinutes = start - visibleStart;
+        const endMinutes = end - visibleStart;
+        return {
+            startMinutes: startMinutes,
+            endMinutes: endMinutes,
+            canWork: endMinutes > startMinutes,
+            clamped: start !== Math.min(anchor, floating) || end !== Math.max(anchor, floating)
+        };
+    }
+
+    function clampMoveMinutesToHourSlotRules($wrapper, dateLocal, startMinutes, durationMinutes) {
+        const settings = getSettings($wrapper);
+        const visibleStart = settings.hourSlots.start * 60;
+        const date = $.bsCalendar.utils.parseDateInput(dateLocal);
+        const day = date.getDay();
+        const duration = Math.max(1, durationMinutes || 1);
+        const proposedStart = visibleStart + startMinutes;
+        const intervals = getHourSlotRulesAllowedIntervals($wrapper, day)
+            .filter(interval => interval.end - interval.start >= duration);
+
+        if (!intervals.length) {
+            return {
+                startMinutes: startMinutes,
+                canWork: false,
+                clamped: false
+            };
+        }
+
+        const candidates = intervals.map(interval => {
+            const start = Math.max(interval.start, Math.min(proposedStart, interval.end - duration));
+            return {
+                start: start,
+                distance: Math.abs(start - proposedStart)
+            };
+        }).sort((a, b) => a.distance - b.distance || a.start - b.start);
+
+        const best = candidates[0];
+        return {
+            startMinutes: best.start - visibleStart,
+            canWork: true,
+            clamped: best.start !== proposedStart
         };
     }
 
@@ -8450,81 +8793,81 @@
         return ['low', 'normal', 'high'].includes(normalized) ? normalized : 'normal';
     }
 
-    function copyHighlightedHours(highlightedHours) {
-        if (highlightedHours === null || highlightedHours === undefined) {
+    function copyHourSlotRules(hourSlotRules) {
+        if (hourSlotRules === null || hourSlotRules === undefined) {
             return null;
         }
-        return $.extend(true, Array.isArray(highlightedHours) ? [] : {}, highlightedHours);
+        return $.extend(true, Array.isArray(hourSlotRules) ? [] : {}, hourSlotRules);
     }
 
-    function getHighlightedHoursList(highlightedHours) {
-        if ($.bsCalendar.utils.isValueEmpty(highlightedHours)) {
+    function getHourSlotRulesList(hourSlotRules) {
+        if ($.bsCalendar.utils.isValueEmpty(hourSlotRules)) {
             return [];
         }
 
-        const list = Array.isArray(highlightedHours) ? highlightedHours : [highlightedHours];
+        const list = Array.isArray(hourSlotRules) ? hourSlotRules : [hourSlotRules];
 
         return list.filter(item => item && typeof item === 'object');
     }
 
-    function getMatchingHighlightedHours(highlightedHours, day, startTime, endTime = null) {
+    function getMatchingHourSlotRules(hourSlotRules, day, startTime, endTime = null) {
         const start = $.bsCalendar.utils.parseTimeToDecimal(startTime);
         const end = endTime === null ? null : $.bsCalendar.utils.parseTimeToDecimal(endTime);
 
-        return getHighlightedHoursList(highlightedHours).find(item => {
-            if (!highlightedHoursMatchesDay(item, day)) {
+        return getHourSlotRulesList(hourSlotRules).find(item => {
+            if (!hourSlotRulesMatchesDay(item, day)) {
                 return false;
             }
 
             if (end === null) {
-                return highlightedHoursContainsPoint(item, start);
+                return hourSlotRulesContainsPoint(item, start);
             }
 
-            return highlightedHoursContainsRange(item, start, end);
+            return hourSlotRulesContainsRange(item, start, end);
         }) || null;
     }
 
-    function getHighlightedHoursColors(highlightedHours) {
+    function getHourSlotRulesColors(hourSlotRules) {
         return $.bsCalendar.utils.getColors(
-            highlightedHours && highlightedHours.color ? highlightedHours.color : null,
+            hourSlotRules && hourSlotRules.color ? hourSlotRules.color : null,
             'rgba(0, 0, 0, 0.05)'
         );
     }
 
-    function normalizeHighlightedHoursMode(mode) {
+    function normalizeHourSlotRulesMode(mode) {
         const normalized = typeof mode === 'string' ? mode.trim().toLowerCase() : '';
         return ['exclusive', 'preferred', 'blocked'].includes(normalized) ? normalized : 'highlight';
     }
 
-    function getHighlightedHoursTimeRange(highlightedHours) {
+    function getHourSlotRulesTimeRange(hourSlotRules) {
         return {
-            start: $.bsCalendar.utils.parseTimeToDecimal(highlightedHours.startTime || '00:00'),
-            end: $.bsCalendar.utils.parseTimeToDecimal(highlightedHours.endTime || '23:59')
+            start: $.bsCalendar.utils.parseTimeToDecimal(hourSlotRules.startTime || '00:00'),
+            end: $.bsCalendar.utils.parseTimeToDecimal(hourSlotRules.endTime || '23:59')
         };
     }
 
-    function highlightedHoursMatchesDay(highlightedHours, day) {
-        return Array.isArray(highlightedHours.daysOfWeek)
-            ? highlightedHours.daysOfWeek.includes(day)
+    function hourSlotRulesMatchesDay(hourSlotRules, day) {
+        return Array.isArray(hourSlotRules.daysOfWeek)
+            ? hourSlotRules.daysOfWeek.includes(day)
             : false;
     }
 
-    function highlightedHoursContainsPoint(highlightedHours, point) {
-        const range = getHighlightedHoursTimeRange(highlightedHours);
+    function hourSlotRulesContainsPoint(hourSlotRules, point) {
+        const range = getHourSlotRulesTimeRange(hourSlotRules);
         return point >= range.start && point < range.end;
     }
 
-    function highlightedHoursContainsRange(highlightedHours, start, end) {
-        const range = getHighlightedHoursTimeRange(highlightedHours);
+    function hourSlotRulesContainsRange(hourSlotRules, start, end) {
+        const range = getHourSlotRulesTimeRange(hourSlotRules);
         return start >= range.start && end <= range.end;
     }
 
-    function highlightedHoursOverlapsRange(highlightedHours, start, end) {
-        const range = getHighlightedHoursTimeRange(highlightedHours);
+    function hourSlotRulesOverlapsRange(hourSlotRules, start, end) {
+        const range = getHourSlotRulesTimeRange(hourSlotRules);
         return start < range.end && end > range.start;
     }
 
-    function getDefaultHighlightedHoursAvailability() {
+    function getDefaultHourSlotRulesAvailability() {
         return {
             canWork: true,
             mode: null,
@@ -8537,21 +8880,21 @@
         };
     }
 
-    function evaluateHighlightedHoursAvailability(highlightedHours, day, startTime, endTime) {
+    function evaluateHourSlotRulesAvailability(hourSlotRules, day, startTime, endTime) {
         const start = $.bsCalendar.utils.parseTimeToDecimal(startTime);
         const end = $.bsCalendar.utils.parseTimeToDecimal(endTime);
-        const ranges = getHighlightedHoursList(highlightedHours)
-            .filter(item => highlightedHoursMatchesDay(item, day));
+        const ranges = getHourSlotRulesList(hourSlotRules)
+            .filter(item => hourSlotRulesMatchesDay(item, day));
 
-        const availability = getDefaultHighlightedHoursAvailability();
+        const availability = getDefaultHourSlotRulesAvailability();
 
         if (!ranges.length) {
             return availability;
         }
 
-        const containedRanges = ranges.filter(item => highlightedHoursContainsRange(item, start, end));
-        const overlappingRanges = ranges.filter(item => highlightedHoursOverlapsRange(item, start, end));
-        const blockedRange = overlappingRanges.find(item => normalizeHighlightedHoursMode(item.mode) === 'blocked');
+        const containedRanges = ranges.filter(item => hourSlotRulesContainsRange(item, start, end));
+        const overlappingRanges = ranges.filter(item => hourSlotRulesOverlapsRange(item, start, end));
+        const blockedRange = overlappingRanges.find(item => normalizeHourSlotRulesMode(item.mode) === 'blocked');
 
         if (blockedRange) {
             return {
@@ -8566,8 +8909,8 @@
             };
         }
 
-        const exclusiveRanges = ranges.filter(item => normalizeHighlightedHoursMode(item.mode) === 'exclusive');
-        const exclusiveRange = containedRanges.find(item => normalizeHighlightedHoursMode(item.mode) === 'exclusive');
+        const exclusiveRanges = ranges.filter(item => normalizeHourSlotRulesMode(item.mode) === 'exclusive');
+        const exclusiveRange = containedRanges.find(item => normalizeHourSlotRulesMode(item.mode) === 'exclusive');
 
         if (exclusiveRange) {
             return {
@@ -8595,7 +8938,7 @@
             };
         }
 
-        const preferredRange = containedRanges.find(item => normalizeHighlightedHoursMode(item.mode) === 'preferred');
+        const preferredRange = containedRanges.find(item => normalizeHourSlotRulesMode(item.mode) === 'preferred');
 
         if (preferredRange) {
             return {
@@ -8613,7 +8956,7 @@
         if (containedRanges.length) {
             return {
                 canWork: true,
-                mode: normalizeHighlightedHoursMode(containedRanges[0].mode),
+                mode: normalizeHourSlotRulesMode(containedRanges[0].mode),
                 reason: 'highlighted',
                 range: containedRanges[0],
                 inRange: true,
@@ -8693,7 +9036,7 @@
              *
              * This includes normalized start/end values, icon and color data,
              * duration information, visible display dates, task state and
-             * highlighted-hours detection.
+             * hour-slot-rules detection.
              */
             appointments.forEach(appointment => {
                 const start = $.bsCalendar.utils.parseDateInput(appointment.start);
@@ -8796,16 +9139,7 @@
                     },
 
                     /**
-                     * Indicates whether the appointment lies completely inside
-                     * any configured highlighted-hours range.
-                     *
-                     * This is only evaluated for timed appointments, not all-day
-                     * appointments.
-                     */
-                    inHighlightedHours: false,
-
-                    /**
-                     * Availability metadata derived from highlightedHours.
+                     * Availability metadata derived from hourSlots.rules.
                      *
                      * Modes:
                      * - blocked: overlapping appointments cannot be worked.
@@ -8813,17 +9147,7 @@
                      * - preferred: appointments can be worked and are marked as preferred.
                      * - highlight/default: visual highlight only.
                      */
-                    highlightedHours: getDefaultHighlightedHoursAvailability(),
-
-                    /**
-                     * Convenience mirror for highlightedHours.canWork.
-                     */
-                    canWorkInHighlightedHours: true,
-
-                    /**
-                     * Convenience mirror for highlightedHours.mode.
-                     */
-                    highlightedHoursMode: null,
+                    hourSlotRules: getDefaultHourSlotRulesAvailability(),
 
                     /**
                      * Contains one entry per calendar day touched by this appointment.
@@ -8862,9 +9186,9 @@
 
                 /**
                  * Evaluate whether the appointment is affected by one configured
-                 * highlighted-hours range.
+                 * hourSlots.rules range.
                  *
-                 * Expected highlightedHours structure:
+                 * Expected hourSlots.rules item structure:
                  *
                  * {
                  *   daysOfWeek: [1, 2, 3, 4, 5],
@@ -8885,23 +9209,19 @@
                  * 5 = Friday
                  * 6 = Saturday
                  *
-                 * `inHighlightedHours` remains a backwards-compatible full
-                 * containment flag. The mode-aware work decision is exposed via
-                 * `extras.highlightedHours.canWork`.
+                 * The mode-aware work decision is exposed via
+                 * `extras.hourSlotRules.canWork`.
                  */
-                if (!isAllDay && !$.bsCalendar.utils.isValueEmpty(data.settings.highlightedHours)) {
+                if (!isAllDay && !$.bsCalendar.utils.isValueEmpty(data.settings.hourSlots.rules)) {
                     const date = new Date(startDate);
                     const day = date.getDay();
-                    const highlightedHoursAvailability = evaluateHighlightedHoursAvailability(
-                        data.settings.highlightedHours,
+                    const hourSlotRulesAvailability = evaluateHourSlotRulesAvailability(
+                        data.settings.hourSlots.rules,
                         day,
                         startTime,
                         endTime
                     );
-                    extras.highlightedHours = highlightedHoursAvailability;
-                    extras.inHighlightedHours = highlightedHoursAvailability.inRange;
-                    extras.canWorkInHighlightedHours = highlightedHoursAvailability.canWork;
-                    extras.highlightedHoursMode = highlightedHoursAvailability.mode;
+                    extras.hourSlotRules = hourSlotRulesAvailability;
                 }
 
                 /**
@@ -10267,18 +10587,30 @@
                 if (rowHeight <= 0) rowHeight = settings.hourSlots.height;
             }
             if (isLast) rowHeight = 0;
+            let rowCursor = 'copy';
+            let rowHourSlotRulesAvailability = getDefaultHourSlotRulesAvailability();
+            if (!isLast) {
+                const slotStartHour = Math.floor(rowHour);
+                const slotStartMinute = Math.round((rowHour % 1) * 60);
+                const slotStart = new Date(date.getTime());
+                slotStart.setHours(slotStartHour, slotStartMinute, 0, 0);
+                const slotEnd = new Date(slotStart.getTime());
+                slotEnd.setMinutes(slotEnd.getMinutes() + 30);
+                rowHourSlotRulesAvailability = getHourSlotRulesAvailabilityForRange($wrapper, slotStart, slotEnd);
+                rowCursor = rowHourSlotRulesAvailability.canWork ? 'copy' : 'not-allowed';
+            }
             let css = isLast ? {} : {
                 boxSizing: 'border-box',
                 height: rowHeight + 'px',
-                cursor: 'copy', // indicates draggable/clone action when interacting
+                cursor: rowCursor,
             };
 
             if (!isLast) {
                 const day = date.getDay();
-                const highlightedHours = getMatchingHighlightedHours(settings.highlightedHours, day, rowHour);
+                const hourSlotRules = getMatchingHourSlotRules(settings.hourSlots.rules, day, rowHour);
 
-                if (highlightedHours) {
-                    const hhColors = getHighlightedHoursColors(highlightedHours);
+                if (hourSlotRules) {
+                    const hhColors = getHourSlotRulesColors(hourSlotRules);
                     css.backgroundColor = hhColors.backgroundColor;
                     if (hhColors.backgroundImage && hhColors.backgroundImage !== "none") {
                         css.backgroundImage = hhColors.backgroundImage;
@@ -10289,6 +10621,8 @@
             // One row per hour with a top border to form the grid
             const row = $('<div>', {
                 'data-day-hour': rowHour,
+                'data-hour-slot-rules-mode': rowHourSlotRulesAvailability.mode || '',
+                'data-hour-slot-rules-can-work': rowHourSlotRulesAvailability.canWork ? 'true' : 'false',
                 css: css,
                 class: 'd-flex align-items-center border-top position-relative'
             }).appendTo(timeSlots);

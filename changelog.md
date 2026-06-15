@@ -51,20 +51,24 @@
 
 
 ### dev-main
-- Bugfix: Corrected time display in the hover indicator (time badge) when using non-integer `hourSlots.start` values.
-- Bugfix: Fixed incorrect start time calculation when clicking on a time slot in calendars with fractional start times.
-- Improvement: Time formatting for the hover badge and click events now correctly handles minutes (e.g., "07:30" instead of "7.5:00").
 
 ### Version 2.3.4
 2026-06-15
-- Feature: `highlightedHours` now accepts either a single object or an array of highlighted-hours objects.
-- Improvement: Each highlighted-hours object can define its own `color`, resolved through `$.bsCalendar.utils.getColors`, so multiple ranges can be visually distinguished.
-- Feature: `highlightedHours.mode` now drives availability metadata: `exclusive` allows work only inside the range, `blocked` disallows overlapping work, and `preferred` marks preferred work time without blocking.
-- Improvement: Appointment `extras` and drag `dragExtras` now expose highlighted-hours availability via `highlightedHours`, `canWorkInHighlightedHours`, and `highlightedHoursMode`.
-- Feature: Added `setHighlightedHours(object|array|null)` method handling for runtime updates.
-- Docs: Updated README and demo examples for multi-range `highlightedHours`.
-- Tests: Added highlighted-hours coverage for object mode, array mode, appointment extras, and runtime updates.
-- Files modified: `dist/bs-calendar.js`, `dist/bs-calendar.min.js`, `README.md`, `demo/index.html`, `composer.json`, `test/tests/global-api.test.js`, `test/tests/global-api.test.min.js`, `test/tests/highlighted-hours.test.js`, `test/tests/highlighted-hours.test.min.js`, `changelog.md`
+- Bugfix: Corrected time display in the hover indicator (time badge) when using non-integer `hourSlots.start` values.
+- Bugfix: Fixed incorrect start time calculation when clicking on a time slot in calendars with fractional start times.
+- Bugfix: Improved mobile touch dragging by locking native scrolling during pending and active drag-create/drag-move gestures.
+- Improvement: Time formatting for the hover badge and click events now correctly handles minutes (e.g., "07:30" instead of "7.5:00").
+- Feature: `hourSlots.rules` now accepts either a single object or an array of rule objects.
+- Improvement: Each `hourSlots.rules` object can define its own `color`, resolved through `$.bsCalendar.utils.getColors`, so multiple ranges can be visually distinguished.
+- Feature: `hourSlots.rules[].mode` now drives availability metadata: `exclusive` allows work only inside the range, `blocked` disallows overlapping work, and `preferred` marks preferred work time without blocking.
+- Feature: `hourSlots.rules[].mode` rules now affect interactions, not only rendering: invalid click-create and invalid drop targets no longer fire `add.bs.calendar` or `edit.bs.calendar`.
+- Improvement: Day/week/4day drag-create and drag-move now clamp to the nearest valid `hourSlots.rules` edge when leaving `exclusive` ranges or entering `blocked` ranges.
+- Improvement: Appointment `extras` and drag `dragExtras` now expose rule availability through `hourSlotRules`.
+- Feature: Added `setHourSlotRules(object|array|null)` method handling for runtime updates of `hourSlots.rules`.
+- Demo: Updated `hourSlots.rules` example colors to very subtle per-mode tints for `exclusive`, `preferred`, and `blocked`.
+- Docs: Updated README and demo examples for multi-range `hourSlots.rules`.
+- Tests: Added `hourSlots.rules` coverage for object mode, array mode, appointment extras, and runtime updates.
+- Files modified: `dist/bs-calendar.js`, `dist/bs-calendar.min.js`, `README.md`, `demo/index.html`, `composer.json`, `test/index.html`, `test/tests/global-api.test.js`, `test/tests/global-api.test.min.js`, `test/tests/hour-slot-rules.test.js`, `test/tests/hour-slot-rules.test.min.js`, `changelog.md`
 
 ### Version 2.3.3
 2026-06-12

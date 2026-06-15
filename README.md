@@ -407,8 +407,12 @@ After a local mutation method has succeeded, the calendar fires completion event
 | `edited.bs.calendar`  | `onEdited(appointment, extras)`  | Appointment after the local update. |
 | `deleted.bs.calendar` | `onDeleted(appointment, extras)` | Appointment that was removed.       |
 
-When drag-create is used, `dragExtras` contains the proposed `start`, `end`, and highlighted-hours availability data. When drag-move is
+When drag-create is used, `dragExtras` contains the proposed `start`, `end`, and hour-slot rule availability data. When drag-move is
 used, `appointment` still contains the original appointment and `dragExtras` contains the proposed new range.
+
+If `hourSlots.rules[].mode` is `blocked` or `exclusive`, interactive creation and drag-moving respect those rules. Day/week/4day
+drag-create and drag-move clamp to the nearest valid rule edge while dragging; invalid click-create and invalid drop targets
+do not fire `add.bs.calendar` or `edit.bs.calendar`.
 
 For backend-backed calendars, save to your backend first and then either call `refresh` so the updated data is loaded from `url`, or call
 `addAppointment`, `editAppointment`, or `deleteAppointment` for an immediate local update and ensure the backend returns the same data on
@@ -446,7 +450,7 @@ later with `updateOptions`.
 | `views`                       | `array` or comma-separated `string`           | `["year", "month", "week", "4day", "day"]`                 | Enabled views. Invalid entries are removed; duplicates are removed; empty result falls back to all possible views. |
 | `holidays`                    | `object` or `null`                            | `null`                                                     | OpenHolidays configuration. See [Holidays](#holidays).                                                             |
 | `showAddButton`               | `boolean`                                     | `true`                                                     | Shows the toolbar add button.                                                                                      |
-| `draggable`                   | `boolean`                                     | `false`                                                    | Enables drag-create in day/week/4day view and drag-move in day/week/4day/month view. Touch uses long-press.        |
+| `draggable`                   | `boolean`                                     | `false`                                                    | Enables drag-create in day/week/4day view and drag-move in day/week/4day/month view. Touch uses long-press and locks native scrolling while dragging. |
 | `draggableSnapMinutes`        | `number`                                      | `5`                                                        | Snap interval in minutes for drag-create/move in day/week/4day view. Minimum is `1`.                               |
 | `translations`                | `object`                                      | `{search, searchNoResult}` merged with locale translations | Custom UI translations. See [Localization and Translations](#localization-and-translations).                       |
 | `icons`                       | `object`                                      | see [Icons](#icons)                                        | Bootstrap icon classes.                                                                                            |
@@ -459,12 +463,12 @@ later with `updateOptions`.
 | `hourSlots.height`            | `number`                                      | `30`                                                       | Height in pixels for one hour. Minimum normalized value is `1`.                                                    |
 | `hourSlots.start`             | `number` or `string`                          | `0`                                                        | First visible hour. Normalized to `0` to `23`. Supports decimals and `HH:mm` strings.                               |
 | `hourSlots.end`               | `number` or `string`                          | `24`                                                       | Last visible hour boundary. Normalized to `1` to `24` and kept greater than `start`. Supports decimals and `HH:mm` strings. |
-| `highlightedHours`            | `object`, `array`, or `null`                  | `null`                                                     | Highlight and availability rules for specific time slots. Accepts one object or an array of objects.               |
-| `highlightedHours.startTime`  | `string`                                      | `'08:00'`                                                  | Start time for each highlighted range (format `HH:mm`).                                                            |
-| `highlightedHours.endTime`    | `string`                                      | `'17:00'`                                                  | End time for each highlighted range (format `HH:mm`).                                                              |
-| `highlightedHours.daysOfWeek` | `array`                                       | `[1,2,3,4,5]`                                              | Days of the week (0-6, Sun-Sat) for each highlighted range.                                                        |
-| `highlightedHours.mode`       | `string`                                      | `'highlight'`                                              | `exclusive` allows work only inside the range, `blocked` disallows overlapping work, `preferred` marks preferred work time, omitted mode only highlights. |
-| `highlightedHours.color`      | `string`                                      | `rgba(0,0,0,0.05)`                                         | Color/styling for each highlighted range, normalized with `getColors`.                                             |
+| `hourSlots.rules`             | `object`, `array`, or `null`                  | `null`                                                     | Highlight and availability rules for specific time slots. Accepts one object or an array of objects.               |
+| `hourSlots.rules.startTime`   | `string`                                      | `'08:00'`                                                  | Start time for each rule range (format `HH:mm`).                                                                   |
+| `hourSlots.rules.endTime`     | `string`                                      | `'17:00'`                                                  | End time for each rule range (format `HH:mm`).                                                                     |
+| `hourSlots.rules.daysOfWeek`  | `array`                                       | `[1,2,3,4,5]`                                              | Days of the week (0-6, Sun-Sat) for each rule range.                                                               |
+| `hourSlots.rules.mode`        | `string`                                      | `'highlight'`                                              | `exclusive` allows creation/move only inside the range, `blocked` prevents overlapping creation/move, `preferred` marks preferred work time, omitted mode only highlights. |
+| `hourSlots.rules.color`       | `string`                                      | `rgba(0,0,0,0.05)`                                         | Color/styling for each rule range, normalized with `getColors`.                                                    |
 | `calendars`                   | `array` or `null`                             | `null`                                                     | Sidebar calendar filters.                                                                                          |
 | `onAll`                       | `function`, function-name `string`, or `null` | `null`                                                     | Receives every event name and payload.                                                                             |
 | `onInit`                      | `function`, function-name `string`, or `null` | `null`                                                     | Same payload as `init.bs.calendar`.                                                                                |
@@ -602,7 +606,7 @@ $('#calendar').bsCalendar('refresh');
 | `setDate`             | date string, `Date`, or `{date, view}`                              | Sets the visible reference date and optionally switches to an enabled view. Ignored in search mode.                                                                       |
 | `setToday`            | optional view string                                                | Sets the reference date to today and optionally switches to an enabled view. Ignored in search mode.                                                                      |
 | `setView`             | view string                                                         | Switches to an enabled view and reloads/renders. Ignored in search mode.                                                                                                  |
-| `setHighlightedHours` | `object`, `array`, or `null`                                         | Updates the highlighted hours configuration and refreshes the grid.                                                                                                       |
+| `setHourSlotRules`     | `object`, `array`, or `null`                                         | Updates `hourSlots.rules` and refreshes the grid.                                                                                                                       |
 | `setLocale`           | locale string                                                       | Normalizes the locale and applies it through `updateOptions`. Ignored in search mode.                                                                                     |
 
 Examples:
@@ -618,27 +622,27 @@ $('#calendar').bsCalendar('deleteAppointment', 123);
 $('#calendar').bsCalendar('setDate', {date: '2026-05-08', view: 'day'});
 $('#calendar').bsCalendar('setToday', 'week');
 $('#calendar').bsCalendar('setView', 'month');
-$('#calendar').bsCalendar('setHighlightedHours', [
+$('#calendar').bsCalendar('setHourSlotRules', [
     {
         daysOfWeek: [1, 2, 3, 4, 5],
         startTime: '09:00',
         endTime: '17:00',
         mode: 'exclusive',
-        color: 'success'
+        color: 'rgba(25, 135, 84, 0.055)'
     },
     {
         daysOfWeek: [6],
         startTime: '10:00',
         endTime: '14:00',
         mode: 'preferred',
-        color: 'grey'
+        color: 'rgba(13, 110, 253, 0.045)'
     },
     {
         daysOfWeek: [0],
         startTime: '00:00',
         endTime: '23:59',
         mode: 'blocked',
-        color: 'danger'
+        color: 'rgba(220, 53, 69, 0.06)'
     }
 ]);
 $('#calendar').bsCalendar('setLocale', 'de-DE');
@@ -721,24 +725,21 @@ Formatter signatures:
 | `duration.totalMinutes`     | Total minutes.                                                            |
 | `duration.totalSeconds`     | Total seconds.                                                            |
 | `duration.formatted`        | Formatter output from `formatter.duration`.                               |
-| `inHighlightedHours`        | Whether the appointment is fully contained in any highlighted-hours range. |
-| `highlightedHours`          | Mode-aware availability object derived from `highlightedHours`.           |
-| `canWorkInHighlightedHours` | Shortcut for `highlightedHours.canWork`.                                  |
-| `highlightedHoursMode`      | Shortcut for `highlightedHours.mode`.                                     |
+| `hourSlotRules`              | Mode-aware availability object derived from `hourSlots.rules`.                  |
 | `displayDates`              | Per-day display data used by month/week/day rendering.                    |
 | `allDay`                    | Whether the appointment is all-day.                                       |
 | `inADay`                    | Whether it stays within one calendar day.                                 |
 | `isToday`                   | Whether the start date is today.                                          |
 | `isNow`                     | Whether the current time is between start and end.                        |
 
-`extras.highlightedHours` and drag `dragExtras.highlightedHours` contain:
+`extras.hourSlotRules` and drag `dragExtras.hourSlotRules` contain:
 
 | Field         | Description                                                                 |
 |---------------|-----------------------------------------------------------------------------|
 | `canWork`     | `false` for blocked ranges and outside exclusive ranges, otherwise `true`.   |
 | `mode`        | Matching mode: `exclusive`, `preferred`, `blocked`, `highlight`, or `null`.  |
 | `reason`      | Availability reason: `available`, `blocked`, `exclusive`, `outsideExclusive`, `preferred`, or `highlighted`. |
-| `range`       | The matching highlighted-hours object, or `null`.                            |
+| `range`       | The matching `hourSlots.rules` object, or `null`.                           |
 | `inRange`     | Whether the appointment is fully contained in the matching range.            |
 | `isBlocked`   | Whether the range blocks work.                                               |
 | `isPreferred` | Whether the range marks preferred work time.                                 |

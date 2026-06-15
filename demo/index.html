@@ -337,32 +337,32 @@
                 hourSlots: {
                     start: '06:30',
                     end: '20:30',
-                    height: 60
+                    height: 60,
+                    rules: [
+                        {
+                            daysOfWeek: [1, 2, 3, 4, 5],
+                            startTime: '09:00',
+                            endTime: '17:00',
+                            mode: 'exclusive',
+                            color: 'rgba(25, 135, 84, 0.055)'
+                        },
+                        {
+                            daysOfWeek: [6],
+                            startTime: '10:00',
+                            endTime: '14:00',
+                            mode: 'preferred',
+                            color: 'rgba(13, 110, 253, 0.045)'
+                        },
+                        {
+                            daysOfWeek: [0],
+                            startTime: '00:00',
+                            endTime: '23:59',
+                            mode: 'blocked',
+                            color: 'rgba(220, 53, 69, 0.06)'
+                        }
+                    ]
                 },
                 calendars: i18n[state.lang].calendars,
-                highlightedHours: [
-                    {
-                        daysOfWeek: [1, 2, 3, 4, 5],
-                        startTime: '09:00',
-                        endTime: '17:00',
-                        mode: 'exclusive',
-                        color: 'rgba(0,255,0,0.1)'
-                    },
-                    {
-                        daysOfWeek: [6],
-                        startTime: '10:00',
-                        endTime: '14:00',
-                        mode: 'preferred',
-                        color: 'rgba(0,0,0,0.1)'
-                    },
-                    {
-                        daysOfWeek: [0],
-                        startTime: '00:00',
-                        endTime: '23:59',
-                        mode: 'blocked',
-                        color: 'rgba(255,0,0,0.6)'
-                    }
-                ],
                 onDuplicate(appointment) {
                     appointment.id = 'copy_of_' + appointment.id;
                     upsertAppointmentInStore(appointment);
