@@ -4933,6 +4933,7 @@
                     if (isTouchLikeEvent(e)) {
                         e.preventDefault();
                     }
+                    let monthTargetBlocked = false;
                     const $previousCell = globalDragState.monthMoveDragState.$targetCell;
                     const $targetCell = getMonthDayCellFromPointer(
                         globalDragState.monthMoveDragState.$wrapper,
@@ -4944,9 +4945,26 @@
                         const targetDateLocal = String($targetCell.attr('data-month-date'));
                         const $dayWrapper = $targetCell.find('[data-role="day-wrapper"]').first();
                         if ($dayWrapper.length) {
-                            globalDragState.monthMoveDragState.$targetCell = $targetCell;
-                            globalDragState.monthMoveDragState.targetDateLocal = targetDateLocal;
-                            globalDragState.monthMoveDragState.$appointment.appendTo($dayWrapper);
+                            const appointment = globalDragState.monthMoveDragState.$appointment.data('appointment');
+                            const start = appointment ? $.bsCalendar.utils.parseDateInput(appointment.start) : null;
+                            const end = appointment ? $.bsCalendar.utils.parseDateInput(appointment.end) : null;
+                            let canUseTargetCell = true;
+
+                            if (start && end && !isNaN(start.getTime()) && !isNaN(end.getTime())) {
+                                const dayDelta = getLocalDateIndex(targetDateLocal) -
+                                    getLocalDateIndex(globalDragState.monthMoveDragState.sourceDateLocal);
+                                const tempStart = addDaysPreservingTime(start, dayDelta);
+                                const tempEnd = addDaysPreservingTime(end, dayDelta);
+                                canUseTargetCell = isHourSlotRuleRangeAllowed(globalDragState.monthMoveDragState.$wrapper, tempStart, tempEnd);
+                            }
+
+                            if (canUseTargetCell) {
+                                globalDragState.monthMoveDragState.$targetCell = $targetCell;
+                                globalDragState.monthMoveDragState.targetDateLocal = targetDateLocal;
+                                globalDragState.monthMoveDragState.$appointment.appendTo($dayWrapper);
+                            } else {
+                                monthTargetBlocked = true;
+                            }
                         }
                     }
 
@@ -4955,7 +4973,11 @@
                     }
                     globalDragState.monthMoveDragState.$appointment.css({opacity: 0.8});
                     const monthAppointment = globalDragState.monthMoveDragState.$appointment.data('appointment');
-                    if (monthAppointment) {
+                    if (monthTargetBlocked) {
+                        globalDragState.monthMoveDragState.canWork = false;
+                        globalDragState.monthMoveDragState.$appointment.css('cursor', 'not-allowed');
+                        setInteractionCursor(false);
+                    } else if (monthAppointment) {
                         const start = $.bsCalendar.utils.parseDateInput(monthAppointment.start);
                         const end = $.bsCalendar.utils.parseDateInput(monthAppointment.end);
                         if (start && end && !isNaN(start.getTime()) && !isNaN(end.getTime())) {
@@ -5035,6 +5057,9 @@
                     if (isTouchLikeEvent(e)) {
                         e.preventDefault();
                     }
+                    const settings = getSettings(globalDragState.moveDragState.$wrapper);
+                    const durationMinutes = Math.max(getSnapMinutes(globalDragState.moveDragState.$wrapper), Math.round(globalDragState.moveDragState.durationMs / 60000));
+                    let blockedMoveTarget = false;
                     const $previousSlotContainer = globalDragState.moveDragState.$slotContainer;
                     const $targetSlotContainer = getMoveSlotContainerFromPointer(
                         globalDragState.moveDragState.$wrapper,
@@ -5043,21 +5068,36 @@
                     );
 
                     if ($targetSlotContainer.length && !$targetSlotContainer.is($previousSlotContainer)) {
-                        globalDragState.moveDragState.$slotContainer = $targetSlotContainer;
-                        globalDragState.moveDragState.dateLocal = String($targetSlotContainer.attr('data-date-local'));
-                        globalDragState.moveDragState.$appointment.appendTo($targetSlotContainer);
-                        relayoutDayContainerForDrag(
+                        const targetDateLocal = String($targetSlotContainer.attr('data-date-local'));
+                        const targetPointerMinutes = getMinutesFromPointer(globalDragState.moveDragState.$wrapper, $targetSlotContainer, pageY);
+                        const targetMaxStart = Math.max(0, ((settings.hourSlots.end - settings.hourSlots.start) * 60) - durationMinutes);
+                        const targetNewStartMinutes = Math.max(0, Math.min(targetMaxStart, targetPointerMinutes - globalDragState.moveDragState.offsetMinutes));
+                        const targetSnap = getSnapMinutes(globalDragState.moveDragState.$wrapper);
+                        const targetSnappedStart = Math.round(targetNewStartMinutes / targetSnap) * targetSnap;
+                        const targetClampedMove = clampMoveMinutesToHourSlotRules(
                             globalDragState.moveDragState.$wrapper,
-                            $previousSlotContainer,
-                            null,
-                            null,
-                            null
+                            targetDateLocal,
+                            targetSnappedStart,
+                            durationMinutes
                         );
+
+                        if (targetClampedMove.canWork) {
+                            globalDragState.moveDragState.$slotContainer = $targetSlotContainer;
+                            globalDragState.moveDragState.dateLocal = targetDateLocal;
+                            globalDragState.moveDragState.$appointment.appendTo($targetSlotContainer);
+                            relayoutDayContainerForDrag(
+                                globalDragState.moveDragState.$wrapper,
+                                $previousSlotContainer,
+                                null,
+                                null,
+                                null
+                            );
+                        } else {
+                            blockedMoveTarget = true;
+                        }
                     }
 
-                    const settings = getSettings(globalDragState.moveDragState.$wrapper);
                     const pointerMinutes = getMinutesFromPointer(globalDragState.moveDragState.$wrapper, globalDragState.moveDragState.$slotContainer, pageY);
-                    const durationMinutes = Math.max(getSnapMinutes(globalDragState.moveDragState.$wrapper), Math.round(globalDragState.moveDragState.durationMs / 60000));
                     const maxStart = Math.max(0, ((settings.hourSlots.end - settings.hourSlots.start) * 60) - durationMinutes);
                     const newStartMinutes = Math.max(0, Math.min(maxStart, pointerMinutes - globalDragState.moveDragState.offsetMinutes));
                     const snap = getSnapMinutes(globalDragState.moveDragState.$wrapper);
@@ -5075,7 +5115,7 @@
                         snappedStart
                     );
                     const tempEnd = new Date(tempStart.getTime() + globalDragState.moveDragState.durationMs);
-                    const canWork = isHourSlotRuleRangeAllowed(globalDragState.moveDragState.$wrapper, tempStart, tempEnd);
+                    const canWork = !blockedMoveTarget && isHourSlotRuleRangeAllowed(globalDragState.moveDragState.$wrapper, tempStart, tempEnd);
                     relayoutDayContainerForDrag(
                         globalDragState.moveDragState.$wrapper,
                         globalDragState.moveDragState.$slotContainer,

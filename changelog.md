@@ -57,6 +57,7 @@
 - Bugfix: Corrected time display in the hover indicator (time badge) when using non-integer `hourSlots.start` values.
 - Bugfix: Fixed incorrect start time calculation when clicking on a time slot in calendars with fractional start times.
 - Bugfix: Improved mobile touch dragging by locking native scrolling during pending and active drag-create/drag-move gestures.
+- Bugfix: Drag-moving now refuses invalid target day columns/cells instead of visually moving appointments into disallowed days or rule zones.
 - Improvement: Time formatting for the hover badge and click events now correctly handles minutes (e.g., "07:30" instead of "7.5:00").
 - Feature: `hourSlots.rules` now accepts either a single object or an array of rule objects.
 - Improvement: Each `hourSlots.rules` object can define its own `color`, resolved through `$.bsCalendar.utils.getColors`, so multiple ranges can be visually distinguished.
