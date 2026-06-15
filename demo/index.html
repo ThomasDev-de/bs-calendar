@@ -8,6 +8,13 @@
     <link href="../vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
 </head>
 <body class="p-1 p-lg-5">
+
+<div class="d-flex h-100 align-items-center justify-content-center z-6 position-fixed top-0 start-0 w-100" id="temp_loading">
+    <div class="spinner-border" role="status" style="width: 15rem; height: 15rem;">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+</div>
+
 <div id="calendar" data-sidebar-addons="#sidebarAddons"></div>
 
 <div class="visually-hidden">
@@ -340,7 +347,9 @@
                     $calendar.bsCalendar('addAppointment', appointment);
                 },
                 onAll(eventName, ...args) {
-
+                    if(eventName.startsWith('init.')) {
+                        $('#temp_loading').remove();
+                    }
                     if ($('#switchTriggeredEvents').is(':checked')) {
                         $.bsToast({
                             title: 'Event ' + eventCounter,
