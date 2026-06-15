@@ -27,6 +27,11 @@
             </select>
 
             <div class="mb-3">
+
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="switchToggleDraggable">
+                    <label class="form-check-label" for="switchToggleDraggable">draggable</label>
+                </div>
                 <div class="form-check form-switch">
                     <input class="form-check-input" type="checkbox" role="switch" id="switchTriggeredEvents">
                     <label class="form-check-label" for="switchTriggeredEvents">Show triggered events.</label>
@@ -335,19 +340,36 @@
                     height: 60
                 },
                 calendars: i18n[state.lang].calendars,
-                highlightedHours: {
-                    startTime: '08:00',
-                    endTime: '17:00',
-                    daysOfWeek: [1, 2, 3], // Monday to Friday
-                    color: 'rgba(0, 0, 0, 0.2)'
-                },
+                highlightedHours: [
+                    {
+                        daysOfWeek: [1, 2, 3, 4, 5],
+                        startTime: '09:00',
+                        endTime: '17:00',
+                        mode: 'exclusive',
+                        color: 'rgba(0,255,0,0.1)'
+                    },
+                    {
+                        daysOfWeek: [6],
+                        startTime: '10:00',
+                        endTime: '14:00',
+                        mode: 'preferred',
+                        color: 'rgba(0,0,0,0.1)'
+                    },
+                    {
+                        daysOfWeek: [0],
+                        startTime: '00:00',
+                        endTime: '23:59',
+                        mode: 'blocked',
+                        color: 'rgba(255,0,0,0.6)'
+                    }
+                ],
                 onDuplicate(appointment) {
                     appointment.id = 'copy_of_' + appointment.id;
                     upsertAppointmentInStore(appointment);
                     $calendar.bsCalendar('addAppointment', appointment);
                 },
                 onAll(eventName, ...args) {
-                    if(eventName.startsWith('init.')) {
+                    if (eventName.startsWith('init.')) {
                         $('#temp_loading').remove();
                     }
                     if ($('#switchTriggeredEvents').is(':checked')) {
@@ -368,10 +390,13 @@
         }
 
         function bindCalendarEvents() {
-            $(document).on('change', '#switchTriggeredEvents', function () {
-                $calendar.bsCalendar('refresh');
-            });
             $calendar
+                .on('change', '#switchTriggeredEvents', function () {
+                    $calendar.bsCalendar('refresh');
+                })
+                .on('change', '#switchToggleDraggable', function () {
+                    $calendar.bsCalendar('updateOptions', {draggable: !$(this).is(':checked')});
+                })
                 .on('add.bs.calendar', function (event, data, dragExtras) {
                     const start = dragExtras?.start || data.start;
                     const end = dragExtras?.end || data.end;

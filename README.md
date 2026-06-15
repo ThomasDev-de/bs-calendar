@@ -1,6 +1,6 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.3.3-blue)
+![Version](https://img.shields.io/badge/version-2.3.4-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -66,7 +66,7 @@ Use CDN/script tags:
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.3.3/dist/bs-calendar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.3.4/dist/bs-calendar.min.js"></script>
 ```
 
 Or install via Composer:
@@ -407,8 +407,8 @@ After a local mutation method has succeeded, the calendar fires completion event
 | `edited.bs.calendar`  | `onEdited(appointment, extras)`  | Appointment after the local update. |
 | `deleted.bs.calendar` | `onDeleted(appointment, extras)` | Appointment that was removed.       |
 
-When drag-create is used, `dragExtras` contains the proposed `start` and `end`. When drag-move is used, `appointment` still contains the
-original appointment and `dragExtras` contains the proposed new range.
+When drag-create is used, `dragExtras` contains the proposed `start`, `end`, and highlighted-hours availability data. When drag-move is
+used, `appointment` still contains the original appointment and `dragExtras` contains the proposed new range.
 
 For backend-backed calendars, save to your backend first and then either call `refresh` so the updated data is loaded from `url`, or call
 `addAppointment`, `editAppointment`, or `deleteAppointment` for an immediate local update and ensure the backend returns the same data on
@@ -459,11 +459,12 @@ later with `updateOptions`.
 | `hourSlots.height`            | `number`                                      | `30`                                                       | Height in pixels for one hour. Minimum normalized value is `1`.                                                    |
 | `hourSlots.start`             | `number` or `string`                          | `0`                                                        | First visible hour. Normalized to `0` to `23`. Supports decimals and `HH:mm` strings.                               |
 | `hourSlots.end`               | `number` or `string`                          | `24`                                                       | Last visible hour boundary. Normalized to `1` to `24` and kept greater than `start`. Supports decimals and `HH:mm` strings. |
-| `highlightedHours`            | `object` or `null`                            | `null`                                                     | Visual highlighting for specific time slots.                                                                       |
-| `highlightedHours.startTime`  | `string`                                      | `'08:00'`                                                  | Start time for the highlighted range (format `HH:mm`).                                                             |
-| `highlightedHours.endTime`    | `string`                                      | `'17:00'`                                                  | End time for the highlighted range (format `HH:mm`).                                                               |
-| `highlightedHours.daysOfWeek` | `array`                                       | `[1,2,3,4,5]`                                              | Days of the week (0-6, Sun-Sat) that are highlighted days.                                                         |
-| `highlightedHours.color`      | `string`                                      | `rgba(0,0,0,0.05)`                                         | Color/styling for the highlighted slots, normalized with `getColors`.                                              |
+| `highlightedHours`            | `object`, `array`, or `null`                  | `null`                                                     | Highlight and availability rules for specific time slots. Accepts one object or an array of objects.               |
+| `highlightedHours.startTime`  | `string`                                      | `'08:00'`                                                  | Start time for each highlighted range (format `HH:mm`).                                                            |
+| `highlightedHours.endTime`    | `string`                                      | `'17:00'`                                                  | End time for each highlighted range (format `HH:mm`).                                                              |
+| `highlightedHours.daysOfWeek` | `array`                                       | `[1,2,3,4,5]`                                              | Days of the week (0-6, Sun-Sat) for each highlighted range.                                                        |
+| `highlightedHours.mode`       | `string`                                      | `'highlight'`                                              | `exclusive` allows work only inside the range, `blocked` disallows overlapping work, `preferred` marks preferred work time, omitted mode only highlights. |
+| `highlightedHours.color`      | `string`                                      | `rgba(0,0,0,0.05)`                                         | Color/styling for each highlighted range, normalized with `getColors`.                                             |
 | `calendars`                   | `array` or `null`                             | `null`                                                     | Sidebar calendar filters.                                                                                          |
 | `onAll`                       | `function`, function-name `string`, or `null` | `null`                                                     | Receives every event name and payload.                                                                             |
 | `onInit`                      | `function`, function-name `string`, or `null` | `null`                                                     | Same payload as `init.bs.calendar`.                                                                                |
@@ -601,7 +602,7 @@ $('#calendar').bsCalendar('refresh');
 | `setDate`             | date string, `Date`, or `{date, view}`                              | Sets the visible reference date and optionally switches to an enabled view. Ignored in search mode.                                                                       |
 | `setToday`            | optional view string                                                | Sets the reference date to today and optionally switches to an enabled view. Ignored in search mode.                                                                      |
 | `setView`             | view string                                                         | Switches to an enabled view and reloads/renders. Ignored in search mode.                                                                                                  |
-| `setHighlightedHours` | `object`                                                            | Updates the highlighted hours configuration and refreshes the grid.                                                                                                       |
+| `setHighlightedHours` | `object`, `array`, or `null`                                         | Updates the highlighted hours configuration and refreshes the grid.                                                                                                       |
 | `setLocale`           | locale string                                                       | Normalizes the locale and applies it through `updateOptions`. Ignored in search mode.                                                                                     |
 
 Examples:
@@ -617,15 +618,29 @@ $('#calendar').bsCalendar('deleteAppointment', 123);
 $('#calendar').bsCalendar('setDate', {date: '2026-05-08', view: 'day'});
 $('#calendar').bsCalendar('setToday', 'week');
 $('#calendar').bsCalendar('setView', 'month');
-$(#calendar).bsCalendar(setHighlightedHours, {startTime: 08: 00, endTime: 12
-:
-00, daysOfWeek
-:
-[1, 5], color
-:
-red
-})
-;
+$('#calendar').bsCalendar('setHighlightedHours', [
+    {
+        daysOfWeek: [1, 2, 3, 4, 5],
+        startTime: '09:00',
+        endTime: '17:00',
+        mode: 'exclusive',
+        color: 'success'
+    },
+    {
+        daysOfWeek: [6],
+        startTime: '10:00',
+        endTime: '14:00',
+        mode: 'preferred',
+        color: 'grey'
+    },
+    {
+        daysOfWeek: [0],
+        startTime: '00:00',
+        endTime: '23:59',
+        mode: 'blocked',
+        color: 'danger'
+    }
+]);
 $('#calendar').bsCalendar('setLocale', 'de-DE');
 $('#calendar').bsCalendar('destroy');
 ```
@@ -685,32 +700,49 @@ Formatter signatures:
 
 `extras` is generated for each appointment after loading/normalization.
 
-| Field                    | Description                                                               |
-|--------------------------|---------------------------------------------------------------------------|
-| `locale`                 | Locale used for formatting.                                               |
-| `icon`                   | Appointment or task icon class used for rendering.                        |
-| `colors.origin`          | Original color value.                                                     |
-| `colors.backgroundColor` | Computed background color.                                                |
-| `colors.backgroundImage` | Computed background image/gradient.                                       |
-| `colors.color`           | Computed text color.                                                      |
-| `colors.classList`       | Computed Bootstrap classes, if applicable.                                |
-| `colors.hex`             | Computed hexadecimal color (`#rrggbb`) when resolvable, otherwise `null`. |
-| `start.date`             | Start date in `YYYY-MM-DD`.                                               |
-| `start.time`             | Start time in `HH:MM:SS`.                                                 |
-| `end.date`               | End date in `YYYY-MM-DD`.                                                 |
-| `end.time`               | End time in `HH:MM:SS`.                                                   |
-| `duration.days`          | Full days.                                                                |
-| `duration.hours`         | Remaining hours.                                                          |
-| `duration.minutes`       | Remaining minutes.                                                        |
-| `duration.seconds`       | Remaining seconds.                                                        |
-| `duration.totalMinutes`  | Total minutes.                                                            |
-| `duration.totalSeconds`  | Total seconds.                                                            |
-| `duration.formatted`     | Formatter output from `formatter.duration`.                               |
-| `displayDates`           | Per-day display data used by month/week/day rendering.                    |
-| `allDay`                 | Whether the appointment is all-day.                                       |
-| `inADay`                 | Whether it stays within one calendar day.                                 |
-| `isToday`                | Whether the start date is today.                                          |
-| `isNow`                  | Whether the current time is between start and end.                        |
+| Field                       | Description                                                               |
+|-----------------------------|---------------------------------------------------------------------------|
+| `locale`                    | Locale used for formatting.                                               |
+| `icon`                      | Appointment or task icon class used for rendering.                        |
+| `colors.origin`             | Original color value.                                                     |
+| `colors.backgroundColor`    | Computed background color.                                                |
+| `colors.backgroundImage`    | Computed background image/gradient.                                       |
+| `colors.color`              | Computed text color.                                                      |
+| `colors.classList`          | Computed Bootstrap classes, if applicable.                                |
+| `colors.hex`                | Computed hexadecimal color (`#rrggbb`) when resolvable, otherwise `null`. |
+| `start.date`                | Start date in `YYYY-MM-DD`.                                               |
+| `start.time`                | Start time in `HH:MM:SS`.                                                 |
+| `end.date`                  | End date in `YYYY-MM-DD`.                                                 |
+| `end.time`                  | End time in `HH:MM:SS`.                                                   |
+| `duration.days`             | Full days.                                                                |
+| `duration.hours`            | Remaining hours.                                                          |
+| `duration.minutes`          | Remaining minutes.                                                        |
+| `duration.seconds`          | Remaining seconds.                                                        |
+| `duration.totalMinutes`     | Total minutes.                                                            |
+| `duration.totalSeconds`     | Total seconds.                                                            |
+| `duration.formatted`        | Formatter output from `formatter.duration`.                               |
+| `inHighlightedHours`        | Whether the appointment is fully contained in any highlighted-hours range. |
+| `highlightedHours`          | Mode-aware availability object derived from `highlightedHours`.           |
+| `canWorkInHighlightedHours` | Shortcut for `highlightedHours.canWork`.                                  |
+| `highlightedHoursMode`      | Shortcut for `highlightedHours.mode`.                                     |
+| `displayDates`              | Per-day display data used by month/week/day rendering.                    |
+| `allDay`                    | Whether the appointment is all-day.                                       |
+| `inADay`                    | Whether it stays within one calendar day.                                 |
+| `isToday`                   | Whether the start date is today.                                          |
+| `isNow`                     | Whether the current time is between start and end.                        |
+
+`extras.highlightedHours` and drag `dragExtras.highlightedHours` contain:
+
+| Field         | Description                                                                 |
+|---------------|-----------------------------------------------------------------------------|
+| `canWork`     | `false` for blocked ranges and outside exclusive ranges, otherwise `true`.   |
+| `mode`        | Matching mode: `exclusive`, `preferred`, `blocked`, `highlight`, or `null`.  |
+| `reason`      | Availability reason: `available`, `blocked`, `exclusive`, `outsideExclusive`, `preferred`, or `highlighted`. |
+| `range`       | The matching highlighted-hours object, or `null`.                            |
+| `inRange`     | Whether the appointment is fully contained in the matching range.            |
+| `isBlocked`   | Whether the range blocks work.                                               |
+| `isPreferred` | Whether the range marks preferred work time.                                 |
+| `isExclusive` | Whether exclusive mode affects this appointment.                             |
 
 `displayDates[]` entries contain:
 
@@ -945,6 +977,7 @@ $.bsCalendar.getTranslation('de', 'today');
 Appointment and date helpers:
 
 ```javascript
+const hourNumber = $.bsCalendar.utils.parseTimeToDecimal('08:30'); // output -> 8.5
 const appointments = $.bsCalendar.utils.convertIcsToAppointments(icsString);
 const date = $.bsCalendar.utils.parseDateInput('2026-05-08 10:00:00');
 const normalized = $.bsCalendar.utils.normalizeDateTime('2026-05-08 10:00');
@@ -1016,7 +1049,7 @@ Changelog and support:
 
 ## Completeness Check
 
-This README is intended to cover the public surface of version `2.3.3`:
+This README is intended to cover the public surface of version `2.3.4`:
 
 - All `DEFAULTS` options from `dist/bs-calendar.js`
 - All public plugin methods in the method switch
