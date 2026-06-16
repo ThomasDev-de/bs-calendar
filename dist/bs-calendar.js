@@ -68,7 +68,7 @@
         low: 'success',
     };
 
-    // const localeKeys = ['today', 'day', 'week', 'month', 'year', 'search', 'searchNoResult'];
+    // const localeKeys = ['today', 'day', 'week', 'month', 'year', 'agenda', 'search', 'searchNoResult'];
     const translations = {
         'ar': { // Arabic
             today: 'اليوم',
@@ -77,6 +77,7 @@
             week: 'أسبوع',
             month: 'شهر',
             year: 'سنة',
+            agenda: 'جدول الأعمال',
             search: 'اكتب واضغط Enter',
             searchNoResult: 'لم يتم العثور على موعد',
             tasks: 'المهام',
@@ -95,6 +96,7 @@
             week: 'שבוע',
             month: 'חודש',
             year: 'שנה',
+            agenda: 'סדר יום',
             search: 'הקלד ולחץ על Enter',
             searchNoResult: 'לא נמצא תור',
             tasks: 'משימות',
@@ -113,6 +115,7 @@
             week: '周',
             month: '月',
             year: '年',
+            agenda: '日程',
             search: '输入并按 Enter',
             searchNoResult: '未找到预约',
             tasks: '任务',
@@ -131,6 +134,7 @@
             week: 'Week',
             month: 'Month',
             year: 'Year',
+            agenda: 'Agenda',
             search: 'Type and press Enter',
             searchNoResult: 'No appointment found',
             tasks: 'Tasks',
@@ -149,6 +153,7 @@
             week: 'Woche',
             month: 'Monat',
             year: 'Jahr',
+            agenda: 'Terminliste',
             search: 'Tippen und Enter drücken',
             searchNoResult: 'Kein Termin gefunden',
             tasks: 'Aufgaben',
@@ -167,6 +172,7 @@
             week: 'Semana',
             month: 'Mes',
             year: 'Año',
+            agenda: 'Agenda',
             search: 'Escribe y pulsa Enter',
             searchNoResult: 'No se encontró ninguna cita',
             tasks: 'Tareas',
@@ -185,6 +191,7 @@
             week: 'Semaine',
             month: 'Mois',
             year: 'Année',
+            agenda: 'Agenda',
             search: 'Tapez et appuyez sur Entrée',
             searchNoResult: 'Aucun rendez-vous trouvé',
             tasks: 'Tâches',
@@ -203,6 +210,7 @@
             week: 'Settimana',
             month: 'Mese',
             year: 'Anno',
+            agenda: 'Agenda',
             search: 'Digita e premi Invio',
             searchNoResult: 'Nessun appuntamento trovato',
             tasks: 'Attività',
@@ -221,6 +229,7 @@
             week: 'Semana',
             month: 'Mês',
             year: 'Ano',
+            agenda: 'Agenda',
             search: 'Digite e pressione Enter',
             searchNoResult: 'Nenhum compromisso encontrado',
             tasks: 'Tarefas',
@@ -239,6 +248,7 @@
             week: 'Week',
             month: 'Maand',
             year: 'Jaar',
+            agenda: 'Agenda',
             search: 'Typ en druk op Enter',
             searchNoResult: 'Geen afspraak gevonden',
             tasks: 'Taken',
@@ -257,6 +267,7 @@
             week: 'Tydzień',
             month: 'Miesiąc',
             year: 'Rok',
+            agenda: 'Agenda',
             search: 'Wpisz i naciśnij Enter',
             searchNoResult: 'Nie znaleziono terminu',
             tasks: 'Zadania',
@@ -275,6 +286,7 @@
             week: 'Неделя',
             month: 'Месяц',
             year: 'Год',
+            agenda: 'Повестка',
             search: 'Введите и нажмите Enter',
             searchNoResult: 'Встреча не найдена',
             tasks: 'Задачи',
@@ -293,6 +305,7 @@
             week: 'Тиждень',
             month: 'Місяць',
             year: 'Рік',
+            agenda: 'Порядок денний',
             search: 'Введіть і натисніть Enter',
             searchNoResult: 'Запис не знайдено',
             tasks: 'Завдання',
@@ -311,6 +324,7 @@
             week: 'Hafta',
             month: 'Ay',
             year: 'Yıl',
+            agenda: 'Ajanda',
             search: 'Yazın ve Enter’a basın',
             searchNoResult: 'Randevu bulunamadı',
             tasks: 'Görevler',
@@ -329,6 +343,7 @@
             week: '週',
             month: '月',
             year: '年',
+            agenda: '予定リスト',
             search: '入力して Enter を押してください',
             searchNoResult: '予約が見つかりません',
             tasks: 'タスク',
@@ -347,6 +362,7 @@
             week: '주',
             month: '월',
             year: '년',
+            agenda: '일정',
             search: '입력 후 Enter를 누르세요',
             searchNoResult: '예약을 찾을 수 없습니다',
             tasks: '작업',
@@ -365,6 +381,7 @@
             week: 'सप्ताह',
             month: 'महीना',
             year: 'वर्ष',
+            agenda: 'एजेंडा',
             search: 'टाइप करें और Enter दबाएँ',
             searchNoResult: 'कोई अपॉइंटमेंट नहीं मिला',
             tasks: 'कार्य',
@@ -383,6 +400,7 @@
             week: 'Minggu',
             month: 'Bulan',
             year: 'Tahun',
+            agenda: 'Agenda',
             search: 'Ketik lalu tekan Enter',
             searchNoResult: 'Janji temu tidak ditemukan',
             tasks: 'Tugas',
@@ -401,6 +419,7 @@
             week: 'Tuần',
             month: 'Tháng',
             year: 'Năm',
+            agenda: 'Lịch trình',
             search: 'Nhập và nhấn Enter',
             searchNoResult: 'Không tìm thấy lịch hẹn',
             tasks: 'Nhiệm vụ',
@@ -419,6 +438,7 @@
             week: 'สัปดาห์',
             month: 'เดือน',
             year: 'ปี',
+            agenda: 'กำหนดการ',
             search: 'พิมพ์แล้วกด Enter',
             searchNoResult: 'ไม่พบการนัดหมาย',
             tasks: 'งาน',
@@ -437,6 +457,7 @@
             week: 'Týden',
             month: 'Měsíc',
             year: 'Rok',
+            agenda: 'Agenda',
             search: 'Napište a stiskněte Enter',
             searchNoResult: 'Nebyla nalezena žádná schůzka',
             tasks: 'Úkoly',
@@ -455,6 +476,7 @@
             week: 'Vecka',
             month: 'Månad',
             year: 'År',
+            agenda: 'Agenda',
             search: 'Skriv och tryck på Enter',
             searchNoResult: 'Ingen tid hittades',
             tasks: 'Uppgifter',
@@ -473,6 +495,7 @@
             week: 'Uge',
             month: 'Måned',
             year: 'År',
+            agenda: 'Agenda',
             search: 'Skriv og tryk på Enter',
             searchNoResult: 'Ingen aftale fundet',
             tasks: 'Opgaver',
@@ -491,6 +514,7 @@
             week: 'Uke',
             month: 'Måned',
             year: 'År',
+            agenda: 'Agenda',
             search: 'Skriv og trykk på Enter',
             searchNoResult: 'Ingen avtale funnet',
             tasks: 'Oppgaver',
@@ -509,6 +533,7 @@
             week: 'Viikko',
             month: 'Kuukausi',
             year: 'Vuosi',
+            agenda: 'Agenda',
             search: 'Kirjoita ja paina Enter',
             searchNoResult: 'Aikaa ei löytynyt',
             tasks: 'Tehtävät',
@@ -527,6 +552,7 @@
             week: 'Săptămână',
             month: 'Lună',
             year: 'An',
+            agenda: 'Agendă',
             search: 'Tastează și apasă Enter',
             searchNoResult: 'Nu a fost găsită nicio programare',
             tasks: 'Sarcini',
@@ -545,6 +571,7 @@
             week: 'Εβδομάδα',
             month: 'Μήνας',
             year: 'Έτος',
+            agenda: 'Ατζέντα',
             search: 'Πληκτρολογήστε και πατήστε Enter',
             searchNoResult: 'Δεν βρέθηκε ραντεβού',
             tasks: 'Εργασίες',
@@ -577,7 +604,7 @@
         getDefaults() {
             return this.DEFAULTS;
         },
-        possibleViews: ['4day', 'day', 'week', 'month', 'year'],
+        possibleViews: ['agenda', '4day', 'day', 'week', 'month', 'year'],
         addTranslation(locale, translation) {
             const loc = locale.split('-')[0].toLowerCase();
 
@@ -612,9 +639,9 @@
                 offset: 0
             },
             startDate: new Date(),
-            startView: 'month', // day, week, month, year, 4day
+            startView: 'month', // agenda, day, week, month, year, 4day
             mainColor: 'primary',
-            views: ['year', 'month', 'week', '4day', 'day'],
+            views: ['year', 'month', 'agenda', 'week', '4day', 'day'],
             holidays: null,
             showAddButton: true,
             draggable: false,
@@ -626,6 +653,7 @@
                 week: 'bi bi-kanban',
                 month: 'bi bi-calendar-month',
                 year: 'bi bi-calendar4',
+                agenda: 'bi bi-list-ul',
                 about: 'bi bi-info-circle',
                 add: 'bi bi-plus-lg',
                 menu: 'bi bi-layout-sidebar-inset',
@@ -659,6 +687,12 @@
                 start: 0, // starting hour as integer
                 end: 24, // ending hour as integer
                 rules: null
+            },
+            appointmentRules: {
+                durationMinutes: null,
+                durationStepMinutes: null,
+                minDurationMinutes: null,
+                maxDurationMinutes: null
             },
             calendars: null,
             onAll: null,
@@ -2952,6 +2986,33 @@
                 settings.draggableSnapMinutes = Math.max(1, Math.floor(parsedSnap));
             }
         }
+
+        if (!settings.appointmentRules || typeof settings.appointmentRules !== 'object') {
+            settings.appointmentRules = $.extend(true, {}, $.bsCalendar.getDefaults().appointmentRules);
+        } else {
+            const defaults = $.bsCalendar.getDefaults().appointmentRules;
+            settings.appointmentRules = $.extend(true, {}, defaults, settings.appointmentRules);
+        }
+
+        ['durationMinutes', 'durationStepMinutes', 'minDurationMinutes', 'maxDurationMinutes'].forEach(key => {
+            const value = settings.appointmentRules[key];
+            if (value === null || value === undefined || value === '') {
+                settings.appointmentRules[key] = null;
+                return;
+            }
+            const parsed = Number(value);
+            settings.appointmentRules[key] = Number.isFinite(parsed) && parsed > 0
+                ? Math.floor(parsed)
+                : null;
+        });
+
+        if (
+            settings.appointmentRules.minDurationMinutes !== null &&
+            settings.appointmentRules.maxDurationMinutes !== null &&
+            settings.appointmentRules.maxDurationMinutes < settings.appointmentRules.minDurationMinutes
+        ) {
+            settings.appointmentRules.maxDurationMinutes = settings.appointmentRules.minDurationMinutes;
+        }
     }
 
     /**
@@ -4406,6 +4467,11 @@
                 el.removeAttr('data-iso-week');
                 el.attr('title', '');
                 break;
+            case 'agenda':
+                el.text((settings.translations.agenda || 'Agenda') + ' · ' + monthName + ' ' + yearName);
+                el.removeAttr('data-iso-week');
+                el.attr('title', '');
+                break;
             case 'year':
                 el.text(yearName);
                 el.removeAttr('data-iso-week');
@@ -4427,6 +4493,7 @@
         const date = data.date;
         const newDate = new Date(date);
         switch (view) {
+            case 'agenda':
             case 'month':
                 newDate.setMonth(newDate.getMonth() - 1); // Subtract a month
 
@@ -4470,6 +4537,7 @@
         const date = data.date;
         const newDate = new Date(date);
         switch (view) {
+            case 'agenda':
             case 'month':
                 newDate.setMonth(newDate.getMonth() + 1); // add a month
 
@@ -5175,7 +5243,8 @@
                                     getLocalDateIndex(globalDragState.monthMoveDragState.sourceDateLocal);
                                 const tempStart = addDaysPreservingTime(start, dayDelta);
                                 const tempEnd = addDaysPreservingTime(end, dayDelta);
-                                canUseTargetCell = isHourSlotRuleRangeAllowed(globalDragState.monthMoveDragState.$wrapper, tempStart, tempEnd);
+                                canUseTargetCell = isHourSlotRuleRangeAllowed(globalDragState.monthMoveDragState.$wrapper, tempStart, tempEnd) &&
+                                    isAppointmentDurationAllowed(globalDragState.monthMoveDragState.$wrapper, tempStart, tempEnd);
                             }
 
                             if (canUseTargetCell) {
@@ -5205,7 +5274,8 @@
                                 getLocalDateIndex(globalDragState.monthMoveDragState.sourceDateLocal);
                             const tempStart = addDaysPreservingTime(start, dayDelta);
                             const tempEnd = addDaysPreservingTime(end, dayDelta);
-                            const canWork = isHourSlotRuleRangeAllowed(globalDragState.monthMoveDragState.$wrapper, tempStart, tempEnd);
+                            const canWork = isHourSlotRuleRangeAllowed(globalDragState.monthMoveDragState.$wrapper, tempStart, tempEnd) &&
+                                isAppointmentDurationAllowed(globalDragState.monthMoveDragState.$wrapper, tempStart, tempEnd);
                             globalDragState.monthMoveDragState.canWork = canWork;
                             globalDragState.monthMoveDragState.$appointment.css('cursor', canWork ? 'grabbing' : 'not-allowed');
                             setInteractionCursor(canWork);
@@ -5240,7 +5310,8 @@
                     const heightPx = Math.max(10, ((endMinutes - startMinutes) / 60) * settings.hourSlots.height);
                     const previewStart = buildDateTimeByMinutes(globalDragState.createDragState.$wrapper, globalDragState.createDragState.dateLocal, startMinutes);
                     const previewEnd = buildDateTimeByMinutes(globalDragState.createDragState.$wrapper, globalDragState.createDragState.dateLocal, endMinutes);
-                    const canWork = isHourSlotRuleRangeAllowed(globalDragState.createDragState.$wrapper, previewStart, previewEnd);
+                    const canWork = isHourSlotRuleRangeAllowed(globalDragState.createDragState.$wrapper, previewStart, previewEnd) &&
+                        isAppointmentDurationAllowed(globalDragState.createDragState.$wrapper, previewStart, previewEnd);
 
                     globalDragState.createDragState.$preview.css({
                         top: `${topPx}px`,
@@ -5335,7 +5406,9 @@
                         snappedStart
                     );
                     const tempEnd = new Date(tempStart.getTime() + globalDragState.moveDragState.durationMs);
-                    const canWork = !blockedMoveTarget && isHourSlotRuleRangeAllowed(globalDragState.moveDragState.$wrapper, tempStart, tempEnd);
+                    const canWork = !blockedMoveTarget &&
+                        isHourSlotRuleRangeAllowed(globalDragState.moveDragState.$wrapper, tempStart, tempEnd) &&
+                        isAppointmentDurationAllowed(globalDragState.moveDragState.$wrapper, tempStart, tempEnd);
                     relayoutDayContainerForDrag(
                         globalDragState.moveDragState.$wrapper,
                         globalDragState.moveDragState.$slotContainer,
@@ -5396,7 +5469,9 @@
                         globalDragState.resizeDragState.dateLocal,
                         endMinutes
                     );
-                    const canWork = clampedResize.canWork && isHourSlotRuleRangeAllowed(globalDragState.resizeDragState.$wrapper, tempStart, tempEnd);
+                    const canWork = clampedResize.canWork &&
+                        isHourSlotRuleRangeAllowed(globalDragState.resizeDragState.$wrapper, tempStart, tempEnd) &&
+                        isAppointmentDurationAllowed(globalDragState.resizeDragState.$wrapper, tempStart, tempEnd);
 
                     relayoutDayContainerForDrag(
                         globalDragState.resizeDragState.$wrapper,
@@ -5453,7 +5528,7 @@
                         const start = buildDateTimeByMinutes(globalDragState.createDragState.$wrapper, globalDragState.createDragState.dateLocal, globalDragState.createDragState.currentStartMinutes);
                         const end = buildDateTimeByMinutes(globalDragState.createDragState.$wrapper, globalDragState.createDragState.dateLocal, globalDragState.createDragState.currentEndMinutes);
                         const dragExtras = getDragAppointmentExtras(globalDragState.createDragState.$wrapper, start, end);
-                        if (!dragExtras.hourSlotRules.canWork) {
+                        if (!dragExtras.hourSlotRules.canWork || !dragExtras.appointmentRules.canWork) {
                             globalDragState.createDragState = null;
                         } else {
                             const payload = {
@@ -5490,7 +5565,7 @@
 
                             const returnData = getAppointmentForReturn(appointment);
                             const dragExtras = getDragAppointmentExtras(globalDragState.moveDragState.$wrapper, newStart, newEnd);
-                            if (!dragExtras.hourSlotRules.canWork) {
+                            if (!dragExtras.hourSlotRules.canWork || !dragExtras.appointmentRules.canWork) {
                                 buildAppointmentsForView(globalDragState.moveDragState.$wrapper);
                                 globalDragState.moveDragState = null;
                             } else {
@@ -5517,7 +5592,7 @@
                             const newEnd = buildDateTimeByMinutes(dragState.$wrapper, dragState.dateLocal, dragState.currentEndMinutes);
                             const returnData = getAppointmentForReturn(appointment);
                             const dragExtras = getDragAppointmentExtras(dragState.$wrapper, newStart, newEnd);
-                            if (!dragExtras.hourSlotRules.canWork) {
+                            if (!dragExtras.hourSlotRules.canWork || !dragExtras.appointmentRules.canWork) {
                                 buildAppointmentsForView(dragState.$wrapper);
                                 globalDragState.resizeDragState = null;
                             } else {
@@ -5551,7 +5626,7 @@
                                 const newEnd = addDaysPreservingTime(end, dayDelta);
                                 const returnData = getAppointmentForReturn(appointment);
                                 const dragExtras = getDragAppointmentExtras(dragState.$wrapper, newStart, newEnd);
-                                if (!dragExtras.hourSlotRules.canWork) {
+                                if (!dragExtras.hourSlotRules.canWork || !dragExtras.appointmentRules.canWork) {
                                     buildAppointmentsForView(dragState.$wrapper);
                                     globalDragState.monthMoveDragState = null;
                                 } else {
@@ -5856,9 +5931,9 @@
                 const clickMin = Math.round((details.hour % 1) * 60);
                 const start = new Date(`${$.bsCalendar.utils.formatDateToDateString(details.date)} ${String(clickHour).padStart(2, '0')}:${String(clickMin).padStart(2, '0')}:00`);
                 const end = new Date(start);
-                end.setMinutes(end.getMinutes() + 30);
+                end.setMinutes(end.getMinutes() + getDefaultAppointmentCreateDurationMinutes($eventWrapper, 30));
                 const dragExtras = getDragAppointmentExtras($eventWrapper, start, end);
-                if (!dragExtras.hourSlotRules.canWork) {
+                if (!dragExtras.hourSlotRules.canWork || !dragExtras.appointmentRules.canWork) {
                     e.preventDefault();
                     e.stopPropagation();
                     return;
@@ -5911,8 +5986,9 @@
                 const mainColors = $.bsCalendar.utils.getColors(settings.mainColor);
                 const initialStart = buildDateTimeByMinutes($eventWrapper, String($slotContainer.attr('data-date-local')), startMinutes);
                 const initialEnd = new Date(initialStart.getTime());
-                initialEnd.setMinutes(initialEnd.getMinutes() + getSnapMinutes($eventWrapper));
-                if (!isHourSlotRuleRangeAllowed($eventWrapper, initialStart, initialEnd)) {
+                const initialDuration = getDefaultAppointmentCreateDurationMinutes($eventWrapper, getSnapMinutes($eventWrapper));
+                initialEnd.setMinutes(initialEnd.getMinutes() + initialDuration);
+                if (!isHourSlotRuleRangeAllowed($eventWrapper, initialStart, initialEnd) || !isAppointmentDurationAllowed($eventWrapper, initialStart, initialEnd)) {
                     e.preventDefault();
                     e.stopPropagation();
                     return;
@@ -5972,7 +6048,7 @@
                         dateLocal: String($slotContainer.attr('data-date-local')),
                         startMinutes: startMinutes,
                         currentStartMinutes: startMinutes,
-                        currentEndMinutes: startMinutes + getSnapMinutes($eventWrapper),
+                        currentEndMinutes: startMinutes + initialDuration,
                         dragged: true
                     };
                 };
@@ -6022,6 +6098,9 @@
                 const view = getView($eventWrapper);
 
                 if (!settings.draggable || (view !== 'day' && view !== 'week' && view !== '4day') || !appointment || appointment.allDay || !isAppointmentEditable(appointment)) {
+                    return;
+                }
+                if (settings.appointmentRules && settings.appointmentRules.durationMinutes !== null) {
                     return;
                 }
 
@@ -6881,7 +6960,7 @@
          * Invalid view names fall back to "month" so the calendar always remains
          * in a known and renderable state.
          */
-        if (view !== 'search' && !['day', '4day', 'week', 'month', 'year'].includes(view)) {
+        if (view !== 'search' && !['agenda', 'day', '4day', 'week', 'month', 'year'].includes(view)) {
             if (settings.debug) {
                 console.error(
                     'Invalid view type provided. Defaulting to month view.',
@@ -7141,6 +7220,10 @@
                  * Build the DOM structure for the active calendar view.
                  */
                 switch (view) {
+                    case 'agenda':
+                        buildAgendaView($wrapper);
+                        break;
+
                     case 'month':
                         buildMonthView($wrapper);
                         break;
@@ -8657,6 +8740,171 @@
         });
     }
 
+    function drawAppointmentsForAgenda($wrapper, appointments) {
+        const settings = getSettings($wrapper);
+        const $container = getViewContainer($wrapper).find('[data-agenda-container]');
+        const period = getStartAndEndDateByView($wrapper);
+        const rangeStart = $.bsCalendar.utils.parseDateInput(period.start);
+        const rangeEnd = $.bsCalendar.utils.parseDateInput(period.end);
+        rangeStart.setHours(0, 0, 0, 0);
+        rangeEnd.setHours(23, 59, 59, 999);
+
+        const items = [];
+        appointments.forEach(appointment => {
+            if (!appointment.extras || !Array.isArray(appointment.extras.displayDates)) {
+                return;
+            }
+
+            appointment.extras.displayDates.forEach(displayDate => {
+                const segmentDate = $.bsCalendar.utils.parseDateInput(displayDate.date);
+                if (!segmentDate || isNaN(segmentDate.getTime())) {
+                    return;
+                }
+                segmentDate.setHours(12, 0, 0, 0);
+                if (segmentDate < rangeStart || segmentDate > rangeEnd) {
+                    return;
+                }
+
+                const start = $.bsCalendar.utils.parseDateInput(`${displayDate.date} ${displayDate.times.start || '00:00:00'}`);
+                const end = $.bsCalendar.utils.parseDateInput(`${displayDate.date} ${displayDate.times.end || '23:59:59'}`);
+                items.push({
+                    appointment,
+                    displayDate,
+                    dateLocal: displayDate.date,
+                    start,
+                    end
+                });
+            });
+        });
+
+        items.sort((a, b) => {
+            if (a.dateLocal !== b.dateLocal) {
+                return a.dateLocal.localeCompare(b.dateLocal);
+            }
+            if (a.appointment.allDay !== b.appointment.allDay) {
+                return a.appointment.allDay ? -1 : 1;
+            }
+            return a.start - b.start || a.end - b.end;
+        });
+
+        $container.empty();
+        if (!items.length) {
+            $('<div>', {
+                class: 'd-flex flex-column align-items-center justify-content-center text-body-secondary p-5 text-center',
+                html: `<i class="${settings.icons.agenda} mb-2" style="font-size: 2rem;"></i><div>${settings.translations.searchNoResult}</div>`
+            }).appendTo($container);
+            return;
+        }
+
+        let currentDate = null;
+        let $group = null;
+        items.forEach(item => {
+            if (item.dateLocal !== currentDate) {
+                currentDate = item.dateLocal;
+                const date = $.bsCalendar.utils.parseDateInput(item.dateLocal);
+                const isToday = date.toDateString() === new Date().toDateString();
+
+                const $section = $('<section>', {
+                    class: 'wc-agenda-day border-bottom bg-body'
+                }).appendTo($container);
+
+                const dayName = date.toLocaleDateString(settings.locale, {weekday: 'short'});
+                const monthName = date.toLocaleDateString(settings.locale, {month: 'short'});
+
+                $('<div>', {
+                    class: 'd-flex align-items-center gap-3 px-3 py-2 bg-body-tertiary border-top',
+                    html: [
+                        `<div class="text-center ${isToday ? 'fw-bold' : ''}" style="width: 44px;">`,
+                        `<div class="small text-uppercase text-body-secondary">${dayName}</div>`,
+                        `<div class="h5 mb-0">${date.getDate()}</div>`,
+                        `</div>`,
+                        `<div class="fw-semibold">${monthName} ${date.getFullYear()}</div>`
+                    ].join('')
+                }).appendTo($section);
+
+                $group = $('<div>', {
+                    class: 'list-group list-group-flush'
+                }).appendTo($section);
+            }
+
+            appendAgendaAppointment($wrapper, $group, item);
+        });
+    }
+
+    function appendAgendaAppointment($wrapper, $group, item) {
+        const settings = getSettings($wrapper);
+        const appointment = item.appointment;
+        const returnData = getAppointmentForReturn(appointment);
+        const colors = appointment.extras.colors || $.bsCalendar.utils.getColors(appointment.color, settings.mainColor);
+        const isTask = !!appointment.task;
+        const isDone = isTask && !!appointment.task.checked;
+        const isOverdue = isTask && !!appointment.task.isOverdue;
+        const timeText = appointment.allDay
+            ? 'All day'
+            : `${String(item.displayDate.times.start || '').slice(0, 5)} - ${String(item.displayDate.times.end || '').slice(0, 5)}`;
+
+        const $item = $('<div>', {
+            'data-appointment': true,
+            class: 'list-group-item list-group-item-action d-flex align-items-start gap-3 px-3 py-2',
+            css: {
+                borderLeft: `4px solid ${colors.backgroundColor}`,
+                cursor: 'pointer'
+            }
+        }).appendTo($group);
+        $item.data('appointment', appointment);
+
+        $('<div>', {
+            class: 'text-body-secondary small flex-shrink-0 text-end',
+            css: {
+                width: '72px',
+                lineHeight: '1.25'
+            },
+            text: timeText
+        }).appendTo($item);
+
+        const $body = $('<div>', {
+            class: 'flex-fill min-w-0'
+        }).appendTo($item);
+
+        const $title = $('<div>', {
+            class: `d-flex align-items-center gap-2 fw-semibold ${isDone ? 'text-decoration-line-through text-body-secondary' : ''}`
+        }).appendTo($body);
+
+        if (isTask) {
+            $('<i>', {
+                class: `${returnData.extras.icon} task-toggle flex-shrink-0`,
+                css: {cursor: 'pointer'}
+            }).appendTo($title);
+        } else if (returnData.extras.icon) {
+            $('<i>', {
+                class: `${returnData.extras.icon} flex-shrink-0`
+            }).appendTo($title);
+        }
+
+        $('<span>', {
+            class: 'text-truncate',
+            text: appointment.title
+        }).appendTo($title);
+
+        const meta = [];
+        if (appointment.location) {
+            meta.push(Array.isArray(appointment.location) ? appointment.location.join(', ') : appointment.location);
+        }
+        if (appointment.task && appointment.task.priority) {
+            meta.push(settings.translations[`taskPriority${appointment.task.priority.charAt(0).toUpperCase()}${appointment.task.priority.slice(1)}`] || appointment.task.priority);
+        }
+        if (isOverdue) {
+            meta.push('Overdue');
+        }
+
+        if (meta.length) {
+            $('<div>', {
+                class: 'small text-body-secondary text-truncate mt-1',
+                text: meta.join(' · ')
+            }).appendTo($body);
+        }
+    }
+
     /**
      * Builds the appointment list and updates the search results container and pagination
      * based on the given appointments and the current search criteria.
@@ -8901,6 +9149,7 @@
     function getDragAppointmentExtras($wrapper, start, end) {
         const settings = getSettings($wrapper);
         const hourSlotRulesAvailability = getHourSlotRulesAvailabilityForRange($wrapper, start, end);
+        const appointmentRulesAvailability = getAppointmentRulesAvailabilityForRange($wrapper, start, end);
 
         return {
             start: {
@@ -8911,8 +9160,111 @@
                 date: $.bsCalendar.utils.formatDateToDateString(end),
                 time: $.bsCalendar.utils.formatTime(end, false)
             },
-            hourSlotRules: hourSlotRulesAvailability
+            hourSlotRules: hourSlotRulesAvailability,
+            appointmentRules: appointmentRulesAvailability
         };
+    }
+
+    function getAppointmentRules($wrapper) {
+        const settings = getSettings($wrapper);
+        return settings.appointmentRules || {};
+    }
+
+    function getAppointmentDurationMinutes(start, end) {
+        return Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000));
+    }
+
+    function getMinimumAppointmentDurationMinutes($wrapper, fallbackMinutes = 1) {
+        const rules = getAppointmentRules($wrapper);
+        if (rules.durationMinutes !== null) {
+            return rules.durationMinutes;
+        }
+        let minimum = Math.max(1, Math.floor(fallbackMinutes || 1));
+        if (rules.minDurationMinutes !== null) {
+            minimum = Math.max(minimum, rules.minDurationMinutes);
+        }
+        if (rules.durationStepMinutes !== null) {
+            minimum = Math.max(minimum, rules.durationStepMinutes);
+        }
+        if (rules.maxDurationMinutes !== null) {
+            minimum = Math.min(minimum, rules.maxDurationMinutes);
+        }
+        return Math.max(1, minimum);
+    }
+
+    function normalizeAppointmentDurationMinutes($wrapper, desiredMinutes, fallbackMinutes = 1) {
+        const rules = getAppointmentRules($wrapper);
+        let desired = Math.max(1, Math.round(Number(desiredMinutes) || fallbackMinutes || 1));
+
+        if (rules.durationMinutes !== null) {
+            return rules.durationMinutes;
+        }
+
+        let min = rules.minDurationMinutes !== null ? rules.minDurationMinutes : 1;
+        let max = rules.maxDurationMinutes !== null ? rules.maxDurationMinutes : Infinity;
+        if (rules.durationStepMinutes !== null) {
+            min = Math.max(min, rules.durationStepMinutes);
+        }
+        if (max < min) {
+            max = min;
+        }
+
+        desired = Math.max(min, Math.min(max, desired));
+
+        if (rules.durationStepMinutes === null) {
+            return desired;
+        }
+
+        const step = rules.durationStepMinutes;
+        const first = Math.ceil(min / step) * step;
+        const last = Math.floor(max / step) * step;
+        if (!Number.isFinite(first) || first <= 0 || first > max) {
+            return min;
+        }
+        if (last < first) {
+            return first;
+        }
+
+        const lower = Math.max(first, Math.floor(desired / step) * step);
+        const upper = Math.min(last, Math.ceil(desired / step) * step);
+        if (Math.abs(desired - lower) <= Math.abs(upper - desired)) {
+            return lower;
+        }
+        return upper;
+    }
+
+    function getDefaultAppointmentCreateDurationMinutes($wrapper, fallbackMinutes = 30) {
+        return normalizeAppointmentDurationMinutes($wrapper, fallbackMinutes, fallbackMinutes);
+    }
+
+    function getAppointmentRulesAvailabilityForRange($wrapper, start, end) {
+        const rules = getAppointmentRules($wrapper);
+        const durationMinutes = getAppointmentDurationMinutes(start, end);
+        const violations = [];
+
+        if (rules.durationMinutes !== null && durationMinutes !== rules.durationMinutes) {
+            violations.push('durationMinutes');
+        }
+        if (rules.minDurationMinutes !== null && durationMinutes < rules.minDurationMinutes) {
+            violations.push('minDurationMinutes');
+        }
+        if (rules.maxDurationMinutes !== null && durationMinutes > rules.maxDurationMinutes) {
+            violations.push('maxDurationMinutes');
+        }
+        if (rules.durationStepMinutes !== null && durationMinutes % rules.durationStepMinutes !== 0) {
+            violations.push('durationStepMinutes');
+        }
+
+        return {
+            canWork: violations.length === 0,
+            durationMinutes: durationMinutes,
+            rules: $.extend(true, {}, rules),
+            violations: violations
+        };
+    }
+
+    function isAppointmentDurationAllowed($wrapper, start, end) {
+        return getAppointmentRulesAvailabilityForRange($wrapper, start, end).canWork;
     }
 
     function getHourSlotRulesAvailabilityForRange($wrapper, start, end) {
@@ -9011,7 +9363,7 @@
         const day = date.getDay();
         const anchor = visibleStart + anchorMinutes;
         const floating = visibleStart + floatingMinutes;
-        const minDuration = Math.max(1, minDurationMinutes || 1);
+        const minDuration = getMinimumAppointmentDurationMinutes($wrapper, minDurationMinutes);
         const intervals = getHourSlotRulesAllowedIntervals($wrapper, day)
             .filter(interval => interval.end - interval.start >= minDuration);
 
@@ -9036,15 +9388,21 @@
 
         let start = anchor;
         let end = floating;
+        const duration = normalizeAppointmentDurationMinutes(
+            $wrapper,
+            Math.min(Math.abs(floating - anchor), interval.end - interval.start),
+            minDuration
+        );
         if (floating >= anchor) {
-            end = Math.max(anchor + minDuration, Math.min(floating, interval.end));
+            start = Math.max(interval.start, Math.min(anchor, interval.end - duration));
+            end = start + duration;
         } else {
-            start = Math.min(anchor - minDuration, Math.max(floating, interval.start));
-            end = anchor;
+            end = Math.min(interval.end, Math.max(anchor, interval.start + duration));
+            start = end - duration;
         }
 
-        start = Math.max(interval.start, Math.min(start, interval.end - minDuration));
-        end = Math.min(interval.end, Math.max(end, start + minDuration));
+        start = Math.max(interval.start, Math.min(start, interval.end - duration));
+        end = Math.min(interval.end, Math.max(end, start + duration));
 
         const startMinutes = start - visibleStart;
         const endMinutes = end - visibleStart;
@@ -9096,7 +9454,7 @@
         const visibleEnd = settings.hourSlots.end * 60;
         const date = $.bsCalendar.utils.parseDateInput(dateLocal);
         const day = date.getDay();
-        const minDuration = Math.max(1, minDurationMinutes || 1);
+        const minDuration = getMinimumAppointmentDurationMinutes($wrapper, minDurationMinutes);
         const fixed = visibleStart + fixedMinutes;
         const floating = Math.max(visibleStart, Math.min(visibleEnd, visibleStart + floatingMinutes));
         const intervals = getHourSlotRulesAllowedIntervals($wrapper, day)
@@ -9130,12 +9488,25 @@
 
         let start;
         let end;
+        const duration = normalizeAppointmentDurationMinutes(
+            $wrapper,
+            Math.min(Math.abs(floating - fixed), interval.end - interval.start),
+            minDuration
+        );
         if (edge === 'start') {
-            end = Math.max(interval.start + minDuration, Math.min(fixed, interval.end));
-            start = Math.max(interval.start, Math.min(floating, end - minDuration));
+            end = Math.max(interval.start + duration, Math.min(fixed, interval.end));
+            start = end - duration;
+            if (start < interval.start) {
+                start = interval.start;
+                end = start + duration;
+            }
         } else {
-            start = Math.max(interval.start, Math.min(fixed, interval.end - minDuration));
-            end = Math.min(interval.end, Math.max(floating, start + minDuration));
+            start = Math.max(interval.start, Math.min(fixed, interval.end - duration));
+            end = start + duration;
+            if (end > interval.end) {
+                end = interval.end;
+                start = end - duration;
+            }
         }
 
         return {
@@ -9205,6 +9576,9 @@
         const settings = getSettings($wrapper);
         const view = getView($wrapper);
         if (!settings.draggable || appointment.allDay || !isAppointmentEditable(appointment) || (view !== 'day' && view !== 'week' && view !== '4day')) {
+            return;
+        }
+        if (settings.appointmentRules && settings.appointmentRules.durationMinutes !== null) {
             return;
         }
 
@@ -10080,6 +10454,9 @@
             case 'week':
                 drawAppointmentsForDayOrWeek($wrapper, appointments);
                 break;
+            case 'agenda':
+                drawAppointmentsForAgenda($wrapper, appointments);
+                break;
             case 'month':
                 drawAppointmentsForMonth($wrapper, appointments);
                 break;
@@ -10087,7 +10464,7 @@
                 drawAppointmentsForYear($wrapper, appointments);
                 break;
         }
-        if (!isSearchMode) {
+        if (!isSearchMode && view !== 'agenda') {
             loadHolidays($wrapper);
         }
 
@@ -10482,6 +10859,7 @@
                 }
                 break;
             }
+            case "agenda":
             case "month": {
                 startDate.setDate(1);
                 const startDayOfWeek = startDate.getDay();
@@ -10550,6 +10928,20 @@
         container.empty();
         $('<div>', {
             class: 'wc-search-result-container list-group list-group-flush overflow-auto',
+        }).appendTo(container);
+    }
+
+    function buildAgendaView($wrapper) {
+        const container = getViewContainer($wrapper);
+        container.empty();
+
+        $('<div>', {
+            'data-agenda-container': true,
+            class: 'wc-agenda-container overflow-auto bg-body',
+            css: {
+                minHeight: '100%',
+                fontSize: '.92rem'
+            }
         }).appendTo(container);
     }
 

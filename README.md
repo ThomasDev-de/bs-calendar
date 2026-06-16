@@ -5,7 +5,7 @@
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-`bs-calendar` is a jQuery plugin for Bootstrap 5 calendars with `day`, `4day`, `week`, `month`, and `year` views. It supports remote
+`bs-calendar` is a jQuery plugin for Bootstrap 5 calendars with `day`, `4day`, `week`, `month`, `agenda`, and `year` views. It supports remote
 appointment loading, calendar filters, search, holidays, custom formatting, drag-create, drag-move, tasks, and local appointment
 add/edit/delete methods.
 
@@ -147,7 +147,7 @@ The demo contains one calendar instance and shows a modal-based add/edit/delete 
 
 ## Appointment Data
 
-For `day`, `4day`, `week`, `month`, and search results, appointments use this shape:
+For `day`, `4day`, `week`, `month`, `agenda`, and search results, appointments use this shape:
 
 ```json
 {
@@ -294,7 +294,7 @@ Request data in normal appointment views:
 
 | View                           | Request fields                                           |
 |--------------------------------|----------------------------------------------------------|
-| `day`, `4day`, `week`, `month` | `fromDate`, `toDate`, `view`, `showTasks`, `calendarIds` |
+| `day`, `4day`, `week`, `month`, `agenda` | `fromDate`, `toDate`, `view`, `showTasks`, `calendarIds` |
 | `year`                         | `year`, `view`, `showTasks`, `calendarIds`               |
 
 Request data in search mode:
@@ -307,7 +307,7 @@ Request data in search mode:
 | `showTasks`   | Current task visibility state.                                                                  |
 | `calendarIds` | Active calendar IDs, always an array.                                                           |
 
-Normal response for `day`, `4day`, `week`, and `month`:
+Normal response for `day`, `4day`, `week`, `month`, and `agenda`:
 
 ```json
 [
@@ -406,8 +406,9 @@ After a local mutation method has succeeded, the calendar fires completion event
 | `edited.bs.calendar`  | `onEdited(appointment, extras)`  | Appointment after the local update. |
 | `deleted.bs.calendar` | `onDeleted(appointment, extras)` | Appointment that was removed.       |
 
-When drag-create is used, `dragExtras` contains the proposed `start`, `end`, and hour-slot rule availability data. When drag-move or
-drag-resize is used, `appointment` still contains the original appointment and `dragExtras` contains the proposed new range.
+When drag-create is used, `dragExtras` contains the proposed `start`, `end`, hour-slot rule availability, and appointment duration rule
+availability. When drag-move or drag-resize is used, `appointment` still contains the original appointment and `dragExtras` contains the
+proposed new range.
 
 If `hourSlots.rules[].mode` is `blocked` or `exclusive`, interactive creation, drag-moving, and drag-resizing respect those rules. Day/week/4day
 drag-create, drag-move, and drag-resize clamp to the nearest valid rule edge while dragging; invalid click-create and invalid drop targets
@@ -448,9 +449,9 @@ later with `updateOptions`.
 | `search.limit`                | `number`                                      | `10`                                                       | Number of search results per page.                                                                                 |
 | `search.offset`               | `number`                                      | `0`                                                        | Initial search offset.                                                                                             |
 | `startDate`                   | `Date` or `string`                            | `new Date()`                                               | Initial reference date. String values are parsed during initialization.                                            |
-| `startView`                   | `string`                                      | `"month"`                                                  | Initial view. Allowed values: `day`, `4day`, `week`, `month`, `year`. Must be enabled in `views`.                  |
+| `startView`                   | `string`                                      | `"month"`                                                  | Initial view. Allowed values: `day`, `4day`, `week`, `month`, `agenda`, `year`. Must be enabled in `views`.        |
 | `mainColor`                   | `string`                                      | `"primary"`                                                | Default color used by highlights, controls, and appointments.                                                      |
-| `views`                       | `array` or comma-separated `string`           | `["year", "month", "week", "4day", "day"]`                 | Enabled views. Invalid entries are removed; duplicates are removed; empty result falls back to all possible views. |
+| `views`                       | `array` or comma-separated `string`           | `["year", "month", "agenda", "week", "4day", "day"]`       | Enabled views. Invalid entries are removed; duplicates are removed; empty result falls back to all possible views. |
 | `holidays`                    | `object` or `null`                            | `null`                                                     | OpenHolidays configuration. See [Holidays](#holidays).                                                             |
 | `showAddButton`               | `boolean`                                     | `true`                                                     | Shows the toolbar add button.                                                                                      |
 | `draggable`                   | `boolean`                                     | `false`                                                    | Enables drag-create in day/week/4day view, drag-move in day/week/4day/month view, and drag-resize from timed appointment edges in day/week/4day view. Touch locks native scrolling while a drag gesture is pending or active. |
@@ -472,6 +473,11 @@ later with `updateOptions`.
 | `hourSlots.rules.daysOfWeek`  | `array`                                       | `[1,2,3,4,5]`                                              | Days of the week (0-6, Sun-Sat) for each rule range.                                                               |
 | `hourSlots.rules.mode`        | `string`                                      | `'highlight'`                                              | `exclusive` allows creation/move only inside the range, `blocked` prevents overlapping creation/move, `preferred` marks preferred work time, omitted mode only highlights. |
 | `hourSlots.rules.color`       | `string`                                      | `rgba(0,0,0,0.05)`                                         | Color/styling for each rule range, normalized with `getColors`.                                                    |
+| `appointmentRules`            | `object`                                      | `{durationMinutes: null, durationStepMinutes: null, minDurationMinutes: null, maxDurationMinutes: null}` | Timed appointment duration rules for click-create, drag-create, drag-move, and drag-resize.                        |
+| `appointmentRules.durationMinutes` | `number` or `null`                       | `null`                                                     | Exact required duration in minutes. If set, resize handles are hidden for timed appointments.                      |
+| `appointmentRules.durationStepMinutes` | `number` or `null`                   | `null`                                                     | Allows only durations divisible by this value, e.g. `45` allows 45/90/135-minute appointments.                     |
+| `appointmentRules.minDurationMinutes` | `number` or `null`                    | `null`                                                     | Minimum allowed timed appointment duration.                                                                         |
+| `appointmentRules.maxDurationMinutes` | `number` or `null`                    | `null`                                                     | Maximum allowed timed appointment duration.                                                                         |
 | `calendars`                   | `array` or `null`                             | `null`                                                     | Sidebar calendar filters.                                                                                          |
 | `onAll`                       | `function`, function-name `string`, or `null` | `null`                                                     | Receives every event name and payload.                                                                             |
 | `onInit`                      | `function`, function-name `string`, or `null` | `null`                                                     | Same payload as `init.bs.calendar`.                                                                                |
@@ -510,6 +516,55 @@ treated as blocked.
 
 Slot background colors use the same mode-aware priority. For overlapping colors, the winning availability rule provides the color.
 
+### Appointment Duration Rules
+
+`appointmentRules` validates timed appointment durations during interactive creation, moving, and resizing. It is separate from
+`hourSlots.rules`: `hourSlots.rules` describes when work is allowed, while `appointmentRules` describes how long a timed appointment may be.
+
+Fixed 60-minute appointments:
+
+```javascript
+$('#calendar').bsCalendar({
+    appointmentRules: {
+        durationMinutes: 60
+    }
+});
+```
+
+With `durationMinutes`, click-create and drag-create propose exactly that duration. Resize handles are not rendered for timed appointments
+because the duration is fixed.
+
+45-minute coaching blocks:
+
+```javascript
+$('#calendar').bsCalendar({
+    draggableSnapMinutes: 15,
+    appointmentRules: {
+        durationStepMinutes: 45,
+        minDurationMinutes: 45
+    }
+});
+```
+
+This allows 45, 90, 135 minutes, and so on. `draggableSnapMinutes` still controls the pointer grid for start/end times; the duration rule
+then snaps the appointment length to the nearest valid duration.
+
+Flexible 30-minute blocks between 30 and 120 minutes:
+
+```javascript
+$('#calendar').bsCalendar({
+    appointmentRules: {
+        durationStepMinutes: 30,
+        minDurationMinutes: 30,
+        maxDurationMinutes: 120
+    }
+});
+```
+
+If `durationMinutes` is set, it wins over step/min/max rules. Otherwise, min/max are applied first and `durationStepMinutes` restricts the
+result to valid multiples. Drag event payloads expose the validation result as `dragExtras.appointmentRules` with `canWork`,
+`durationMinutes`, `rules`, and `violations`.
+
 Calendar filters:
 
 ```javascript
@@ -540,6 +595,7 @@ Calendar fields:
 | `week`               | `"Week"`                 | Label for the week view.                  |
 | `month`              | `"Month"`                | Label for the month view.                 |
 | `year`               | `"Year"`                 | Label for the year view.                  |
+| `agenda`             | `"Agenda"`               | Label for the agenda list view.           |
 | `search`             | `"Type and press Enter"` | Search placeholder.                       |
 | `searchNoResult`     | `"No appointment found"` | Empty search message.                     |
 | `tasks`              | `"Tasks"`                | Label for the task toggle and task badge. |
@@ -557,6 +613,7 @@ Calendar fields:
 | `week`              | `"bi bi-kanban"`               |
 | `month`             | `"bi bi-calendar-month"`       |
 | `year`              | `"bi bi-calendar4"`            |
+| `agenda`            | `"bi bi-list-ul"`              |
 | `about`             | `"bi bi-info-circle"`          |
 | `add`               | `"bi bi-plus-lg"`              |
 | `menu`              | `"bi bi-layout-sidebar-inset"` |
@@ -877,6 +934,7 @@ All built-in translation objects currently use these keys:
 | `week`               | `"Week"`                 | Week view label.                              |
 | `month`              | `"Month"`                | Month view label.                             |
 | `year`               | `"Year"`                 | Year view label.                              |
+| `agenda`             | `"Agenda"`               | Agenda list view label.                       |
 | `search`             | `"Type and press Enter"` | Search input placeholder.                     |
 | `searchNoResult`     | `"No appointment found"` | Empty search result message.                  |
 | `tasks`              | `"Tasks"`                | Task sidebar toggle and task badge label.     |
@@ -925,6 +983,7 @@ $.bsCalendar.addTranslation('eo', {
     week: 'Semajno',
     month: 'Monato',
     year: 'Jaro',
+    agenda: 'Agendo',
     search: 'Tajpu kaj premu Enter',
     searchNoResult: 'Neniu rendevuo trovita',
     tasks: 'Taskoj',

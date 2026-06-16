@@ -59,8 +59,18 @@
 - Feature: Added drag-resize for timed appointments in `day`, `week`, and `4day` views, with start/end resize handles that emit the existing `edit.bs.calendar` flow and `dragExtras` proposed range.
 - Improvement: Drag-resize respects `draggableSnapMinutes` and `hourSlots.rules` availability, including `exclusive` and `blocked` ranges.
 - Bugfix: Mobile touch dragging now locks native scrolling during pending gestures and activates create/move when movement starts before the long-press timer, making touch drag interactions more reliable.
+- Feature: Added the new `agenda` view, a month-based list view grouped by day for appointments and tasks.
+- Improvement: `agenda` participates in configured view switching, remote request data, translations, icons, navigation, and task status toggling.
+- Improvement: Added localized `agenda` labels to the built-in translation array.
+- Feature: Added `appointmentRules` for timed appointment duration validation, supporting exact durations, duration steps, minimums, and maximums.
+- Improvement: Click-create, drag-create, drag-move, and drag-resize now expose `dragExtras.appointmentRules`; fixed-duration appointments hide resize handles.
 - Docs: Updated drag documentation and corrected the search request contract for `showTasks`.
-- Files modified: `dist/bs-calendar.js`, `dist/bs-calendar.min.js`, `README.md`, `test/index.html`, `test/tests/drag-resize.test.js`, `changelog.md`, `composer.json`
+- Docs: Documented the `agenda` view in setup, remote data, options, translations, icons, and localization examples.
+- Docs: Documented `appointmentRules` with fixed 60-minute and 45-minute coaching block examples.
+- Demo: Added an appointment duration rule selector for no rule, 45-minute coaching blocks, and exactly 60-minute appointments.
+- Tests: Added QUnit coverage for `agenda` rendering and updated global API/method view coverage.
+- Tests: Added QUnit coverage for fixed appointment durations and duration-step resizing.
+- Files modified: `dist/bs-calendar.js`, `dist/bs-calendar.min.js`, `README.md`, `demo/index.html`, `test/index.html`, `test/tests/agenda.test.js`, `test/tests/appointment-rules.test.js`, `test/tests/drag-resize.test.js`, `test/tests/global-api.test.js`, `test/tests/methods.test.js`, `changelog.md`, `composer.json`
 
 ### Version 2.3.5
 2026-06-16

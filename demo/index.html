@@ -36,6 +36,15 @@
                     <input class="form-check-input" type="checkbox" role="switch" id="switchTriggeredEvents">
                     <label class="form-check-label" for="switchTriggeredEvents">Show triggered events.</label>
                 </div>
+                <label class="form-label mt-3 mb-1" for="selectAppointmentRule">Appointment duration</label>
+                <select class="form-select form-select-sm mb-2" id="selectAppointmentRule">
+                    <option value="none">No duration rule</option>
+                    <option value="coaching45">45-minute coaching blocks</option>
+                    <option value="fixed60">Exactly 60 minutes</option>
+                </select>
+                <div class="small text-body-secondary mb-3" data-appointment-rule-help>
+                    Drag-create and drag-resize respect the selected duration rule.
+                </div>
                 <div class="small text-body-secondary mb-3">
                     BS-Toast powered by<br>
                     <a href="https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-toast" target="_blank"
@@ -238,6 +247,11 @@
                 labelDescription: 'Description',
                 inputLinkPlaceholder: 'appointment link',
                 labelLink: 'Link',
+                labelAppointmentRule: 'Appointment duration',
+                appointmentRuleNone: 'No duration rule',
+                appointmentRuleCoaching45: '45-minute coaching blocks',
+                appointmentRuleFixed60: 'Exactly 60 minutes',
+                appointmentRuleHelp: 'Drag-create and drag-resize respect the selected duration rule.',
                 btnCancel: 'Cancel',
                 btnSave: 'Save',
                 modalAddTitle: 'Add appointment',
@@ -284,6 +298,11 @@
                 labelDescription: 'Beschreibung',
                 inputLinkPlaceholder: 'Terminlink',
                 labelLink: 'Link',
+                labelAppointmentRule: 'Termindauer',
+                appointmentRuleNone: 'Keine Dauerregel',
+                appointmentRuleCoaching45: '45-Minuten-Coachingblöcke',
+                appointmentRuleFixed60: 'Genau 60 Minuten',
+                appointmentRuleHelp: 'Drag-create und Drag-resize berücksichtigen die ausgewählte Dauerregel.',
                 btnCancel: 'Abbrechen',
                 btnSave: 'Speichern',
                 modalAddTitle: 'Termin hinzufügen',
@@ -403,6 +422,12 @@
                 })
                 .on('change', '#switchToggleDraggable', function () {
                     $calendar.bsCalendar('updateOptions', {draggable: !$(this).is(':checked')});
+                })
+                .on('change', '#selectAppointmentRule', function () {
+                    $calendar.bsCalendar('updateOptions', {
+                        appointmentRules: getDemoAppointmentRules($(this).val())
+                    });
+                    $calendar.bsCalendar('render');
                 })
                 .on('add.bs.calendar', function (event, data, dragExtras) {
                     const start = dragExtras?.start || data.start;
@@ -535,6 +560,11 @@
             $('label[for="appointmentDescription"]').text(t.labelDescription);
             $('input[name="link"]').attr('placeholder', t.inputLinkPlaceholder);
             $('label[for="appointmentLink"]').text(t.labelLink);
+            $('label[for="selectAppointmentRule"]').text(t.labelAppointmentRule);
+            $('#selectAppointmentRule option[value="none"]').text(t.appointmentRuleNone);
+            $('#selectAppointmentRule option[value="coaching45"]').text(t.appointmentRuleCoaching45);
+            $('#selectAppointmentRule option[value="fixed60"]').text(t.appointmentRuleFixed60);
+            $('[data-appointment-rule-help]').text(t.appointmentRuleHelp);
             $('[data-bs-dismiss="modal"].btn.btn-secondary').text(t.btnCancel);
             $('[data-save-appointment]').text(t.btnSave);
 
@@ -570,6 +600,28 @@
                 }
                 $(this).find('span').first().text(titleById[id]);
             });
+        }
+
+        function getDemoAppointmentRules(rule) {
+            switch (rule) {
+                case 'coaching45':
+                    return {
+                        durationStepMinutes: 45,
+                        minDurationMinutes: 45
+                    };
+                case 'fixed60':
+                    return {
+                        durationMinutes: 60
+                    };
+                case 'none':
+                default:
+                    return {
+                        durationMinutes: null,
+                        durationStepMinutes: null,
+                        minDurationMinutes: null,
+                        maxDurationMinutes: null
+                    };
+            }
         }
 
         function initAppointmentModal() {

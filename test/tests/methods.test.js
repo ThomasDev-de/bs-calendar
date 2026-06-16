@@ -33,7 +33,7 @@ QUnit.module('Plugin — Methods', function (hooks) {
     // ── setView ───────────────────────────────────────────────────────────────
 
     QUnit.module('setView', function () {
-        ['day', '4day', 'week', 'month', 'year'].forEach(function (view) {
+        ['agenda', 'day', '4day', 'week', 'month', 'year'].forEach(function (view) {
             QUnit.test('switches to "' + view + '"', function (assert) {
                 $('#cal').bsCalendar('setView', view);
                 awaitFetch(assert, function () {

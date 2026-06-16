@@ -1,21 +1,21 @@
 QUnit.module('$.bsCalendar — Global API', function () {
 
-    QUnit.test('version is 2.3.4', function (assert) {
-        assert.strictEqual($.bsCalendar.version, '2.3.4');
+    QUnit.test('version is 2.3.6', function (assert) {
+        assert.strictEqual($.bsCalendar.version, '2.3.6');
     });
 
     QUnit.test('about has expected fields', function (assert) {
         const a = $.bsCalendar.about;
-        assert.strictEqual(a.version, '2.3.4');
+        assert.strictEqual(a.version, '2.3.6');
         assert.strictEqual(a.license, 'MIT');
         assert.ok(a.project.startsWith('https://'));
         assert.ok(a.issues.startsWith('https://'));
     });
 
-    QUnit.test('possibleViews contains all five views', function (assert) {
+    QUnit.test('possibleViews contains all built-in views', function (assert) {
         const views = $.bsCalendar.possibleViews;
         assert.ok(Array.isArray(views));
-        ['day', '4day', 'week', 'month', 'year'].forEach(v =>
+        ['agenda', 'day', '4day', 'week', 'month', 'year'].forEach(v =>
             assert.ok(views.includes(v), `possibleViews includes "${v}"`)
         );
     });
@@ -102,6 +102,7 @@ QUnit.module('$.bsCalendar — Global API', function () {
                 week: 'Semajno',
                 month: 'Monato',
                 year: 'Jaro',
+                agenda: 'Agendo',
                 search: 'Tajpu kaj premu Enter',
                 searchNoResult: 'Neniu rendevuo trovita',
                 tasks: 'Taskoj',
