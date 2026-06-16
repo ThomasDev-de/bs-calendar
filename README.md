@@ -1,6 +1,6 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.3.5-blue)
+![Version](https://img.shields.io/badge/version-2.3.6-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -66,7 +66,7 @@ Use CDN/script tags:
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.3.5/dist/bs-calendar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.3.6/dist/bs-calendar.min.js"></script>
 ```
 
 Or install via Composer:
@@ -258,7 +258,7 @@ Task behavior:
 - Task icons use `icons.task`, `icons.taskDone`, and `icons.taskOverdue`.
 - Clicking a task icon toggles `task.checked` locally and fires `task-status-changed.bs.calendar`.
 - The global task sidebar control is shown when `showTasks` is `true`.
-- Task visibility state is sent to normal view requests as `showTasks`. Search requests can add it via `queryParams` if needed.
+- Task visibility state is sent to normal view and search requests as `showTasks`.
 - `task.isOverdue` is internal render state. You may read it in callbacks, but you should not persist it as source data.
 
 ## Remote Data with `url`
@@ -304,9 +304,8 @@ Request data in search mode:
 | `search`      | Search string from the search input. Empty searches are skipped and return an empty local list. |
 | `limit`       | Page size from `options.search.limit`.                                                          |
 | `offset`      | Current search offset.                                                                          |
+| `showTasks`   | Current task visibility state.                                                                  |
 | `calendarIds` | Active calendar IDs, always an array.                                                           |
-
-`showTasks` is not currently added in search mode by the fetch implementation. If your search endpoint needs it, add it via `queryParams`.
 
 Normal response for `day`, `4day`, `week`, and `month`:
 
@@ -407,14 +406,14 @@ After a local mutation method has succeeded, the calendar fires completion event
 | `edited.bs.calendar`  | `onEdited(appointment, extras)`  | Appointment after the local update. |
 | `deleted.bs.calendar` | `onDeleted(appointment, extras)` | Appointment that was removed.       |
 
-When drag-create is used, `dragExtras` contains the proposed `start`, `end`, and hour-slot rule availability data. When drag-move is
-used, `appointment` still contains the original appointment and `dragExtras` contains the proposed new range.
+When drag-create is used, `dragExtras` contains the proposed `start`, `end`, and hour-slot rule availability data. When drag-move or
+drag-resize is used, `appointment` still contains the original appointment and `dragExtras` contains the proposed new range.
 
-If `hourSlots.rules[].mode` is `blocked` or `exclusive`, interactive creation and drag-moving respect those rules. Day/week/4day
-drag-create and drag-move clamp to the nearest valid rule edge while dragging; invalid click-create and invalid drop targets
+If `hourSlots.rules[].mode` is `blocked` or `exclusive`, interactive creation, drag-moving, and drag-resizing respect those rules. Day/week/4day
+drag-create, drag-move, and drag-resize clamp to the nearest valid rule edge while dragging; invalid click-create and invalid drop targets
 do not fire `add.bs.calendar` or `edit.bs.calendar`.
 
-For drag-create and drag-move, the allowed interval starts as every `exclusive` range for that weekday. If no `exclusive` range exists,
+For drag-create, drag-move, and drag-resize, the allowed interval starts as every `exclusive` range for that weekday. If no `exclusive` range exists,
 the whole visible `hourSlots.start` to `hourSlots.end` range is allowed. `blocked` ranges are then subtracted from those intervals.
 `preferred` ranges do not block dragging.
 
@@ -454,8 +453,8 @@ later with `updateOptions`.
 | `views`                       | `array` or comma-separated `string`           | `["year", "month", "week", "4day", "day"]`                 | Enabled views. Invalid entries are removed; duplicates are removed; empty result falls back to all possible views. |
 | `holidays`                    | `object` or `null`                            | `null`                                                     | OpenHolidays configuration. See [Holidays](#holidays).                                                             |
 | `showAddButton`               | `boolean`                                     | `true`                                                     | Shows the toolbar add button.                                                                                      |
-| `draggable`                   | `boolean`                                     | `false`                                                    | Enables drag-create in day/week/4day view and drag-move in day/week/4day/month view. Touch uses long-press and locks native scrolling while dragging. |
-| `draggableSnapMinutes`        | `number`                                      | `5`                                                        | Snap interval in minutes for drag-create/move in day/week/4day view. Minimum is `1`.                               |
+| `draggable`                   | `boolean`                                     | `false`                                                    | Enables drag-create in day/week/4day view, drag-move in day/week/4day/month view, and drag-resize from timed appointment edges in day/week/4day view. Touch locks native scrolling while a drag gesture is pending or active. |
+| `draggableSnapMinutes`        | `number`                                      | `5`                                                        | Snap interval in minutes for drag-create/move/resize in day/week/4day view. Minimum is `1`.                        |
 | `translations`                | `object`                                      | `{search, searchNoResult}` merged with locale translations | Custom UI translations. See [Localization and Translations](#localization-and-translations).                       |
 | `icons`                       | `object`                                      | see [Icons](#icons)                                        | Bootstrap icon classes.                                                                                            |
 | `url`                         | `null`, `string`, or `function`               | `null`                                                     | Appointment data source. See [Remote Data with `url`](#remote-data-with-url).                                      |
@@ -1070,7 +1069,7 @@ Changelog and support:
 
 ## Completeness Check
 
-This README is intended to cover the public surface of version `2.3.5`:
+This README is intended to cover the public surface of version `2.3.6`:
 
 - All `DEFAULTS` options from `dist/bs-calendar.js`
 - All public plugin methods in the method switch

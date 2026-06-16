@@ -2,6 +2,7 @@
  
  - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
     * [**dev-main**](#dev-main)
+    * [**Version 2.3.6**](#version-236)
     * [**Version 2.3.5**](#version-235)
     * [**Version 2.3.4**](#version-234)
     * [**Version 2.3.3**](#version-233)
@@ -52,6 +53,14 @@
 
 
 ### dev-main
+
+### Version 2.3.6
+2026-06-16
+- Feature: Added drag-resize for timed appointments in `day`, `week`, and `4day` views, with start/end resize handles that emit the existing `edit.bs.calendar` flow and `dragExtras` proposed range.
+- Improvement: Drag-resize respects `draggableSnapMinutes` and `hourSlots.rules` availability, including `exclusive` and `blocked` ranges.
+- Bugfix: Mobile touch dragging now locks native scrolling during pending gestures and activates create/move when movement starts before the long-press timer, making touch drag interactions more reliable.
+- Docs: Updated drag documentation and corrected the search request contract for `showTasks`.
+- Files modified: `dist/bs-calendar.js`, `dist/bs-calendar.min.js`, `README.md`, `test/index.html`, `test/tests/drag-resize.test.js`, `changelog.md`, `composer.json`
 
 ### Version 2.3.5
 2026-06-16

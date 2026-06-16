@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.3.5
+ * @version 2.3.6
  * @date 2026-06-16
  * @license MIT
  * @requires "jQuery" ^3
@@ -558,9 +558,9 @@
     };
 
     $.bsCalendar = {
-        version: '2.3.5',
+        version: '2.3.6',
         about: {
-            version: '2.3.5',
+            version: '2.3.6',
             releaseDate: '2026-06-16',
             project: 'https://github.com/ThomasDev-de/bs-calendar/',
             issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
@@ -1759,9 +1759,11 @@
     const globalDragState = {
         createDragState: null,
         moveDragState: null,
+        resizeDragState: null,
         monthMoveDragState: null,
         pendingCreate: null,
         pendingMove: null,
+        pendingResize: null,
         touchDragLock: null,
         suppressSlotClickUntil: 0,
         suppressAppointmentClickUntil: 0,
@@ -4894,12 +4896,12 @@
                 return;
             }
 
-            if (globalDragState.createDragState || globalDragState.moveDragState || globalDragState.monthMoveDragState) {
+            if (globalDragState.createDragState || globalDragState.moveDragState || globalDragState.resizeDragState || globalDragState.monthMoveDragState) {
                 ev.preventDefault();
                 return;
             }
 
-            if (!globalDragState.pendingCreate && !globalDragState.pendingMove) {
+            if (!globalDragState.pendingCreate && !globalDragState.pendingMove && !globalDragState.pendingResize) {
                 return;
             }
 
@@ -4909,17 +4911,19 @@
             const deltaX = Math.abs(x - lock.startX);
             const deltaY = Math.abs(y - lock.startY);
 
-            if (deltaX <= lock.cancelDistance && deltaY <= lock.cancelDistance) {
+            if (lock.preventScroll || deltaX <= lock.cancelDistance || deltaY <= lock.cancelDistance) {
                 ev.preventDefault();
             }
         }
 
-        function lockTouchDrag(target, startPoint) {
+        function lockTouchDrag(target, startPoint, preventScroll = false) {
             unlockTouchDrag();
 
             const $target = $(getTouchLockTarget(target));
             const originalStyles = [];
-            const $styled = $target.length ? $target.add($target.closest(globalCalendarElements.wrapper)) : $();
+            const $styled = $target.length
+                ? $target.add($target.closest(globalCalendarElements.wrapper)).add($target.closest('.wc-calendar-view-container'))
+                : $();
 
             $styled.each(function () {
                 const el = this;
@@ -4940,6 +4944,7 @@
                 startX: Number.isFinite(startPoint.x) ? startPoint.x : 0,
                 startY: Number.isFinite(startPoint.y) ? startPoint.y : 0,
                 cancelDistance: 8,
+                preventScroll: preventScroll,
                 originalStyles: originalStyles
             };
         }
@@ -5110,6 +5115,29 @@
                     const isMoving = movingAppointment && item.appointment === movingAppointment.appointment;
                     item.$el.css('zIndex', isMoving ? 12 : index + 1);
                 });
+        }
+
+        function formatDragTimeLabel($wrapperRef, minutesFromStart) {
+            const settings = getSettings($wrapperRef);
+            const totalMinutes = minutesFromStart + (settings.hourSlots.start * 60);
+            const hour = Math.floor(totalMinutes / 60);
+            const minute = Math.round(totalMinutes % 60);
+            return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+        }
+
+        function buildDragTimeBadge(text) {
+            return $('<div>', {
+                class: 'position-absolute badge bg-primary',
+                css: {
+                    fontSize: '10px',
+                    padding: '2px 4px',
+                    right: '4px',
+                    top: '2px',
+                    zIndex: 13,
+                    pointerEvents: 'none'
+                },
+                text: text || ''
+            });
         }
 
         $(document)
@@ -5333,6 +5361,65 @@
                     globalDragState.moveDragState.canWork = canWork;
                     globalDragState.moveDragState.dragged = true;
                 }
+
+                if (globalDragState.resizeDragState) {
+                    if (isTouchLikeEvent(e)) {
+                        e.preventDefault();
+                    }
+                    const settings = getSettings(globalDragState.resizeDragState.$wrapper);
+                    const snap = getSnapMinutes(globalDragState.resizeDragState.$wrapper);
+                    const totalMinutes = Math.max(0, (settings.hourSlots.end - settings.hourSlots.start) * 60);
+                    const pointerMinutes = getMinutesFromPointer(
+                        globalDragState.resizeDragState.$wrapper,
+                        globalDragState.resizeDragState.$slotContainer,
+                        pageY
+                    );
+                    const clampedResize = clampResizeMinutesToHourSlotRules(
+                        globalDragState.resizeDragState.$wrapper,
+                        globalDragState.resizeDragState.dateLocal,
+                        globalDragState.resizeDragState.edge,
+                        globalDragState.resizeDragState.edge === 'start'
+                            ? globalDragState.resizeDragState.originalEndMinutes
+                            : globalDragState.resizeDragState.originalStartMinutes,
+                        Math.max(0, Math.min(totalMinutes, pointerMinutes)),
+                        snap
+                    );
+                    const startMinutes = clampedResize.startMinutes;
+                    const endMinutes = clampedResize.endMinutes;
+                    const tempStart = buildDateTimeByMinutes(
+                        globalDragState.resizeDragState.$wrapper,
+                        globalDragState.resizeDragState.dateLocal,
+                        startMinutes
+                    );
+                    const tempEnd = buildDateTimeByMinutes(
+                        globalDragState.resizeDragState.$wrapper,
+                        globalDragState.resizeDragState.dateLocal,
+                        endMinutes
+                    );
+                    const canWork = clampedResize.canWork && isHourSlotRuleRangeAllowed(globalDragState.resizeDragState.$wrapper, tempStart, tempEnd);
+
+                    relayoutDayContainerForDrag(
+                        globalDragState.resizeDragState.$wrapper,
+                        globalDragState.resizeDragState.$slotContainer,
+                        globalDragState.resizeDragState,
+                        tempStart,
+                        tempEnd
+                    );
+
+                    globalDragState.resizeDragState.$appointment.css({opacity: 0.85});
+                    globalDragState.resizeDragState.$appointment.css('cursor', canWork ? 'ns-resize' : 'not-allowed');
+                    globalDragState.resizeDragState.$timeDisplay.text(
+                        `${formatDragTimeLabel(globalDragState.resizeDragState.$wrapper, startMinutes)} - ${formatDragTimeLabel(globalDragState.resizeDragState.$wrapper, endMinutes)}`
+                    );
+                    setInteractionCursor(canWork);
+                    if (!globalDragState.resizeDragState.dragged) {
+                        removeInfoWindowModal();
+                    }
+                    globalDragState.resizeDragState.currentStartMinutes = startMinutes;
+                    globalDragState.resizeDragState.currentEndMinutes = endMinutes;
+                    globalDragState.resizeDragState.canWork = canWork;
+                    globalDragState.resizeDragState.dragged = true;
+                }
             })
             .on('mouseup' + namespace + ' pointerup' + namespace + ' touchend' + namespace + ' touchcancel' + namespace, function () {
                 clearInteractionCursor();
@@ -5343,8 +5430,12 @@
                 if (globalDragState.pendingMove?.timer) {
                     clearTimeout(globalDragState.pendingMove.timer);
                 }
+                if (globalDragState.pendingResize?.timer) {
+                    clearTimeout(globalDragState.pendingResize.timer);
+                }
                 globalDragState.pendingCreate = null;
                 globalDragState.pendingMove = null;
+                globalDragState.pendingResize = null;
 
                 if (globalDragState.createDragState) {
                     if (globalDragState.createDragState.$preview) {
@@ -5409,6 +5500,33 @@
                         }
                     }
                     globalDragState.moveDragState = null;
+                }
+
+                if (globalDragState.resizeDragState) {
+                    const dragState = globalDragState.resizeDragState;
+                    const $appointment = dragState.$appointment;
+                    $appointment.css({opacity: '', cursor: ''});
+                    if (dragState.$timeDisplay) {
+                        dragState.$timeDisplay.remove();
+                    }
+                    if (dragState.dragged) {
+                        globalDragState.suppressAppointmentClickUntil = Date.now() + 250;
+                        const appointment = $appointment.data('appointment');
+                        if (appointment) {
+                            const newStart = buildDateTimeByMinutes(dragState.$wrapper, dragState.dateLocal, dragState.currentStartMinutes);
+                            const newEnd = buildDateTimeByMinutes(dragState.$wrapper, dragState.dateLocal, dragState.currentEndMinutes);
+                            const returnData = getAppointmentForReturn(appointment);
+                            const dragExtras = getDragAppointmentExtras(dragState.$wrapper, newStart, newEnd);
+                            if (!dragExtras.hourSlotRules.canWork) {
+                                buildAppointmentsForView(dragState.$wrapper);
+                                globalDragState.resizeDragState = null;
+                            } else {
+                                trigger(dragState.$wrapper, 'edit', returnData.appointment, returnData.extras, dragExtras);
+                                removeInfoWindowModal();
+                            }
+                        }
+                    }
+                    globalDragState.resizeDragState = null;
                 }
 
                 if (globalDragState.monthMoveDragState) {
@@ -5861,7 +5979,7 @@
                 if (isTouch) {
                     const startX = startPoint.x || 0;
                     const startY = startPoint.y || 0;
-                    lockTouchDrag(e.currentTarget, startPoint);
+                    lockTouchDrag(e.currentTarget, startPoint, true);
                     const timer = setTimeout(() => {
                         if (!globalDragState.pendingCreate) return;
                         activateCreateDrag();
@@ -5875,14 +5993,97 @@
                         const y = Number.isFinite(p.y) ? p.y : startY;
                         if (Math.abs(x - startX) > 8 || Math.abs(y - startY) > 8) {
                             clearTimeout(globalDragState.pendingCreate.timer);
+                            activateCreateDrag();
                             globalDragState.pendingCreate = null;
-                            unlockTouchDrag();
-                            $preview.remove();
                         }
                     });
                 } else {
                     activateCreateDrag();
                     e.preventDefault();
+                }
+            })
+            .off('mousedown' + namespace + ' pointerdown' + namespace + ' touchstart' + namespace, '[data-appointment-resize]')
+            .on('mousedown' + namespace + ' pointerdown' + namespace + ' touchstart' + namespace, '[data-appointment-resize]', function (e) {
+                const isTouchEvent = e.type === 'touchstart';
+                const isPrimaryButton = isTouchEvent || (e.which === 1) || (e.button === 0) || (e.buttons === 1);
+                if (!isPrimaryButton) {
+                    return;
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                const $handle = $(e.currentTarget);
+                const edge = String($handle.attr('data-appointment-resize') || 'end');
+                const $appointment = $handle.closest('[data-appointment]');
+                const appointment = $appointment.data('appointment');
+                const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
+                const settings = getSettings($eventWrapper);
+                const view = getView($eventWrapper);
+
+                if (!settings.draggable || (view !== 'day' && view !== 'week' && view !== '4day') || !appointment || appointment.allDay || !isAppointmentEditable(appointment)) {
+                    return;
+                }
+
+                const $slotContainer = $appointment.closest('.wc-day-view-time-slots');
+                if (!$slotContainer.length) {
+                    return;
+                }
+
+                const start = $.bsCalendar.utils.parseDateInput(appointment.start);
+                const end = $.bsCalendar.utils.parseDateInput(appointment.end);
+                if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
+                    return;
+                }
+
+                const startPoint = getEventPageXY(e);
+                if (!Number.isFinite(startPoint.y)) {
+                    return;
+                }
+
+                const originalStartMinutes = (start.getHours() - settings.hourSlots.start) * 60 + start.getMinutes();
+                const originalEndMinutes = (end.getHours() - settings.hourSlots.start) * 60 + end.getMinutes();
+                const snap = getSnapMinutes($eventWrapper);
+                if (originalEndMinutes - originalStartMinutes < snap) {
+                    return;
+                }
+
+                const $timeDisplay = buildDragTimeBadge(
+                    `${formatDragTimeLabel($eventWrapper, originalStartMinutes)} - ${formatDragTimeLabel($eventWrapper, originalEndMinutes)}`
+                );
+
+                const activateResizeDrag = () => {
+                    $eventWrapper.find('[data-role="time-indicator"]').remove();
+                    globalDragState.resizeDragState = {
+                        $wrapper: $eventWrapper,
+                        $slotContainer: $slotContainer,
+                        $appointment: $appointment,
+                        $timeDisplay: $timeDisplay,
+                        appointment: appointment,
+                        dateLocal: String($slotContainer.attr('data-date-local')),
+                        edge: edge === 'start' ? 'start' : 'end',
+                        originalStartMinutes: originalStartMinutes,
+                        originalEndMinutes: originalEndMinutes,
+                        currentStartMinutes: originalStartMinutes,
+                        currentEndMinutes: originalEndMinutes,
+                        dragged: false
+                    };
+                    $timeDisplay.appendTo($appointment);
+                };
+
+                const isTouch = isTouchLikeEvent(e);
+                if (isTouch) {
+                    const startX = startPoint.x || 0;
+                    const startY = startPoint.y || 0;
+                    lockTouchDrag(e.currentTarget, startPoint, true);
+                    const timer = setTimeout(() => {
+                        if (!globalDragState.pendingResize) return;
+                        activateResizeDrag();
+                        globalDragState.pendingResize = null;
+                    }, 120);
+                    globalDragState.pendingResize = {timer, startX, startY};
+                } else {
+                    activateResizeDrag();
                 }
             })
             .off('mousedown' + namespace + ' pointerdown' + namespace + ' touchstart' + namespace, '[data-appointment]')
@@ -5958,7 +6159,7 @@
                     if (isTouch) {
                         const startX = startPoint.x || 0;
                         const startY = startPoint.y || 0;
-                        lockTouchDrag(e.currentTarget, startPoint);
+                        lockTouchDrag(e.currentTarget, startPoint, true);
                         const timer = setTimeout(() => {
                             if (!globalDragState.pendingMove) return;
                             activateMonthMoveDrag();
@@ -5972,8 +6173,8 @@
                             const y = Number.isFinite(p.y) ? p.y : startY;
                             if (Math.abs(x - startX) > 8 || Math.abs(y - startY) > 8) {
                                 clearTimeout(globalDragState.pendingMove.timer);
+                                activateMonthMoveDrag();
                                 globalDragState.pendingMove = null;
-                                unlockTouchDrag();
                             }
                         });
                     } else {
@@ -6043,7 +6244,7 @@
                 if (isTouch) {
                     const startX = startPoint.x || 0;
                     const startY = startPoint.y || 0;
-                    lockTouchDrag(e.currentTarget, startPoint);
+                    lockTouchDrag(e.currentTarget, startPoint, true);
                     const timer = setTimeout(() => {
                         if (!globalDragState.pendingMove) return;
                         activateMoveDrag();
@@ -6057,8 +6258,8 @@
                         const y = Number.isFinite(p.y) ? p.y : startY;
                         if (Math.abs(x - startX) > 8 || Math.abs(y - startY) > 8) {
                             clearTimeout(globalDragState.pendingMove.timer);
+                            activateMoveDrag();
                             globalDragState.pendingMove = null;
-                            unlockTouchDrag();
                         }
                     });
                 } else {
@@ -6159,8 +6360,9 @@
                 const clickedOnMonth = $(e.target).is('[data-month]');
                 const clickedOnToday = $(e.target).is('[data-today]');
                 const clickedOnAnchor = $(e.target).is('a[href]') || $(e.target).closest('a[href]').length > 0;
+                const clickedOnResizeHandle = $(e.target).is('[data-appointment-resize]') || $(e.target).closest('[data-appointment-resize]').length > 0;
                 // check whether the goal is a [data date] or a link with [href]
-                if (clickedOnToday || clickedOnDate || clickedOnMonth || clickedOnAnchor) {
+                if (clickedOnToday || clickedOnDate || clickedOnMonth || clickedOnAnchor || clickedOnResizeHandle) {
                     // stop the execution of the parent event
                     e.stopPropagation();
                     return;
@@ -6305,7 +6507,7 @@
                 }
 
                 // Skip if drag is in progress
-                if (globalDragState.createDragState || globalDragState.moveDragState || globalDragState.monthMoveDragState) {
+                if (globalDragState.createDragState || globalDragState.moveDragState || globalDragState.resizeDragState || globalDragState.monthMoveDragState) {
                     return;
                 }
 
@@ -8222,6 +8424,7 @@
                      */
                     appointmentElement.data('appointment', appointment);
                     setAppointmentStyles(appointmentElement, appointment.extras.colors);
+                    addAppointmentResizeHandles($wrapper, appointmentElement, appointment, startDate, endDate);
                 });
             });
 
@@ -8335,6 +8538,7 @@
                      */
                     appointmentElement.data('appointment', appointment);
                     setAppointmentStyles(appointmentElement, appointment.extras.colors);
+                    addAppointmentResizeHandles($wrapper, appointmentElement, appointment, slotData.start, slotData.end);
                 });
 
             /**
@@ -8886,6 +9090,62 @@
         };
     }
 
+    function clampResizeMinutesToHourSlotRules($wrapper, dateLocal, edge, fixedMinutes, floatingMinutes, minDurationMinutes) {
+        const settings = getSettings($wrapper);
+        const visibleStart = settings.hourSlots.start * 60;
+        const visibleEnd = settings.hourSlots.end * 60;
+        const date = $.bsCalendar.utils.parseDateInput(dateLocal);
+        const day = date.getDay();
+        const minDuration = Math.max(1, minDurationMinutes || 1);
+        const fixed = visibleStart + fixedMinutes;
+        const floating = Math.max(visibleStart, Math.min(visibleEnd, visibleStart + floatingMinutes));
+        const intervals = getHourSlotRulesAllowedIntervals($wrapper, day)
+            .filter(interval => interval.end - interval.start >= minDuration);
+
+        if (!intervals.length) {
+            const startMinutes = edge === 'start'
+                ? Math.min(floatingMinutes, fixedMinutes - minDuration)
+                : fixedMinutes;
+            const endMinutes = edge === 'start'
+                ? fixedMinutes
+                : Math.max(floatingMinutes, fixedMinutes + minDuration);
+
+            return {
+                startMinutes: Math.max(0, startMinutes),
+                endMinutes: Math.min((settings.hourSlots.end - settings.hourSlots.start) * 60, endMinutes),
+                canWork: false,
+                clamped: false
+            };
+        }
+
+        let interval = intervals.find(item => fixed >= item.start && fixed <= item.end);
+        if (!interval) {
+            interval = intervals
+                .map(item => ({
+                    interval: item,
+                    distance: Math.min(Math.abs(fixed - item.start), Math.abs(fixed - item.end))
+                }))
+                .sort((a, b) => a.distance - b.distance)[0].interval;
+        }
+
+        let start;
+        let end;
+        if (edge === 'start') {
+            end = Math.max(interval.start + minDuration, Math.min(fixed, interval.end));
+            start = Math.max(interval.start, Math.min(floating, end - minDuration));
+        } else {
+            start = Math.max(interval.start, Math.min(fixed, interval.end - minDuration));
+            end = Math.min(interval.end, Math.max(floating, start + minDuration));
+        }
+
+        return {
+            startMinutes: start - visibleStart,
+            endMinutes: end - visibleStart,
+            canWork: end > start,
+            clamped: start !== Math.min(fixed, floating) || end !== Math.max(fixed, floating)
+        };
+    }
+
     /**
      * Determines whether an appointment is editable.
      *
@@ -8939,6 +9199,75 @@
             return normalized === 'true' || normalized === '1' || normalized === 'yes';
         }
         return value === true || value === 1;
+    }
+
+    function addAppointmentResizeHandles($wrapper, $appointmentElement, appointment, slotStart, slotEnd) {
+        const settings = getSettings($wrapper);
+        const view = getView($wrapper);
+        if (!settings.draggable || appointment.allDay || !isAppointmentEditable(appointment) || (view !== 'day' && view !== 'week' && view !== '4day')) {
+            return;
+        }
+
+        const startDate = slotStart instanceof Date ? slotStart : $.bsCalendar.utils.parseDateInput(slotStart);
+        const endDate = slotEnd instanceof Date ? slotEnd : $.bsCalendar.utils.parseDateInput(slotEnd);
+        const appointmentStart = $.bsCalendar.utils.parseDateInput(appointment.start);
+        const appointmentEnd = $.bsCalendar.utils.parseDateInput(appointment.end);
+        if (
+            !startDate ||
+            !endDate ||
+            !appointmentStart ||
+            !appointmentEnd ||
+            isNaN(startDate.getTime()) ||
+            isNaN(endDate.getTime()) ||
+            isNaN(appointmentStart.getTime()) ||
+            isNaN(appointmentEnd.getTime())
+        ) {
+            return;
+        }
+
+        const startLocal = $.bsCalendar.utils.formatDateToDateString(startDate);
+        const endLocal = $.bsCalendar.utils.formatDateToDateString(endDate);
+        if (
+            $.bsCalendar.utils.formatDateToDateString(appointmentStart) !== startLocal ||
+            $.bsCalendar.utils.formatDateToDateString(appointmentEnd) !== endLocal
+        ) {
+            return;
+        }
+
+        const baseCss = {
+            position: 'absolute',
+            left: '2px',
+            right: '2px',
+            height: '18px',
+            zIndex: 14,
+            cursor: 'ns-resize',
+            touchAction: 'none',
+            userSelect: 'none',
+            WebkitUserSelect: 'none'
+        };
+        const lineCss = {
+            position: 'absolute',
+            left: '50%',
+            width: '24px',
+            height: '3px',
+            borderRadius: '999px',
+            backgroundColor: 'currentColor',
+            opacity: 0.55,
+            transform: 'translateX(-50%)',
+            pointerEvents: 'none'
+        };
+
+        $('<div>', {
+            'data-appointment-resize': 'start',
+            'aria-hidden': 'true',
+            css: $.extend({}, baseCss, {top: '0'})
+        }).append($('<span>', {css: $.extend({}, lineCss, {top: '4px'})})).appendTo($appointmentElement);
+
+        $('<div>', {
+            'data-appointment-resize': 'end',
+            'aria-hidden': 'true',
+            css: $.extend({}, baseCss, {bottom: '0'})
+        }).append($('<span>', {css: $.extend({}, lineCss, {bottom: '4px'})})).appendTo($appointmentElement);
     }
 
     /**
