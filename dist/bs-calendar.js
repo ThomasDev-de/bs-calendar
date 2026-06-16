@@ -3711,7 +3711,7 @@
 
         // Create the wrapper for the upper navigation
         // Design-Change: "Floating Toolbar" Style (bg-body-tertiary, subtle shadow, no hard borders)
-        const topNav = $('<div>', {
+        const topNav = $('<nav>', {
             id: data.elements.wrapperTopNavId,
             class: `d-flex flex-wrap w-100 g-2 align-items-center justify-content-between bg-body-tertiary border-0 shadow-sm p-2 rounded-2`
         }).appendTo(innerWrapper);
@@ -3720,9 +3720,9 @@
             $(settings.topbarAddons).insertAfter(topNav);
         }
 
-        const leftCol = $('<div>', {class: 'col-auto col-lg-4 d-flex flex-nowrap align-items-center flex-fill'}).appendTo(topNav);
-        const middleCol = $('<div>', {class: 'col-auto col-lg-4 d-flex justify-content-center flex-fill flex-nowrap align-items-center'}).appendTo(topNav);
-        const rightCol = $('<div>', {class: 'col-auto col-lg-4 d-flex justify-content-end flex-wrap flex-lg-nowrap flex-fill align-items-center gap-2'}).appendTo(topNav);
+        const leftCol = $('<div>', {class: 'col-12 col-lg-4 d-flex flex-nowrap align-items-center flex-fill'}).appendTo(topNav);
+        const middleCol = $('<div>', {class: 'col-12 col-lg-4 d-flex justify-content-center flex-fill flex-nowrap align-items-center'}).appendTo(topNav);
+        const rightCol = $('<div>', {class: 'col-12 col-lg-4 d-flex justify-content-center justify-content-md-end flex-wrap flex-lg-nowrap flex-fill align-items-center gap-2'}).appendTo(topNav);
 
         // Add a button to switch on and off the sidebar.
         // Style: Neutral "Ghost" Button (text-body, no border, no shadow)
