@@ -10646,8 +10646,7 @@
             };
 
             if (!isLast) {
-                const day = date.getDay();
-                const hourSlotRules = getMatchingHourSlotRules(settings.hourSlots.rules, day, rowHour);
+                const hourSlotRules = rowHourSlotRulesAvailability.range;
 
                 if (hourSlotRules) {
                     const hhColors = getHourSlotRulesColors(hourSlotRules);

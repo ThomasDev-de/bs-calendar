@@ -340,9 +340,16 @@
                     height: 60,
                     rules: [
                         {
-                            daysOfWeek: [1, 2, 3, 4, 5],
+                            daysOfWeek: [1, 2, 3],
                             startTime: '09:00',
                             endTime: '17:00',
+                            mode: 'exclusive',
+                            color: 'rgba(25, 135, 84, 0.055)'
+                        },
+                        {
+                            daysOfWeek: [4, 5],
+                            startTime: '07:00',
+                            endTime: '09:00',
                             mode: 'exclusive',
                             color: 'rgba(25, 135, 84, 0.055)'
                         },

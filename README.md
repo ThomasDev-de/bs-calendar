@@ -414,6 +414,10 @@ If `hourSlots.rules[].mode` is `blocked` or `exclusive`, interactive creation an
 drag-create and drag-move clamp to the nearest valid rule edge while dragging; invalid click-create and invalid drop targets
 do not fire `add.bs.calendar` or `edit.bs.calendar`.
 
+For drag-create and drag-move, the allowed interval starts as every `exclusive` range for that weekday. If no `exclusive` range exists,
+the whole visible `hourSlots.start` to `hourSlots.end` range is allowed. `blocked` ranges are then subtracted from those intervals.
+`preferred` ranges do not block dragging.
+
 For backend-backed calendars, save to your backend first and then either call `refresh` so the updated data is loaded from `url`, or call
 `addAppointment`, `editAppointment`, or `deleteAppointment` for an immediate local update and ensure the backend returns the same data on
 the next `refresh`.
@@ -490,6 +494,22 @@ later with `updateOptions`.
 | `storeState`                  | `boolean`                                     | `false`                                                    | Persists selected view, active calendars, and task visibility in `localStorage`.                                   |
 | `showTasks`                   | `boolean`                                     | `true`                                                     | Enables task UI and the global task toggle in the sidebar.                                                         |
 | `debug`                       | `boolean`                                     | `false`                                                    | Enables debug logging.                                                                                             |
+
+### Hour Slot Rule Priority
+
+`hourSlots.rules` affect availability in this order:
+
+1. `blocked` wins whenever the requested time range overlaps a blocked range.
+2. `exclusive` applies next. If any `exclusive` rule exists for the weekday, work is allowed only when the requested time range is fully
+   contained in an `exclusive` range.
+3. `preferred` allows work and sets `isPreferred`.
+4. `highlight` or an omitted `mode` is visual only and does not block work.
+5. If no rule matches, work is allowed.
+
+This means overlapping `blocked` and `exclusive` rules are treated as blocked. Overlapping `blocked` and `preferred` rules are also
+treated as blocked.
+
+Slot background colors use the same mode-aware priority. For overlapping colors, the winning availability rule provides the color.
 
 Calendar filters:
 
