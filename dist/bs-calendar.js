@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.3.4
- * @date 2026-06-15
+ * @version 2.3.5
+ * @date 2026-06-16
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -558,10 +558,10 @@
     };
 
     $.bsCalendar = {
-        version: '2.3.4',
+        version: '2.3.5',
         about: {
-            version: '2.3.4',
-            releaseDate: '2026-06-15',
+            version: '2.3.5',
+            releaseDate: '2026-06-16',
             project: 'https://github.com/ThomasDev-de/bs-calendar/',
             issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
             releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
@@ -2234,7 +2234,7 @@
 
             // Title/rounded simple UI tweaks (no full rebuild needed)
             if (typeof merged.title !== 'undefined') {
-                $wrapper.find('#' + data.elements.wrapperViewContainerTitleId)
+                $wrapper.find('[data-calendar-static-title]')
                     .html(merged.title || '');
             }
 
@@ -2375,6 +2375,9 @@
 
 
             $wrapper.removeClass("position-relative bs-calendar overflow-hidden");
+            $wrapper.css({
+                overflow: ''
+            });
             // remove generated unique id attribute
             $wrapper.removeAttr('data-bs-calendar-id');
             $wrapper.empty();
@@ -3184,18 +3187,8 @@
 
         $tooltipOwners.each(function () {
             const $el = $(this);
-            try {
-                $el.tooltip('hide');
-                $el.tooltip('dispose');
-            } catch (e) {
-                // ignore
-            }
-            try {
-                $el.popover('hide');
-                $el.popover('dispose');
-            } catch (e) {
-                // ignore
-            }
+            disposeBootstrapTooltip($el);
+            disposeBootstrapPopover($el);
             $el.removeAttr('aria-describedby');
         });
 
@@ -3204,6 +3197,74 @@
         $wrapper.find('.popover').remove();
         $('body > .tooltip.wc-calendar-tooltip').remove();
         $('body > .popover.wc-calendar-tooltip').remove();
+    }
+
+    function disposeBootstrapTooltip($element) {
+        const element = $element?.[0];
+        if (!element) {
+            return;
+        }
+
+        if (window.bootstrap && window.bootstrap.Tooltip && typeof window.bootstrap.Tooltip.getInstance === 'function') {
+            const instance = window.bootstrap.Tooltip.getInstance(element);
+            if (instance) {
+                instance.hide();
+                instance.dispose();
+            }
+            return;
+        }
+
+        try {
+            $element.tooltip('dispose');
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    function disposeBootstrapPopover($element) {
+        const element = $element?.[0];
+        if (!element) {
+            return;
+        }
+
+        if (window.bootstrap && window.bootstrap.Popover && typeof window.bootstrap.Popover.getInstance === 'function') {
+            const instance = window.bootstrap.Popover.getInstance(element);
+            if (instance) {
+                instance.hide();
+                instance.dispose();
+            }
+            return;
+        }
+
+        try {
+            $element.popover('dispose');
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    function initBootstrapTooltip($element, options) {
+        disposeBootstrapPopover($element);
+        disposeBootstrapTooltip($element);
+
+        const element = $element?.[0];
+        if (window.bootstrap && window.bootstrap.Tooltip && element) {
+            return new window.bootstrap.Tooltip(element, options);
+        }
+
+        return $element.tooltip(options);
+    }
+
+    function initBootstrapPopover($element, options) {
+        disposeBootstrapTooltip($element);
+        disposeBootstrapPopover($element);
+
+        const element = $element?.[0];
+        if (window.bootstrap && window.bootstrap.Popover && element) {
+            return new window.bootstrap.Popover(element, options);
+        }
+
+        return $element.popover(options);
     }
 
     function abortXhr(xhr) {
@@ -3462,7 +3523,10 @@
             try {
                 const data = getBsCalendarData($wrapper);
                 const settings = data.settings;
-                $wrapper.addClass('position-relative bs-calendar overflow-hidden');
+                $wrapper.addClass('position-relative bs-calendar');
+                $wrapper.css({
+                    overflow: 'visible'
+                });
                 $wrapper.attr('data-bs-calendar-id', data.elements.wrapperId);
 
                 if (!data.settings.hasOwnProperty('views') || data.settings.views.length === 0) {
@@ -3490,8 +3554,9 @@
                     handleEvents($wrapper);
                 }
 
-                const monthCalendarWrapper = $wrapper.find('#' + data.elements.wrapperSmallMonthCalendarId);
-                buildMonthSmallView($wrapper, data.date, monthCalendarWrapper, false);
+                $wrapper.find('[data-small-month-calendar]').each(function () {
+                    buildMonthSmallView($wrapper, data.date, $(this), false);
+                });
                 if (triggerEventInit) {
                     trigger($wrapper, 'init');
                 }
@@ -3709,133 +3774,110 @@
         const roundedClass = 'rounded-' + settings.rounded;
         const borderClass = settings.border;
 
-        // Create the wrapper for the upper navigation
-        // Design-Change: "Floating Toolbar" Style (bg-body-tertiary, subtle shadow, no hard borders)
-        const topNav = $('<nav>', {
-            id: data.elements.wrapperTopNavId,
-            class: `d-flex flex-wrap w-100 g-2 align-items-center justify-content-between bg-body-tertiary border-0 shadow-sm p-2 rounded-2`
-        }).appendTo(innerWrapper);
-        // When an element has been set after the upper navigation, add it after navigation
-        if (settings.topbarAddons && $(settings.topbarAddons).length > 0) {
-            $(settings.topbarAddons).insertAfter(topNav);
+        const offcanvasId = data.elements.wrapperTopNavId + '-offcanvas';
+
+        function appendSidebarToggle($target, extraClass = '') {
+            return $('<button>', {
+                type: 'button',
+                class: `btn border-0 text-body shadow-none ${extraClass} bs-calendar-border-style`,
+                html: `<i class="${settings.icons.menu}"></i>`,
+                'data-bs-toggle': 'sidebar',
+                'aria-label': 'Menu'
+            }).appendTo($target);
         }
 
-        const leftCol = $('<div>', {class: 'col-12 col-lg-4 d-flex flex-nowrap align-items-center flex-fill'}).appendTo(topNav);
-        const middleCol = $('<div>', {class: 'col-12 col-lg-4 d-flex justify-content-center flex-fill flex-nowrap align-items-center'}).appendTo(topNav);
-        const rightCol = $('<div>', {class: 'col-12 col-lg-4 d-flex justify-content-center justify-content-md-end flex-wrap flex-lg-nowrap flex-fill align-items-center gap-2'}).appendTo(topNav);
+        function appendViewNavigation($target, extraClass = '') {
+            return $('<div>', {
+                class: `d-flex align-items-center py-1 ps-3 justify-content-center wc-nav-view-wrapper flex-wrap flex-lg-nowrap text-nowrap bg-body rounded-pill shadow-sm bs-calendar-border-style ${extraClass}`,
+                html: [
+                    '<strong class="me-3 user-select-none text-body" data-calendar-view-title></strong>',
+                    `<a data-prev href="#" class="text-decoration-none text-body d-flex align-items-center justify-content-center" style="width:24px; height:24px;"><i class="${settings.icons.prev}"></i></a>`,
+                    `<a class="mx-2 text-decoration-none text-body d-flex align-items-center justify-content-center" data-next href="#" style="width:24px; height:24px;"><i class="${settings.icons.next}"></i></a>`,
+                ].join('')
+            }).appendTo($target);
+        }
 
-        // Add a button to switch on and off the sidebar.
-        // Style: Neutral "Ghost" Button (text-body, no border, no shadow)
-        $('<button>', {
-            class: `btn border-0 text-body shadow-none me-2 bs-calendar-border-style`,
-            html: `<i class="${settings.icons.menu}"></i>`,
-            'data-bs-toggle': 'sidebar'
-        }).appendTo(leftCol);
+        function appendSearchButton($target, extraClass = '') {
+            if (!settings.search) {
+                return null;
+            }
 
-        // If search is activated, add a search container
-        if (settings.search) {
-            const topSearchNav = $('<div>', {
-                id: data.elements.wrapperSearchNavId,
-                // Matches TopNav Style
-                class: `d-none align-items-center justify-content-center bg-body-tertiary border-0 shadow-sm p-2 mb-3 bs-calendar-border-style`,
-            }).insertAfter(topNav);
-
-            // add a search button to topNav
             const showSearchbar = $('<button>', {
-                class: `btn border-0 text-body shadow-none js-btn-search me-2 bs-calendar-border-style`,
-                html: `<i class="${settings.icons.search}"></i>`
-            }).appendTo(leftCol);
+                type: 'button',
+                class: `btn border-0 text-body shadow-none js-btn-search ${extraClass} bs-calendar-border-style`,
+                html: `<i class="${settings.icons.search}"></i>`,
+                'aria-label': settings.translations.search || 'Search'
+            }).appendTo($target);
 
-            // Add click event to start search mode
             showSearchbar.on('click', function () {
                 toggleSearchBar($wrapper, true);
             });
 
-            // add the search input to the top search bar
-            // Style: Clean Input (bg-body for contrast against tertiary bar, no border)
-            const inputCss = 'max-width: 400px;';
-            $('<input>', {
-                type: 'search',
-                style: inputCss,
-                class: `form-control border-0 bg-body text-body shadow-none ${roundedClass} bs-calendar-border-style`,
-                placeholder: settings.translations.search || 'search',
-                'data-search-input': true
-            }).appendTo(topSearchNav);
-
-            // add a close button
-            const btnCloseSearch = $('<button>', {
-                class: `btn border-0 text-body shadow-none p-2 ms-2 js-btn-close-search ${roundedClass} bs-calendar-border-style`,
-                html: `<i class="bi bi-x-lg mx-2"></i>`,
-                "aria-label": "Close"
-            }).appendTo(topSearchNav);
-
-            // When the close button is clicked, end the search mode
-            btnCloseSearch.on('click', function () {
-                toggleSearchBar($wrapper, false);
-                // Always force a search-exit rebuild so the previous view is restored reliably.
-                toggleSearchMode($wrapper, false, true);
-            })
+            return showSearchbar;
         }
 
-        // add a button to create appointments
-        if (settings.showAddButton) {
-            $('<button>', {
-                class: `btn border-0 text-body shadow-none me-2 ${roundedClass} bs-calendar-border-style`,
+        function appendAddButton($target, extraClass = '') {
+            if (!settings.showAddButton) {
+                return null;
+            }
+
+            return $('<button>', {
+                type: 'button',
+                class: `btn border-0 text-body shadow-none ${extraClass} ${roundedClass} bs-calendar-border-style`,
                 html: `<i class="${settings.icons.add}"></i>`,
-                'data-add-appointment': true
-            }).appendTo(leftCol);
+                'data-add-appointment': true,
+                'aria-label': 'Add'
+            }).appendTo($target);
         }
 
-        // add the title when known
-        if (settings.title) {
-            $('<div>', {
+        function appendStaticTitle($target, extraClass = '') {
+            if (!settings.title) {
+                return null;
+            }
+
+            return $('<div>', {
                 html: settings.title,
-                class: 'mb-0 fw-bold text-uppercase text-body'
-            }).appendTo(middleCol);
+                class: `mb-0 fw-bold text-uppercase text-body ${extraClass}`,
+                'data-calendar-static-title': true
+            }).appendTo($target);
         }
 
-        // visual notification that appointments are loaded
-        $('<div>', {
-            class: 'spinner-border me-auto me-2 text-secondary wc-calendar-spinner',
-            css: {
-                display: 'none',
-                width: '1.5rem',
-                height: '1.5rem'
-            },
-            role: 'status',
-            html: '<span class="visually-hidden">Loading...</span>'
-        }).appendTo(leftCol);
+        function appendLoadingSpinner($target, extraClass = '') {
+            return $('<div>', {
+                class: `spinner-border me-auto me-2 text-secondary wc-calendar-spinner ${extraClass}`,
+                css: {
+                    display: 'none',
+                    width: '1.5rem',
+                    height: '1.5rem'
+                },
+                role: 'status',
+                html: '<span class="visually-hidden">Loading...</span>'
+            }).appendTo($target);
+        }
 
-        // navigation through the calendar depending on the view
-        // Style: Capsule Look (bg-body inside tertiary bar)
-        $('<div>', {
-            class: `d-flex align-items-center py-1 ps-3 justify-content-center wc-nav-view-wrapper flex-wrap flex-lg-nowrap text-nowrap bg-body rounded-pill shadow-sm bs-calendar-border-style`,
-            html: [
-                `<strong class="me-3 user-select-none text-body" id="${data.elements.wrapperViewContainerTitleId}"></strong>`,
-                `<a data-prev href="#" class="text-decoration-none text-body d-flex align-items-center justify-content-center" style="width:24px; height:24px;"><i class="${settings.icons.prev}"></i></a>`,
-                `<a class="mx-2 text-decoration-none text-body d-flex align-items-center justify-content-center" data-next href="#" style="width:24px; height:24px;"><i class="${settings.icons.next}"></i></a>`,
-            ].join('')
-        }).appendTo(rightCol);
+        function appendTodayButton($target, extraClass = '') {
+            return $('<button>', {
+                type: 'button',
+                class: `btn border-0 text-body shadow-none ${extraClass} ${roundedClass} bs-calendar-border-style fw-bold`,
+                html: settings.translations.today,
+                'data-today': true
+            }).appendTo($target);
+        }
 
+        function appendViewDropdown($target, extraClass = '', iconOnly = false) {
+            if (settings.views.length <= 1) {
+                return null;
+            }
 
-        // Add a button today to activate the current date in the calendar
-        $('<button>', {
-            class: `btn border-0 text-body shadow-none ms-2 ${roundedClass} bs-calendar-border-style fw-bold`,
-            html: settings.translations.today,
-            'data-today': true
-        }).appendTo(rightCol);
-
-        // If only one view is desired, give no selection
-        if (settings.views.length > 1) {
             const dropDownView = $('<div>', {
-                class: 'dropdown dropdown-center wc-select-calendar-view ms-2',
+                class: `dropdown dropdown-center wc-select-calendar-view ${extraClass}`,
                 html: [
-                    `<a class="btn dropdown-toggle border-0 text-body shadow-none bs-calendar-border-style ${roundedClass}" data-dropdown-text href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">`,
+                    `<a class="btn dropdown-toggle border-0 text-body shadow-none bs-calendar-border-style ${roundedClass}" data-dropdown-text href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" ${iconOnly ? 'data-dropdown-icon-only="true" aria-label="View"' : ''}>`,
                     '</a>',
                     '<ul class="dropdown-menu shadow border-0 mt-1">',
                     '</ul>',
                 ].join('')
-            }).appendTo(rightCol);
+            }).appendTo($target);
 
             if (settings.debug) {
                 log('buidlFramwork', settings.views);
@@ -3845,13 +3887,19 @@
                     html: `<a class="dropdown-item" data-view="${view}" href="#"><i class="${settings.icons[view]} me-2"></i> ${settings.translations[view]}</a>`
                 }).appendTo(dropDownView.find('ul'));
             });
+
+            return dropDownView;
         }
 
-        if (settings.showAbout && $.bsCalendar.about && typeof $.bsCalendar.about === 'object') {
+        function appendAboutDropdown($target, extraClass = '') {
+            if (!settings.showAbout || !$.bsCalendar.about || typeof $.bsCalendar.about !== 'object') {
+                return null;
+            }
+
             const about = $.bsCalendar.about;
             const aboutDropdown = $('<div>', {
-                class: 'dropdown dropdown-end wc-about-dropdown'
-            }).appendTo(rightCol);
+                class: `dropdown dropdown-end wc-about-dropdown ${extraClass}`
+            }).appendTo($target);
 
             $('<button>', {
                 type: 'button',
@@ -3942,137 +3990,278 @@
                 'data-about-debug': '1'
             }).appendTo(menu);
 
-            updateAboutDebugInfo($wrapper);
+            return aboutDropdown;
         }
+
+        function appendSidebarContent($target, withIds = false, extraClass = '') {
+            const sidebarAttributes = {
+                css: {
+                    position: 'relative',
+                },
+                class: `py-4 px-4 bg-body-tertiary rounded-2 overflow-visible ${extraClass}`,
+                html: [
+                    '<div class="pb-3">',
+                    '<div class="d-flex justify-content-between align-items-center gap-2">',
+                    `<span ${withIds ? `id="${data.elements.wrapperSmallMonthCalendarTitleId}"` : ''} data-small-month-title class="fw-bold text-body"></span>`,
+                    '<div>',
+                    `<a data-prev href="#" class="text-decoration-none text-body me-2"><i class="${settings.icons.prev}"></i></a>`,
+                    `<a data-next href="#" class="text-decoration-none text-body"><i class="${settings.icons.next}"></i></a>`,
+                    '</div>',
+                    '</div>',
+                    '</div>',
+                    `<div ${withIds ? `id="${data.elements.wrapperSmallMonthCalendarId}"` : ''} data-small-month-calendar></div>`,
+                    `<div ${withIds ? `id="${data.elements.wrapperCalendarsId}"` : ''} data-calendar-list></div>`,
+                ].join('')
+            };
+
+            if (withIds) {
+                sidebarAttributes.id = data.elements.wrapperSideNavId;
+            }
+
+            const sidebar = $('<div>', sidebarAttributes).appendTo($target);
+            sidebar.data('visible', true);
+
+            const calendarList = sidebar.find('[data-calendar-list]');
+            const hasCalendars = settings.calendars && Array.isArray(settings.calendars) && settings.calendars.length > 0;
+            if (hasCalendars) {
+                const calendarWrapper = $('<div>', {
+                    class: 'd-flex flex-column gap-2 mt-3 py-2 ps-2 pe-0 bg-body overflow-visible'
+                }).appendTo(calendarList);
+
+                settings.calendars.forEach(calendar => {
+                    const color = calendar.color.backgroundColor;
+
+                    const itemContainer = $('<a>', {
+                        href: '#',
+                        class: 'd-flex align-items-center py-1 ps-3 pe-1 rounded-end text-decoration-none user-select-none transition-base',
+                        css: {
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease-in-out',
+                            ...getStyleCalendarButton(calendar)
+                        },
+                        'data-calendar-toggle': calendar.id
+                    }).appendTo(calendarWrapper);
+                    itemContainer.data('calendar', calendar);
+
+                    $('<span>', {
+                        class: 'text-truncate flex-fill',
+                        css: {fontSize: '0.9rem'},
+                        text: calendar.title
+                    }).appendTo(itemContainer);
+
+                    $('<span>', {
+                        class: 'rounded-circle mx-2 js-calendar-dot',
+                        css: {
+                            width: '6px',
+                            height: '6px',
+                            backgroundColor: color,
+                            opacity: calendar.active ? 1 : 0,
+                            transition: 'opacity 0.2s'
+                        }
+                    }).appendTo(itemContainer);
+                });
+            }
+
+            if (settings.showTasks) {
+                const paddingControls = hasCalendars ? 'pb-2' : 'py-2';
+                const controlWrapper = $('<div>', {
+                    class: 'd-flex flex-column gap-2 ' + paddingControls + ' ps-2 pe-0 bg-body overflow-visible'
+                }).appendTo(calendarList);
+
+                const tasksControl = {
+                    id: 'tasks',
+                    title: settings.translations.tasks,
+                    active: data.showTasks,
+                    color: $.bsCalendar.utils.getColors(settings.mainColor, settings.mainColor)
+                };
+
+                const itemContainer = $('<a>', {
+                    href: '#',
+                    class: 'd-flex align-items-center py-1 ps-3 pe-1 rounded-end text-decoration-none user-select-none transition-base',
+                    css: {
+                        fontSize: '0.9rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease-in-out',
+                        ...getStyleCalendarButton(tasksControl)
+                    },
+                    'data-control-toggle': 'tasks'
+                }).appendTo(controlWrapper);
+
+                $('<i>', {
+                    class: settings.icons.taskDone + ' me-2',
+                }).appendTo(itemContainer);
+
+                $('<span>', {
+                    class: 'text-truncate flex-fill',
+                    css: {fontSize: '0.9rem'},
+                    text: tasksControl.title
+                }).appendTo(itemContainer);
+
+                $('<span>', {
+                    class: 'rounded-circle mx-2 js-calendar-dot',
+                    css: {
+                        width: '6px',
+                        height: '6px',
+                        backgroundColor: tasksControl.color.backgroundColor,
+                        opacity: tasksControl.active ? 1 : 0,
+                        transition: 'opacity 0.2s'
+                    }
+                }).appendTo(itemContainer);
+            }
+
+            if (settings.sidebarAddons && $(settings.sidebarAddons).length > 0) {
+                const sidebarAddonWrapper = $('<div>', {
+                    class: 'd-flex flex-column gap-2 mt-3 p-2 bg-body overflow-visible',
+                    'data-sidebar-addons': true
+                }).appendTo(calendarList);
+                const addons = withIds ? $(settings.sidebarAddons) : $(settings.sidebarAddons).clone(true, true);
+                addons.appendTo(sidebarAddonWrapper);
+            }
+
+            return sidebar;
+        }
+
+        const mobileTopNav = $('<nav>', {
+            class: 'd-flex d-lg-none sticky-top w-100 align-items-center justify-content-between bg-body-tertiary border-0 shadow-sm p-2 rounded-2',
+            'data-bs-calendar-mobile-topnav': true,
+            css: {
+                zIndex: 1010
+            }
+        }).appendTo(innerWrapper);
+
+        $('<button>', {
+            type: 'button',
+            class: `btn border-0 text-body shadow-none bs-calendar-border-style`,
+            html: `<i class="${settings.icons.menu}"></i>`,
+            'data-bs-toggle': 'offcanvas',
+            'data-bs-target': '#' + offcanvasId,
+            'aria-controls': offcanvasId,
+            'aria-label': 'Menu'
+        }).appendTo(mobileTopNav);
+
+        $('<strong>', {
+            class: 'text-body text-truncate mx-2 flex-fill',
+            'data-calendar-view-title': true
+        }).appendTo(mobileTopNav);
+
+        const mobileActions = $('<div>', {
+            class: 'd-flex align-items-center gap-1'
+        }).appendTo(mobileTopNav);
+        appendAddButton(mobileActions);
+        appendSearchButton(mobileActions);
+        appendViewDropdown(mobileActions, '', true);
+
+        const topNav = $('<nav>', {
+            id: data.elements.wrapperTopNavId,
+            class: 'd-none d-lg-flex sticky-top flex-wrap w-100 g-2 align-items-center justify-content-between bg-body-tertiary border-0 shadow-sm p-2 rounded-2',
+            css: {
+                zIndex: 1010
+            }
+        }).appendTo(innerWrapper);
+
+        const leftCol = $('<div>', {class: 'col-md-4 d-flex flex-nowrap align-items-center flex-fill'}).appendTo(topNav);
+        const middleCol = $('<div>', {class: 'col-md-4 d-flex justify-content-center flex-fill flex-nowrap align-items-center'}).appendTo(topNav);
+        const rightCol = $('<div>', {class: 'col-md-4 d-flex justify-content-md-end flex-wrap flex-lg-nowrap flex-fill align-items-center gap-2'}).appendTo(topNav);
+
+        appendSidebarToggle(leftCol, 'me-2');
+        appendSearchButton(leftCol, 'me-2');
+        appendAddButton(leftCol, 'me-2');
+        appendLoadingSpinner(leftCol);
+        appendStaticTitle(middleCol);
+        appendViewNavigation(rightCol);
+        appendTodayButton(rightCol, 'ms-2');
+        appendViewDropdown(rightCol, 'ms-2');
+        appendAboutDropdown(rightCol);
+
+        let topSearchNav = null;
+        if (settings.search) {
+            topSearchNav = $('<div>', {
+                id: data.elements.wrapperSearchNavId,
+                class: 'd-none sticky-top align-items-center justify-content-center bg-body-tertiary border-0 shadow-sm p-2 mb-3 bs-calendar-border-style',
+                css: {
+                    zIndex: 1010
+                }
+            }).insertAfter(topNav);
+
+            const inputCss = 'max-width: 400px;';
+            $('<input>', {
+                type: 'search',
+                style: inputCss,
+                class: `form-control border-0 bg-body text-body shadow-none ${roundedClass} bs-calendar-border-style`,
+                placeholder: settings.translations.search || 'search',
+                'data-search-input': true
+            }).appendTo(topSearchNav);
+
+            const btnCloseSearch = $('<button>', {
+                type: 'button',
+                class: `btn border-0 text-body shadow-none p-2 ms-2 js-btn-close-search ${roundedClass} bs-calendar-border-style`,
+                html: '<i class="bi bi-x-lg mx-2"></i>',
+                'aria-label': 'Close'
+            }).appendTo(topSearchNav);
+
+            btnCloseSearch.on('click', function () {
+                toggleSearchBar($wrapper, false);
+                toggleSearchMode($wrapper, false, true);
+            });
+        }
+
+        if (settings.topbarAddons && $(settings.topbarAddons).length > 0) {
+            $(settings.topbarAddons).insertAfter(topSearchNav || topNav);
+        }
+
+        const mobileOffcanvas = $('<div>', {
+            id: offcanvasId,
+            class: 'offcanvas offcanvas-start d-lg-none',
+            tabindex: '-1',
+            'aria-labelledby': offcanvasId + '-label',
+            'data-bs-calendar-mobile-offcanvas': true
+        }).appendTo(innerWrapper);
+
+        const offcanvasHeader = $('<div>', {
+            class: 'offcanvas-header border-bottom'
+        }).appendTo(mobileOffcanvas);
+
+        $('<h5>', {
+            id: offcanvasId + '-label',
+            class: 'offcanvas-title mb-0',
+            html: settings.title || '<span data-calendar-view-title></span>',
+            'data-calendar-static-title': settings.title ? true : null
+        }).appendTo(offcanvasHeader);
+
+        $('<button>', {
+            type: 'button',
+            class: 'btn-close',
+            'data-bs-dismiss': 'offcanvas',
+            'aria-label': 'Close'
+        }).appendTo(offcanvasHeader);
+
+        const offcanvasBody = $('<div>', {
+            class: 'offcanvas-body p-0'
+        }).appendTo(mobileOffcanvas);
+        appendSidebarContent(offcanvasBody, false, 'rounded-0 shadow-none h-100');
+
+        mobileOffcanvas.on('show.bs.offcanvas', function () {
+            offcanvasBody.scrollTop(0);
+        });
+
+        mobileOffcanvas.on('click', '[data-sidebar-addons] a, [data-sidebar-addons] button', function () {
+            const offcanvasElement = mobileOffcanvas[0];
+            if (window.bootstrap && window.bootstrap.Offcanvas && offcanvasElement) {
+                const instance = window.bootstrap.Offcanvas.getOrCreateInstance(offcanvasElement);
+                if (instance) {
+                    instance.hide();
+                }
+            }
+        });
+
+        updateAboutDebugInfo($wrapper);
 
         // The head was completed, creates a container for Sidebar and the view
         const container = $('<div>', {
             class: 'd-flex flex-fill wc-calendar-container gap-3'
         }).appendTo(innerWrapper);
 
-        // add the sidebar
-        const sidebar = $('<div>', {
-            id: data.elements.wrapperSideNavId,
-            css: {
-                position: 'relative',
-            },
-            class: ' py-4 px-4 bg-body-tertiary rounded-2 overflow-visible',
-            html: [
-                '<div class="pb-3">',
-                '<div class="d-flex justify-content-between align-items-center gap-2">',
-                `<span id="${data.elements.wrapperSmallMonthCalendarTitleId}" class="fw-bold text-body"></span>`,
-                '<div>',
-                `<a data-prev href="#" class="text-decoration-none text-body me-2"><i class="${settings.icons.prev}"></i></a>`,
-                `<a data-next href="#" class="text-decoration-none text-body"><i class="${settings.icons.next}"></i></a>`,
-                '</div>',
-                '</div>',
-                '</div>',
-                `<div id="${data.elements.wrapperSmallMonthCalendarId}"></div>`,
-                `<div id="${data.elements.wrapperCalendarsId}"></div>`,
-            ].join('')
-        }).appendTo(container);
-        sidebar.data('visible', true);
-
-        const hasCalendars = settings.calendars && Array.isArray(settings.calendars) && settings.calendars.length > 0;
-        if (hasCalendars) {
-
-            // Container: Vertikal, etwas Luft, modern
-            const calendarWrapper = $('<div>', {
-                class: 'd-flex flex-column gap-2 mt-3 py-2 ps-2 pe-0 bg-body overflow-visible'
-            }).appendTo('#' + data.elements.wrapperCalendarsId);
-
-            settings.calendars.forEach(calendar => {
-                const color = calendar.color.backgroundColor;
-
-                const itemContainer = $('<a>', {
-                    href: '#',
-                    class: `d-flex align-items-center py-1 ps-3 pe-1 rounded-end text-decoration-none user-select-none transition-base`,
-                    css: {
-                        cursor: 'pointer',
-                        transition: 'all 0.2s ease-in-out',
-                        ...getStyleCalendarButton(calendar)
-                    },
-                    'data-calendar-toggle': calendar.id
-                }).appendTo(calendarWrapper);
-                itemContainer.data('calendar', calendar);
-
-                // Titel
-                $('<span>', {
-                    class: 'text-truncate flex-fill',
-                    css: {fontSize: '0.9rem'},
-                    text: calendar.title
-                }).appendTo(itemContainer);
-
-                // Optional: Ein kleiner Dot am Ende für visuellen Balance, wenn aktiv
-                const statusDot = $('<span>', {
-                    class: 'rounded-circle mx-2 js-calendar-dot',
-                    css: {
-                        width: '6px',
-                        height: '6px',
-                        backgroundColor: color,
-                        opacity: calendar.active ? 1 : 0,
-                        transition: 'opacity 0.2s'
-                    }
-                }).appendTo(itemContainer);
-            });
-        }
-
-        if (settings.showTasks) {
-            const paddingControls = hasCalendars ? 'pb-2' : 'py-2';
-            const controlWrapper = $('<div>', {
-                class: 'd-flex flex-column gap-2 ' + paddingControls + ' ps-2 pe-0 bg-body overflow-visible'
-            }).appendTo('#' + data.elements.wrapperCalendarsId);
-
-            const tasksControl = {
-                id: 'tasks',
-                title: settings.translations.tasks,
-                active: data.showTasks,
-                color: $.bsCalendar.utils.getColors(settings.mainColor, settings.mainColor)
-            };
-
-            const itemContainer = $('<a>', {
-                href: '#',
-                class: `d-flex align-items-center py-1 ps-3 pe-1 rounded-end text-decoration-none user-select-none transition-base`,
-                css: {
-                    fontSize: '0.9rem',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease-in-out',
-                    ...getStyleCalendarButton(tasksControl)
-                },
-                'data-control-toggle': 'tasks'
-            }).appendTo(controlWrapper);
-
-            $('<i>', {
-                class: settings.icons.taskDone + ' me-2',
-                // css: {fontSize: '0.9rem'},
-            }).appendTo(itemContainer);
-
-            $('<span>', {
-                class: 'text-truncate flex-fill',
-                css: {fontSize: '0.9rem'},
-                text: tasksControl.title
-            }).appendTo(itemContainer);
-
-            $('<span>', {
-                class: 'rounded-circle mx-2 js-calendar-dot',
-                css: {
-                    width: '6px',
-                    height: '6px',
-                    backgroundColor: tasksControl.color.backgroundColor,
-                    opacity: tasksControl.active ? 1 : 0,
-                    transition: 'opacity 0.2s'
-                }
-            }).appendTo(itemContainer);
-        }
-        // If more addons are to be invited, add them to the sidebar
-        if (settings.sidebarAddons && $(settings.sidebarAddons).length > 0) {
-            // Container: Vertikal, etwas Luft, modern
-            const sidebarAddonWrapper = $('<div>', {
-                class: 'd-flex flex-column gap-2 mt-3 p-2 bg-body overflow-visible'
-            }).appendTo('#' + data.elements.wrapperCalendarsId);
-            $(settings.sidebarAddons).appendTo(sidebarAddonWrapper);
-        }
-
+        appendSidebarContent(container, true, 'd-none d-lg-block');
 
         // add the viewer
         // FIX: Wir erstellen einen "Design-Wrapper", der das Padding und den Hintergrund hält.
@@ -4141,8 +4330,8 @@
         const settings = data.settings;
         const date = data.date;
         const view = data.view;
-        const el = $wrapper.find('#' + data.elements.wrapperViewContainerTitleId);
-        const elSmall = $wrapper.find('#' + data.elements.wrapperSmallMonthCalendarTitleId);
+        const el = $wrapper.find('[data-calendar-view-title]');
+        const elSmall = $wrapper.find('[data-small-month-title]');
         const dayName = date.toLocaleDateString(settings.locale, {day: 'numeric'});
         const weekdayName = date.toLocaleDateString(settings.locale, {weekday: 'long'});
         const monthName = date.toLocaleDateString(settings.locale, {month: 'long'});
@@ -4323,13 +4512,16 @@
         const input = getSearchElement($wrapper);
         const topNav = $wrapper.find('#' + data.elements.wrapperTopNavId);
         const topSearchNav = $wrapper.find('#' + data.elements.wrapperSearchNavId);
+        const mobileTopNav = $wrapper.find('[data-bs-calendar-mobile-topnav]');
         if (status) {
-            topNav.removeClass('d-flex').addClass('d-none');
+            topNav.removeClass('d-lg-flex').addClass('d-none');
+            mobileTopNav.removeClass('d-flex').addClass('d-none');
             topSearchNav.removeClass('d-none').addClass('d-flex');
             input.focus();
         } else {
             input.val(null);
-            topNav.removeClass('d-none').addClass('d-flex');
+            topNav.removeClass('d-none').addClass('d-lg-flex');
+            mobileTopNav.removeClass('d-none').addClass('d-flex');
             topSearchNav.removeClass('d-flex').addClass('d-none');
         }
     }
@@ -5390,7 +5582,6 @@
                 e.preventDefault();
                 const item = $(e.currentTarget);
                 const id = item.attr('data-calendar-toggle');
-                const dot = item.find('.js-calendar-dot');
 
                 // 1. Zentrale Daten holen
                 const data = getBsCalendarData($wrapper);
@@ -5412,14 +5603,12 @@
                             saveToLocalStorage($wrapper, 'calendars', activeCalendarIds);
                         }
 
-                        // 6. Visuelles Update (Button)
-                        // Hinweis: Da item.data('calendar') evtl. veraltet ist, nutzen wir das aktuelle 'calendar' Objekt
-                        // Item-Data updaten, damit Hover-Effekte sofort den neuen Status kennen
-                        item.data('calendar', calendar);
-
-                        const newStyle = getStyleCalendarButton(calendar);
-                        item.css(newStyle);
-                        dot.css('opacity', calendar.active ? 1 : 0);
+                        $wrapper.find(`[data-calendar-toggle="${id}"]`).each(function () {
+                            const syncedItem = $(this);
+                            syncedItem.data('calendar', calendar);
+                            syncedItem.css(getStyleCalendarButton(calendar));
+                            syncedItem.find('.js-calendar-dot').css('opacity', calendar.active ? 1 : 0);
+                        });
 
                         // 7. Event & Rebuild
                         buildByView($wrapper, false);
@@ -5428,8 +5617,6 @@
             })
             .on('click', '[data-control-toggle="tasks"]', function (e) {
                 e.preventDefault();
-                const item = $(e.currentTarget);
-                const dot = item.find('.js-calendar-dot');
                 const data = getBsCalendarData($wrapper);
 
                 data.showTasks = !data.showTasks;
@@ -5446,9 +5633,11 @@
                     color: $.bsCalendar.utils.getColors(data.settings.mainColor, data.settings.mainColor)
                 };
 
-                const newStyle = getStyleCalendarButton(tasksControl);
-                item.css(newStyle);
-                dot.css('opacity', data.showTasks ? 1 : 0);
+                $wrapper.find('[data-control-toggle="tasks"]').each(function () {
+                    const syncedItem = $(this);
+                    syncedItem.css(getStyleCalendarButton(tasksControl));
+                    syncedItem.find('.js-calendar-dot').css('opacity', data.showTasks ? 1 : 0);
+                });
 
                 fetchAppointments($wrapper);
             })
@@ -6390,9 +6579,19 @@
         const view = getView($wrapper);
         dropdown.find('.dropdown-item.active').removeClass('active');
         dropdown.find(`[data-view="${view}"]`).addClass('active');
-        const activeItem = dropdown.find(`[data-view="${view}"]`);
+        const activeItem = dropdown.find(`[data-view="${view}"]`).first();
 
-        dropdown.find('[data-dropdown-text]').html(activeItem.html());
+        dropdown.find('[data-dropdown-text]').each(function () {
+            const target = $(this);
+            if (target.attr('data-dropdown-icon-only') === 'true') {
+                const icon = activeItem.find('i').first().clone();
+                icon.removeClass('me-2');
+                target.empty().append(icon);
+                return;
+            }
+
+            target.html(activeItem.html());
+        });
     }
 
     function getAboutDebugText($wrapper) {
@@ -6815,8 +7014,9 @@
             /**
              * Rebuild the small month calendar using the current selected date.
              */
-            const monthCalendarWrapper = $('#' + data.elements.wrapperSmallMonthCalendarId);
-            buildMonthSmallView($wrapper, data.date, monthCalendarWrapper);
+            $wrapper.find('[data-small-month-calendar]').each(function () {
+                buildMonthSmallView($wrapper, data.date, $(this));
+            });
 
             /**
              * Trigger the custom view-change event if requested.
@@ -9782,7 +9982,7 @@
                         // Year view: Mark the existing day container instead of adding a removable element
                         container.addClass('text-secondary wc-holiday-marked');
                         container.attr('data-bs-calendar-tooltip', '1');
-                        container.tooltip({
+                        initBootstrapTooltip(container, {
                             title: holiday.title,
                             container: $wrapper,
                             customClass: 'wc-calendar-tooltip'
@@ -9851,29 +10051,17 @@
             // FIX: Tooltip korrekt initialisieren
             // Wir setzen den Title auf das Parent-Div (den Tag-Kreis), nicht auf den Badge.
             const $target = $badge.closest('div');
-            try {
-                $target.tooltip('dispose');
-            } catch (e) {
-                // ignore
-            }
-            try {
-                $target.popover('dispose');
-            } catch (e) {
-                // ignore
-            }
+            $target.removeAttr('data-bs-calendar-tooltip data-bs-calendar-popover title data-bs-content data-bs-original-title aria-describedby');
 
-            $target.removeAttr('data-bs-calendar-tooltip data-bs-calendar-popover title data-bs-content');
-
-            $target
-                .attr('data-bs-calendar-popover', '1')
-                .attr('title', popoverTitle)
-                .attr('data-bs-content', tooltipText)
-                .popover({
-                    container: $wrapper,
-                    customClass: 'wc-calendar-tooltip',
-                    trigger: 'hover focus',
-                    html: true
-                });
+            $target.attr('data-bs-calendar-popover', '1');
+            initBootstrapPopover($target, {
+                title: popoverTitle,
+                content: tooltipText,
+                container: $wrapper,
+                customClass: 'wc-calendar-tooltip',
+                trigger: 'hover focus',
+                html: true
+            });
         })
     }
 
@@ -10215,6 +10403,7 @@
         const data = getBsCalendarData($wrapper);
         const view = data.view;
         const windowWidth = $(window).width();
+        const mdBreakPoint = 768;
         const lgBreakPoint = 992;
         const calendarContainer = getViewContainer($wrapper);
 
@@ -10226,18 +10415,22 @@
         if (view === 'month') {
 
             const dayElements = calendarContainer.find('[data-month-date]');
+            const rowCount = Math.ceil(dayElements.length / 7); // Anzahl der Zeilen
+            const minMonthCellHeight = windowWidth < mdBreakPoint && rowCount > 0
+                ? Math.max(88, Math.min(132, Math.floor(($(window).height() * 0.82) / rowCount)))
+                : 0;
 
-            // calculate the height of a day
-            let squareSize = 0;
+            // Keep desktop month cells square, but give mobile enough height for day content.
+            let dayHeight = 0;
             dayElements.each(function () {
                 const width = $(this).outerWidth(); // width of the element
-                $(this).css('height', `${width}px`); // set height
-                squareSize = width; // save the height for the later calculation
+                const height = Math.max(width, minMonthCellHeight);
+                $(this).css('height', `${height}px`); // set height
+                dayHeight = height; // save the height for the later calculation
             });
 
             // set dynamic container height
-            const rowCount = Math.ceil(dayElements.length / 7); // Anzahl der Zeilen
-            const totalHeight = rowCount * squareSize; // Gesamthöhe berechnen
+            const totalHeight = rowCount * dayHeight; // Gesamthöhe berechnen
             calendarContainer.css('height', `${totalHeight}px`);
         } else {
             calendarContainer.css('height', '');
@@ -10401,15 +10594,24 @@
 
         // Retrieve the current date from the wrapper
         const date = getDate($wrapper);
+        const settings = getSettings($wrapper);
+
+        const headerRow = $('<div>', {
+            class: 'position-relative px-1 px-lg-5'
+        }).appendTo($container);
+        appendUtcOffsetHeaderLabel(headerRow, date);
+
+        const headerContent = $('<div>', {
+            css: {
+                paddingLeft: '40px'
+            }
+        }).appendTo(headerRow);
 
         // Create the headline for the day's header
         const headline = $('<div>', {
-            class: 'wc-day-header mb-2 ms-5',
-            css: {
-                paddingLeft: '40px'
-            },
+            class: 'wc-day-header mb-2',
             html: buildHeaderForDay($wrapper, date, false)
-        }).appendTo($container);
+        }).appendTo(headerContent);
 
         // Set data attributes for the headline and change the cursor to a pointer
         headline.attr('data-date', $.bsCalendar.utils.formatDateToDateString(date)).css('cursor', 'pointer');
@@ -10418,11 +10620,7 @@
         $('<div>', {
             'data-all-day': date.getDay(),
             'data-date-local': $.bsCalendar.utils.formatDateToDateString(date),
-            class: 'mx-5',
-            css: {
-                paddingLeft: '40px'
-            }
-        }).appendTo($container);
+        }).appendTo(headerContent);
 
         // Build the main content for the day view
         buildDayViewContent($wrapper, date, $container);
@@ -10470,10 +10668,11 @@
             log(`buildWeekView - viewDate=${$.bsCalendar.utils.formatDateToDateString(date)}, startOfWeek=${$.bsCalendar.utils.formatDateToDateString(startOfWeek)}, endOfWeek=${$.bsCalendar.utils.formatDateToDateString(endOfWeek)}, startWeekOnSunday=${startWeekOnSunday}`);
         }
 
-        const wrappAllDay = $("<div>", {
-            class: "d-flex flex-nowrap flex-fill w-100",
+        const wrappAllDay = $('<div>', {
+            class: 'd-flex flex-nowrap flex-fill w-100 position-relative',
             css: {paddingLeft: "40px"}
         }).appendTo($container);
+        appendUtcOffsetHeaderLabel(wrappAllDay, startOfWeek);
 
 
         for (let day = 0; day < dayCount; day++) {
@@ -10494,12 +10693,12 @@
             headline.attr('data-date', $.bsCalendar.utils.formatDateToDateString(currentDate)).css('cursor', 'pointer');
             $('<div>', {
                 css: {
-                    minHeight: '45px',
+                    minHeight: 0,
                     // width: (100 / dayCount) + '%' // Fixe Breite für Spalten
                 },
                 'data-all-day': currentDate.getDay(),
                 'data-date-local': $.bsCalendar.utils.formatDateToDateString(currentDate),
-                class: 'd-flex flex-column align-items-stretch flex-fill w-100',
+                class: 'd-flex flex-column align-items-stretch w-100',
             }).appendTo(col);
         }
         ////////
@@ -10532,6 +10731,39 @@
 
             buildDayViewContent($wrapper, currentDate, dayContainer, true, showLabels);
         }
+    }
+
+    function formatUtcOffsetLabel(date) {
+        const localDate = date instanceof Date && !isNaN(date.getTime()) ? date : new Date();
+        const offsetMinutes = -localDate.getTimezoneOffset();
+        if (offsetMinutes === 0) {
+            return 'UTC';
+        }
+
+        const sign = offsetMinutes >= 0 ? '+' : '-';
+        const absoluteMinutes = Math.abs(offsetMinutes);
+        const hours = Math.floor(absoluteMinutes / 60);
+        const minutes = absoluteMinutes % 60;
+
+        return `UTC${sign}${hours}${minutes ? ':' + String(minutes).padStart(2, '0') : ''}`;
+    }
+
+    function appendUtcOffsetHeaderLabel($target, date) {
+        return $('<div>', {
+            class: 'position-absolute text-body-secondary text-center user-select-none',
+            css: {
+                bottom: '1rem',
+                paddingRight: '0.5rem',
+                left: 0,
+                width: '40px',
+                fontSize: '10px',
+                lineHeight: '1.1',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                pointerEvents: 'none'
+            },
+            text: formatUtcOffsetLabel(date)
+        }).appendTo($target);
     }
 
     /**

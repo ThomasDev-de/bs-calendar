@@ -2,6 +2,7 @@
  
  - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
     * [**dev-main**](#dev-main)
+    * [**Version 2.3.5**](#version-235)
     * [**Version 2.3.4**](#version-234)
     * [**Version 2.3.3**](#version-233)
     * [**Version 2.3.2**](#version-232)
@@ -51,6 +52,22 @@
 
 
 ### dev-main
+
+### Version 2.3.5
+2026-06-16
+- Improvement: Reworked the responsive calendar shell so small and medium-width devices use a compact topnav with an offcanvas sidebar, while the full desktop sidebar/nav starts at the `lg` breakpoint.
+- Improvement: Mobile topnav now includes the menu toggle, current view title, add/search actions, and an icon-only view switcher for cleaner landscape layouts.
+- Improvement: The mobile offcanvas now contains the full sidebar content, including small month calendar, calendar/task toggles, and cloned sidebar addons.
+- Bugfix: Desktop sidebar is hidden below `lg` immediately, preventing a brief sidebar flash on mobile load.
+- Bugfix: Mobile offcanvas only auto-closes for clicks inside `sidebarAddons`, preserving normal sidebar interactions.
+- Improvement: Mobile/offcanvas body scroll position is reset to the top every time the offcanvas opens.
+- Improvement: Calendar topnav and search topnav are sticky inside the calendar area, with calendar root overflow adjusted so sticky positioning works correctly.
+- Improvement: Month view cells on devices below `md` now use a larger viewport-aware height, making the mobile month view less compressed.
+- Improvement: Removed the fixed `45px` all-day/holiday placeholder height in `week` and `4day`; empty all-day rows no longer waste vertical space.
+- Feature: Added a compact UTC offset label above the time axis in `day`, `week`, and `4day` views, based on the local date offset.
+- Bugfix: Bootstrap tooltip/popover cleanup now uses existing native Bootstrap instances instead of creating conflicting instances during rapid resize/rebuild cycles.
+- Improvement: `hourSlots.rules` rendering now uses availability priority for overlapping rule colors, so blocking rules visually win over lower-priority rules.
+- Files modified: `dist/bs-calendar.js`, `dist/bs-calendar.min.js`, `README.md`, `demo/index.html`, `composer.json`, `changelog.md`
 
 ### Version 2.3.4
 2026-06-15
