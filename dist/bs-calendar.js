@@ -8,7 +8,7 @@
  *
  * @author Thomas Kirsch
  * @version 2.3.6
- * @date 2026-06-16
+ * @date 2026-06-17
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -78,6 +78,7 @@
             month: 'شهر',
             year: 'سنة',
             agenda: 'جدول الأعمال',
+            allDay: 'طوال اليوم',
             search: 'اكتب واضغط Enter',
             searchNoResult: 'لم يتم العثور على موعد',
             tasks: 'المهام',
@@ -97,6 +98,7 @@
             month: 'חודש',
             year: 'שנה',
             agenda: 'סדר יום',
+            allDay: 'כל היום',
             search: 'הקלד ולחץ על Enter',
             searchNoResult: 'לא נמצא תור',
             tasks: 'משימות',
@@ -116,6 +118,7 @@
             month: '月',
             year: '年',
             agenda: '日程',
+            allDay: '全天',
             search: '输入并按 Enter',
             searchNoResult: '未找到预约',
             tasks: '任务',
@@ -135,6 +138,7 @@
             month: 'Month',
             year: 'Year',
             agenda: 'Agenda',
+            allDay: 'All day',
             search: 'Type and press Enter',
             searchNoResult: 'No appointment found',
             tasks: 'Tasks',
@@ -154,8 +158,9 @@
             month: 'Monat',
             year: 'Jahr',
             agenda: 'Terminliste',
+            allDay: 'Ganztägig',
             search: 'Tippen und Enter drücken',
-            searchNoResult: 'Kein Termin gefunden',
+            searchNoResult: 'Keinen Termin gefunden',
             tasks: 'Aufgaben',
             taskOpen: 'Offen',
             taskDone: 'Erledigt',
@@ -173,6 +178,7 @@
             month: 'Mes',
             year: 'Año',
             agenda: 'Agenda',
+            allDay: 'Todo el día',
             search: 'Escribe y pulsa Enter',
             searchNoResult: 'No se encontró ninguna cita',
             tasks: 'Tareas',
@@ -192,6 +198,7 @@
             month: 'Mois',
             year: 'Année',
             agenda: 'Agenda',
+            allDay: 'Toute la journée',
             search: 'Tapez et appuyez sur Entrée',
             searchNoResult: 'Aucun rendez-vous trouvé',
             tasks: 'Tâches',
@@ -211,6 +218,7 @@
             month: 'Mese',
             year: 'Anno',
             agenda: 'Agenda',
+            allDay: 'Tutto il giorno',
             search: 'Digita e premi Invio',
             searchNoResult: 'Nessun appuntamento trovato',
             tasks: 'Attività',
@@ -230,6 +238,7 @@
             month: 'Mês',
             year: 'Ano',
             agenda: 'Agenda',
+            allDay: 'Dia inteiro',
             search: 'Digite e pressione Enter',
             searchNoResult: 'Nenhum compromisso encontrado',
             tasks: 'Tarefas',
@@ -249,6 +258,7 @@
             month: 'Maand',
             year: 'Jaar',
             agenda: 'Agenda',
+            allDay: 'Hele dag',
             search: 'Typ en druk op Enter',
             searchNoResult: 'Geen afspraak gevonden',
             tasks: 'Taken',
@@ -268,6 +278,7 @@
             month: 'Miesiąc',
             year: 'Rok',
             agenda: 'Agenda',
+            allDay: 'Cały dzień',
             search: 'Wpisz i naciśnij Enter',
             searchNoResult: 'Nie znaleziono terminu',
             tasks: 'Zadania',
@@ -287,6 +298,7 @@
             month: 'Месяц',
             year: 'Год',
             agenda: 'Повестка',
+            allDay: 'Весь день',
             search: 'Введите и нажмите Enter',
             searchNoResult: 'Встреча не найдена',
             tasks: 'Задачи',
@@ -306,6 +318,7 @@
             month: 'Місяць',
             year: 'Рік',
             agenda: 'Порядок денний',
+            allDay: 'Увесь день',
             search: 'Введіть і натисніть Enter',
             searchNoResult: 'Запис не знайдено',
             tasks: 'Завдання',
@@ -325,6 +338,7 @@
             month: 'Ay',
             year: 'Yıl',
             agenda: 'Ajanda',
+            allDay: 'Tüm gün',
             search: 'Yazın ve Enter’a basın',
             searchNoResult: 'Randevu bulunamadı',
             tasks: 'Görevler',
@@ -344,6 +358,7 @@
             month: '月',
             year: '年',
             agenda: '予定リスト',
+            allDay: '終日',
             search: '入力して Enter を押してください',
             searchNoResult: '予約が見つかりません',
             tasks: 'タスク',
@@ -363,6 +378,7 @@
             month: '월',
             year: '년',
             agenda: '일정',
+            allDay: '종일',
             search: '입력 후 Enter를 누르세요',
             searchNoResult: '예약을 찾을 수 없습니다',
             tasks: '작업',
@@ -382,6 +398,7 @@
             month: 'महीना',
             year: 'वर्ष',
             agenda: 'एजेंडा',
+            allDay: 'पूरे दिन',
             search: 'टाइप करें और Enter दबाएँ',
             searchNoResult: 'कोई अपॉइंटमेंट नहीं मिला',
             tasks: 'कार्य',
@@ -401,6 +418,7 @@
             month: 'Bulan',
             year: 'Tahun',
             agenda: 'Agenda',
+            allDay: 'Sepanjang hari',
             search: 'Ketik lalu tekan Enter',
             searchNoResult: 'Janji temu tidak ditemukan',
             tasks: 'Tugas',
@@ -420,6 +438,7 @@
             month: 'Tháng',
             year: 'Năm',
             agenda: 'Lịch trình',
+            allDay: 'Cả ngày',
             search: 'Nhập và nhấn Enter',
             searchNoResult: 'Không tìm thấy lịch hẹn',
             tasks: 'Nhiệm vụ',
@@ -439,6 +458,7 @@
             month: 'เดือน',
             year: 'ปี',
             agenda: 'กำหนดการ',
+            allDay: 'ทั้งวัน',
             search: 'พิมพ์แล้วกด Enter',
             searchNoResult: 'ไม่พบการนัดหมาย',
             tasks: 'งาน',
@@ -458,6 +478,7 @@
             month: 'Měsíc',
             year: 'Rok',
             agenda: 'Agenda',
+            allDay: 'Celý den',
             search: 'Napište a stiskněte Enter',
             searchNoResult: 'Nebyla nalezena žádná schůzka',
             tasks: 'Úkoly',
@@ -477,6 +498,7 @@
             month: 'Månad',
             year: 'År',
             agenda: 'Agenda',
+            allDay: 'Hela dagen',
             search: 'Skriv och tryck på Enter',
             searchNoResult: 'Ingen tid hittades',
             tasks: 'Uppgifter',
@@ -496,6 +518,7 @@
             month: 'Måned',
             year: 'År',
             agenda: 'Agenda',
+            allDay: 'Hele dagen',
             search: 'Skriv og tryk på Enter',
             searchNoResult: 'Ingen aftale fundet',
             tasks: 'Opgaver',
@@ -515,6 +538,7 @@
             month: 'Måned',
             year: 'År',
             agenda: 'Agenda',
+            allDay: 'Hele dagen',
             search: 'Skriv og trykk på Enter',
             searchNoResult: 'Ingen avtale funnet',
             tasks: 'Oppgaver',
@@ -534,6 +558,7 @@
             month: 'Kuukausi',
             year: 'Vuosi',
             agenda: 'Agenda',
+            allDay: 'Koko päivä',
             search: 'Kirjoita ja paina Enter',
             searchNoResult: 'Aikaa ei löytynyt',
             tasks: 'Tehtävät',
@@ -553,6 +578,7 @@
             month: 'Lună',
             year: 'An',
             agenda: 'Agendă',
+            allDay: 'Toată ziua',
             search: 'Tastează și apasă Enter',
             searchNoResult: 'Nu a fost găsită nicio programare',
             tasks: 'Sarcini',
@@ -572,6 +598,7 @@
             month: 'Μήνας',
             year: 'Έτος',
             agenda: 'Ατζέντα',
+            allDay: 'Όλη μέρα',
             search: 'Πληκτρολογήστε και πατήστε Enter',
             searchNoResult: 'Δεν βρέθηκε ραντεβού',
             tasks: 'Εργασίες',
@@ -677,6 +704,7 @@
                 week: formatterWeek,
                 allDay: formatterAllDay,
                 month: formatterMonth,
+                agenda: formatterAgenda,
                 search: formatterSearch,
                 holiday: formatterHoliday,
                 window: formatInfoWindow,
@@ -3077,6 +3105,15 @@
             .join(' ');
     }
 
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
 
     /**
      * Formats a holiday object into a styled HTML string representation suitable for display.
@@ -3155,6 +3192,47 @@
             `<span class="text-nowrap d-inline-block text-truncate" style="flex: 1; min-width: 0;">${appointment.title}</span>`,
             `</div>`
         ].join('')
+    }
+
+    function formatterAgenda(appointment, extras) {
+        const t = $.bsCalendar.getTranslations(extras.locale);
+        const isTask = !!appointment.task;
+        const isAllDay = appointment.allDay;
+        const isDone = isTask && !!appointment.task.checked;
+        const timeText = isAllDay
+            ? `<span>`+ (t.allDay || $.bsCalendar.getTranslation(extras.locale, 'allDay') || 'All day') + `</span>`
+            : `<span>${String(extras.start.time || '').slice(0, 5)}</span><span class="d-none d-lg-inline-block">-</span><span>${String(extras.end.time || '').slice(0, 5)}</span>`;
+        const icon = extras.icon
+            ? `<i class="${extras.icon} ${isTask ? 'task-toggle' : ''} flex-shrink-0" style="${isTask ? 'cursor:pointer' : ''}"></i>`
+            : '';
+
+        const meta = [];
+        if (appointment.location) {
+            meta.push(Array.isArray(appointment.location) ? appointment.location.join(' · ') : appointment.location);
+        }
+        let priorityHTML = "";
+        if (appointment.task && appointment.task.priority) {
+            const priorityColors = $.bsCalendar.utils.getColors(taskPriorityColors[appointment.task.priority]);
+            const priority = appointment.task.priority;
+            const translationKey = `taskPriority${priority.charAt(0).toUpperCase()}${priority.slice(1)}`;
+            priorityHTML = `<small class="badge" style="background-color: ${priorityColors.backgroundColor};">${t[translationKey] || priority}</small>`;
+            meta.push(priorityHTML);
+        }
+
+        return [
+            '<div class="text-body-secondary d-flex gap-1 flex-column flex-lg-row small flex-shrink-0 text-center" style="width: 92px;">',
+            timeText,
+            '</div>',
+            '<div class="flex-fill min-w-0">',
+            `<div class="d-flex align-items-center gap-2 fw-semibold ${isDone ? 'text-decoration-line-through text-body-secondary' : ''}">`,
+            icon,
+            `<span class="text-truncate">${escapeHtml(appointment.title)}</span>`,
+            '</div>',
+            meta.length
+                ? `<small>` + meta.join(' · ') + `</small>`
+                : '',
+            '</div>'
+        ].join('');
     }
 
     /**
@@ -3469,7 +3547,7 @@
                 // process location information
                 let location = "";
                 if (appointment.location) {
-                    if (Array.isArray(appointment.lofcation)) {
+                    if (Array.isArray(appointment.location)) {
                         location = appointment.location.join('<br>');
                     }
                     if (typeof appointment.location === 'string') {
@@ -4056,28 +4134,29 @@
             return aboutDropdown;
         }
 
-        function appendSidebarContent($target, withIds = false, extraClass = '') {
+        function appendSidebarContent($target, forDesktop = false, extraClass = '') {
             const sidebarAttributes = {
                 css: {
                     position: 'relative',
+                    maxWidth: forDesktop ? '300px' : 'auto'
                 },
                 class: `py-4 px-4 bg-body-tertiary rounded-2 overflow-visible ${extraClass}`,
                 html: [
                     '<div class="pb-3">',
                     '<div class="d-flex justify-content-between align-items-center gap-2">',
-                    `<span ${withIds ? `id="${data.elements.wrapperSmallMonthCalendarTitleId}"` : ''} data-small-month-title class="fw-bold text-body"></span>`,
+                    `<span ${forDesktop ? `id="${data.elements.wrapperSmallMonthCalendarTitleId}"` : ''} data-small-month-title class="fw-bold text-body"></span>`,
                     '<div>',
                     `<a data-prev href="#" class="text-decoration-none text-body me-2"><i class="${settings.icons.prev}"></i></a>`,
                     `<a data-next href="#" class="text-decoration-none text-body"><i class="${settings.icons.next}"></i></a>`,
                     '</div>',
                     '</div>',
                     '</div>',
-                    `<div ${withIds ? `id="${data.elements.wrapperSmallMonthCalendarId}"` : ''} data-small-month-calendar></div>`,
-                    `<div ${withIds ? `id="${data.elements.wrapperCalendarsId}"` : ''} data-calendar-list></div>`,
+                    `<div ${forDesktop ? `id="${data.elements.wrapperSmallMonthCalendarId}"` : ''} data-small-month-calendar></div>`,
+                    `<div ${forDesktop ? `id="${data.elements.wrapperCalendarsId}"` : ''} data-calendar-list></div>`,
                 ].join('')
             };
 
-            if (withIds) {
+            if (forDesktop) {
                 sidebarAttributes.id = data.elements.wrapperSideNavId;
             }
 
@@ -4177,7 +4256,7 @@
                     class: 'd-flex flex-column gap-2 mt-3 p-2 bg-body overflow-visible',
                     'data-sidebar-addons': true
                 }).appendTo(calendarList);
-                const addons = withIds ? $(settings.sidebarAddons) : $(settings.sidebarAddons).clone(true, true);
+                const addons = forDesktop ? $(settings.sidebarAddons) : $(settings.sidebarAddons).clone(true, true);
                 addons.appendTo(sidebarAddonWrapper);
             }
 
@@ -5843,6 +5922,22 @@
                 const appointment = $appointmentEl.data('appointment');
                 methodToggleTaskStatus($wrapper, appointment, !appointment.task.checked);
 
+            })
+            .off('input' + namespace, '[data-agenda-search-input]')
+            .on('input' + namespace, '[data-agenda-search-input]', function () {
+                const data = getBsCalendarData($wrapper);
+                data.agendaSearchTerm = $(this).val();
+                setBsCalendarData($wrapper, data);
+                applyAgendaSearchFilter($wrapper);
+            })
+            .off('click' + namespace, '[data-agenda-search-clear]')
+            .on('click' + namespace, '[data-agenda-search-clear]', function (e) {
+                e.preventDefault();
+                const data = getBsCalendarData($wrapper);
+                data.agendaSearchTerm = '';
+                setBsCalendarData($wrapper, data);
+                $wrapper.find('[data-agenda-search-input]').val('').trigger('focus');
+                applyAgendaSearchFilter($wrapper);
             })
             .off('wheel', '.wc-calendar-view-container')
             .on('wheel', '.wc-calendar-view-container', debounce(function (e) {
@@ -8798,11 +8893,27 @@
 
         let currentDate = null;
         let $group = null;
+        const mainColor = $.bsCalendar.utils.getColors(settings.mainColor);
         items.forEach(item => {
             if (item.dateLocal !== currentDate) {
                 currentDate = item.dateLocal;
                 const date = $.bsCalendar.utils.parseDateInput(item.dateLocal);
+
                 const isToday = date.toDateString() === new Date().toDateString();
+                const circleClasses = [];
+                const circleCss = [
+                    'width: 32px',
+                    'height: 32px',
+                    'line-height: 32px',
+                ];
+                if (isToday) {
+                    circleClasses.push('d-flex justify-content-center align-items-center rounded-circle');
+                    circleCss.push(`background-color: ${mainColor.backgroundColor}`);
+                    circleCss.push(`background-image: ${mainColor.backgroundImage}`);
+                    circleCss.push(`color: ${mainColor.color}`);
+                } else {
+                    circleClasses.push('d-flex justify-content-center align-items-center border rounded-circle');
+                }
 
                 const $section = $('<section>', {
                     class: 'wc-agenda-day border-bottom bg-body'
@@ -8811,16 +8922,23 @@
                 const dayName = date.toLocaleDateString(settings.locale, {weekday: 'short'});
                 const monthName = date.toLocaleDateString(settings.locale, {month: 'short'});
 
-                $('<div>', {
-                    class: 'd-flex align-items-center gap-3 px-3 py-2 bg-body-tertiary border-top',
+
+
+                const dateWrapper = $('<div>', {
+                    class: 'd-flex align-items-center gap-3 px-3 py-2 bg-body-tertiary',
                     html: [
-                        `<div class="text-center ${isToday ? 'fw-bold' : ''}" style="width: 44px;">`,
+                        `<div class="text-center ${isToday ? 'fw-bold' : ''}" style="width: 32px;">`,
                         `<div class="small text-uppercase text-body-secondary">${dayName}</div>`,
-                        `<div class="h5 mb-0">${date.getDate()}</div>`,
+                        `<div class="h5 mb-0 ${circleClasses.join(' ')}" style="${circleCss.join(';')}">${date.getDate()}</div>`,
                         `</div>`,
                         `<div class="fw-semibold">${monthName} ${date.getFullYear()}</div>`
                     ].join('')
                 }).appendTo($section);
+
+                if (settings.views.includes('day')) {
+                    const formattedDate = $.bsCalendar.utils.formatDateToDateString(date);
+                    dateWrapper.attr('data-date', formattedDate).css({cursor: 'pointer'});
+                }
 
                 $group = $('<div>', {
                     class: 'list-group list-group-flush'
@@ -8829,22 +8947,34 @@
 
             appendAgendaAppointment($wrapper, $group, item);
         });
+        $('<div>', {
+            'data-agenda-search-empty': true,
+            class: 'd-flex flex-column align-items-center justify-content-center text-body-secondary p-5 text-center',
+            html: `<i class="${settings.icons.agenda} mb-2" style="font-size: 2rem;"></i><div>${settings.translations.searchNoResult}</div>`,
+            css: {
+                display: 'none'
+            }
+        }).appendTo($container);
+        applyAgendaSearchFilter($wrapper);
     }
 
     function appendAgendaAppointment($wrapper, $group, item) {
         const settings = getSettings($wrapper);
         const appointment = item.appointment;
         const returnData = getAppointmentForReturn(appointment);
-        const colors = appointment.extras.colors || $.bsCalendar.utils.getColors(appointment.color, settings.mainColor);
-        const isTask = !!appointment.task;
-        const isDone = isTask && !!appointment.task.checked;
-        const isOverdue = isTask && !!appointment.task.isOverdue;
-        const timeText = appointment.allDay
-            ? 'All day'
-            : `${String(item.displayDate.times.start || '').slice(0, 5)} - ${String(item.displayDate.times.end || '').slice(0, 5)}`;
+        const colors = returnData.extras.colors || $.bsCalendar.utils.getColors(appointment.color, settings.mainColor);
+        const agendaExtras = $.extend(true, {}, returnData.extras, {
+            agenda: {
+                displayDate: item.displayDate,
+                dateLocal: item.dateLocal,
+                start: item.start,
+                end: item.end
+            }
+        });
 
         const $item = $('<div>', {
             'data-appointment': true,
+            'data-agenda-search-text': buildAgendaSearchText(returnData.appointment, agendaExtras),
             class: 'list-group-item list-group-item-action d-flex align-items-start gap-3 px-3 py-2',
             css: {
                 borderLeft: `4px solid ${colors.backgroundColor}`,
@@ -8852,57 +8982,97 @@
             }
         }).appendTo($group);
         $item.data('appointment', appointment);
+        $item.html(settings.formatter.agenda(returnData.appointment, agendaExtras));
+    }
 
-        $('<div>', {
-            class: 'text-body-secondary small flex-shrink-0 text-end',
-            css: {
-                width: '72px',
-                lineHeight: '1.25'
-            },
-            text: timeText
-        }).appendTo($item);
+    function normalizeAgendaSearchText(value) {
+        return String(value || '')
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .toLocaleLowerCase();
+    }
 
-        const $body = $('<div>', {
-            class: 'flex-fill min-w-0'
-        }).appendTo($item);
+    function flattenAgendaSearchValue(value) {
+        if (value === null || value === undefined) {
+            return [];
+        }
+        if (Array.isArray(value)) {
+            return value.flatMap(item => flattenAgendaSearchValue(item));
+        }
+        if (value instanceof Date) {
+            return [$.bsCalendar.utils.formatDateToDateString(value), $.bsCalendar.utils.formatTime(value, false)];
+        }
+        if (typeof value === 'object') {
+            return Object.values(value).flatMap(item => flattenAgendaSearchValue(item));
+        }
+        return [String(value)];
+    }
 
-        const $title = $('<div>', {
-            class: `d-flex align-items-center gap-2 fw-semibold ${isDone ? 'text-decoration-line-through text-body-secondary' : ''}`
-        }).appendTo($body);
+    function buildAgendaSearchText(appointment, extras) {
+        const task = appointment.task || null;
+        const agenda = extras.agenda || {};
+        const displayDate = agenda.displayDate || {};
+        const values = [
+            appointment.title,
+            appointment.description,
+            appointment.location,
+            appointment.calendarId,
+            appointment.allDay ? $.bsCalendar.getTranslation(extras.locale, 'allDay') : '',
+            task ? task.priority : '',
+            task ? (task.checked ? $.bsCalendar.getTranslation(extras.locale, 'taskDone') : $.bsCalendar.getTranslation(extras.locale, 'taskOpen')) : '',
+            extras.start,
+            extras.end,
+            displayDate.times,
+            displayDate.date
+        ];
 
-        if (isTask) {
-            $('<i>', {
-                class: `${returnData.extras.icon} task-toggle flex-shrink-0`,
-                css: {cursor: 'pointer'}
-            }).appendTo($title);
-        } else if (returnData.extras.icon) {
-            $('<i>', {
-                class: `${returnData.extras.icon} flex-shrink-0`
-            }).appendTo($title);
+        return normalizeAgendaSearchText(flattenAgendaSearchValue(values).join(' '));
+    }
+
+    function applyAgendaSearchFilter($wrapper) {
+        const data = getBsCalendarData($wrapper);
+        if (!data) {
+            return;
         }
 
-        $('<span>', {
-            class: 'text-truncate',
-            text: appointment.title
-        }).appendTo($title);
+        const term = normalizeAgendaSearchText(data.agendaSearchTerm || '');
+        const $viewContainer = getViewContainer($wrapper);
+        const $agendaContainer = $viewContainer.find('[data-agenda-container]');
+        const $empty = $viewContainer.find('[data-agenda-search-empty]');
+        const $clear = $viewContainer.find('[data-agenda-search-clear]');
 
-        const meta = [];
-        if (appointment.location) {
-            meta.push(Array.isArray(appointment.location) ? appointment.location.join(', ') : appointment.location);
-        }
-        if (appointment.task && appointment.task.priority) {
-            meta.push(settings.translations[`taskPriority${appointment.task.priority.charAt(0).toUpperCase()}${appointment.task.priority.slice(1)}`] || appointment.task.priority);
-        }
-        if (isOverdue) {
-            meta.push('Overdue');
-        }
+        $clear.toggle(!!term);
+        let visibleCount = 0;
 
-        if (meta.length) {
-            $('<div>', {
-                class: 'small text-body-secondary text-truncate mt-1',
-                text: meta.join(' · ')
-            }).appendTo($body);
+        $agendaContainer.find('[data-appointment]').each(function () {
+            const $appointment = $(this);
+            const text = String($appointment.attr('data-agenda-search-text') || '');
+            const isVisible = !term || text.includes(term);
+            if (isVisible) {
+                visibleCount++;
+            }
+            setAgendaFilterVisibility(this, isVisible);
+            $appointment.attr('data-agenda-search-match', isVisible ? 'true' : 'false');
+        });
+
+        $agendaContainer.find('.wc-agenda-day').each(function () {
+            const $day = $(this);
+            const hasVisibleAppointments = $day.find('[data-agenda-search-match="true"]').length > 0;
+            setAgendaFilterVisibility(this, !term || hasVisibleAppointments);
+        });
+
+        setAgendaFilterVisibility($empty.get(0), !!term && visibleCount === 0);
+    }
+
+    function setAgendaFilterVisibility(element, isVisible) {
+        if (!element || !element.style) {
+            return;
         }
+        if (isVisible) {
+            element.style.removeProperty('display');
+            return;
+        }
+        element.style.setProperty('display', 'none', 'important');
     }
 
     /**
@@ -9610,24 +9780,24 @@
 
         const baseCss = {
             position: 'absolute',
-            left: '2px',
-            right: '2px',
+            left: '50%',
+            width: '24px',
             height: '18px',
             zIndex: 14,
             cursor: 'ns-resize',
             touchAction: 'none',
             userSelect: 'none',
-            WebkitUserSelect: 'none'
+            WebkitUserSelect: 'none',
+            transform: 'translateX(-50%)'
         };
         const lineCss = {
             position: 'absolute',
-            left: '50%',
+            left: '0',
             width: '24px',
             height: '3px',
             borderRadius: '999px',
             backgroundColor: 'currentColor',
             opacity: 0.55,
-            transform: 'translateX(-50%)',
             pointerEvents: 'none'
         };
 
@@ -10932,8 +11102,45 @@
     }
 
     function buildAgendaView($wrapper) {
+        const data = getBsCalendarData($wrapper);
+        const settings = data.settings;
         const container = getViewContainer($wrapper);
+        data.agendaSearchTerm = '';
+        setBsCalendarData($wrapper, data);
+        const searchTerm = '';
         container.empty();
+
+        const $searchWrapper = $('<div>', {
+            class: 'wc-agenda-search px-3 py-2 bg-body rounded-pill mb-1'
+        }).appendTo(container);
+
+        const $inputGroup = $('<div>', {
+            class: 'input-group input-group-sm'
+        }).appendTo($searchWrapper);
+
+        $('<span>', {
+            class: 'input-group-text bg-body border-0',
+            html: `<i class="${settings.icons.search}"></i>`
+        }).appendTo($inputGroup);
+
+        $('<input>', {
+            type: 'search',
+            class: 'form-control border-0',
+            'data-agenda-search-input': true,
+            placeholder: settings.translations.search,
+            value: searchTerm
+        }).appendTo($inputGroup);
+
+        $('<button>', {
+            type: 'button',
+            class: 'btn border-0',
+            'data-agenda-search-clear': true,
+            'aria-label': settings.translations.searchClear || 'Clear search',
+            html: '<i class="bi bi-x-lg"></i>',
+            css: {
+                display: searchTerm ? '' : 'none'
+            }
+        }).appendTo($inputGroup);
 
         $('<div>', {
             'data-agenda-container': true,

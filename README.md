@@ -596,6 +596,7 @@ Calendar fields:
 | `month`              | `"Month"`                | Label for the month view.                 |
 | `year`               | `"Year"`                 | Label for the year view.                  |
 | `agenda`             | `"Agenda"`               | Label for the agenda list view.           |
+| `allDay`             | `"All day"`              | Label for all-day appointments.           |
 | `search`             | `"Type and press Enter"` | Search placeholder.                       |
 | `searchNoResult`     | `"No appointment found"` | Empty search message.                     |
 | `tasks`              | `"Tasks"`                | Label for the task toggle and task badge. |
@@ -747,6 +748,9 @@ $('#calendar').bsCalendar({
         month(appointment, extras) {
             return appointment.title;
         },
+        agenda(appointment, extras) {
+            return appointment.title;
+        },
         search(appointment, extras) {
             return appointment.title;
         },
@@ -771,6 +775,7 @@ Formatter signatures:
 | `week`     | `(appointment, extras)`       | HTML/string                      |
 | `allDay`   | `(appointment, extras, view)` | HTML/string                      |
 | `month`    | `(appointment, extras)`       | HTML/string                      |
+| `agenda`   | `(appointment, extras)`       | HTML/string                      |
 | `search`   | `(appointment, extras)`       | HTML/string                      |
 | `holiday`  | `(holiday, view)`             | HTML/string                      |
 | `window`   | `(appointment, extras)`       | Promise resolving to HTML/string |
@@ -935,6 +940,7 @@ All built-in translation objects currently use these keys:
 | `month`              | `"Month"`                | Month view label.                             |
 | `year`               | `"Year"`                 | Year view label.                              |
 | `agenda`             | `"Agenda"`               | Agenda list view label.                       |
+| `allDay`             | `"All day"`              | All-day appointment label.                     |
 | `search`             | `"Type and press Enter"` | Search input placeholder.                     |
 | `searchNoResult`     | `"No appointment found"` | Empty search result message.                  |
 | `tasks`              | `"Tasks"`                | Task sidebar toggle and task badge label.     |
@@ -963,6 +969,7 @@ $('#calendar').bsCalendar({
     locale: 'en-GB',
     translations: {
         today: 'Now',
+        allDay: 'Full day',
         search: 'Find appointments...',
         taskPriorityNormal: 'Normal',
         duplicate: 'Copy'
@@ -984,6 +991,7 @@ $.bsCalendar.addTranslation('eo', {
     month: 'Monato',
     year: 'Jaro',
     agenda: 'Agendo',
+    allDay: 'Tuttaga',
     search: 'Tajpu kaj premu Enter',
     searchNoResult: 'Neniu rendevuo trovita',
     tasks: 'Taskoj',
@@ -1004,6 +1012,7 @@ For regional wording differences, keep the regional `locale` for date formatting
 $('#calendar').bsCalendar({
     locale: 'de-CH',
     translations: {
+        allDay: 'Ganztägig',
         taskPriorityNormal: 'Normal',
         duplicate: 'Kopieren'
     }

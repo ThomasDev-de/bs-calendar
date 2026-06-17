@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -19,6 +19,7 @@
 
 <div class="visually-hidden">
     <div id="sidebarAddons">
+        <h5 class="text-uppercase">Sidebar-Addons</h5>
         <div class="card-body d-flex flex-column overflow-visible">
             <label class="form-label mb-1" for="selectLanguage">Language</label>
             <select class="form-select form-select-sm mb-3" id="selectLanguage">
@@ -261,7 +262,14 @@
                 untitled: 'Untitled appointment',
                 yearAppointments: 'appointments',
                 appointmentPrefix: 'Appointment',
-                appointmentDescriptionPrefix: 'Demo appointment'
+                appointmentDescriptionPrefix: 'Demo appointment',
+                locations: [
+                    'Room 1',
+                    ['Room 2', 'Building A'],
+                    'Meeting room',
+                    ['Studio 3', '2nd floor'],
+                    'Online'
+                ]
             },
             de: {
                 locale: 'de-DE',
@@ -298,10 +306,10 @@
                 labelDescription: 'Beschreibung',
                 inputLinkPlaceholder: 'Terminlink',
                 labelLink: 'Link',
-                labelAppointmentRule: 'Termindauer',
-                appointmentRuleNone: 'Keine Dauerregel',
-                appointmentRuleCoaching45: '45-Minuten-Coachingblöcke',
-                appointmentRuleFixed60: 'Genau 60 Minuten',
+                labelAppointmentRule: 'Appointment duration',
+                appointmentRuleNone: 'No duration rule',
+                appointmentRuleCoaching45: '45-minute coaching blocks',
+                appointmentRuleFixed60: 'Exactly 60 minutes',
                 appointmentRuleHelp: 'Drag-create und Drag-resize berücksichtigen die ausgewählte Dauerregel.',
                 btnCancel: 'Abbrechen',
                 btnSave: 'Speichern',
@@ -312,7 +320,14 @@
                 untitled: 'Unbenannter Termin',
                 yearAppointments: 'Termine',
                 appointmentPrefix: 'Termin',
-                appointmentDescriptionPrefix: 'Demo-Termin'
+                appointmentDescriptionPrefix: 'Demo-Termin',
+                locations: [
+                    'Raum 1',
+                    ['Raum 2', 'Gebäude A'],
+                    'Besprechungsraum',
+                    ['Studio 3', '2. Etage'],
+                    'Online'
+                ]
             }
         };
         const state = {
@@ -526,6 +541,7 @@
                 }
                 state.lang = nextLang;
                 localStorage.setItem(storageKey, nextLang);
+                clearAppointmentStore();
                 applyLanguage(nextLang);
             });
         }
@@ -874,6 +890,12 @@
             return appointmentStore[year];
         }
 
+        function clearAppointmentStore() {
+            Object.keys(appointmentStore).forEach(function (year) {
+                delete appointmentStore[year];
+            });
+        }
+
         const APPOINTMENTS_PER_YEAR = 700;
 
         function createSeededRandom(seed) {
@@ -898,6 +920,8 @@
                 work: 'danger opacity-75 gradient',
                 sports: 'success opacity-75 gradient'
             };
+            const t = i18n[state.lang] || i18n.en;
+            const locations = t.locations || i18n.en.locations;
 
             for (let index = 0; index < 200; index++) {
                 const month = Math.floor(random() * 12);
@@ -931,6 +955,8 @@
                         priority: ['low', 'normal', 'high'][Math.floor(random() * 3)],
                         due: formatDateTime(end)
                     };
+                } else {
+                    appointment.location = locations[index % locations.length];
                 }
 
                 appointments.push(appointment);
@@ -952,6 +978,7 @@
                 allDay: !!item.allDay,
                 overlap: !!item.overlap,
                 color: item.color || 'primary opacity-75 gradient',
+                location: item.location || null,
                 link: item.link || 'https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-calendar'
             };
 

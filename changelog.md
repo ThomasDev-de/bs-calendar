@@ -1,6 +1,6 @@
 ### Changelog for `bs-calendar.js`
- 
- - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+
+- [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
     * [**dev-main**](#dev-main)
     * [**Version 2.3.6**](#version-236)
     * [**Version 2.3.5**](#version-235)
@@ -20,95 +20,168 @@
     * [**Version 2.1.2**](#version-212)
     * [**Version 2.1.1**](#version-211)
     * [**Version 2.1.0**](#version-210)
-    * [**Version 2.0.16**](#version-2016)
-    * [**Version 2.0.15**](#version-2015)
-    * [**Version 2.0.14.2**](#version-20142)
-    * [**Version 2.0.14.1**](#version-20141)
-    * [**Version 2.0.14**](#version-2014)
-    * [**Version 2.0.13.1**](#version-20131)
-    * [**Version 2.0.13**](#version-2013)
-    * [**Version 2.0.12.1**](#version-20121)
-    * [**Version 2.0.12**](#version-2012)
-    * [**Version 2.0.11**](#version-2011)
-    * [**Version 2.0.10**](#version-2010)
-    * [**Version 2.0.9.2**](#version-2092)
-    * [**Version 2.0.9.1**](#version-2091)
-    * [**Version 2.0.9**](#version-209)
-    * [**Version 2.0.8**](#version-208)
-    * [**Version 2.0.7**](#version-207)
-    * [**Version 2.0.6**](#version-206)
-    * [**Version 2.0.5**](#version-205)
-    * [**Version 2.0.3**](#version-203)
-    * [**Version 2.0.2**](#version-202)
-    * [**Version 2.0.0**](#version-200)
-    * [**Version 1.2.12**](#version-1212)
-    * [**Version 1.2.11**](#version-1211)
-    * [**Version 1.2.9**](#version-129)
-    * [**Version 1.2.8**](#version-128)
-    * [**Version 1.2.7**](#version-127)
-    * [**Version 1.2.6**](#version-126)
-    * [**Version 1.2.4**](#version-124)
-    * [**Version 1.2.3**](#version-123)
-    * [**Version 1.2.2**](#version-122)
 
+<details>
+<summary>Older versions</summary>
+<ul>
+<li><a href="#version-2016"><strong>Version 2.0.16</strong></a></li>
+<li><a href="#version-2015"><strong>Version 2.0.15</strong></a></li>
+<li><a href="#version-20142"><strong>Version 2.0.14.2</strong></a></li>
+<li><a href="#version-20141"><strong>Version 2.0.14.1</strong></a></li>
+<li><a href="#version-2014"><strong>Version 2.0.14</strong></a></li>
+<li><a href="#version-20131"><strong>Version 2.0.13.1</strong></a></li>
+<li><a href="#version-2013"><strong>Version 2.0.13</strong></a></li>
+<li><a href="#version-20121"><strong>Version 2.0.12.1</strong></a></li>
+<li><a href="#version-2012"><strong>Version 2.0.12</strong></a></li>
+<li><a href="#version-2011"><strong>Version 2.0.11</strong></a></li>
+<li><a href="#version-2010"><strong>Version 2.0.10</strong></a></li>
+<li><a href="#version-2092"><strong>Version 2.0.9.2</strong></a></li>
+<li><a href="#version-2091"><strong>Version 2.0.9.1</strong></a></li>
+<li><a href="#version-209"><strong>Version 2.0.9</strong></a></li>
+<li><a href="#version-208"><strong>Version 2.0.8</strong></a></li>
+<li><a href="#version-207"><strong>Version 2.0.7</strong></a></li>
+<li><a href="#version-206"><strong>Version 2.0.6</strong></a></li>
+<li><a href="#version-205"><strong>Version 2.0.5</strong></a></li>
+<li><a href="#version-203"><strong>Version 2.0.3</strong></a></li>
+<li><a href="#version-202"><strong>Version 2.0.2</strong></a></li>
+<li><a href="#version-200"><strong>Version 2.0.0</strong></a></li>
+<li><a href="#version-1212"><strong>Version 1.2.12</strong></a></li>
+<li><a href="#version-1211"><strong>Version 1.2.11</strong></a></li>
+<li><a href="#version-129"><strong>Version 1.2.9</strong></a></li>
+<li><a href="#version-128"><strong>Version 1.2.8</strong></a></li>
+<li><a href="#version-127"><strong>Version 1.2.7</strong></a></li>
+<li><a href="#version-126"><strong>Version 1.2.6</strong></a></li>
+<li><a href="#version-124"><strong>Version 1.2.4</strong></a></li>
+<li><a href="#version-123"><strong>Version 1.2.3</strong></a></li>
+<li><a href="#version-122"><strong>Version 1.2.2</strong></a></li>
+</ul>
+
+</details>
 
 ### dev-main
 
 ### Version 2.3.6
-2026-06-16
-- Feature: Added drag-resize for timed appointments in `day`, `week`, and `4day` views, with start/end resize handles that emit the existing `edit.bs.calendar` flow and `dragExtras` proposed range.
-- Improvement: Drag-resize respects `draggableSnapMinutes` and `hourSlots.rules` availability, including `exclusive` and `blocked` ranges.
-- Bugfix: Mobile touch dragging now locks native scrolling during pending gestures and activates create/move when movement starts before the long-press timer, making touch drag interactions more reliable.
-- Feature: Added the new `agenda` view, a month-based list view grouped by day for appointments and tasks.
-- Improvement: `agenda` participates in configured view switching, remote request data, translations, icons, navigation, and task status toggling.
-- Improvement: Added localized `agenda` labels to the built-in translation array.
-- Feature: Added `appointmentRules` for timed appointment duration validation, supporting exact durations, duration steps, minimums, and maximums.
-- Improvement: Click-create, drag-create, drag-move, and drag-resize now expose `dragExtras.appointmentRules`; fixed-duration appointments hide resize handles.
-- Docs: Updated drag documentation and corrected the search request contract for `showTasks`.
-- Docs: Documented the `agenda` view in setup, remote data, options, translations, icons, and localization examples.
-- Docs: Documented `appointmentRules` with fixed 60-minute and 45-minute coaching block examples.
-- Demo: Added an appointment duration rule selector for no rule, 45-minute coaching blocks, and exactly 60-minute appointments.
-- Tests: Added QUnit coverage for `agenda` rendering and updated global API/method view coverage.
-- Tests: Added QUnit coverage for fixed appointment durations and duration-step resizing.
-- Files modified: `dist/bs-calendar.js`, `dist/bs-calendar.min.js`, `README.md`, `demo/index.html`, `test/index.html`, `test/tests/agenda.test.js`, `test/tests/appointment-rules.test.js`, `test/tests/drag-resize.test.js`, `test/tests/global-api.test.js`, `test/tests/methods.test.js`, `changelog.md`, `composer.json`
+
+2026-06-17
+
+#### Features
+
+- Added the new `agenda` view, a month-based list view grouped by day for appointments and tasks.
+- Added a local agenda filter with reset button that shows/hides already loaded agenda appointments without calling `url`.
+- Added `formatter.agenda(appointment, extras)` for custom agenda appointment rendering.
+- Added `appointmentRules` for timed appointment duration validation, supporting exact durations, duration steps, minimums, maximums, and
+  fixed-duration appointments.
+- Added drag-resize for timed appointments in `day`, `week`, and `4day` views, with start/end resize handles that emit the existing
+  `edit.bs.calendar` flow and `dragExtras` proposed range.
+
+#### Improvements
+
+- `agenda` participates in configured view switching, remote request data, translations, icons, navigation, and task status toggling.
+- Added localized `agenda` labels to the built-in translation array.
+- Agenda formatter now uses localized all-day labels and a non-wrapping compact time column.
+- Agenda local filter shows `searchNoResult` when an active local search has no matches.
+- Agenda local filter is reset whenever the agenda view is rebuilt.
+- Drag-resize respects `draggableSnapMinutes` and `hourSlots.rules` availability, including `exclusive` and `blocked` ranges.
+- Click-create, drag-create, drag-move, and drag-resize now expose `dragExtras.appointmentRules`.
+- Fixed-duration appointments hide resize handles.
+
+#### Bugfixes
+
+- Agenda local filter now hides individual flex appointment rows reliably instead of only keeping their day group visible.
+- Array-based appointment locations now render in the default info window formatter.
+- Limited drag-resize hit areas to the visible resize bars so task check toggles remain clickable in timed appointments.
+- Mobile touch dragging now locks native scrolling during pending gestures and activates create/move when movement starts before the
+  long-press timer, making touch drag interactions more reliable.
+
+#### Demo
+
+- Added string and array `location` examples to generated non-task appointments.
+- Added an appointment duration rule selector for no rule, 45-minute coaching blocks, and exactly 60-minute appointments.
+
+#### Docs
+
+- Documented the `agenda` view in setup, remote data, options, translations, icons, and localization examples.
+- Documented `appointmentRules` with fixed 60-minute and 45-minute coaching block examples.
+- Updated drag documentation and corrected the search request contract for `showTasks`.
+
+#### Tests
+
+- Added QUnit coverage for `agenda` rendering.
+- Added QUnit coverage for fixed appointment durations and duration-step resizing.
+- Updated global API and method view coverage.
+
+#### Files modified
+
+- `dist/bs-calendar.js`
+- `dist/bs-calendar.min.js`
+- `README.md`
+- `demo/index.html`
+- `test/index.html`
+- `test/tests/agenda.test.js`
+- `test/tests/appointment-rules.test.js`
+- `test/tests/drag-resize.test.js`
+- `test/tests/global-api.test.js`
+- `test/tests/methods.test.js`
+- `changelog.md`
+- `composer.json`
 
 ### Version 2.3.5
+
 2026-06-16
-- Improvement: Reworked the responsive calendar shell so small and medium-width devices use a compact topnav with an offcanvas sidebar, while the full desktop sidebar/nav starts at the `lg` breakpoint.
-- Improvement: Mobile topnav now includes the menu toggle, current view title, add/search actions, and an icon-only view switcher for cleaner landscape layouts.
-- Improvement: The mobile offcanvas now contains the full sidebar content, including small month calendar, calendar/task toggles, and cloned sidebar addons.
+
+- Improvement: Reworked the responsive calendar shell so small and medium-width devices use a compact topnav with an offcanvas sidebar,
+  while the full desktop sidebar/nav starts at the `lg` breakpoint.
+- Improvement: Mobile topnav now includes the menu toggle, current view title, add/search actions, and an icon-only view switcher for
+  cleaner landscape layouts.
+- Improvement: The mobile offcanvas now contains the full sidebar content, including small month calendar, calendar/task toggles, and cloned
+  sidebar addons.
 - Bugfix: Desktop sidebar is hidden below `lg` immediately, preventing a brief sidebar flash on mobile load.
 - Bugfix: Mobile offcanvas only auto-closes for clicks inside `sidebarAddons`, preserving normal sidebar interactions.
 - Improvement: Mobile/offcanvas body scroll position is reset to the top every time the offcanvas opens.
-- Improvement: Calendar topnav and search topnav are sticky inside the calendar area, with calendar root overflow adjusted so sticky positioning works correctly.
+- Improvement: Calendar topnav and search topnav are sticky inside the calendar area, with calendar root overflow adjusted so sticky
+  positioning works correctly.
 - Improvement: Month view cells on devices below `md` now use a larger viewport-aware height, making the mobile month view less compressed.
-- Improvement: Removed the fixed `45px` all-day/holiday placeholder height in `week` and `4day`; empty all-day rows no longer waste vertical space.
+- Improvement: Removed the fixed `45px` all-day/holiday placeholder height in `week` and `4day`; empty all-day rows no longer waste vertical
+  space.
 - Feature: Added a compact UTC offset label above the time axis in `day`, `week`, and `4day` views, based on the local date offset.
-- Bugfix: Bootstrap tooltip/popover cleanup now uses existing native Bootstrap instances instead of creating conflicting instances during rapid resize/rebuild cycles.
-- Improvement: `hourSlots.rules` rendering now uses availability priority for overlapping rule colors, so blocking rules visually win over lower-priority rules.
+- Bugfix: Bootstrap tooltip/popover cleanup now uses existing native Bootstrap instances instead of creating conflicting instances during
+  rapid resize/rebuild cycles.
+- Improvement: `hourSlots.rules` rendering now uses availability priority for overlapping rule colors, so blocking rules visually win over
+  lower-priority rules.
 - Files modified: `dist/bs-calendar.js`, `dist/bs-calendar.min.js`, `README.md`, `demo/index.html`, `composer.json`, `changelog.md`
 
 ### Version 2.3.4
+
 2026-06-15
+
 - Bugfix: Corrected time display in the hover indicator (time badge) when using non-integer `hourSlots.start` values.
 - Bugfix: Fixed incorrect start time calculation when clicking on a time slot in calendars with fractional start times.
 - Bugfix: Improved mobile touch dragging by locking native scrolling during pending and active drag-create/drag-move gestures.
-- Bugfix: Drag-moving now refuses invalid target day columns/cells instead of visually moving appointments into disallowed days or rule zones.
+- Bugfix: Drag-moving now refuses invalid target day columns/cells instead of visually moving appointments into disallowed days or rule
+  zones.
 - Improvement: Time formatting for the hover badge and click events now correctly handles minutes (e.g., "07:30" instead of "7.5:00").
 - Feature: `hourSlots.rules` now accepts either a single object or an array of rule objects.
-- Improvement: Each `hourSlots.rules` object can define its own `color`, resolved through `$.bsCalendar.utils.getColors`, so multiple ranges can be visually distinguished.
-- Feature: `hourSlots.rules[].mode` now drives availability metadata: `exclusive` allows work only inside the range, `blocked` disallows overlapping work, and `preferred` marks preferred work time without blocking.
-- Feature: `hourSlots.rules[].mode` rules now affect interactions, not only rendering: invalid click-create and invalid drop targets no longer fire `add.bs.calendar` or `edit.bs.calendar`.
-- Improvement: Day/week/4day drag-create and drag-move now clamp to the nearest valid `hourSlots.rules` edge when leaving `exclusive` ranges or entering `blocked` ranges.
+- Improvement: Each `hourSlots.rules` object can define its own `color`, resolved through `$.bsCalendar.utils.getColors`, so multiple ranges
+  can be visually distinguished.
+- Feature: `hourSlots.rules[].mode` now drives availability metadata: `exclusive` allows work only inside the range, `blocked` disallows
+  overlapping work, and `preferred` marks preferred work time without blocking.
+- Feature: `hourSlots.rules[].mode` rules now affect interactions, not only rendering: invalid click-create and invalid drop targets no
+  longer fire `add.bs.calendar` or `edit.bs.calendar`.
+- Improvement: Day/week/4day drag-create and drag-move now clamp to the nearest valid `hourSlots.rules` edge when leaving `exclusive` ranges
+  or entering `blocked` ranges.
 - Improvement: Appointment `extras` and drag `dragExtras` now expose rule availability through `hourSlotRules`.
 - Feature: Added `setHourSlotRules(object|array|null)` method handling for runtime updates of `hourSlots.rules`.
 - Demo: Updated `hourSlots.rules` example colors to very subtle per-mode tints for `exclusive`, `preferred`, and `blocked`.
 - Docs: Updated README and demo examples for multi-range `hourSlots.rules`.
 - Tests: Added `hourSlots.rules` coverage for object mode, array mode, appointment extras, and runtime updates.
-- Files modified: `dist/bs-calendar.js`, `dist/bs-calendar.min.js`, `README.md`, `demo/index.html`, `composer.json`, `test/index.html`, `test/tests/global-api.test.js`, `test/tests/global-api.test.min.js`, `test/tests/hour-slot-rules.test.js`, `test/tests/hour-slot-rules.test.min.js`, `changelog.md`
+- Files modified: `dist/bs-calendar.js`, `dist/bs-calendar.min.js`, `README.md`, `demo/index.html`, `composer.json`, `test/index.html`,
+  `test/tests/global-api.test.js`, `test/tests/global-api.test.min.js`, `test/tests/hour-slot-rules.test.js`,
+  `test/tests/hour-slot-rules.test.min.js`, `changelog.md`
 
 ### Version 2.3.3
+
 2026-06-12
+
 - Improvement: `hourSlots.start` and `hourSlots.end` now support decimal values and `HH:mm` strings for more detailed grid configuration.
 - Improvement: Updated grid rendering and appointment positioning to handle fractional start hours correctly.
 - Improvement: `highlightedHours` now uses the same time parsing logic as `hourSlots`.
@@ -118,8 +191,10 @@
 - Feature: Added `test/tests/highlighted-hours.test.js` to verify highlighted hours rendering.
 - Improvement: Integrated `highlightedHours` with `$.bsCalendar.utils.getColors` for consistent styling without extra CSS classes.
 - Feature: Double-clicking an editable appointment now triggers the existing edit flow directly without opening the info modal first.
-- Improvement: Single-click appointment handling uses a short 150ms delay so double-click can cancel the info modal without making normal clicks feel sluggish.
-- Bugfix: Prevented the info modal from opening alongside the edit modal by cancelling the second pointer/click early and removing any already opened info modal synchronously.
+- Improvement: Single-click appointment handling uses a short 150ms delay so double-click can cancel the info modal without making normal
+  clicks feel sluggish.
+- Bugfix: Prevented the info modal from opening alongside the edit modal by cancelling the second pointer/click early and removing any
+  already opened info modal synchronously.
 - Files modified: `dist/bs-calendar.js`, `dist/bs-calendar.min.js`, `changelog.md`
 
 ### Version 2.3.2
@@ -138,9 +213,11 @@
 - Files modified: `dist/bs-calendar.js`, `demo/index.html`, `changelog.md`, `composer.json`, `README.md`
 
 ### Version 2.3.0
+
 - *Improvement: Refined task formatting to exactly match all-day appointment styles (badges) across all views.*
 
-- Bugfix: Fixed an issue where tasks in day/week views did not show the background color correctly and appeared to deviate from normal appointments.
+- Bugfix: Fixed an issue where tasks in day/week views did not show the background color correctly and appeared to deviate from normal
+  appointments.
 - Bugfix: Fixed an issue where appointment colors were not applied to tasks in all views.
 - Feature: Native support for **Tasks** within the calendar.
 - Feature: Added task-specific icons (`task`, `taskDone`, `taskOverdue`) to the defaults.
@@ -153,9 +230,11 @@
 - Improvement: Overdue tasks are highlighted with dedicated icons and styling.
 - Demo: Enhanced the demo to generate random tasks and showcase the new functionality.
 - Improvement: Moved the live time indicator badge to the right side to avoid overlapping with task icons in day/week views.
-- Bugfix: Fixed an issue where toggling a task status triggered a redundant data fetch (AJAX request). Now it only re-renders the current view with updated state.
+- Bugfix: Fixed an issue where toggling a task status triggered a redundant data fetch (AJAX request). Now it only re-renders the current
+  view with updated state.
 - Files modified: `dist/bs-calendar.js`, `README.md`, `changelog.md`, `demo/index.html`, `composer.json`
-- Bugfix: Fixed an issue where all-day tasks were not correctly formatted as tasks (with checkbox icons and strikethrough) in day, week, and 4day views.
+- Bugfix: Fixed an issue where all-day tasks were not correctly formatted as tasks (with checkbox icons and strikethrough) in day, week, and
+  4day views.
 
 - Bugfix: Fixed task checkbox icon not updating correctly when toggled.
 - Improvement: The `showTasks` status is now automatically sent in all data requests (`url` or function).
@@ -178,22 +257,34 @@
 - Improvement: Added translations for "4day" view in all supported languages.
 - Improvement: Added `bi-calendar-range` icon for the 4-day view.
 - Improvement: Added navigation support (4-day steps) for the "4day" view.
-- Bugfix: Fixed several issues in the drag & drop logic where appointments could disappear or become unresponsive during active drags, especially in columns with multiple entries.
-- Bugfix: Fixed an indexing issue in week and 4day view where appointments were incorrectly grouped when multiple days with the same weekday were visible.
+- Bugfix: Fixed several issues in the drag & drop logic where appointments could disappear or become unresponsive during active drags,
+  especially in columns with multiple entries.
+- Bugfix: Fixed an indexing issue in week and 4day view where appointments were incorrectly grouped when multiple days with the same weekday
+  were visible.
 - Bugfix: Fixed a bug where appointments spanning multiple days would disappear in the `week` and `4day` views.
-- Bugfix: Fixed a bug where multi-day appointments would disappear or cause layout issues during drag-and-drop by correctly cropping them to the current day's visible range.
+- Bugfix: Fixed a bug where multi-day appointments would disappear or cause layout issues during drag-and-drop by correctly cropping them to
+  the current day's visible range.
 - Bugfix: Added missing title generation for the "4day" view in `setCurrentDateName()`.
-- Bugfix: Fixed missing shadow on `wcCalendarInfoWindowModal`. Added inline style fallback to ensure shadow visibility across different environments.
-- Bugfix: Fixed an issue where calendar colors were not correctly calculated in some browsers by ensuring the temporary element is visible during style computation and adding fallbacks for different Bootstrap versions.
-- Bugfix: Fixed visibility issues with sidebar addons (like the language select) by ensuring correct overflow settings in the sidebar containers and the demo page.
-- Bugfix: Fixed a bug where the "4day" view was missing from the view switch if not explicitly configured in the settings (corrected fallback in `init()`).
+- Bugfix: Fixed missing shadow on `wcCalendarInfoWindowModal`. Added inline style fallback to ensure shadow visibility across different
+  environments.
+- Bugfix: Fixed an issue where calendar colors were not correctly calculated in some browsers by ensuring the temporary element is visible
+  during style computation and adding fallbacks for different Bootstrap versions.
+- Bugfix: Fixed visibility issues with sidebar addons (like the language select) by ensuring correct overflow settings in the sidebar
+  containers and the demo page.
+- Bugfix: Fixed a bug where the "4day" view was missing from the view switch if not explicitly configured in the settings (corrected
+  fallback in `init()`).
 - Documentation: Added documentation for `$.bsCalendar.addTranslation` to `README.md`.
 - Bugfix: Fixed parameter naming in `addTranslation` to correctly register new translations.
-- Bugfix: Fixed an issue in `updateOptions` where the `calendars` array was being deep-merged instead of replaced, causing color inconsistencies. Improved logic now merges calendar definitions by ID if the property is provided, allowing partial updates while preserving existing settings.
-- Bugfix: Fixed an issue where `sidebarAddons` and `topbarAddons` were being deep-merged instead of replaced, which could lead to duplicated or incorrectly displayed addons.
-- Bugfix: Fixed a bug where `sidebarAddons` and `topbarAddons` would disappear after a rebuild (e.g. during `updateOptions`) by ensuring them are detached before the container is cleared and preserving their references in the settings.
+- Bugfix: Fixed an issue in `updateOptions` where the `calendars` array was being deep-merged instead of replaced, causing color
+  inconsistencies. Improved logic now merges calendar definitions by ID if the property is provided, allowing partial updates while
+  preserving existing settings.
+- Bugfix: Fixed an issue where `sidebarAddons` and `topbarAddons` were being deep-merged instead of replaced, which could lead to duplicated
+  or incorrectly displayed addons.
+- Bugfix: Fixed a bug where `sidebarAddons` and `topbarAddons` would disappear after a rebuild (e.g. during `updateOptions`) by ensuring
+  them are detached before the container is cleared and preserving their references in the settings.
 - Bugfix: Fixed an issue where internal translations were not updated when the locale was changed via `updateOptions`.
-- Bugfix: Fixed an issue where the info modal (`wcCalendarInfoWindowModal`) remained open when starting a drag and drop operation. It now only closes when a real drag movement begins, staying open if an appointment is just clicked.
+- Bugfix: Fixed an issue where the info modal (`wcCalendarInfoWindowModal`) remained open when starting a drag and drop operation. It now
+  only closes when a real drag movement begins, staying open if an appointment is just clicked.
 - Demo: Integrated `bs-datepicker` for better date selection in the appointment modal and fixed date value assignment.
 - Demo: Set default language to English on the demo page.
 - Demo: Updated `demo/index.html` to correctly update calendar labels and colors when switching languages.
@@ -213,10 +304,13 @@
 ### Version 2.1.7
 
 - Bugfix: Search-mode exit now restores the previous non-search view and forces view rebuild to clear the search result /pagination UI.
-- Bugfix: Month-view drag-move no longer triggers `edit.bs.calendar` for non-editable appointments (`editable: false`), including internal no-op/same-day move interactions.
+- Bugfix: Month-view drag-move no longer triggers `edit.bs.calendar` for non-editable appointments (`editable: false`), including internal
+  no-op/same-day move interactions.
 - Improvement: Editability checks now normalize boolean-like API values (`false`, `"false"`, `0`, `"0"`) to prevent unintended edit actions.
-- Feature: Added per-appointment `overlap` support for day/week view. Appointments with `overlap: true` are rendered full-width and can stack instead of being split into side-by-side columns.
-- Improvement: Overlap stacking order now keeps the earliest appointment at the bottom and later appointments on top, including during drag-move live relayout.
+- Feature: Added per-appointment `overlap` support for day/week view. Appointments with `overlap: true` are rendered full-width and can
+  stack instead of being split into side-by-side columns.
+- Improvement: Overlap stacking order now keeps the earliest appointment at the bottom and later appointments on top, including during
+  drag-move live relayout.
 - Demo: Added overlap examples and an overlap toggle in the appointment modal to demonstrate and test stacked overlap behavior directly.
 - Docs: Updated appointment field reference with the new `overlap` option.
 - Note: This feature was added based on a request from `alexlewer` in ticket **Appointment Overlap #18**.
@@ -224,8 +318,10 @@
 ### Version 2.1.6
 
 - Feature: Month-view drag-move can now move appointments between day cells while preserving the original start and end times.
-- Bugfix: Month-view drag-move now keeps the visual move visible while the edit modal is open; canceled edits are restored by re-rendering the current loaded data when the modal closes.
-- Bugfix: Month-view drag-move now suppresses the follow-up day-cell click so the added modal is not opened with the current time after a drag.
+- Bugfix: Month-view drag-move now keeps the visual move visible while the edit modal is open; canceled edits are restored by re-rendering
+  the current loaded data when the modal closes.
+- Bugfix: Month-view drag-move now suppresses the follow-up day-cell click so the added modal is not opened with the current time after a
+  drag.
 - Improvement: Drag payload times are emitted as `HH:mm` values for form-friendly modal prefilling.
 - Demo: Normalized appointment modal time values before writing to `input[type="time"]`.
 - Docs: Updated README and changelog for `2.1.6`.
@@ -233,7 +329,8 @@
 ### Version 2.1.5
 
 - Feature: Week-view drag-move can now move appointments across days within the visible week, not only within the original day column.
-- Bugfix: Week-view appointments are now rendered only into the inner time-slot container, preventing duplicate appointment elements that could block drag-move.
+- Bugfix: Week-view appointments are now rendered only into the inner time-slot container, preventing duplicate appointment elements that
+  could block drag-move.
 - Demo: Re-render the calendar when the appointment modal closes, so canceled drag edits restore the current loaded data.
 - Docs: Updated README and changelog for `2.1.5`.
 
@@ -247,25 +344,30 @@
 ### Version 2.1.3
 
 - Feature: Added public `addAppointment` method to append an appointment to the currently loaded data and re-render without fetching.
-- Feature: Added public `editAppointment` method to update an already loaded appointment by `id`; `editApointment` is accepted as a compatibility alias for the common typo.
+- Feature: Added public `editAppointment` method to update an already loaded appointment by `id`; `editApointment` is accepted as a
+  compatibility alias for the common typo.
 - Improvement: Loaded and locally added appointments now receive a generated `id` when none is provided, allowing later local edits.
-- Docs: Reworked `README.md` into a structured API reference, including add/edit workflow examples, `dragExtras` notes, local-vs.-backend persistence guidance, and a completeness checklist.
+- Docs: Reworked `README.md` into a structured API reference, including add/edit workflow examples, `dragExtras` notes, local-vs.-backend
+  persistence guidance, and a completeness checklist.
 - Demo: Rebuilt `demo/index.html` into a single-calendar example with a clearer modal-based add/edit flow.
 
 ### Version 2.1.2
 
-- Improvement: `dragExtras` now only contains the dragged `start` and `end` date/time values; all other appointment context remains in the regular `extras` object.
+- Improvement: `dragExtras` now only contains the dragged `start` and `end` date/time values; all other appointment context remains in the
+  regular `extras` object.
 - Docs: Updated `README.md`, `changelog.md`, and verified the demo for `2.1.2`.
 
 ### Version 2.1.1
 
 - Improvement: Drag-create now passes dragged start/end date and time as `dragExtras` to `add.bs.calendar` / `onAdd`.
-- Improvement: Drag-move now keeps the original `appointment` and `extras` unchanged and passes dragged start/end date and time as `dragExtras` to `edit.bs.calendar` / `onEdit`.
+- Improvement: Drag-move now keeps the original `appointment` and `extras` unchanged and passes dragged start/end date and time as
+  `dragExtras` to `edit.bs.calendar` / `onEdit`.
 - Docs: Updated `README.md`, `changelog.md`, and the demo for `2.1.1`.
 
 ### Version 2.1.0
 
-- Feature: Added new method `render` (`$('#calendar').bsCalendar('render')`) to re-render the current view using already loaded data, without re-fetching appointments.
+- Feature: Added new method `render` (`$('#calendar').bsCalendar('render')`) to re-render the current view using already loaded data,
+  without re-fetching appointments.
 - Improvement: `buildByView` now supports an internal no-fetch render path, used by `render`.
 - Docs: Updated `README.md` and `changelog.md` for `2.1.0`.
 
@@ -278,13 +380,15 @@
 ### Version 2.0.15
 
 - Bugfix: View switching is now strictly limited to entries configured in `views`.
-- Bugfix: Fixed `views` merging in initialization and `updateOptions` so arrays are replaced (not index-merged), preventing hidden fallback views from remaining active.
+- Bugfix: Fixed `views` merging in initialization and `updateOptions` so arrays are replaced (not index-merged), preventing hidden fallback
+  views from remaining active.
 - Improvement: If exactly one view is configured in `views`, `startView` is now forced to that view.
 - Docs: Updated `README.md` and `changelog.md` to reflect version 2.0.15.
 
 ### Version 2.0.14.2
 
-- Bugfix: `updateOptions` now rebuilds framework-level UI when structural options change (e.g. `showAddButton`, `search`, `views`, `icons`, `translations`), so toolbar updates are applied immediately.
+- Bugfix: `updateOptions` now rebuilds framework-level UI when structural options change (e.g. `showAddButton`, `search`, `views`, `icons`,
+  `translations`), so toolbar updates are applied immediately.
 - Improvement: Search-mode UI state is preserved more safely during framework rebuilds triggered by `updateOptions`.
 - Docs: Updated `README.md` and `changelog.md` to reflect version 2.0.14.2.
 
@@ -308,7 +412,8 @@
 
 ### Version 2.0.13
 
-- Bugfix: Calendar-specific Bootstrap tooltips are now consistently disposed/removed on date and view changes to prevent stale tooltips from remaining visible.
+- Bugfix: Calendar-specific Bootstrap tooltips are now consistently disposed/removed on date and view changes to prevent stale tooltips from
+  remaining visible.
 - Improvement: Added centralized tooltip cleanup and applied it in the rebuild/clear flow for year-view holiday and badge tooltips.
 - Docs: Updated `README.md` and `changelog.md` to reflect version 2.0.13.
 
@@ -320,7 +425,8 @@
 ### Version 2.0.12
 
 - Bugfix: Fixed date-shift issues in negative timezones (e.g., US) caused by parsing `YYYY-MM-DD` via native UTC interpretation.
-- Improvement: Added timezone-safe date parsing for date-only and local date-time strings and applied it across core date handling paths (`setDate`, `startDate`, holidays, all-day normalization, formatting).
+- Improvement: Added timezone-safe date parsing for date-only and local date-time strings and applied it across core date handling paths (
+  `setDate`, `startDate`, holidays, all-day normalization, formatting).
 - Improvement: Holiday rendering now uses local date formatting instead of `toISOString().split('T')[0]` to avoid off-by-one day rendering.
 - Docs: Updated `README.md` and `changelog.md` to reflect version 2.0.12.
 
@@ -331,7 +437,8 @@
 
 ### Version 2.0.10
 
-- Enhancement: `appointment.link` can now be either a `string` (simple URL) or an `object` with attributes (`href`, `text`, `target`, `rel`, `disabled`, `html`).
+- Enhancement: `appointment.link` can now be either a `string` (simple URL) or an `object` with attributes (`href`, `text`, `target`, `rel`,
+  `disabled`, `html`).
 - Docs: `README.md` expanded (examples and defaults for a link object); Updated Badge/CDN/Changelog reference to 2.0.10.
 
 ### Version 2.0.9.2
@@ -471,7 +578,8 @@ Developer Notes
       month)
       at the change of month.
     - Cause: endDate was incorrectly modified based on the originally set Date object instead of being recalculated as a
-      copy of startDate. As a result, weeks that protrude into the previous month resulted in a "rolling" of the day (e.g., 27.10. ⇒ 03.12.).
+      copy of startDate. As a result, weeks that protrude into the previous month resulted in a "rolling" of the day (e.g., 27.10. ⇒
+      03.12.).
     - Fix: endDate is now explicitly copied from startDate and then added +6 days (endDate = new Date(
       startDate.getTime()); endDate.setDate(startDate.getDate() + 6)).
 
@@ -540,7 +648,7 @@ Developer Notes
   Example (in table format):
 
   | **Property** | **Type**   | **Params**                  | **Description**                                                       | 
-                |--------------|------------|-----------------------------|-----------------------------------------------------------------------|
+                    |--------------|------------|-----------------------------|-----------------------------------------------------------------------|
   | **allDay**   | `function` | (appointment, extras, view) | Customizes the rendering of the all-day area in weekly or daily view. |
 
 #### **Version 1.2.4**
