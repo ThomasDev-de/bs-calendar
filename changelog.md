@@ -60,6 +60,11 @@
 
 ### dev-main
 
+#### Bugfixes
+
+- Matched the search topnav spacing and close button sizing to the normal calendar topnav so switching search mode no longer changes the
+  navigation height.
+
 ### Version 2.3.6
 
 2026-06-17

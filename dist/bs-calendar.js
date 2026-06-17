@@ -4319,7 +4319,7 @@
         if (settings.search) {
             topSearchNav = $('<div>', {
                 id: data.elements.wrapperSearchNavId,
-                class: 'd-none sticky-top align-items-center justify-content-center bg-body-tertiary border-0 shadow-sm p-2 mb-3 bs-calendar-border-style',
+                class: 'd-none sticky-top w-100 align-items-center justify-content-center bg-body-tertiary border-0 shadow-sm p-2 rounded-2',
                 css: {
                     zIndex: 1010
                 }
@@ -4336,8 +4336,8 @@
 
             const btnCloseSearch = $('<button>', {
                 type: 'button',
-                class: `btn border-0 text-body shadow-none p-2 ms-2 js-btn-close-search ${roundedClass} bs-calendar-border-style`,
-                html: '<i class="bi bi-x-lg mx-2"></i>',
+                class: `btn border-0 text-body shadow-none ms-2 js-btn-close-search ${roundedClass} bs-calendar-border-style`,
+                html: '<i class="bi bi-x-lg"></i>',
                 'aria-label': 'Close'
             }).appendTo(topSearchNav);
 
