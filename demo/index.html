@@ -21,12 +21,6 @@
     <div id="sidebarAddons">
         <h5 class="text-uppercase">Sidebar-Addons</h5>
         <div class="card-body d-flex flex-column overflow-visible">
-            <label class="form-label mb-1" for="selectLanguage">Language</label>
-            <select class="form-select form-select-sm mb-3" id="selectLanguage">
-                <option value="en">English</option>
-                <option value="de">Deutsch</option>
-            </select>
-
             <div class="mb-3">
 
                 <div class="form-check form-switch">
@@ -108,6 +102,23 @@
                     <input class="form-check-input" type="checkbox" name="overlap" role="switch"
                            id="appointmentOverlap">
                     <label class="form-check-label" for="appointmentOverlap">allow overlap (stack)</label>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-7">
+                        <label class="form-label mb-1" for="appointmentRecurrenceFrequency">Repeat</label>
+                        <select class="form-select" name="recurrence_frequency" id="appointmentRecurrenceFrequency">
+                            <option value="none">Does not repeat</option>
+                            <option value="daily">Daily</option>
+                            <option value="weekly">Weekly</option>
+                            <option value="monthly">Monthly</option>
+                            <option value="yearly">Yearly</option>
+                        </select>
+                    </div>
+                    <div class="col-5">
+                        <label class="form-label mb-1" for="appointmentRecurrenceUntil">Until</label>
+                        <input class="form-control" type="date" name="recurrence_until" id="appointmentRecurrenceUntil">
+                    </div>
                 </div>
 
                 <div class="form-check form-switch mb-1">
@@ -212,126 +223,66 @@
             appointmentId: null,
             taskChecked: false
         };
-        const i18n = {
-            en: {
-                locale: 'en-US',
-                htmlLang: 'en',
-                holidays: {
-                    country: 'IE',
-                    federalState: null
-                },
-                calendars: [
-                    {id: 'personal', title: 'Personal', color: 'primary', active: true},
-                    {id: 'work', title: 'Work', color: 'danger', active: true},
-                    {id: 'sports', title: 'Sports', color: 'success', active: true}
-                ],
-                sidebarLanguage: 'Language',
-                // btnSetToday: "setToday('week')",
-                btnRefresh: 'Refresh',
-                btnClear: 'Clear',
-                // topbarHint: 'You can move appointments in day, 4day, month and week views using drag and drop.',
-                modalTitle: 'Appointment',
-                inputTitlePlaceholder: 'appointment title',
-                labelTitle: 'Title',
-                labelFromDate: 'From date',
-                labelToDate: 'To date',
-                labelAllDay: 'all day',
-                labelOverlap: 'allow overlap (stack)',
-                labelIsTask: 'task',
-                labelPriorityLow: 'Low',
-                labelPriorityMedium: 'Medium',
-                labelPriorityHigh: 'High',
-                labelDue: 'Due date',
-                labelFromTime: 'From time',
-                labelToTime: 'To time',
-                inputDescriptionPlaceholder: 'Description',
-                labelDescription: 'Description',
-                inputLinkPlaceholder: 'appointment link',
-                labelLink: 'Link',
-                labelAppointmentRule: 'Appointment duration',
-                appointmentRuleNone: 'No duration rule',
-                appointmentRuleCoaching45: '45-minute coaching blocks',
-                appointmentRuleFixed60: 'Exactly 60 minutes',
-                appointmentRuleHelp: 'Drag-create and drag-resize respect the selected duration rule.',
-                btnCancel: 'Cancel',
-                btnSave: 'Save',
-                modalAddTitle: 'Add appointment',
-                modalEditTitle: 'Edit appointment',
-                modalCreate: 'Create',
-                modalUpdate: 'Update',
-                untitled: 'Untitled appointment',
-                yearAppointments: 'appointments',
-                appointmentPrefix: 'Appointment',
-                appointmentDescriptionPrefix: 'Demo appointment',
-                locations: [
-                    'Room 1',
-                    ['Room 2', 'Building A'],
-                    'Meeting room',
-                    ['Studio 3', '2nd floor'],
-                    'Online'
-                ]
+        const demoText = {
+            locale: 'en-US',
+            holidays: {
+                country: 'IE',
+                federalState: null
             },
-            de: {
-                locale: 'de-DE',
-                htmlLang: 'de',
-                holidays: {
-                    country: 'DE',
-                    federalState: 'BE'
-                },
-                calendars: [
-                    {id: 'personal', title: 'Privat', color: 'primary', active: true},
-                    {id: 'work', title: 'Arbeit', color: 'danger', active: true},
-                    {id: 'sports', title: 'Sport', color: 'success', active: true}
-                ],
-                sidebarLanguage: 'Sprache',
-                // btnSetToday: "setToday('week')",
-                btnRefresh: 'Aktualisieren',
-                btnClear: 'Leeren',
-                // topbarHint: 'Du kannst Termine in Tages-, Monats- und Wochenansicht per Drag-and-drop verschieben.',
-                modalTitle: 'Termin',
-                inputTitlePlaceholder: 'Termintitel',
-                labelTitle: 'Titel',
-                labelFromDate: 'Von Datum',
-                labelToDate: 'Bis Datum',
-                labelAllDay: 'ganztägig',
-                labelOverlap: 'Überlappung erlauben (stapeln)',
-                labelIsTask: 'Aufgabe',
-                labelPriorityLow: 'Niedrig',
-                labelPriorityMedium: 'Mittel',
-                labelPriorityHigh: 'Hoch',
-                labelDue: 'Fällig am',
-                labelFromTime: 'Von Uhrzeit',
-                labelToTime: 'Bis Uhrzeit',
-                inputDescriptionPlaceholder: 'Beschreibung',
-                labelDescription: 'Beschreibung',
-                inputLinkPlaceholder: 'Terminlink',
-                labelLink: 'Link',
-                labelAppointmentRule: 'Appointment duration',
-                appointmentRuleNone: 'No duration rule',
-                appointmentRuleCoaching45: '45-minute coaching blocks',
-                appointmentRuleFixed60: 'Exactly 60 minutes',
-                appointmentRuleHelp: 'Drag-create und Drag-resize berücksichtigen die ausgewählte Dauerregel.',
-                btnCancel: 'Abbrechen',
-                btnSave: 'Speichern',
-                modalAddTitle: 'Termin hinzufügen',
-                modalEditTitle: 'Termin bearbeiten',
-                modalCreate: 'Erstellen',
-                modalUpdate: 'Aktualisieren',
-                untitled: 'Unbenannter Termin',
-                yearAppointments: 'Termine',
-                appointmentPrefix: 'Termin',
-                appointmentDescriptionPrefix: 'Demo-Termin',
-                locations: [
-                    'Raum 1',
-                    ['Raum 2', 'Gebäude A'],
-                    'Besprechungsraum',
-                    ['Studio 3', '2. Etage'],
-                    'Online'
-                ]
-            }
-        };
-        const state = {
-            lang: 'en'
+            calendars: [
+                {id: 'personal', title: 'Personal', color: 'primary', active: true},
+                {id: 'work', title: 'Work', color: 'danger', active: true},
+                {id: 'sports', title: 'Sports', color: 'success', active: true}
+            ],
+            btnRefresh: 'Refresh',
+            btnClear: 'Clear',
+            modalTitle: 'Appointment',
+            inputTitlePlaceholder: 'appointment title',
+            labelTitle: 'Title',
+            labelFromDate: 'From date',
+            labelToDate: 'To date',
+            labelAllDay: 'all day',
+            labelOverlap: 'allow overlap (stack)',
+            labelRecurrenceFrequency: 'Repeat',
+            labelRecurrenceUntil: 'Until',
+            recurrenceNone: 'Does not repeat',
+            recurrenceDaily: 'Daily',
+            recurrenceWeekly: 'Weekly',
+            recurrenceMonthly: 'Monthly',
+            recurrenceYearly: 'Yearly',
+            labelIsTask: 'task',
+            labelPriorityLow: 'Low',
+            labelPriorityMedium: 'Medium',
+            labelPriorityHigh: 'High',
+            labelDue: 'Due date',
+            labelFromTime: 'From time',
+            labelToTime: 'To time',
+            inputDescriptionPlaceholder: 'Description',
+            labelDescription: 'Description',
+            inputLinkPlaceholder: 'appointment link',
+            labelLink: 'Link',
+            labelAppointmentRule: 'Appointment duration',
+            appointmentRuleNone: 'No duration rule',
+            appointmentRuleCoaching45: '45-minute coaching blocks',
+            appointmentRuleFixed60: 'Exactly 60 minutes',
+            appointmentRuleHelp: 'Drag-create and drag-resize respect the selected duration rule.',
+            btnCancel: 'Cancel',
+            btnSave: 'Save',
+            modalAddTitle: 'Add appointment',
+            modalEditTitle: 'Edit appointment',
+            modalCreate: 'Create',
+            modalUpdate: 'Update',
+            untitled: 'Untitled appointment',
+            yearAppointments: 'appointments',
+            appointmentPrefix: 'Appointment',
+            appointmentDescriptionPrefix: 'Demo appointment',
+            locations: [
+                'Room 1',
+                ['Room 2', 'Building A'],
+                'Meeting room',
+                ['Studio 3', '2nd floor'],
+                'Online'
+            ]
         };
 
         // Temporary in-memory store. Each year is generated once and then reused.
@@ -341,22 +292,18 @@
 
         initAppointmentModal();
         initCalendar();
-        initLanguageControls();
         bindCalendarEvents();
         bindSidebarActions();
 
         function initCalendar() {
             let eventCounter = 1;
-            const storageKey = 'bsCalendar.demo.language';
-            const lang = localStorage.getItem(storageKey) || 'en';
-            state.lang = lang;
 
             $calendar.on('init.bs.calendar', function () {
-                applyLanguage(lang, false);
+                applyDemoText();
             });
             $calendar.bsCalendar({
                 title: '<span class="h4 mb-0">My awesome calendar</span>',
-                locale: i18n[state.lang].locale,
+                locale: demoText.locale,
                 startView: '4day',
                 startWeekOnSunday: false,
                 navigateOnWheel: false,
@@ -365,8 +312,8 @@
                 debug: false,
                 url: loadAppointments,
                 holidays: {
-                    country: i18n[state.lang].holidays.country,
-                    federalState: i18n[state.lang].holidays.federalState
+                    country: demoText.holidays.country,
+                    federalState: demoText.holidays.federalState
                 },
                 hourSlots: {
                     start: '06:30',
@@ -403,7 +350,7 @@
                         }
                     ]
                 },
-                calendars: i18n[state.lang].calendars,
+                calendars: demoText.calendars,
                 onDuplicate(appointment) {
                     appointment.id = 'copy_of_' + appointment.id;
                     upsertAppointmentInStore(appointment);
@@ -465,32 +412,39 @@
                 .on('edit.bs.calendar', function (event, appointment, extras, dragExtras) {
                     event.preventDefault();
 
+                    const sourceAppointment = appointment.recurringId
+                        ? findAppointmentInStore(appointment.recurringId) || appointment
+                        : appointment;
                     const eventExtras = dragExtras || extras;
-                    const isAllDay = !!appointment.allDay;
-                    const startTimeCandidate = dragExtras?.start?.time || extras?.start?.time || appointment?.start;
-                    const endTimeCandidate = dragExtras?.end?.time || extras?.end?.time || appointment?.end;
+                    const sourceStart = parseDateTimeString(sourceAppointment.start);
+                    const sourceEnd = parseDateTimeString(sourceAppointment.end);
+                    const isAllDay = !!sourceAppointment.allDay;
+                    const startTimeCandidate = dragExtras?.start?.time || (sourceStart ? formatDateTime(sourceStart) : sourceAppointment?.start);
+                    const endTimeCandidate = dragExtras?.end?.time || (sourceEnd ? formatDateTime(sourceEnd) : sourceAppointment?.end);
 
                     console.log('Editing appointment extras:', extras.colors);
 
                     openAppointmentModal('edit', {
-                        id: appointment.id,
-                        title: appointment.title,
-                        startDate: eventExtras.start.date,
-                        endDate: eventExtras.end.date,
-                        startTime: isAllDay ? '' : resolveModalTime(startTimeCandidate, appointment.start),
-                        endTime: isAllDay ? '' : resolveModalTime(endTimeCandidate, appointment.end),
+                        id: sourceAppointment.id,
+                        title: sourceAppointment.title,
+                        startDate: sourceStart ? formatDate(sourceStart) : eventExtras.start.date,
+                        endDate: sourceEnd ? formatDate(sourceEnd) : eventExtras.end.date,
+                        startTime: isAllDay ? '' : resolveModalTime(startTimeCandidate, sourceAppointment.start),
+                        endTime: isAllDay ? '' : resolveModalTime(endTimeCandidate, sourceAppointment.end),
                         allDay: isAllDay,
-                        overlap: !!appointment.overlap,
-                        description: appointment.description || '',
+                        overlap: !!sourceAppointment.overlap,
+                        recurrence: sourceAppointment.recurrence || null,
+                        description: sourceAppointment.description || '',
                         color: extras.colors.hex || '#0d6efd',
-                        link: appointment.link || '',
-                        task: appointment.task || null
+                        link: sourceAppointment.link || '',
+                        task: sourceAppointment.task || null
                     });
                 })
                 .on('delete.bs.calendar', function (event, appointment) {
                     event.preventDefault();
-                    removeAppointmentFromStore(appointment.id);
-                    $calendar.bsCalendar('deleteAppointment', appointment.id);
+                    const appointmentId = appointment.recurringId || appointment.id;
+                    removeAppointmentFromStore(appointmentId);
+                    $calendar.bsCalendar('deleteAppointment', appointmentId);
                 });
         }
 
@@ -530,33 +484,11 @@
             });
         }
 
-        function initLanguageControls() {
-            const storageKey = 'bsCalendar.demo.language';
-            const $languageSelect = $('#selectLanguage');
+        function applyDemoText() {
+            const t = demoText;
 
-            $languageSelect.on('change', function () {
-                const nextLang = $(this).val();
-                if (!i18n[nextLang]) {
-                    return;
-                }
-                state.lang = nextLang;
-                localStorage.setItem(storageKey, nextLang);
-                clearAppointmentStore();
-                applyLanguage(nextLang);
-            });
-        }
-
-        function applyLanguage(lang, refresh = true) {
-            const t = i18n[lang] || i18n.en;
-            state.lang = lang;
-            $('#selectLanguage').val(lang);
-            $('html').attr('lang', t.htmlLang);
-
-            $('label[for="selectLanguage"]').text(t.sidebarLanguage);
-            // $('[data-method="setToday"]').text(t.btnSetToday);
             $('[data-method="refresh"]').text(t.btnRefresh);
             $('[data-method="clear"]').text(t.btnClear);
-            // $('#topbarAddons span').text(t.topbarHint);
             $('#appointmentModalLabel').text(t.modalTitle);
 
             $('input[name="title"]').attr('placeholder', t.inputTitlePlaceholder);
@@ -565,6 +497,13 @@
             $('label[for="appointmentToDate"]').text(t.labelToDate);
             $('label[for="appointmentAllDay"]').text(t.labelAllDay);
             $('label[for="appointmentOverlap"]').text(t.labelOverlap);
+            $('label[for="appointmentRecurrenceFrequency"]').text(t.labelRecurrenceFrequency);
+            $('label[for="appointmentRecurrenceUntil"]').text(t.labelRecurrenceUntil);
+            $('#appointmentRecurrenceFrequency option[value="none"]').text(t.recurrenceNone);
+            $('#appointmentRecurrenceFrequency option[value="daily"]').text(t.recurrenceDaily);
+            $('#appointmentRecurrenceFrequency option[value="weekly"]').text(t.recurrenceWeekly);
+            $('#appointmentRecurrenceFrequency option[value="monthly"]').text(t.recurrenceMonthly);
+            $('#appointmentRecurrenceFrequency option[value="yearly"]').text(t.recurrenceYearly);
             $('label[for="appointmentIsTask"]').text(t.labelIsTask);
             $('label[for="priorityLow"]').text(t.labelPriorityLow);
             $('label[for="priorityMedium"]').text(t.labelPriorityMedium);
@@ -584,16 +523,8 @@
             $('[data-bs-dismiss="modal"].btn.btn-secondary').text(t.btnCancel);
             $('[data-save-appointment]').text(t.btnSave);
 
-            $calendar.bsCalendar('updateOptions', {
-                locale: t.locale,
-                holidays: t.holidays,
-                calendars: t.calendars
-            });
             if (typeof $.fn.bsDatepicker === 'function') {
                 $dateRange.bsDatepicker('setLocale', t.locale);
-            }
-            if (refresh) {
-                $calendar.bsCalendar('refresh');
             }
             applyCalendarLabels(t.calendars);
         }
@@ -691,7 +622,7 @@
         }
 
         function openAppointmentModal(mode, appointment) {
-            const t = i18n[state.lang] || i18n.en;
+            const t = demoText;
             modalState.mode = mode;
             modalState.appointmentId = appointment.id || null;
             modalState.taskChecked = !!appointment.task?.checked;
@@ -712,6 +643,8 @@
             setModalTimeValue('to_time', appointment.endTime || '');
             $modal.find('input[name="allDay"]').prop('checked', !!appointment.allDay).trigger('change');
             $modal.find('input[name="overlap"]').prop('checked', !!appointment.overlap);
+            $modal.find('select[name="recurrence_frequency"]').val(appointment.recurrence?.frequency || 'none');
+            $modal.find('input[name="recurrence_until"]').val(appointment.recurrence?.until || '');
 
             const isTask = !!appointment.task;
             const priority = isTask ? appointment.task.priority : 'normal';
@@ -753,7 +686,7 @@
         }
 
         function readAppointmentModal() {
-            const t = i18n[state.lang] || i18n.en;
+            const t = demoText;
             const allDay = $modal.find('input[name="allDay"]').prop('checked');
             const isTask = $modal.find('input[name="isTask"]').is(':checked');
 
@@ -782,6 +715,22 @@
                 color: $modal.find('input[name="color"]').val(),
                 link: $modal.find('input[name="link"]').val()
             };
+
+            const recurrenceFrequency = $modal.find('select[name="recurrence_frequency"]').val();
+            if (recurrenceFrequency && recurrenceFrequency !== 'none') {
+                const recurrenceStart = parseDateTimeString(appointment.start);
+                appointment.recurrence = {
+                    frequency: recurrenceFrequency,
+                    interval: 1
+                };
+                if (recurrenceFrequency === 'weekly' && recurrenceStart) {
+                    appointment.recurrence.daysOfWeek = [recurrenceStart.getDay()];
+                }
+                const recurrenceUntil = $modal.find('input[name="recurrence_until"]').val();
+                if (recurrenceUntil) {
+                    appointment.recurrence.until = recurrenceUntil;
+                }
+            }
 
             if (modalState.appointmentId) {
                 appointment.id = modalState.appointmentId;
@@ -890,12 +839,6 @@
             return appointmentStore[year];
         }
 
-        function clearAppointmentStore() {
-            Object.keys(appointmentStore).forEach(function (year) {
-                delete appointmentStore[year];
-            });
-        }
-
         const APPOINTMENTS_PER_YEAR = 700;
 
         function createSeededRandom(seed) {
@@ -920,8 +863,7 @@
                 work: 'danger opacity-75 gradient',
                 sports: 'success opacity-75 gradient'
             };
-            const t = i18n[state.lang] || i18n.en;
-            const locations = t.locations || i18n.en.locations;
+            const locations = demoText.locations;
 
             for (let index = 0; index < 200; index++) {
                 const month = Math.floor(random() * 12);
@@ -939,8 +881,8 @@
                 const appointment = {
                     id: `${year}-generated-${index + 1}`,
                     calendarId: calendarId,
-                    title: isTask ? `Task ${index + 1}` : `Termin ${index + 1}`,
-                    description: `Automatisch erzeugter Termin ${index + 1} für ${year}`,
+                    title: isTask ? `Task ${index + 1}` : `Appointment ${index + 1}`,
+                    description: `Automatically generated appointment ${index + 1} for ${year}`,
                     start: formatDateTime(start),
                     end: formatDateTime(end),
                     allDay: false,
@@ -961,6 +903,26 @@
 
                 appointments.push(appointment);
             }
+
+            appointments.push({
+                id: `${year}-recurring-weekly-training`,
+                calendarId: 'sports',
+                title: 'Weekly training',
+                description: 'Demo recurring appointment',
+                start: formatDateTime(new Date(year, 0, 6, 18, 0, 0, 0)),
+                end: formatDateTime(new Date(year, 0, 6, 19, 0, 0, 0)),
+                allDay: false,
+                overlap: false,
+                color: colors.sports,
+                location: locations[0],
+                recurrence: {
+                    frequency: 'weekly',
+                    interval: 1,
+                    daysOfWeek: [2],
+                    until: `${year}-12-31`
+                },
+                link: 'https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-calendar'
+            });
 
             return appointments;
         }
@@ -1014,6 +976,10 @@
                         return false;
                     }
 
+                    if (appointment.recurrence) {
+                        return recurringMasterCanAppearBetween(appointment, from, to);
+                    }
+
                     return start <= to && end >= from;
                 });
         }
@@ -1039,18 +1005,14 @@
         }
 
         function generateYearBuckets(year, calendarIds, showTasks) {
-            const t = i18n[state.lang] || i18n.en;
+            const t = demoText;
             const grouped = ensureYearAppointments(year)
                 .filter(a => showTasks || !a.task)
                 .filter(appointment => shouldShowCalendar(appointment, calendarIds))
                 .reduce(function (acc, appointment) {
-                    const date = String(appointment.start || '').substring(0, 10);
-
-                    if (!date) {
-                        return acc;
-                    }
-
-                    acc[date] = (acc[date] || 0) + 1;
+                    getYearBucketDates(appointment, year).forEach(function (date) {
+                        acc[date] = (acc[date] || 0) + 1;
+                    });
                     return acc;
                 }, {});
 
@@ -1065,6 +1027,83 @@
             });
         }
 
+        function getYearBucketDates(appointment, year) {
+            const start = parseDateTimeString(appointment.start);
+            if (!start) {
+                return [];
+            }
+
+            if (!appointment.recurrence) {
+                return [formatDate(start)];
+            }
+
+            const from = new Date(year, 0, 1, 0, 0, 0, 0);
+            const to = new Date(year, 11, 31, 23, 59, 59, 999);
+            if (!recurringMasterCanAppearBetween(appointment, from, to)) {
+                return [];
+            }
+
+            const until = appointment.recurrence.until
+                ? parseDateTimeString(appointment.recurrence.until)
+                : null;
+            const loopEnd = new Date(Math.min(until ? until.getTime() : to.getTime(), to.getTime()));
+            loopEnd.setHours(0, 0, 0, 0);
+
+            const exceptions = Array.isArray(appointment.recurrence.exceptions)
+                ? new Set(appointment.recurrence.exceptions.map(String))
+                : new Set();
+            const dates = [];
+            const cursor = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+            let safety = 0;
+
+            while (cursor <= loopEnd && safety < 20000) {
+                const date = formatDate(cursor);
+                if (cursor >= from && recurringDateMatches(cursor, start, appointment.recurrence) && !exceptions.has(date)) {
+                    dates.push(date);
+                }
+                cursor.setDate(cursor.getDate() + 1);
+                safety++;
+            }
+
+            return dates;
+        }
+
+        function recurringDateMatches(date, seriesStart, recurrence) {
+            const frequency = String(recurrence.frequency || recurrence.freq || '').toLowerCase();
+            const interval = Math.max(1, Math.floor(Number(recurrence.interval) || 1));
+            const diffDays = dateOnlyIndex(date) - dateOnlyIndex(seriesStart);
+
+            if (frequency === 'daily' || frequency === 'day') {
+                return diffDays % interval === 0;
+            }
+
+            if (frequency === 'weekly' || frequency === 'week') {
+                const daysOfWeek = Array.isArray(recurrence.daysOfWeek) && recurrence.daysOfWeek.length
+                    ? recurrence.daysOfWeek.map(Number)
+                    : [seriesStart.getDay()];
+                return Math.floor(diffDays / 7) % interval === 0 && daysOfWeek.includes(date.getDay());
+            }
+
+            if (frequency === 'monthly' || frequency === 'month') {
+                const monthIndex = ((date.getFullYear() - seriesStart.getFullYear()) * 12) + (date.getMonth() - seriesStart.getMonth());
+                return monthIndex >= 0 && monthIndex % interval === 0 && date.getDate() === seriesStart.getDate();
+            }
+
+            if (frequency === 'yearly' || frequency === 'year') {
+                const yearIndex = date.getFullYear() - seriesStart.getFullYear();
+                return yearIndex >= 0 &&
+                    yearIndex % interval === 0 &&
+                    date.getMonth() === seriesStart.getMonth() &&
+                    date.getDate() === seriesStart.getDate();
+            }
+
+            return false;
+        }
+
+        function dateOnlyIndex(date) {
+            return Math.round(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) / 86400000);
+        }
+
         function filterByCalendarIds(appointments, calendarIds) {
             return appointments.filter(appointment => shouldShowCalendar(appointment, calendarIds));
         }
@@ -1074,6 +1113,36 @@
                 return true;
             }
             return calendarIds.includes(appointment.calendarId);
+        }
+
+        function recurringMasterCanAppearBetween(appointment, from, to) {
+            const start = parseDateTimeString(appointment.start);
+            if (!start || start > to) {
+                return false;
+            }
+
+            const until = appointment.recurrence?.until
+                ? parseDateTimeString(appointment.recurrence.until)
+                : null;
+
+            return !until || until >= from;
+        }
+
+        function findAppointmentInStore(appointmentId) {
+            if (!appointmentId) {
+                return null;
+            }
+
+            for (const appointments of Object.values(appointmentStore)) {
+                const found = appointments.find(function (appointment) {
+                    return appointment.id === appointmentId;
+                });
+                if (found) {
+                    return found;
+                }
+            }
+
+            return null;
         }
 
         function upsertAppointmentInStore(appointment) {
@@ -1123,6 +1192,13 @@
             const hh = String(date.getHours()).padStart(2, '0');
             const ii = String(date.getMinutes()).padStart(2, '0');
             return `${yyyy}-${mm}-${dd} ${hh}:${ii}:00`;
+        }
+
+        function formatDate(date) {
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, '0');
+            const dd = String(date.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
         }
 
         function sleep(ms) {

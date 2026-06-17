@@ -65,6 +65,23 @@
 - Matched the search topnav spacing and close button sizing to the normal calendar topnav so switching search mode no longer changes the
   navigation height.
 
+#### Features
+
+- Added automatic month-view day expansion for overflowing appointment cells, with `formatter.monthExpanded(appointment, extras)` for custom
+  expanded appointment rendering.
+- Added first-class recurring appointment expansion via an optional `appointment.recurrence` object, including `daily`, `weekly`, `monthly`,
+  and `yearly` frequencies plus occurrence metadata in `extras.recurrence`.
+
+#### Documentation
+
+- Expanded the README recurring appointments section with source-vs-occurrence behavior, field reference, examples, remote data guidance,
+  formatter usage, and current API boundaries.
+
+#### Demo
+
+- Simplified the demo to English-only and removed the language switcher and German demo text paths.
+- Added recurring appointment controls and an English weekly training example to the appointment demo.
+
 ### Version 2.3.6
 
 2026-06-17

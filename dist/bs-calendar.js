@@ -704,6 +704,7 @@
                 week: formatterWeek,
                 allDay: formatterAllDay,
                 month: formatterMonth,
+                monthExpanded: formatterMonthExpanded,
                 agenda: formatterAgenda,
                 search: formatterSearch,
                 holiday: formatterHoliday,
@@ -1881,6 +1882,7 @@
                 loadingHolidays: false,
                 settings: $.bsCalendar.getDefaults(),
                 appointments: [],
+                sourceAppointments: [],
                 date: new Date(),
                 lastView: null,
                 viewBeforeSearch: null,
@@ -2106,7 +2108,7 @@
             }
 
             const appointmentId = String(appointmentIdParam);
-            const currentAppointments = getAppointments($wrapper);
+            const currentAppointments = getSourceAppointments($wrapper);
             const deletedAppointment = currentAppointments.find(appointment => hasAppointmentId(appointment) && String(appointment.id) === appointmentId);
             const appointments = currentAppointments
                 .filter(appointment => !hasAppointmentId(appointment) || String(appointment.id) !== appointmentId)
@@ -2121,7 +2123,7 @@
 
             checkAndSetAppointments($wrapper, appointments).then(_cleanedAppointments => {
                 void _cleanedAppointments;
-                const returnData = getAppointmentForReturn(deletedAppointment);
+                const returnData = getAppointmentReturnData($wrapper, deletedAppointment);
                 buildAppointmentsForView($wrapper);
                 trigger($wrapper, 'deleted', returnData.appointment, returnData.extras);
             });
@@ -2146,11 +2148,18 @@
             }
 
             let found = false;
-            const appointmentId = String(changes.id);
-            const appointments = getAppointments($wrapper).map(appointment => {
+            const appointmentId = String(changes.recurringId || changes.id);
+            const normalizedChanges = copyAppointment(changes);
+            normalizedChanges.id = appointmentId;
+            delete normalizedChanges.recurringId;
+            delete normalizedChanges.recurrenceDate;
+            delete normalizedChanges.recurrenceIndex;
+            delete normalizedChanges.isOccurrence;
+
+            const appointments = getSourceAppointments($wrapper).map(appointment => {
                 if (hasAppointmentId(appointment) && String(appointment.id) === appointmentId) {
                     found = true;
-                    const updatedAppointment = $.extend(true, {}, appointment, changes);
+                    const updatedAppointment = $.extend(true, {}, appointment, normalizedChanges);
                     delete updatedAppointment.extras;
                     return updatedAppointment;
                 }
@@ -2159,14 +2168,15 @@
 
             if (!found) {
                 if (settings.debug) {
-                    log('editAppointment() could not find appointment with id:', changes.id);
+                    log('editAppointment() could not find appointment with id:', appointmentId);
                 }
                 return;
             }
 
             checkAndSetAppointments($wrapper, appointments).then(_cleanedAppointments => {
-                const editedAppointment = _cleanedAppointments.find(item => hasAppointmentId(item) && String(item.id) === appointmentId);
-                const returnData = getAppointmentForReturn(editedAppointment || changes);
+                const editedAppointment = _cleanedAppointments.find(item => hasAppointmentId(item) && String(item.id) === appointmentId) ||
+                    getSourceAppointments($wrapper).find(item => hasAppointmentId(item) && String(item.id) === appointmentId);
+                const returnData = getAppointmentReturnData($wrapper, editedAppointment || normalizedChanges);
                 buildAppointmentsForView($wrapper);
                 trigger($wrapper, 'edited', returnData.appointment, returnData.extras);
             });
@@ -2191,12 +2201,13 @@
 
             ensureAppointmentId(appointment);
 
-            const appointments = getAppointments($wrapper).map(item => copyAppointment(item));
+            const appointments = getSourceAppointments($wrapper).map(item => copyAppointment(item));
             appointments.push(copyAppointment(appointment));
 
             checkAndSetAppointments($wrapper, appointments).then(_cleanedAppointments => {
-                const addedAppointment = _cleanedAppointments.find(item => hasAppointmentId(item) && String(item.id) === String(appointment.id));
-                const returnData = getAppointmentForReturn(addedAppointment || appointment);
+                const addedAppointment = _cleanedAppointments.find(item => hasAppointmentId(item) && String(item.id) === String(appointment.id)) ||
+                    getSourceAppointments($wrapper).find(item => hasAppointmentId(item) && String(item.id) === String(appointment.id));
+                const returnData = getAppointmentReturnData($wrapper, addedAppointment || appointment);
                 buildAppointmentsForView($wrapper);
                 trigger($wrapper, 'added', returnData.appointment, returnData.extras);
             });
@@ -2338,6 +2349,8 @@
 
             $wrapper.find('[data-appointment]').remove();
             $wrapper.find('[data-role="holiday"]').remove();
+            $wrapper.find('[data-month-expand-toggle], [data-month-expanded-day]').remove();
+            $wrapper.find('[data-month-expanded-active]').removeAttr('data-month-expanded-active');
 
             // Clean up holidays in year view (preserve the day element, just remove styling)
             $wrapper.find('.wc-holiday-marked').each(function () {
@@ -2791,6 +2804,14 @@
         setBsCalendarData(wrapper, data);
     }
 
+    function setSourceAppointments(wrapper, appointments) {
+        const data = getBsCalendarData(wrapper);
+        data.sourceAppointments = Array.isArray(appointments)
+            ? appointments.map(appointment => copyAppointment(appointment))
+            : [];
+        setBsCalendarData(wrapper, data);
+    }
+
     /**
      * Retrieves the list of appointments associated with the provided wrapper element.
      *
@@ -2800,6 +2821,11 @@
     function getAppointments($wrapper) {
         const data = getBsCalendarData($wrapper);
         return data.appointments || [];
+    }
+
+    function getSourceAppointments($wrapper) {
+        const data = getBsCalendarData($wrapper);
+        return Array.isArray(data.sourceAppointments) ? data.sourceAppointments : (data.appointments || []);
     }
 
     function hasAppointmentId(appointment) {
@@ -2861,6 +2887,9 @@
             return object;
         }
         const appointment = getEditableAppointmentParams(object);
+        if (hasAppointmentId({id: appointment?.recurringId})) {
+            return appointment.recurringId;
+        }
         if (hasAppointmentId(appointment)) {
             return appointment.id;
         }
@@ -3194,6 +3223,46 @@
         ].join('')
     }
 
+    function formatterMonthExpanded(appointment, extras) {
+        const t = $.bsCalendar.getTranslations(extras.locale);
+        const isTask = !!appointment.task;
+        const isDone = isTask && !!appointment.task.checked;
+        const displayDate = extras.monthExpanded?.displayDate || null;
+        const times = displayDate?.times || {};
+        const startTime = String(times.start || extras.start?.time || '').slice(0, 5);
+        const endTime = String(times.end || extras.end?.time || '').slice(0, 5);
+        const timeText = appointment.allDay
+            ? (t.allDay || $.bsCalendar.getTranslation(extras.locale, 'allDay') || 'All day')
+            : [startTime, endTime].filter(Boolean).join(' - ');
+        const icon = extras.icon
+            ? `<i class="${extras.icon} ${isTask ? 'task-toggle' : ''} flex-shrink-0 mt-1" style="${isTask ? 'cursor:pointer' : ''}"></i>`
+            : '';
+        const titleClass = isDone ? 'text-decoration-line-through text-body-secondary' : 'text-body';
+
+        const meta = [];
+        if (timeText) {
+            meta.push(`<span>${timeText}</span>`);
+        }
+        if (appointment.location) {
+            meta.push(Array.isArray(appointment.location) ? appointment.location.join(' · ') : appointment.location);
+        }
+        if (appointment.task && appointment.task.priority) {
+            const priority = appointment.task.priority;
+            const translationKey = `taskPriority${priority.charAt(0).toUpperCase()}${priority.slice(1)}`;
+            meta.push(t[translationKey] || priority);
+        }
+
+        return [
+            '<div class="d-flex align-items-start gap-2 w-100">',
+            icon,
+            '<div class="min-w-0 flex-fill">',
+            `<div class="fw-semibold text-truncate ${titleClass}">${appointment.title}</div>`,
+            meta.length ? `<div class="small text-body-secondary text-truncate">${meta.join(' · ')}</div>` : '',
+            '</div>',
+            '</div>'
+        ].join('');
+    }
+
     function formatterAgenda(appointment, extras) {
         const t = $.bsCalendar.getTranslations(extras.locale);
         const isTask = !!appointment.task;
@@ -3433,13 +3502,32 @@
         if (appointment && appointment.task) {
             appointment.task.checked = status;
 
-            // Update in global array
             const data = getBsCalendarData($wrapper);
-            const idx = data.appointments.findIndex(a => a.id === appointment.id);
-            if (idx !== -1) {
-                data.appointments[idx].task.checked = status;
-                setBsCalendarData($wrapper, data);
+            const appointmentId = String(appointment.id);
+            const sourceId = String(appointment.recurringId || appointment.id);
+
+            data.appointments.forEach(item => {
+                if (
+                    item.task &&
+                    (
+                        String(item.id) === appointmentId ||
+                        String(item.id) === sourceId ||
+                        String(item.recurringId || '') === sourceId
+                    )
+                ) {
+                    item.task.checked = status;
+                }
+            });
+
+            if (Array.isArray(data.sourceAppointments)) {
+                data.sourceAppointments.forEach(item => {
+                    if (item.task && String(item.id) === sourceId) {
+                        item.task.checked = status;
+                    }
+                });
             }
+
+            setBsCalendarData($wrapper, data);
 
             // Re-calculate extras for icons
             setAppointmentExtras($wrapper, data.appointments);
@@ -3738,6 +3826,7 @@
                 appointments = [];
 
                 // Store the empty appointments list in the wrapper's data attribute
+                setSourceAppointments($wrapper, appointments);
                 setAppointments($wrapper, appointments);
 
                 // Resolve the Promise with an empty list of appointments
@@ -3762,6 +3851,7 @@
                         return appointment;
                     });
                 setAppointmentExtras($wrapper, processedAppointments);
+                setSourceAppointments($wrapper, processedAppointments);
                 setAppointments($wrapper, processedAppointments);
                 return resolve(processedAppointments);
             }
@@ -3769,6 +3859,8 @@
             // Check if the appointment array is valid, contains appointments, and is not empty
             ensureAppointmentIds(appointments);
             cleanAppointments($wrapper, appointments);
+            setSourceAppointments($wrapper, appointments);
+            appointments = expandRecurringAppointments($wrapper, appointments);
 
             // Determine if the system is in search mode to adjust sorting behavior
             const inSearchMode = getSearchMode($wrapper);
@@ -3835,6 +3927,240 @@
                 ).toISOString();
             }
         });
+    }
+
+    function expandRecurringAppointments($wrapper, appointments) {
+        if (!Array.isArray(appointments) || appointments.length === 0) {
+            return [];
+        }
+
+        const period = getStartAndEndDateByView($wrapper);
+        const rangeStart = $.bsCalendar.utils.parseDateInput(period.start);
+        const rangeEnd = $.bsCalendar.utils.parseDateInput(period.end);
+
+        if (!rangeStart || !rangeEnd || isNaN(rangeStart.getTime()) || isNaN(rangeEnd.getTime())) {
+            return appointments;
+        }
+
+        rangeStart.setHours(0, 0, 0, 0);
+        rangeEnd.setHours(23, 59, 59, 999);
+
+        return appointments.flatMap(appointment => {
+            const recurrence = normalizeRecurrenceRule(appointment);
+            if (!recurrence) {
+                return [appointment];
+            }
+            return expandRecurringAppointment(appointment, recurrence, rangeStart, rangeEnd);
+        });
+    }
+
+    function normalizeRecurrenceRule(appointment) {
+        if (!appointment || appointment.recurringId || appointment.isOccurrence || !appointment.recurrence || typeof appointment.recurrence !== 'object') {
+            return null;
+        }
+
+        const rule = appointment.recurrence;
+        const rawFrequency = String(rule.frequency || rule.freq || '').trim().toLowerCase();
+        const frequencyAliases = {
+            day: 'daily',
+            daily: 'daily',
+            week: 'weekly',
+            weekly: 'weekly',
+            month: 'monthly',
+            monthly: 'monthly',
+            year: 'yearly',
+            yearly: 'yearly'
+        };
+        const frequency = frequencyAliases[rawFrequency] || null;
+        if (!frequency) {
+            return null;
+        }
+
+        const interval = Math.max(1, Math.floor(Number(rule.interval) || 1));
+        const count = Number.isFinite(Number(rule.count)) && Number(rule.count) > 0
+            ? Math.floor(Number(rule.count))
+            : null;
+        const until = rule.until || rule.end || null;
+        const untilDate = until ? $.bsCalendar.utils.parseDateInput(until) : null;
+        if (untilDate && !isNaN(untilDate.getTime())) {
+            untilDate.setHours(23, 59, 59, 999);
+        }
+
+        const start = $.bsCalendar.utils.parseDateInput(appointment.start);
+        if (!start || isNaN(start.getTime())) {
+            return null;
+        }
+
+        const daysOfWeek = Array.isArray(rule.daysOfWeek)
+            ? rule.daysOfWeek
+                .map(day => Number(day))
+                .filter(day => Number.isInteger(day) && day >= 0 && day <= 6)
+            : [];
+
+        return {
+            frequency,
+            interval,
+            count,
+            untilDate: untilDate && !isNaN(untilDate.getTime()) ? untilDate : null,
+            daysOfWeek: daysOfWeek.length ? [...new Set(daysOfWeek)] : [start.getDay()]
+        };
+    }
+
+    function expandRecurringAppointment(appointment, recurrence, rangeStart, rangeEnd) {
+        const start = $.bsCalendar.utils.parseDateInput(appointment.start);
+        const end = $.bsCalendar.utils.parseDateInput(appointment.end);
+        if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
+            return [appointment];
+        }
+
+        const durationMs = Math.max(0, end.getTime() - start.getTime());
+        const seriesStartDay = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+        const loopEnd = new Date(Math.min(
+            recurrence.untilDate ? recurrence.untilDate.getTime() : rangeEnd.getTime(),
+            rangeEnd.getTime()
+        ));
+        loopEnd.setHours(0, 0, 0, 0);
+
+        const exceptions = Array.isArray(appointment.recurrence.exceptions)
+            ? new Set(appointment.recurrence.exceptions.map(value => formatDateOnly(value)).filter(Boolean))
+            : new Set();
+
+        const occurrences = [];
+        let occurrenceIndex = 0;
+        let safety = 0;
+        const cursor = new Date(seriesStartDay);
+
+        while (cursor <= loopEnd && safety < 20000) {
+            safety++;
+
+            if (dateMatchesRecurrence(cursor, seriesStartDay, recurrence)) {
+                const occurrenceDate = $.bsCalendar.utils.formatDateToDateString(cursor);
+                const occurrenceStart = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate(), start.getHours(), start.getMinutes(), start.getSeconds(), start.getMilliseconds());
+                const occurrenceEnd = new Date(occurrenceStart.getTime() + durationMs);
+                const skipped = exceptions.has(occurrenceDate);
+
+                occurrenceIndex++;
+
+                if (recurrence.count !== null && occurrenceIndex > recurrence.count) {
+                    break;
+                }
+
+                if (!skipped && rangesOverlap(occurrenceStart, occurrenceEnd, rangeStart, rangeEnd)) {
+                    occurrences.push(createRecurringOccurrence(appointment, occurrenceStart, occurrenceEnd, occurrenceDate, occurrenceIndex - 1, recurrence));
+                }
+            }
+
+            cursor.setDate(cursor.getDate() + 1);
+        }
+
+        return occurrences;
+    }
+
+    function dateMatchesRecurrence(date, seriesStartDay, recurrence) {
+        if (date < seriesStartDay) {
+            return false;
+        }
+
+        const diffDays = localDateIndex(date) - localDateIndex(seriesStartDay);
+
+        if (recurrence.frequency === 'daily') {
+            return diffDays % recurrence.interval === 0;
+        }
+
+        if (recurrence.frequency === 'weekly') {
+            const weekIndex = Math.floor(diffDays / 7);
+            return weekIndex % recurrence.interval === 0 && recurrence.daysOfWeek.includes(date.getDay());
+        }
+
+        if (recurrence.frequency === 'monthly') {
+            const monthIndex = ((date.getFullYear() - seriesStartDay.getFullYear()) * 12) + (date.getMonth() - seriesStartDay.getMonth());
+            return monthIndex >= 0 &&
+                monthIndex % recurrence.interval === 0 &&
+                date.getDate() === seriesStartDay.getDate();
+        }
+
+        if (recurrence.frequency === 'yearly') {
+            const yearIndex = date.getFullYear() - seriesStartDay.getFullYear();
+            return yearIndex >= 0 &&
+                yearIndex % recurrence.interval === 0 &&
+                date.getMonth() === seriesStartDay.getMonth() &&
+                date.getDate() === seriesStartDay.getDate();
+        }
+
+        return false;
+    }
+
+    function createRecurringOccurrence(appointment, start, end, occurrenceDate, occurrenceIndex, recurrence) {
+        const occurrence = copyAppointment(appointment);
+        const masterId = String(appointment.id);
+
+        occurrence.id = `${masterId}__${occurrenceDate}`;
+        occurrence.start = formatLocalDateTime(start);
+        occurrence.end = formatLocalDateTime(end);
+        occurrence.recurringId = masterId;
+        occurrence.recurrenceDate = occurrenceDate;
+        occurrence.recurrenceIndex = occurrenceIndex;
+        occurrence.isOccurrence = true;
+        occurrence.recurrence = $.extend(true, {}, appointment.recurrence);
+        occurrence.recurrence.frequency = recurrence.frequency;
+        occurrence.recurrence.interval = recurrence.interval;
+
+        return occurrence;
+    }
+
+    function localDateIndex(date) {
+        const parsedDate = typeof date === 'string' ? $.bsCalendar.utils.parseDateInput(date) : date;
+        return Math.round(Date.UTC(
+            parsedDate.getFullYear(),
+            parsedDate.getMonth(),
+            parsedDate.getDate()
+        ) / 86400000);
+    }
+
+    function rangesOverlap(start, end, rangeStart, rangeEnd) {
+        return start <= rangeEnd && end >= rangeStart;
+    }
+
+    function formatDateOnly(value) {
+        const date = $.bsCalendar.utils.parseDateInput(value);
+        if (!date || isNaN(date.getTime())) {
+            return null;
+        }
+        return $.bsCalendar.utils.formatDateToDateString(date);
+    }
+
+    function formatLocalDateTime(date) {
+        return `${$.bsCalendar.utils.formatDateToDateString(date)} ${$.bsCalendar.utils.formatTime(date)}`;
+    }
+
+    function getRecurrenceExtras(appointment) {
+        const rule = appointment && appointment.recurrence && typeof appointment.recurrence === 'object'
+            ? appointment.recurrence
+            : null;
+
+        if (!rule) {
+            return {
+                isRecurring: false,
+                isOccurrence: false,
+                recurringId: null,
+                occurrenceId: null,
+                occurrenceDate: null,
+                occurrenceIndex: null,
+                frequency: null,
+                interval: null
+            };
+        }
+
+        return {
+            isRecurring: true,
+            isOccurrence: !!appointment.isOccurrence,
+            recurringId: appointment.recurringId || appointment.id || null,
+            occurrenceId: appointment.id || null,
+            occurrenceDate: appointment.recurrenceDate || formatDateOnly(appointment.start),
+            occurrenceIndex: Number.isInteger(appointment.recurrenceIndex) ? appointment.recurrenceIndex : null,
+            frequency: String(rule.frequency || rule.freq || '').trim().toLowerCase() || null,
+            interval: Number(rule.interval) || 1
+        };
     }
 
     /**
@@ -9308,6 +9634,14 @@
         return {appointment: appointment, extras: extras}
     }
 
+    function getAppointmentReturnData($wrapper, origin) {
+        const appointment = copyAppointment(origin);
+        if (!appointment.extras && appointment.start && appointment.end) {
+            setAppointmentExtras($wrapper, [appointment]);
+        }
+        return getAppointmentForReturn(appointment);
+    }
+
     /**
      * Builds a minimal drag context object without mutating the original appointment.
      *
@@ -10294,7 +10628,15 @@
                      * This is true if the current time lies between the appointment's
                      * start and end timestamps.
                      */
-                    isNow: start <= now && end >= now
+                    isNow: start <= now && end >= now,
+
+                    /**
+                     * Recurrence metadata for generated occurrences.
+                     *
+                     * Source data keeps the `recurrence` rule on the appointment.
+                     * Rendered occurrence instances expose their relationship here.
+                     */
+                    recurrence: getRecurrenceExtras(appointment)
                 };
 
                 /**

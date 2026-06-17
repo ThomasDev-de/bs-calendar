@@ -30,6 +30,7 @@ As of version 2, Bootstrap 4 is no longer supported. Use version `^1` for Bootst
 - [Run the Demo](#run-the-demo)
 - [Core Concepts](#core-concepts)
 - [Appointment Data](#appointment-data)
+- [Recurring Appointments](#recurring-appointments)
 - [Remote Data with `url`](#remote-data-with-url)
 - [Add, Edit, and Delete Workflow](#add-edit-and-delete-workflow)
 - [Options](#options)
@@ -143,6 +144,7 @@ The demo contains one calendar instance and shows a modal-based add/edit/delete 
 - `refresh` reloads data from `url`.
 - `render` re-renders already loaded data without calling `url`.
 - `year` view uses summary objects (`date`, `total`, optional `content`), not full appointment objects.
+- Recurring appointments are normal appointment objects with a `recurrence` object. They are expanded only for loaded appointment views.
 - Tasks are normal appointment objects with a `task` object.
 
 ## Appointment Data
@@ -165,6 +167,12 @@ For `day`, `4day`, `week`, `month`, `agenda`, and search results, appointments u
   "editable": true,
   "deleteable": true,
   "overlap": false,
+  "recurrence": {
+    "frequency": "weekly",
+    "interval": 1,
+    "until": "2026-12-31",
+    "daysOfWeek": [5]
+  },
   "task": {
     "checked": false,
     "priority": "high",
@@ -196,6 +204,7 @@ Optional fields:
 | `editable`    | `boolean`, `string`, or `number` | `true`                   | Controls whether the info window shows edit/duplicate controls. Boolean-like strings such as `"false"`, `"0"`, and `"no"` are treated as false.    |
 | `deleteable`  | `boolean`                        | `true`                   | Controls whether the info window shows a delete button.                                                                                            |
 | `overlap`     | `boolean`, `string`, or `number` | `false`                  | Day/week/4day view only. Boolean-like `true`, `"true"`, `"1"`, or `"yes"` renders this appointment full-width and stacked instead of side-by-side. |
+| `recurrence`  | `object` or `null`               | none                     | Expands one source appointment into visible occurrences. See [Recurring appointments](#recurring-appointments).                                    |
 | `task`        | `object` or `null`               | none                     | If provided, the appointment is treated as a task. See [Task fields](#task-fields).                                                                |
 
 Reserved field:
@@ -242,6 +251,158 @@ Link object fields:
 | `disabled` | `boolean` | `false`                 | If true, no link is rendered.             |
 | `html`     | `string`  | none                    | Raw HTML content for the link body.       |
 | `color`    | `string`  | `"primary"`             | Color used by the default link formatter. |
+
+### Recurring Appointments
+
+Recurring appointments are stored as one source appointment with a `recurrence` object. bs-calendar expands that source appointment into
+renderable occurrences for the currently loaded date range. Your database can therefore keep one master record instead of one row per date.
+In normal appointment views the source appointment itself is not rendered in addition to its occurrences.
+
+Core model:
+
+| Term              | Meaning                                                                                                         |
+|-------------------|-----------------------------------------------------------------------------------------------------------------|
+| Source appointment | The appointment object returned by your backend or added with `addAppointment`. It owns the `recurrence` rule. |
+| Occurrence         | A generated render item for one matching date. It keeps the source data and adds recurrence metadata.          |
+| `recurringId`      | The source appointment ID on a generated occurrence.                                                           |
+
+Minimal weekly example:
+
+```json
+{
+  "id": "weekly-training",
+  "title": "Weekly training",
+  "start": "2026-06-01 18:00:00",
+  "end": "2026-06-01 19:00:00",
+  "recurrence": {
+    "frequency": "weekly",
+    "interval": 1,
+    "until": "2026-12-31",
+    "daysOfWeek": [1],
+    "exceptions": ["2026-07-06"]
+  }
+}
+```
+
+Supported recurrence fields:
+
+| Field        | Type            | Description                                                                                                         |
+|--------------|-----------------|---------------------------------------------------------------------------------------------------------------------|
+| `frequency`  | `string`        | `daily`, `weekly`, `monthly`, or `yearly`. Short aliases `day`, `week`, `month`, `year` and `freq` are accepted.    |
+| `interval`   | `number`        | Repeat every n frequency units. Missing, invalid, or smaller-than-1 values are treated as `1`.                      |
+| `until`      | `string`        | Optional inclusive end date. Alias `end` is accepted. Date-only values include the whole day.                       |
+| `count`      | `number`        | Optional maximum number of series positions. Exceptions still skip their dates.                                     |
+| `daysOfWeek` | `array<number>` | Weekly weekdays using JavaScript weekday numbers, `0` Sunday through `6` Saturday. Defaults to the start weekday.   |
+| `exceptions` | `array<string>` | Date-only values to skip, e.g. `["2026-07-06"]`. Time parts are ignored and normalized to the local date.           |
+
+Occurrence fields generated by bs-calendar:
+
+| Field             | Example                         | Description                                                             |
+|-------------------|---------------------------------|-------------------------------------------------------------------------|
+| `id`              | `weekly-training__2026-06-08`   | Generated from the source ID and occurrence date.                       |
+| `start`           | `2026-06-08 18:00:00`           | Occurrence start with the source time preserved.                        |
+| `end`             | `2026-06-08 19:00:00`           | Occurrence end with the source duration preserved.                      |
+| `recurringId`     | `weekly-training`               | Source appointment ID.                                                  |
+| `recurrenceDate`  | `2026-06-08`                    | Local date represented by this occurrence.                              |
+| `recurrenceIndex` | `1`                             | Zero-based index in the generated series positions.                     |
+| `isOccurrence`    | `true`                          | Marks the item as a generated occurrence rather than the source record. |
+
+`after-load.bs.calendar`, appointment formatters, and intent events receive the expanded occurrence objects. Use `appointment.recurringId` or
+`extras.recurrence.recurringId` whenever you need to map an occurrence back to the source record.
+
+Frequency behavior:
+
+| Frequency | Behavior                                                                                                  |
+|-----------|-----------------------------------------------------------------------------------------------------------|
+| `daily`   | Matches every `interval` days from the source start date.                                                  |
+| `weekly`  | Matches selected `daysOfWeek` in every `interval` weeks from the source start week.                        |
+| `monthly` | Matches the same day of month as the source start date. Months without that day are skipped.               |
+| `yearly`  | Matches the same month and day as the source start date.                                                   |
+
+Multiple weekdays:
+
+```json
+{
+  "id": "training",
+  "title": "Training",
+  "start": "2026-06-01 18:00:00",
+  "end": "2026-06-01 19:00:00",
+  "recurrence": {
+    "frequency": "weekly",
+    "daysOfWeek": [1, 3],
+    "until": "2026-06-30"
+  }
+}
+```
+
+This creates Monday and Wednesday occurrences from `2026-06-01` onward.
+
+Every second week with one skipped date:
+
+```json
+{
+  "id": "team-sync",
+  "title": "Team sync",
+  "start": "2026-06-02 09:30:00",
+  "end": "2026-06-02 10:00:00",
+  "recurrence": {
+    "frequency": "weekly",
+    "interval": 2,
+    "until": "2026-08-31",
+    "exceptions": ["2026-07-14"]
+  }
+}
+```
+
+Client-side local API behavior:
+
+```javascript
+$('#calendar').on('edit.bs.calendar', function (event, appointment) {
+    event.preventDefault();
+
+    const sourceId = appointment.recurringId || appointment.id;
+
+    $('#calendar').bsCalendar('editAppointment', {
+        id: sourceId,
+        title: 'Updated series title'
+    });
+});
+```
+
+`addAppointment`, `editAppointment`, and `deleteAppointment` work on the source appointment list. If you pass a generated occurrence object to
+`editAppointment` or `deleteAppointment`, bs-calendar uses `recurringId` and updates/removes the source appointment. This first recurrence API
+does not create per-occurrence overrides.
+
+Formatter example:
+
+```javascript
+$('#calendar').bsCalendar({
+    formatter: {
+        month(appointment, extras) {
+            const marker = extras.recurrence.isOccurrence ? '[recurring] ' : '';
+            return `${marker}${appointment.title}`;
+        }
+    }
+});
+```
+
+Remote data guidance:
+
+- For `day`, `4day`, `week`, `month`, and `agenda`, your `url` receives `fromDate` and `toDate`. Return recurring source appointments that
+  can have at least one occurrence in that range.
+- Do not filter recurring source appointments only by `start` date. A weekly source from January can still produce a June occurrence.
+- A practical server-side overlap check is: source `start <= toDate` and either no `until` or `until >= fromDate`. If you use `count`, your
+  backend may need its own recurrence check for exact filtering.
+- `year` view uses summary rows (`date`, `total`, optional `content`), so recurrence expansion is not applied there. Return already counted
+  year summary data.
+- Search is controlled by your `url` response. For broad search across a long-running series, return the matching source or concrete rows your
+  application wants to show.
+
+Current boundaries:
+
+- Supported rules are intentionally simple: daily, weekly, monthly, yearly, interval, until/end, count, weekly days, and date exceptions.
+- RRULE strings, nth weekday rules, timezone-specific recurrence sets, moved occurrences, and edited single occurrences are not supported yet.
+- Occurrences inherit the source appointment fields. Store exceptions or future per-occurrence overrides in your own backend model.
 
 ### Task Fields
 
@@ -781,6 +942,9 @@ Formatter signatures:
 | `window`   | `(appointment, extras)`       | Promise resolving to HTML/string |
 | `duration` | `(duration)`                  | string                           |
 
+In month view, day cells automatically show a small expand button when their appointment list overflows. The expanded month-day overlay uses
+`formatter.monthExpanded(appointment, extras)` so the compact `formatter.month` output can stay single-line.
+
 ## Extras Object
 
 `extras` is generated for each appointment after loading/normalization.
@@ -812,6 +976,20 @@ Formatter signatures:
 | `inADay`                    | Whether it stays within one calendar day.                                 |
 | `isToday`                   | Whether the start date is today.                                          |
 | `isNow`                     | Whether the current time is between start and end.                        |
+| `recurrence`                | Recurrence metadata for source appointments and generated occurrences.    |
+
+`extras.recurrence` contains:
+
+| Field             | Description                                          |
+|-------------------|------------------------------------------------------|
+| `isRecurring`     | Whether this appointment has a recurrence rule.      |
+| `isOccurrence`    | Whether this item is a generated occurrence.         |
+| `recurringId`     | Source appointment ID for generated occurrences.     |
+| `occurrenceId`    | Current rendered appointment ID.                     |
+| `occurrenceDate`  | Date represented by this occurrence.                 |
+| `occurrenceIndex` | Zero-based occurrence index when available.          |
+| `frequency`       | Normalized frequency value.                          |
+| `interval`        | Normalized interval value.                           |
 
 `extras.hourSlotRules` and drag `dragExtras.hourSlotRules` contain:
 
