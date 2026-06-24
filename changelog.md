@@ -84,6 +84,7 @@
 
 - Simplified the demo to English-only and removed the language switcher and German demo text paths.
 - Added recurring appointment controls and an English weekly training example to the appointment demo.
+- Fixed drag-move edits in the demo modal so saving keeps the dragged day instead of restoring the original date.
 
 ### Version 2.3.6
 

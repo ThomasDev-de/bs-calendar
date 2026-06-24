@@ -419,6 +419,8 @@
                     const sourceStart = parseDateTimeString(sourceAppointment.start);
                     const sourceEnd = parseDateTimeString(sourceAppointment.end);
                     const isAllDay = !!sourceAppointment.allDay;
+                    const startDateCandidate = dragExtras?.start?.date || (sourceStart ? formatDate(sourceStart) : eventExtras.start.date);
+                    const endDateCandidate = dragExtras?.end?.date || (sourceEnd ? formatDate(sourceEnd) : eventExtras.end.date);
                     const startTimeCandidate = dragExtras?.start?.time || (sourceStart ? formatDateTime(sourceStart) : sourceAppointment?.start);
                     const endTimeCandidate = dragExtras?.end?.time || (sourceEnd ? formatDateTime(sourceEnd) : sourceAppointment?.end);
 
@@ -427,8 +429,8 @@
                     openAppointmentModal('edit', {
                         id: sourceAppointment.id,
                         title: sourceAppointment.title,
-                        startDate: sourceStart ? formatDate(sourceStart) : eventExtras.start.date,
-                        endDate: sourceEnd ? formatDate(sourceEnd) : eventExtras.end.date,
+                        startDate: startDateCandidate,
+                        endDate: endDateCandidate,
                         startTime: isAllDay ? '' : resolveModalTime(startTimeCandidate, sourceAppointment.start),
                         endTime: isAllDay ? '' : resolveModalTime(endTimeCandidate, sourceAppointment.end),
                         allDay: isAllDay,
