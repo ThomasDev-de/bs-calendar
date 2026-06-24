@@ -2278,7 +2278,13 @@
                 'locale',
                 'holidays'
             ]);
-            const shouldRebuildFramework = Object.keys(options).some(key => frameworkSensitiveOptionKeys.has(key));
+            const optionKeys = Object.keys(options);
+            const shouldRebuildFramework = optionKeys.some(key => frameworkSensitiveOptionKeys.has(key));
+            const renderStateSensitiveOptionKeys = new Set([
+                'mainColor'
+            ]);
+            const shouldInvalidateRenderState = shouldRebuildFramework ||
+                optionKeys.some(key => renderStateSensitiveOptionKeys.has(key));
             const wasSearchMode = !!data.searchMode;
             const previousSearchValue = wasSearchMode ? (getSearchElement($wrapper)?.val() ?? '') : '';
 
@@ -2294,7 +2300,9 @@
             data.mainColor = $.bsCalendar.utils.getColors(merged.mainColor);
             // Apply new settings
             data.settings = merged;
-            data.renderState = null;
+            if (shouldInvalidateRenderState) {
+                data.renderState = null;
+            }
             setBsCalendarData($wrapper, data);
 
             // View change requested?
@@ -7869,10 +7877,11 @@
      * calendar IDs into every request and optionally allows user-defined query
      * parameters to enrich the request data without overriding protected core keys.
      *
-     * During the lifecycle, the function clears the previous view state, triggers
-     * before-load and after-load events, shows and hides the calendar loader, stores
-     * cleaned appointments, and rebuilds either the normal calendar view or the
-     * search result view.
+     * During the lifecycle, the function keeps the previous rendered appointments
+     * visible while the next async result is loading, triggers before-load and
+     * after-load events, shows and hides the calendar loader, stores cleaned
+     * appointments, and rebuilds either the normal calendar view or the search
+     * result view.
      *
      * @param {jQuery} $wrapper
      * The calendar wrapper whose appointments should be fetched and rendered.
@@ -7904,12 +7913,6 @@
          */
         bsCalendarData.loading = true;
         setBsCalendarData($wrapper, bsCalendarData);
-
-        /**
-         * Clear previous appointment data, rendered elements or related temporary
-         * state before loading fresh appointment data.
-         */
-        methods.clear($wrapper);
 
         /**
          * Indicates whether the loading workflow should be skipped.
@@ -11631,7 +11634,7 @@
                 // 1. Wochentags-Name (Nur in der ersten Zeile, IN der Zelle)
                 if (isFirstRow) {
                     $('<div>', {
-                        class: 'text-center text-uppercase fw-bold text-body-secondary small pt-1',
+                        class: 'text-center text-uppercase fw-bold text-body-secondary small pt-1 user-select-none pe-none',
                         css: {lineHeight: '16px', fontSize: '10px'},
                         text: weekDays[i]
                     }).appendTo(contentWrapper);
@@ -11771,7 +11774,7 @@
         weekDays.forEach(day => {
             $('<th>', {
                 text: day.substring(0, 2),
-                class: 'text-body-secondary fw-normal p-0',
+                class: 'text-body-secondary fw-normal p-0 user-select-none pe-none',
                 css: {width: `${cellSize}px`, verticalAlign: 'middle'}
             }).appendTo(weekdaysRow);
         });
@@ -12066,8 +12069,8 @@
         }
         return [
             `<div class="d-flex flex-column justify-content-center w-100 p-2 align-items-${justify}">`,
-            `<div class="d-flex justify-content-center" style="width: 44px"><small>${shortWeekday}</small></div>`,
-            `<span style="${circleCss.join(';')}" class="h4 m-0 text-center ${circleClasses.join(' ')}">${day} </span>`,
+            `<div class="d-flex justify-content-center user-select-none pe-none" style="width: 44px"><small>${shortWeekday}</small></div>`,
+            `<span style="${circleCss.join(';')}" class="h4 m-0 text-center user-select-none pe-none ${circleClasses.join(' ')}">${day} </span>`,
             `</div>`
         ].join('')
 
@@ -12204,7 +12207,7 @@
 
                 // Render the hour label (e.g., 08:00) aligned to the row's top
                 $('<div>', {
-                    class: 'wc-time-label ps-2 position-absolute top-0 translate-middle',
+                    class: 'wc-time-label ps-2 position-absolute top-0 translate-middle user-select-none pe-none',
                     style: combinedCss,
                     html: $.bsCalendar.utils.formatTime(hourDate, false)
                 }).appendTo(row);

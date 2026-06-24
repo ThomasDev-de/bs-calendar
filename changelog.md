@@ -64,6 +64,9 @@
 
 - Matched the search topnav spacing and close button sizing to the normal calendar topnav so switching search mode no longer changes the
   navigation height.
+- Kept existing appointments visible during async `refresh`/`updateOptions` reloads so the calendar no longer flashes empty before the
+  rebuilt appointment layer is ready.
+- Prevented day/week/4-day time labels, header date numbers, and weekday labels across calendar views from being selected or intercepting pointer input.
 
 #### Features
 

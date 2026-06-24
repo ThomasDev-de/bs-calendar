@@ -307,7 +307,7 @@
                 startView: '4day',
                 startWeekOnSunday: false,
                 navigateOnWheel: false,
-                draggable: true,
+                draggable: $('#switchToggleDraggable').is(':checked'),
                 storeState: false,
                 debug: false,
                 url: loadAppointments,
@@ -383,7 +383,7 @@
                     $calendar.bsCalendar('refresh');
                 })
                 .on('change', '#switchToggleDraggable', function () {
-                    $calendar.bsCalendar('updateOptions', {draggable: !$(this).is(':checked')});
+                    $calendar.bsCalendar('updateOptions', {draggable: $(this).is(':checked')});
                 })
                 .on('change', '#selectAppointmentRule', function () {
                     $calendar.bsCalendar('updateOptions', {
