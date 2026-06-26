@@ -1,0 +1,36 @@
+{
+  "name": "@thomasdev-de/bs-calendar",
+  "version": "2.3.6",
+  "description": "A Bootstrap 5 jQuery calendar plugin with day, 4-day, week, month, agenda and year views, appointments, tasks, drag and drop, localization and recurring appointments.",
+  "main": "dist/bs-calendar.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "changelog.md"
+  ],
+  "keywords": [
+    "bootstrap",
+    "bootstrap5",
+    "calendar",
+    "event-calendar",
+    "jquery",
+    "jquery-plugin",
+    "scheduler",
+    "appointments",
+    "agenda",
+    "tasks",
+    "drag-and-drop",
+    "recurring-events",
+    "admin-dashboard"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.webcito.de/?plugin=bs-calendar",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ThomasDev-de/bs-calendar.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ThomasDev-de/bs-calendar/issues"
+  }
+}
