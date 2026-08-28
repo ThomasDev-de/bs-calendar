@@ -1,6 +1,6 @@
 {
   "name": "@thomasdev-de/bs-calendar",
-  "version": "2.3.6",
+  "version": "2.3.7",
   "description": "A Bootstrap 5 jQuery calendar plugin with day, 4-day, week, month, agenda and year views, appointments, tasks, drag and drop, localization and recurring appointments.",
   "main": "dist/bs-calendar.js",
   "files": [

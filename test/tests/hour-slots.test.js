@@ -1,0 +1,58 @@
+QUnit.module('hourSlots Detail Level', function (hooks) {
+
+    hooks.beforeEach(function () {
+        $('#qunit-fixture').html('<div id="cal"></div>');
+    });
+
+    hooks.afterEach(function () {
+        try { $('#cal').bsCalendar('destroy'); } catch (e) { /* */ }
+    });
+
+    QUnit.test('should accept float values for hourSlots.start and end', function (assert) {
+        $('#cal').bsCalendar({
+            url: null,
+            startView: 'day',
+            hourSlots: {
+                start: 8.5,
+                end: 17.5
+            }
+        });
+
+        const settings = $('#cal').data('bsCalendar').settings;
+        assert.strictEqual(settings.hourSlots.start, 8.5, 'hourSlots.start should be 8.5');
+        assert.strictEqual(settings.hourSlots.end, 17.5, 'hourSlots.end should be 17.5');
+    });
+
+    QUnit.test('should accept string time values for hourSlots.start and end', function (assert) {
+        $('#cal').bsCalendar({
+            url: null,
+            startView: 'day',
+            hourSlots: {
+                start: '08:30',
+                end: '17:45'
+            }
+        });
+
+        const settings = $('#cal').data('bsCalendar').settings;
+        assert.strictEqual(settings.hourSlots.start, 8.5, 'hourSlots.start should be 8.5 from "08:30"');
+        assert.strictEqual(settings.hourSlots.end, 17.75, 'hourSlots.end should be 17.75 from "17:45"');
+    });
+    
+    QUnit.test('should render grid rows even with fractional start', function (assert) {
+        $('#cal').bsCalendar({
+            url: null,
+            startView: 'day',
+            hourSlots: {
+                start: 8.5,
+                end: 10.5
+            }
+        });
+        
+        // We expect rows for hour 8.5, 9.5, 10.5 (as boundary)
+        const rows = $('#cal').find('[data-day-hour]');
+        assert.ok(rows.length >= 2, 'Should have at least 2 rows');
+        
+        // Check if the first row has the correct data-day-hour
+        assert.strictEqual(parseFloat(rows.first().attr('data-day-hour')), 8.5, 'First row should be 8.5');
+    });
+});

@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.3.6
- * @date 2026-06-17
+ * @version 2.3.7
+ * @date 2026-08-28
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -87,7 +87,7 @@
             taskPriorityHigh: 'عالية',
             taskPriorityNormal: 'متوسطة',
             taskPriorityLow: 'منخفضة',
-            duplicate: 'تكرار'
+            duplicate: 'تكرار', timeline: 'الخط الزمني', calendar: 'التقويم', timelineUnassigned: 'بدون موقع'
         },
 
         'he': { // Hebrew
@@ -107,7 +107,7 @@
             taskPriorityHigh: 'גבוהה',
             taskPriorityNormal: 'בינונית',
             taskPriorityLow: 'נמוכה',
-            duplicate: 'שכפול'
+            duplicate: 'שכפול', timeline: 'ציר זמן', calendar: 'לוח שנה', timelineUnassigned: 'ללא מיקום'
         },
 
         'zh': { // Chinese Simplified
@@ -127,7 +127,7 @@
             taskPriorityHigh: '高',
             taskPriorityNormal: '中',
             taskPriorityLow: '低',
-            duplicate: '复制'
+            duplicate: '复制', timeline: '时间线', calendar: '日历', timelineUnassigned: '无位置'
         },
 
         'en': { // English
@@ -147,7 +147,7 @@
             taskPriorityHigh: 'High',
             taskPriorityNormal: 'Medium',
             taskPriorityLow: 'Low',
-            duplicate: 'Duplicate'
+            duplicate: 'Duplicate', timeline: 'Timeline', calendar: 'Calendar', timelineUnassigned: 'Unassigned'
         },
 
         'de': { // German
@@ -167,7 +167,7 @@
             taskPriorityHigh: 'Hoch',
             taskPriorityNormal: 'Mittel',
             taskPriorityLow: 'Niedrig',
-            duplicate: 'Duplizieren'
+            duplicate: 'Duplizieren', timeline: 'Zeitachse', calendar: 'Kalender', timelineUnassigned: 'Ohne Location'
         },
 
         'es': { // Spanish
@@ -187,7 +187,7 @@
             taskPriorityHigh: 'Alta',
             taskPriorityNormal: 'Media',
             taskPriorityLow: 'Baja',
-            duplicate: 'Duplicar'
+            duplicate: 'Duplicar', timeline: 'Línea de tiempo', calendar: 'Calendario', timelineUnassigned: 'Sin ubicación'
         },
 
         'fr': { // French
@@ -207,7 +207,7 @@
             taskPriorityHigh: 'Élevée',
             taskPriorityNormal: 'Moyenne',
             taskPriorityLow: 'Faible',
-            duplicate: 'Dupliquer'
+            duplicate: 'Dupliquer', timeline: 'Chronologie', calendar: 'Calendrier', timelineUnassigned: 'Sans emplacement'
         },
 
         'it': { // Italian
@@ -227,7 +227,7 @@
             taskPriorityHigh: 'Alta',
             taskPriorityNormal: 'Media',
             taskPriorityLow: 'Bassa',
-            duplicate: 'Duplica'
+            duplicate: 'Duplica', timeline: 'Sequenza temporale', calendar: 'Calendario', timelineUnassigned: 'Senza posizione'
         },
 
         'pt': { // Portuguese
@@ -247,7 +247,7 @@
             taskPriorityHigh: 'Alta',
             taskPriorityNormal: 'Média',
             taskPriorityLow: 'Baixa',
-            duplicate: 'Duplicar'
+            duplicate: 'Duplicar', timeline: 'Linha do tempo', calendar: 'Calendário', timelineUnassigned: 'Sem localização'
         },
 
         'nl': { // Dutch
@@ -267,7 +267,7 @@
             taskPriorityHigh: 'Hoog',
             taskPriorityNormal: 'Gemiddeld',
             taskPriorityLow: 'Laag',
-            duplicate: 'Dupliceren'
+            duplicate: 'Dupliceren', timeline: 'Tijdlijn', calendar: 'Kalender', timelineUnassigned: 'Zonder locatie'
         },
 
         'pl': { // Polish
@@ -287,7 +287,7 @@
             taskPriorityHigh: 'Wysoki',
             taskPriorityNormal: 'Średni',
             taskPriorityLow: 'Niski',
-            duplicate: 'Duplikuj'
+            duplicate: 'Duplikuj', timeline: 'Oś czasu', calendar: 'Kalendarz', timelineUnassigned: 'Bez lokalizacji'
         },
 
         'ru': { // Russian
@@ -307,7 +307,7 @@
             taskPriorityHigh: 'Высокий',
             taskPriorityNormal: 'Средний',
             taskPriorityLow: 'Низкий',
-            duplicate: 'Дублировать'
+            duplicate: 'Дублировать', timeline: 'Временная шкала', calendar: 'Календарь', timelineUnassigned: 'Без места'
         },
 
         'uk': { // Ukrainian
@@ -327,7 +327,7 @@
             taskPriorityHigh: 'Високий',
             taskPriorityNormal: 'Середній',
             taskPriorityLow: 'Низький',
-            duplicate: 'Дублювати'
+            duplicate: 'Дублювати', timeline: 'Часова шкала', calendar: 'Календар', timelineUnassigned: 'Без місця'
         },
 
         'tr': { // Turkish
@@ -347,7 +347,7 @@
             taskPriorityHigh: 'Yüksek',
             taskPriorityNormal: 'Orta',
             taskPriorityLow: 'Düşük',
-            duplicate: 'Çoğalt'
+            duplicate: 'Çoğalt', timeline: 'Zaman çizelgesi', calendar: 'Takvim', timelineUnassigned: 'Konumsuz'
         },
 
         'ja': { // Japanese
@@ -367,7 +367,7 @@
             taskPriorityHigh: '高',
             taskPriorityNormal: '中',
             taskPriorityLow: '低',
-            duplicate: '複製'
+            duplicate: '複製', timeline: 'タイムライン', calendar: 'カレンダー', timelineUnassigned: '場所なし'
         },
 
         'ko': { // Korean
@@ -387,7 +387,7 @@
             taskPriorityHigh: '높음',
             taskPriorityNormal: '보통',
             taskPriorityLow: '낮음',
-            duplicate: '복제'
+            duplicate: '복제', timeline: '타임라인', calendar: '캘린더', timelineUnassigned: '위치 없음'
         },
 
         'hi': { // Hindi
@@ -407,7 +407,7 @@
             taskPriorityHigh: 'उच्च',
             taskPriorityNormal: 'मध्यम',
             taskPriorityLow: 'निम्न',
-            duplicate: 'डुप्लिकेट करें'
+            duplicate: 'डुप्लिकेट करें', timeline: 'समयरेखा', calendar: 'कैलेंडर', timelineUnassigned: 'स्थान नहीं है'
         },
 
         'id': { // Indonesian
@@ -427,7 +427,7 @@
             taskPriorityHigh: 'Tinggi',
             taskPriorityNormal: 'Sedang',
             taskPriorityLow: 'Rendah',
-            duplicate: 'Duplikat'
+            duplicate: 'Duplikat', timeline: 'Linimasa', calendar: 'Kalender', timelineUnassigned: 'Tanpa lokasi'
         },
 
         'vi': { // Vietnamese
@@ -447,7 +447,7 @@
             taskPriorityHigh: 'Cao',
             taskPriorityNormal: 'Trung bình',
             taskPriorityLow: 'Thấp',
-            duplicate: 'Nhân bản'
+            duplicate: 'Nhân bản', timeline: 'Dòng thời gian', calendar: 'Lịch', timelineUnassigned: 'Không có địa điểm'
         },
 
         'th': { // Thai
@@ -467,7 +467,7 @@
             taskPriorityHigh: 'สูง',
             taskPriorityNormal: 'ปานกลาง',
             taskPriorityLow: 'ต่ำ',
-            duplicate: 'ทำซ้ำ'
+            duplicate: 'ทำซ้ำ', timeline: 'ไทม์ไลน์', calendar: 'ปฏิทิน', timelineUnassigned: 'ไม่มีสถานที่'
         },
 
         'cs': { // Czech
@@ -487,7 +487,7 @@
             taskPriorityHigh: 'Vysoká',
             taskPriorityNormal: 'Střední',
             taskPriorityLow: 'Nízká',
-            duplicate: 'Duplikovat'
+            duplicate: 'Duplikovat', timeline: 'Časová osa', calendar: 'Kalendář', timelineUnassigned: 'Bez místa'
         },
 
         'sv': { // Swedish
@@ -507,7 +507,7 @@
             taskPriorityHigh: 'Hög',
             taskPriorityNormal: 'Medel',
             taskPriorityLow: 'Låg',
-            duplicate: 'Duplicera'
+            duplicate: 'Duplicera', timeline: 'Tidslinje', calendar: 'Kalender', timelineUnassigned: 'Utan plats'
         },
 
         'da': { // Danish
@@ -527,7 +527,7 @@
             taskPriorityHigh: 'Høj',
             taskPriorityNormal: 'Mellem',
             taskPriorityLow: 'Lav',
-            duplicate: 'Dupliker'
+            duplicate: 'Dupliker', timeline: 'Tidslinje', calendar: 'Kalender', timelineUnassigned: 'Uden placering'
         },
 
         'no': { // Norwegian
@@ -547,7 +547,7 @@
             taskPriorityHigh: 'Høy',
             taskPriorityNormal: 'Middels',
             taskPriorityLow: 'Lav',
-            duplicate: 'Dupliser'
+            duplicate: 'Dupliser', timeline: 'Tidslinje', calendar: 'Kalender', timelineUnassigned: 'Uten plassering'
         },
 
         'fi': { // Finnish
@@ -567,7 +567,7 @@
             taskPriorityHigh: 'Korkea',
             taskPriorityNormal: 'Keskitaso',
             taskPriorityLow: 'Matala',
-            duplicate: 'Monista'
+            duplicate: 'Monista', timeline: 'Aikajana', calendar: 'Kalenteri', timelineUnassigned: 'Ei sijaintia'
         },
 
         'ro': { // Romanian
@@ -587,7 +587,7 @@
             taskPriorityHigh: 'Ridicată',
             taskPriorityNormal: 'Medie',
             taskPriorityLow: 'Scăzută',
-            duplicate: 'Duplică'
+            duplicate: 'Duplică', timeline: 'Cronologie', calendar: 'Calendar', timelineUnassigned: 'Fără locație'
         },
 
         'el': { // Greek
@@ -607,7 +607,7 @@
             taskPriorityHigh: 'Υψηλή',
             taskPriorityNormal: 'Μεσαία',
             taskPriorityLow: 'Χαμηλή',
-            duplicate: 'Διπλότυπο'
+            duplicate: 'Διπλότυπο', timeline: 'Χρονολόγιο', calendar: 'Ημερολόγιο', timelineUnassigned: 'Χωρίς τοποθεσία'
         }
     };
 
@@ -701,6 +701,7 @@
             sidebarAddons: null,
             formatter: {
                 day: formatterDay,
+                timeline: formatterTimeline,
                 week: formatterWeek,
                 allDay: formatterAllDay,
                 month: formatterMonth,
@@ -743,6 +744,7 @@
             onNavigateBack: null,
             storeState: false,
             showTasks: true,
+            dayViewMode: 'calendar',
             debug: false
         },
         utils: {
@@ -1887,6 +1889,7 @@
                 lastView: null,
                 viewBeforeSearch: null,
                 view: null,
+                dayViewMode: 'calendar',
                 dataBefore: snapshotWrapperState(wrapper),
                 searchMode: false,
                 showTasks: true,
@@ -3095,6 +3098,14 @@
         }
         void extras;
         return `<small class="px-2">${appointment.title}</small>`;
+    }
+
+    function formatterTimeline(appointment, extras) {
+        if (appointment.task) {
+            const textClass = appointment.task.checked ? 'text-decoration-line-through' : '';
+            return `<span class="d-flex align-items-center text-truncate small ${textClass}"><i class="${extras.icon} me-1 flex-shrink-0 task-toggle"></i><span class="text-truncate">${appointment.title}</span></span>`;
+        }
+        return `<span class="d-block text-truncate small px-1">${appointment.title}</span>`;
     }
 
     function formatterAllDay(appointment, extras, view) {
@@ -5702,6 +5713,48 @@
                         e.preventDefault();
                     }
                     const settings = getSettings(globalDragState.createDragState.$wrapper);
+                    if (globalDragState.createDragState.timeline) {
+                        const dragState = globalDragState.createDragState;
+                        const pointX = Number.isFinite(point.x) ? point.x : e.clientX;
+                        const elementAtPointer = document.elementFromPoint(e.clientX, e.clientY);
+                        const $targetTrack = $(elementAtPointer).closest('[data-timeline-track]');
+                        const $track = $targetTrack.length ? $targetTrack : dragState.$track;
+                        const trackRect = $track[0].getBoundingClientRect();
+                        const rangeMinutes = (settings.hourSlots.end - settings.hourSlots.start) * 60;
+                        const percentage = Math.max(0, Math.min(1, (pointX - trackRect.left) / trackRect.width));
+                        const endMinutesRaw = percentage * rangeMinutes;
+                        const snap = getSnapMinutes(dragState.$wrapper);
+                        const clampedRange = clampCreateMinutesToHourSlotRules(
+                            dragState.$wrapper,
+                            String($track.attr('data-date-local')),
+                            dragState.startMinutes,
+                            endMinutesRaw,
+                            snap
+                        );
+                        const startMinutes = clampedRange.startMinutes;
+                        const endMinutes = clampedRange.endMinutes;
+                        const previewStart = buildDateTimeByMinutes(dragState.$wrapper, String($track.attr('data-date-local')), startMinutes);
+                        const previewEnd = buildDateTimeByMinutes(dragState.$wrapper, String($track.attr('data-date-local')), endMinutes);
+                        const canWork = isHourSlotRuleRangeAllowed(dragState.$wrapper, previewStart, previewEnd) &&
+                            isAppointmentDurationAllowed(dragState.$wrapper, previewStart, previewEnd);
+                        dragState.$track = $track;
+                        dragState.dateLocal = String($track.attr('data-date-local'));
+                        dragState.currentStartMinutes = startMinutes;
+                        dragState.currentEndMinutes = endMinutes;
+                        dragState.canWork = canWork;
+                        dragState.dragged = true;
+                        dragState.$preview.css({
+                            left: `${(startMinutes / rangeMinutes) * 100}%`,
+                            width: `${Math.max(((endMinutes - startMinutes) / rangeMinutes) * 100, 0.5)}%`,
+                            display: 'block',
+                            cursor: canWork ? 'copy' : 'not-allowed',
+                            opacity: canWork ? 0.35 : 0.15
+                        }).appendTo($track);
+                        dragState.$startTimeLabel.text(formatDragTimeLabel(dragState.$wrapper, startMinutes));
+                        dragState.$endTimeLabel.text(formatDragTimeLabel(dragState.$wrapper, endMinutes));
+                        setInteractionCursor(canWork);
+                        return;
+                    }
                     const endMinutesRaw = getMinutesFromPointer(globalDragState.createDragState.$wrapper, globalDragState.createDragState.$slotContainer, pageY);
                     let startMinutes = Math.min(globalDragState.createDragState.startMinutes, endMinutesRaw);
                     let endMinutes = Math.max(globalDragState.createDragState.startMinutes, endMinutesRaw);
@@ -5760,6 +5813,47 @@
                 if (globalDragState.moveDragState) {
                     if (isTouchLikeEvent(e)) {
                         e.preventDefault();
+                    }
+                    if (globalDragState.moveDragState.timeline) {
+                        const dragState = globalDragState.moveDragState;
+                        const settings = getSettings(dragState.$wrapper);
+                        const pointX = Number.isFinite(point.x) ? point.x : e.clientX;
+                        const elementAtPointer = document.elementFromPoint(e.clientX, e.clientY);
+                        const $targetTrack = $(elementAtPointer).closest('[data-timeline-track]');
+                        const $track = $targetTrack.length ? $targetTrack : dragState.$track;
+                        const trackRect = $track[0].getBoundingClientRect();
+                        const rangeMinutes = (settings.hourSlots.end - settings.hourSlots.start) * 60;
+                        const snap = getSnapMinutes(dragState.$wrapper);
+                        const percentage = Math.max(0, Math.min(1, (pointX - trackRect.left) / trackRect.width));
+                        const pointerMinutes = percentage * rangeMinutes;
+                        const maxStart = Math.max(0, rangeMinutes - dragState.durationMinutes);
+                        const newStartMinutes = Math.max(0, Math.min(maxStart, pointerMinutes - dragState.offsetMinutes));
+                        const snappedStart = Math.round(newStartMinutes / snap) * snap;
+                        const targetDateLocal = String($track.attr('data-date-local'));
+                        const tempStart = buildDateTimeByMinutes(dragState.$wrapper, targetDateLocal, snappedStart);
+                        const tempEnd = new Date(tempStart.getTime() + dragState.durationMs);
+                        const canWork = isHourSlotRuleRangeAllowed(dragState.$wrapper, tempStart, tempEnd) &&
+                            isAppointmentDurationAllowed(dragState.$wrapper, tempStart, tempEnd);
+
+                        dragState.$track = $track;
+                        dragState.dateLocal = targetDateLocal;
+                        dragState.currentStartMinutes = snappedStart;
+                        dragState.currentLocation = String($track.attr('data-timeline-location') || '');
+                        dragState.canWork = canWork;
+                        dragState.dragged = true;
+                        const left = (snappedStart / rangeMinutes) * 100;
+                        const width = (dragState.durationMinutes / rangeMinutes) * 100;
+                        dragState.$appointment.css({
+                            left: `${left}%`,
+                            width: `${Math.max(width, 0.5)}%`,
+                            opacity: 0.8,
+                            cursor: canWork ? 'grabbing' : 'not-allowed'
+                        }).appendTo($track);
+                        setInteractionCursor(canWork);
+                        if (dragState.$timeDisplay) {
+                            dragState.$timeDisplay.text(formatDragTimeLabel(dragState.$wrapper, snappedStart));
+                        }
+                        return;
                     }
                     const settings = getSettings(globalDragState.moveDragState.$wrapper);
                     const durationMinutes = Math.max(getSnapMinutes(globalDragState.moveDragState.$wrapper), Math.round(globalDragState.moveDragState.durationMs / 60000));
@@ -5851,6 +5945,49 @@
                 if (globalDragState.resizeDragState) {
                     if (isTouchLikeEvent(e)) {
                         e.preventDefault();
+                    }
+                    if (globalDragState.resizeDragState.timeline) {
+                        const dragState = globalDragState.resizeDragState;
+                        const settings = getSettings(dragState.$wrapper);
+                        const trackRect = dragState.$track[0].getBoundingClientRect();
+                        const pointX = Number.isFinite(point.x) ? point.x : e.clientX;
+                        const rangeMinutes = (settings.hourSlots.end - settings.hourSlots.start) * 60;
+                        const snap = getSnapMinutes(dragState.$wrapper);
+                        const pointerMinutes = Math.max(0, Math.min(
+                            rangeMinutes,
+                            ((pointX - trackRect.left) / trackRect.width) * rangeMinutes
+                        ));
+                        const clampedResize = clampResizeMinutesToHourSlotRules(
+                            dragState.$wrapper,
+                            dragState.dateLocal,
+                            dragState.edge,
+                            dragState.edge === 'start' ? dragState.originalEndMinutes : dragState.originalStartMinutes,
+                            pointerMinutes,
+                            snap
+                        );
+                        const tempStart = buildDateTimeByMinutes(dragState.$wrapper, dragState.dateLocal, clampedResize.startMinutes);
+                        const tempEnd = buildDateTimeByMinutes(dragState.$wrapper, dragState.dateLocal, clampedResize.endMinutes);
+                        const canWork = clampedResize.canWork &&
+                            isHourSlotRuleRangeAllowed(dragState.$wrapper, tempStart, tempEnd) &&
+                            isAppointmentDurationAllowed(dragState.$wrapper, tempStart, tempEnd);
+                        const left = (clampedResize.startMinutes / rangeMinutes) * 100;
+                        const width = ((clampedResize.endMinutes - clampedResize.startMinutes) / rangeMinutes) * 100;
+
+                        dragState.currentStartMinutes = clampedResize.startMinutes;
+                        dragState.currentEndMinutes = clampedResize.endMinutes;
+                        dragState.canWork = canWork;
+                        dragState.dragged = true;
+                        dragState.$appointment.css({
+                            left: `${left}%`,
+                            width: `${Math.max(width, 0.5)}%`,
+                            opacity: 0.85,
+                            cursor: canWork ? 'ew-resize' : 'not-allowed'
+                        });
+                        dragState.$timeDisplay.text(
+                            `${formatDragTimeLabel(dragState.$wrapper, clampedResize.startMinutes)} - ${formatDragTimeLabel(dragState.$wrapper, clampedResize.endMinutes)}`
+                        );
+                        setInteractionCursor(canWork);
+                        return;
                     }
                     const settings = getSettings(globalDragState.resizeDragState.$wrapper);
                     const snap = getSnapMinutes(globalDragState.resizeDragState.$wrapper);
@@ -5944,6 +6081,12 @@
                         if (!dragExtras.hourSlotRules.canWork || !dragExtras.appointmentRules.canWork) {
                             globalDragState.createDragState = null;
                         } else {
+                            if (globalDragState.createDragState.timeline) {
+                                const timelineLocation = String(globalDragState.createDragState.$track.attr('data-timeline-location') || '');
+                                if (timelineLocation && timelineLocation !== getSettings(globalDragState.createDragState.$wrapper).translations.timelineUnassigned) {
+                                    dragExtras.location = timelineLocation;
+                                }
+                            }
                             const payload = {
                                 start: {
                                     date: $.bsCalendar.utils.formatDateToDateString(start),
@@ -5982,6 +6125,9 @@
                                 buildAppointmentsForView(globalDragState.moveDragState.$wrapper);
                                 globalDragState.moveDragState = null;
                             } else {
+                                if (globalDragState.moveDragState.timeline) {
+                                    dragExtras.location = globalDragState.moveDragState.currentLocation;
+                                }
                                 trigger(globalDragState.moveDragState.$wrapper, 'edit', returnData.appointment, returnData.extras, dragExtras);
                                 removeInfoWindowModal();
                             }
@@ -6382,6 +6528,141 @@
                 trigger($eventWrapper, 'add', data, dragExtras);
                 removeInfoWindowModal();
             })
+            .off('click' + namespace, '[data-timeline-track]')
+            .on('click' + namespace, '[data-timeline-track]', function (e) {
+                if (Date.now() < globalDragState.suppressSlotClickUntil || $(e.target).closest('[data-appointment]').length) {
+                    return;
+                }
+
+                const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
+                const settings = getSettings($eventWrapper);
+                const $track = $(e.currentTarget);
+                const trackRect = $track[0].getBoundingClientRect();
+                if (!trackRect.width) {
+                    return;
+                }
+
+                const pageX = Number.isFinite(e.pageX) ? e.pageX : e.clientX + window.pageXOffset;
+                const trackLeft = trackRect.left + window.pageXOffset;
+                const percentage = Math.max(0, Math.min(1, (pageX - trackLeft) / trackRect.width));
+                const rangeMinutes = (settings.hourSlots.end - settings.hourSlots.start) * 60;
+                const snapMinutes = getSnapMinutes($eventWrapper);
+                const minutesFromStart = Math.max(0, Math.min(
+                    rangeMinutes,
+                    Math.round((percentage * rangeMinutes) / snapMinutes) * snapMinutes
+                ));
+                const start = buildDateTimeByMinutes(
+                    $eventWrapper,
+                    $track.attr('data-date-local'),
+                    minutesFromStart
+                );
+                const end = new Date(start.getTime());
+                end.setMinutes(end.getMinutes() + getDefaultAppointmentCreateDurationMinutes($eventWrapper, snapMinutes));
+                const dragExtras = getDragAppointmentExtras($eventWrapper, start, end);
+                if (!dragExtras.hourSlotRules.canWork || !dragExtras.appointmentRules.canWork) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+
+                e.preventDefault();
+                const data = {
+                    start: {
+                        date: $.bsCalendar.utils.formatDateToDateString(start),
+                        time: start.toTimeString().slice(0, 5)
+                    },
+                    end: {
+                        date: $.bsCalendar.utils.formatDateToDateString(end),
+                        time: end.toTimeString().slice(0, 5)
+                    },
+                    view: getView($eventWrapper)
+                };
+                trigger($eventWrapper, 'add', data, dragExtras);
+                removeInfoWindowModal();
+            })
+            .off('mousedown' + namespace + ' pointerdown' + namespace + ' touchstart' + namespace, '[data-timeline-track]')
+            .on('mousedown' + namespace + ' pointerdown' + namespace + ' touchstart' + namespace, '[data-timeline-track]', function (e) {
+                const isTouchEvent = e.type === 'touchstart';
+                const isPrimaryButton = isTouchEvent || e.which === 1 || e.button === 0 || e.buttons === 1;
+                if (!isPrimaryButton || $(e.target).closest('[data-appointment]').length) {
+                    return;
+                }
+
+                const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
+                const settings = getSettings($eventWrapper);
+                if (!settings.draggable || !settings.showAddButton || getView($eventWrapper) !== 'day' || getBsCalendarData($eventWrapper).dayViewMode !== 'timeline') {
+                    return;
+                }
+
+                const $track = $(e.currentTarget);
+                const trackRect = $track[0].getBoundingClientRect();
+                const startPoint = getEventPageXY(e);
+                if (!trackRect.width || !Number.isFinite(startPoint.x)) {
+                    return;
+                }
+
+                const rangeMinutes = (settings.hourSlots.end - settings.hourSlots.start) * 60;
+                const snap = getSnapMinutes($eventWrapper);
+                const percentage = Math.max(0, Math.min(1, (startPoint.x - trackRect.left) / trackRect.width));
+                const startMinutes = Math.round((percentage * rangeMinutes) / snap) * snap;
+                const initialDuration = getDefaultAppointmentCreateDurationMinutes($eventWrapper, snap);
+                const initialEndMinutes = Math.min(rangeMinutes, startMinutes + initialDuration);
+                const dateLocal = String($track.attr('data-date-local'));
+                const initialStart = buildDateTimeByMinutes($eventWrapper, dateLocal, startMinutes);
+                const initialEnd = buildDateTimeByMinutes($eventWrapper, dateLocal, initialEndMinutes);
+                const initialExtras = getDragAppointmentExtras($eventWrapper, initialStart, initialEnd);
+                if (!initialExtras.hourSlotRules.canWork || !initialExtras.appointmentRules.canWork) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+
+                const mainColors = $.bsCalendar.utils.getColors(settings.mainColor);
+                const $preview = $('<div>', {
+                    class: 'position-absolute rounded',
+                    css: {
+                        left: `${(startMinutes / rangeMinutes) * 100}%`,
+                        width: `${Math.max(((initialEndMinutes - startMinutes) / rangeMinutes) * 100, 0.5)}%`,
+                        top: '5px',
+                        height: '32px',
+                        display: 'block',
+                        zIndex: 11,
+                        backgroundColor: mainColors.backgroundColor,
+                        opacity: 0.35,
+                        border: `1px solid ${mainColors.backgroundColor}`,
+                        pointerEvents: 'none'
+                    }
+                }).appendTo($track);
+                const labelCss = {
+                    position: 'absolute',
+                    fontSize: '11px',
+                    fontWeight: 'bold',
+                    color: mainColors.backgroundColor,
+                    zIndex: 12,
+                    pointerEvents: 'none'
+                };
+                const $startTimeLabel = $('<span>', {css: $.extend({}, labelCss, {left: '0', top: '-18px'})}).appendTo($preview);
+                const $endTimeLabel = $('<span>', {css: $.extend({}, labelCss, {right: '0', bottom: '-18px'})}).appendTo($preview);
+                $startTimeLabel.text(formatDragTimeLabel($eventWrapper, startMinutes));
+                $endTimeLabel.text(formatDragTimeLabel($eventWrapper, initialEndMinutes));
+
+                globalDragState.createDragState = {
+                    timeline: true,
+                    $wrapper: $eventWrapper,
+                    $track: $track,
+                    $preview: $preview,
+                    $startTimeLabel: $startTimeLabel,
+                    $endTimeLabel: $endTimeLabel,
+                    dateLocal: dateLocal,
+                    startMinutes: startMinutes,
+                    currentStartMinutes: startMinutes,
+                    currentEndMinutes: initialEndMinutes,
+                    dragged: false,
+                    canWork: true
+                };
+                e.preventDefault();
+                e.stopPropagation();
+            })
             .off('mousedown' + namespace + ' pointerdown' + namespace + ' touchstart' + namespace, '[data-day-hour]')
             .on('mousedown' + namespace + ' pointerdown' + namespace + ' touchstart' + namespace, '[data-day-hour]', function (e) {
                 const isTouchEvent = e.type === 'touchstart';
@@ -6533,11 +6814,6 @@
                     return;
                 }
 
-                const $slotContainer = $appointment.closest('.wc-day-view-time-slots');
-                if (!$slotContainer.length) {
-                    return;
-                }
-
                 const start = $.bsCalendar.utils.parseDateInput(appointment.start);
                 const end = $.bsCalendar.utils.parseDateInput(appointment.end);
                 if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
@@ -6545,12 +6821,20 @@
                 }
 
                 const startPoint = getEventPageXY(e);
-                if (!Number.isFinite(startPoint.y)) {
+                if (!Number.isFinite(startPoint.x) || (view !== 'day' || getBsCalendarData($eventWrapper).dayViewMode !== 'timeline') && !Number.isFinite(startPoint.y)) {
                     return;
                 }
 
-                const originalStartMinutes = (start.getHours() - settings.hourSlots.start) * 60 + start.getMinutes();
-                const originalEndMinutes = (end.getHours() - settings.hourSlots.start) * 60 + end.getMinutes();
+                const $track = $appointment.closest('[data-timeline-track]');
+                const isTimelineResize = view === 'day' && getBsCalendarData($eventWrapper).dayViewMode === 'timeline' && $track.length;
+                const $slotContainer = $appointment.closest('.wc-day-view-time-slots');
+                if (!isTimelineResize && !$slotContainer.length) {
+                    return;
+                }
+
+                const rangeMinutes = (settings.hourSlots.end - settings.hourSlots.start) * 60;
+                const originalStartMinutes = Math.max(0, Math.min(rangeMinutes, (start.getHours() * 60 + start.getMinutes()) - settings.hourSlots.start * 60));
+                const originalEndMinutes = Math.max(0, Math.min(rangeMinutes, (end.getHours() * 60 + end.getMinutes()) - settings.hourSlots.start * 60));
                 const snap = getSnapMinutes($eventWrapper);
                 if (originalEndMinutes - originalStartMinutes < snap) {
                     return;
@@ -6563,12 +6847,14 @@
                 const activateResizeDrag = () => {
                     $eventWrapper.find('[data-role="time-indicator"]').remove();
                     globalDragState.resizeDragState = {
+                        timeline: !!isTimelineResize,
                         $wrapper: $eventWrapper,
+                        $track: $track,
                         $slotContainer: $slotContainer,
                         $appointment: $appointment,
                         $timeDisplay: $timeDisplay,
                         appointment: appointment,
-                        dateLocal: String($slotContainer.attr('data-date-local')),
+                        dateLocal: String(isTimelineResize ? $track.attr('data-date-local') : $slotContainer.attr('data-date-local')),
                         edge: edge === 'start' ? 'start' : 'end',
                         originalStartMinutes: originalStartMinutes,
                         originalEndMinutes: originalEndMinutes,
@@ -6629,6 +6915,54 @@
                     e.preventDefault();
                 }
                 if (!editable || !appointment) {
+                    return;
+                }
+
+                if (view === 'day' && getBsCalendarData($eventWrapper).dayViewMode === 'timeline') {
+                    if (appointment.allDay) {
+                        return;
+                    }
+
+                    const $track = $appointment.closest('[data-timeline-track]');
+                    const start = $.bsCalendar.utils.parseDateInput(appointment.start);
+                    const end = $.bsCalendar.utils.parseDateInput(appointment.end);
+                    const startPoint = getEventPageXY(e);
+                    if (!$track.length || !start || !end || isNaN(start.getTime()) || isNaN(end.getTime()) || !Number.isFinite(startPoint.x)) {
+                        return;
+                    }
+
+                    const trackRect = $track[0].getBoundingClientRect();
+                    const rangeMinutes = (settings.hourSlots.end - settings.hourSlots.start) * 60;
+                    const startMinutes = Math.max(0, Math.min(
+                        rangeMinutes,
+                        (start.getHours() * 60 + start.getMinutes()) - settings.hourSlots.start * 60
+                    ));
+                    const pointerMinutes = Math.max(0, Math.min(
+                        rangeMinutes,
+                        ((startPoint.x - trackRect.left) / trackRect.width) * rangeMinutes
+                    ));
+                    const durationMinutes = Math.max(getSnapMinutes($eventWrapper), Math.round((end - start) / 60000));
+                    const $timeDisplay = buildDragTimeBadge(formatDragTimeLabel($eventWrapper, startMinutes));
+
+                    globalDragState.moveDragState = {
+                        timeline: true,
+                        $wrapper: $eventWrapper,
+                        $track: $track,
+                        $appointment: $appointment,
+                        $timeDisplay: $timeDisplay,
+                        appointment: appointment,
+                        dateLocal: String($track.attr('data-date-local')),
+                        currentLocation: String($track.attr('data-timeline-location') || ''),
+                        offsetMinutes: pointerMinutes - startMinutes,
+                        durationMs: end.getTime() - start.getTime(),
+                        durationMinutes: durationMinutes,
+                        currentStartMinutes: startMinutes,
+                        canWork: true,
+                        dragged: false
+                    };
+                    $timeDisplay.appendTo($appointment);
+                    e.preventDefault();
+                    e.stopPropagation();
                     return;
                 }
 
@@ -7002,6 +7336,18 @@
                     }
                 }
             })
+            .off('click' + namespace, '[data-day-view-mode-toggle]')
+            .on('click' + namespace, '[data-day-view-mode-toggle]', function (e) {
+                e.preventDefault();
+                const data = getBsCalendarData($wrapper);
+                if (data.view !== 'day') {
+                    return;
+                }
+
+                data.dayViewMode = data.dayViewMode === 'timeline' ? 'calendar' : 'timeline';
+                setBsCalendarData($wrapper, data);
+                buildByView($wrapper, false, false);
+            })
             // Live time indicator on hover over time slots (day/week only, when draggable enabled)
             .off('mousemove' + namespace + ' mouseleave' + namespace, '.wc-day-view-time-slots')
             .on('mousemove' + namespace, '.wc-day-view-time-slots', function (e) {
@@ -7302,6 +7648,36 @@
 
             target.html(activeItem.html());
         });
+    }
+
+    function updateDayViewModeToggle($wrapper) {
+        const data = getBsCalendarData($wrapper);
+        const settings = getSettings($wrapper);
+        const toggle = $wrapper.find('[data-day-view-mode-toggle]');
+        if (!toggle.length) {
+            return;
+        }
+
+        toggle.toggle(data.view === 'day');
+        const isTimeline = data.view === 'day' && data.dayViewMode === 'timeline';
+        const label = isTimeline ? settings.translations.timeline : settings.translations.calendar;
+        toggle.attr({
+            'aria-label': label,
+            title: label
+        });
+        toggle.toggleClass('active', isTimeline);
+        toggle.find('i').attr('class', isTimeline ? 'bi bi-calendar-day' : 'bi bi-layout-split');
+    }
+
+    function appendDayViewModeControl($target, settings, extraClass = '') {
+        return $('<button>', {
+            type: 'button',
+            class: `btn border-0 text-body shadow-none ${extraClass} bs-calendar-border-style`,
+            'data-day-view-mode-toggle': true,
+            'aria-label': settings.translations.calendar,
+            title: settings.translations.calendar,
+            html: '<i class="bi bi-layout-split"></i>'
+        }).appendTo($target);
     }
 
     function getAboutDebugText($wrapper) {
@@ -7605,7 +7981,8 @@
                 start: null,
                 end: null,
                 selectedDate: null,
-                hourSlots: null
+                hourSlots: null,
+                dayViewMode: null
             };
 
             /**
@@ -7639,6 +8016,7 @@
                 renderState.start !== period.start ||
                 renderState.end !== period.end ||
                 (view === 'year' && renderState.selectedDate !== currentSelectedDate) ||
+                (view === 'day' && renderState.dayViewMode !== data.dayViewMode) ||
                 (
                     (view === 'day' || view === 'week' || view === '4day') &&
                     renderState.hourSlots !== currentHourSlots
@@ -7691,7 +8069,8 @@
                     start: period.start,
                     end: period.end,
                     selectedDate: currentSelectedDate,
-                    hourSlots: currentHourSlots
+                    hourSlots: currentHourSlots,
+                    dayViewMode: data.dayViewMode
                 };
 
                 setBsCalendarData($wrapper, data);
@@ -7714,6 +8093,7 @@
              * Synchronize the view dropdown with the current active view.
              */
             updateDropdownView($wrapper);
+            updateDayViewModeToggle($wrapper);
 
             /**
              * Update the displayed current date or period label.
@@ -10965,6 +11345,10 @@
 
         switch (view) {
             case 'day':
+                if (data.dayViewMode === 'timeline') {
+                    drawAppointmentsAsTimeline($wrapper, appointments);
+                    break;
+                }
             case '4day':
             case 'week':
                 drawAppointmentsForDayOrWeek($wrapper, appointments);
@@ -11873,6 +12257,7 @@
             class: 'position-relative px-1 px-lg-5'
         }).appendTo($container);
         appendUtcOffsetHeaderLabel(headerRow, date);
+        appendDayViewModeControl(headerRow, settings, 'position-absolute top-0 end-0');
 
         const headerContent = $('<div>', {
             css: {
@@ -11895,8 +12280,168 @@
             'data-date-local': $.bsCalendar.utils.formatDateToDateString(date),
         }).appendTo(headerContent);
 
-        // Build the main content for the day view
-        buildDayViewContent($wrapper, date, $container);
+        if (getBsCalendarData($wrapper).dayViewMode !== 'timeline') {
+            buildDayViewContent($wrapper, date, $container);
+        }
+    }
+
+    function getAppointmentLocations(appointment, unassignedLabel) {
+        const locations = Array.isArray(appointment.location)
+            ? appointment.location
+            : [appointment.location];
+        const normalized = locations
+            .map(location => String(location ?? '').trim())
+            .filter(Boolean);
+        return normalized.length ? [[...new Set(normalized)].join(' · ')] : [unassignedLabel];
+    }
+
+    function drawAppointmentsAsTimeline($wrapper, appointments) {
+        const data = getBsCalendarData($wrapper);
+        const settings = getSettings($wrapper);
+        const date = getDate($wrapper);
+        const $viewContainer = getViewContainer($wrapper).empty();
+        const unassignedLabel = settings.translations.timelineUnassigned;
+
+        const rangeStart = new Date(date);
+        rangeStart.setHours(Math.floor(settings.hourSlots.start), Math.round((settings.hourSlots.start % 1) * 60), 0, 0);
+        const rangeEnd = new Date(date);
+        rangeEnd.setHours(Math.floor(settings.hourSlots.end), Math.round((settings.hourSlots.end % 1) * 60), 0, 0);
+        const rangeMinutes = Math.max(1, (rangeEnd - rangeStart) / 60000);
+        const hourCount = Math.max(1, settings.hourSlots.end - settings.hourSlots.start);
+        const timelineWidth = Math.max(900, Math.round(hourCount * 80));
+
+        const visibleAppointments = appointments.map(appointment => {
+            const start = appointment.allDay ? new Date(rangeStart) : $.bsCalendar.utils.parseDateInput(appointment.start);
+            const end = appointment.allDay ? new Date(rangeEnd) : $.bsCalendar.utils.parseDateInput(appointment.end);
+            if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
+                return null;
+            }
+            const visibleStart = new Date(Math.max(start.getTime(), rangeStart.getTime()));
+            const visibleEnd = new Date(Math.min(end.getTime(), rangeEnd.getTime()));
+            if (visibleEnd <= visibleStart) {
+                return null;
+            }
+            return {appointment, start: visibleStart, end: visibleEnd};
+        }).filter(Boolean);
+
+        const groups = new Map();
+        visibleAppointments.forEach(item => {
+            getAppointmentLocations(item.appointment, unassignedLabel).forEach(location => {
+                if (!groups.has(location)) groups.set(location, []);
+                groups.get(location).push(item);
+            });
+        });
+        if (!groups.size) {
+            groups.set(unassignedLabel, []);
+        }
+
+        const $outer = $('<div>', {class: 'wc-day-timeline overflow-auto'}).appendTo($viewContainer);
+        const $heading = $('<div>', {class: 'd-flex align-items-end mb-2', css: {minWidth: `${timelineWidth + 150}px`}}).appendTo($outer);
+        $('<div>', {class: 'flex-shrink-0', css: {width: '150px'}, html: buildHeaderForDay($wrapper, date, false)}).appendTo($heading);
+        const timelineFlex = `1 0 ${timelineWidth}px`;
+        const $axis = $('<div>', {
+            class: 'position-relative flex-fill',
+            css: {height: '48px', width: `${timelineWidth}px`, minWidth: `${timelineWidth}px`, flex: timelineFlex}
+        }).appendTo($heading);
+        appendDayViewModeControl($heading, settings, 'flex-shrink-0 align-self-start');
+        for (let hour = settings.hourSlots.start; hour < settings.hourSlots.end; hour++) {
+            const left = ((hour - settings.hourSlots.start) / hourCount) * 100;
+            const hourDate = new Date(2023, 0, 1, Math.floor(hour), Math.round((hour % 1) * 60));
+            $('<small>', {
+                class: 'position-absolute bottom-0 text-body-secondary user-select-none pe-none',
+                css: {left: `${left}%`, transform: 'translateX(-50%)'},
+                text: hourDate.toLocaleTimeString(settings.locale, {hour: '2-digit', minute: '2-digit'})
+            }).appendTo($axis);
+        }
+
+        [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], settings.locale)).forEach(([location, items]) => {
+            const lanes = [];
+            items.sort((a, b) => a.start - b.start || a.end - b.end).forEach(item => {
+                let lane = lanes.findIndex(end => end <= item.start);
+                if (lane === -1) lane = lanes.length;
+                lanes[lane] = item.end;
+                item.timelineLane = lane;
+            });
+
+            const rowHeight = Math.max(42, lanes.length * 42);
+            const $row = $('<div>', {class: 'd-flex border-top', css: {minWidth: `${timelineWidth + 150}px`, minHeight: `${rowHeight}px`}}).appendTo($outer);
+            $('<div>', {class: 'flex-shrink-0 text-truncate small fw-semibold p-2', css: {width: '150px'}, text: location, title: location}).appendTo($row);
+            const $track = $('<div>', {
+                class: 'position-relative flex-fill',
+                'data-timeline-track': true,
+                'data-date-local': $.bsCalendar.utils.formatDateToDateString(date),
+                'data-timeline-location': location,
+                css: {
+                    width: `${timelineWidth}px`,
+                    minWidth: `${timelineWidth}px`,
+                    flex: timelineFlex,
+                    cursor: 'copy',
+                    backgroundImage: 'linear-gradient(to right, var(--bs-border-color) 1px, transparent 1px)',
+                    backgroundSize: `${100 / hourCount}% 100%`
+                }
+            }).appendTo($row);
+
+            for (let segmentStart = new Date(rangeStart); segmentStart < rangeEnd; segmentStart.setMinutes(segmentStart.getMinutes() + 30)) {
+                const segmentEnd = new Date(Math.min(
+                    segmentStart.getTime() + 30 * 60000,
+                    rangeEnd.getTime()
+                ));
+                const availability = getHourSlotRulesAvailabilityForRange($wrapper, segmentStart, segmentEnd);
+                if (!availability.range) {
+                    continue;
+                }
+
+                const ruleColors = getHourSlotRulesColors(availability.range);
+                const left = ((segmentStart - rangeStart) / (rangeMinutes * 60000)) * 100;
+                const width = ((segmentEnd - segmentStart) / (rangeMinutes * 60000)) * 100;
+                $('<div>', {
+                    class: 'position-absolute top-0 bottom-0',
+                    css: {
+                        left: `${left}%`,
+                        width: `${width}%`,
+                        backgroundColor: ruleColors.backgroundColor,
+                        backgroundImage: ruleColors.backgroundImage,
+                        pointerEvents: 'none'
+                    },
+                    'aria-hidden': 'true'
+                }).appendTo($track);
+            }
+
+            items.forEach(item => {
+                const appointment = item.appointment;
+                const left = ((item.start - rangeStart) / (rangeMinutes * 60000)) * 100;
+                const width = ((item.end - item.start) / (rangeMinutes * 60000)) * 100;
+                const returnData = getAppointmentForReturn(appointment);
+                const $appointmentElement = $('<div>', {
+                    'data-appointment': true,
+                    class: 'position-absolute overflow-hidden rounded px-1 d-flex align-items-center',
+                    css: {
+                        left: `${left}%`,
+                        width: `${Math.max(width, 0.5)}%`,
+                        top: `${item.timelineLane * 42 + 5}px`,
+                        height: '32px',
+                        backgroundColor: returnData.extras.colors.backgroundColor,
+                        backgroundImage: returnData.extras.colors.backgroundImage,
+                        color: returnData.extras.colors.color,
+                        cursor: 'pointer'
+                    },
+                    html: settings.formatter.timeline(returnData.appointment, returnData.extras)
+                }).data('appointment', appointment).appendTo($track);
+
+                if (!appointment.allDay) {
+                    $('<span>', {
+                        'data-appointment-resize': 'start',
+                        class: 'position-absolute top-0 start-0 h-100',
+                        css: {width: '6px', cursor: 'ew-resize', zIndex: 2, backgroundColor: 'rgba(255, 255, 255, 0.55)'}
+                    }).appendTo($appointmentElement);
+                    $('<span>', {
+                        'data-appointment-resize': 'end',
+                        class: 'position-absolute top-0 end-0 h-100',
+                        css: {width: '6px', cursor: 'ew-resize', zIndex: 2, backgroundColor: 'rgba(255, 255, 255, 0.55)'}
+                    }).appendTo($appointmentElement);
+                }
+            });
+        });
     }
 
     /**

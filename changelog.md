@@ -1,7 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
-    * [**dev-main**](#dev-main)
+    * [**Version 2.3.7**](#version-237)
     * [**Version 2.3.6**](#version-236)
     * [**Version 2.3.5**](#version-235)
     * [**Version 2.3.4**](#version-234)
@@ -58,7 +58,13 @@
 
 </details>
 
-### dev-main
+### Version 2.3.7
+
+2026-08-28
+
+#### Features
+
+- Added an optional timeline/Gantt toggle to the `day` view. Timed appointments are grouped into one row per location, while appointments without a location use the localized `timelineUnassigned` translation.
 
 #### Bugfixes
 

@@ -890,6 +890,19 @@ $('#calendar').bsCalendar('destroy');
 There is no public `getAppointment` method. The plugin only stores the currently loaded view/search appointment slice, so ID lookup would
 not be a reliable global data access API.
 
+## Day Timeline
+
+The `day` view includes a toggle for switching between the standard vertical calendar grid and a horizontal timeline/Gantt layout. The toggle
+is shown inside the day view and is not part of the global view navigation.
+
+In timeline mode, timed appointments are grouped into one row per `location`. Appointments without a location use the localized
+`timelineUnassigned` translation. If `location` is an array, its values are combined into one row label using ` · ` so the appointment is
+rendered only once.
+
+Timeline appointments support click-to-add, drag-create, horizontal move, moving between location rows, and horizontal resize when
+`draggable: true`. All of these interactions use the existing `add.bs.calendar` and `edit.bs.calendar` events and respect `hourSlots.rules`,
+`appointmentRules`, and `draggableSnapMinutes`. A timeline move between rows exposes the target row through `dragExtras.location`.
+
 ## Formatters
 
 Formatters customize appointment, search, holiday, info-window, and duration rendering.
@@ -898,6 +911,9 @@ Formatters customize appointment, search, holiday, info-window, and duration ren
 $('#calendar').bsCalendar({
     formatter: {
         day(appointment, extras) {
+            return appointment.title;
+        },
+        timeline(appointment, extras) {
             return appointment.title;
         },
         week(appointment, extras) {
@@ -1126,6 +1142,9 @@ All built-in translation objects currently use these keys:
 | `taskPriorityNormal` | `"Medium"`               | Normal-priority task badge.                   |
 | `taskPriorityLow`    | `"Low"`                  | Low-priority task badge.                      |
 | `duplicate`          | `"Duplicate"`            | Duplicate action in the info-window dropdown. |
+| `timeline`           | `"Timeline"`             | Accessible label for the day timeline toggle. |
+| `calendar`           | `"Calendar"`             | Accessible label for the calendar view toggle. |
+| `timelineUnassigned` | `"Unassigned"`           | Location row used for appointments without a location. |
 
 ### Selecting A Locale
 
