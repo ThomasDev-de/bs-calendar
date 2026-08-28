@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**Version 2.3.8**](#version-238)
     * [**Version 2.3.7**](#version-237)
     * [**Version 2.3.6**](#version-236)
     * [**Version 2.3.5**](#version-235)
@@ -57,6 +58,17 @@
 </ul>
 
 </details>
+
+### Version 2.3.8
+
+2026-08-28
+
+#### Bugfixes
+
+- Applied the allowed hour-slot boundaries while moving appointments in the timeline/Gantt view, so invalid target positions no longer appear during dragging or cause the appointment to jump back on release.
+- Prevented a resize operation in the normal day view and timeline/Gantt view from triggering an additional `add` event when the pointer is released over an empty slot.
+- Changed the timeline/Gantt layout to use one shared track for all appointments; overlapping appointments wrap into additional lanes instead of being grouped by location.
+- Recalculated timeline lanes and track height live while moving an appointment, matching the overlap behavior of the normal day view.
 
 ### Version 2.3.7
 

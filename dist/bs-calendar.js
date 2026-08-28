@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.3.7
+ * @version 2.3.8
  * @date 2026-08-28
  * @license MIT
  * @requires "jQuery" ^3
@@ -5737,6 +5737,7 @@
                         const previewEnd = buildDateTimeByMinutes(dragState.$wrapper, String($track.attr('data-date-local')), endMinutes);
                         const canWork = isHourSlotRuleRangeAllowed(dragState.$wrapper, previewStart, previewEnd) &&
                             isAppointmentDurationAllowed(dragState.$wrapper, previewStart, previewEnd);
+                        const previousTrack = dragState.$track;
                         dragState.$track = $track;
                         dragState.dateLocal = String($track.attr('data-date-local'));
                         dragState.currentStartMinutes = startMinutes;
@@ -5830,18 +5831,34 @@
                         const newStartMinutes = Math.max(0, Math.min(maxStart, pointerMinutes - dragState.offsetMinutes));
                         const snappedStart = Math.round(newStartMinutes / snap) * snap;
                         const targetDateLocal = String($track.attr('data-date-local'));
-                        const tempStart = buildDateTimeByMinutes(dragState.$wrapper, targetDateLocal, snappedStart);
+                        const clampedMove = clampMoveMinutesToHourSlotRules(
+                            dragState.$wrapper,
+                            targetDateLocal,
+                            snappedStart,
+                            dragState.durationMinutes
+                        );
+                        const clampedStart = clampedMove.startMinutes;
+                        const tempStart = buildDateTimeByMinutes(dragState.$wrapper, targetDateLocal, clampedStart);
                         const tempEnd = new Date(tempStart.getTime() + dragState.durationMs);
                         const canWork = isHourSlotRuleRangeAllowed(dragState.$wrapper, tempStart, tempEnd) &&
                             isAppointmentDurationAllowed(dragState.$wrapper, tempStart, tempEnd);
 
+                        // Keep the last valid position while the pointer is over a blocked range.
+                        // This mirrors the normal day view and prevents the bar from jumping back
+                        // only after releasing the pointer.
+                        if (!clampedMove.canWork || !canWork) {
+                            dragState.$appointment.css('cursor', 'not-allowed');
+                            setInteractionCursor(false);
+                            return;
+                        }
+
                         dragState.$track = $track;
                         dragState.dateLocal = targetDateLocal;
-                        dragState.currentStartMinutes = snappedStart;
+                        dragState.currentStartMinutes = clampedStart;
                         dragState.currentLocation = String($track.attr('data-timeline-location') || '');
                         dragState.canWork = canWork;
                         dragState.dragged = true;
-                        const left = (snappedStart / rangeMinutes) * 100;
+                        const left = (clampedStart / rangeMinutes) * 100;
                         const width = (dragState.durationMinutes / rangeMinutes) * 100;
                         dragState.$appointment.css({
                             left: `${left}%`,
@@ -5849,9 +5866,18 @@
                             opacity: 0.8,
                             cursor: canWork ? 'grabbing' : 'not-allowed'
                         }).appendTo($track);
+                        relayoutTimelineTrack(
+                            $track,
+                            dragState.$appointment,
+                            tempStart,
+                            tempEnd
+                        );
+                        if (!previousTrack.is($track)) {
+                            relayoutTimelineTrack(previousTrack);
+                        }
                         setInteractionCursor(canWork);
                         if (dragState.$timeDisplay) {
-                            dragState.$timeDisplay.text(formatDragTimeLabel(dragState.$wrapper, snappedStart));
+                            dragState.$timeDisplay.text(formatDragTimeLabel(dragState.$wrapper, clampedStart));
                         }
                         return;
                     }
@@ -6125,9 +6151,6 @@
                                 buildAppointmentsForView(globalDragState.moveDragState.$wrapper);
                                 globalDragState.moveDragState = null;
                             } else {
-                                if (globalDragState.moveDragState.timeline) {
-                                    dragExtras.location = globalDragState.moveDragState.currentLocation;
-                                }
                                 trigger(globalDragState.moveDragState.$wrapper, 'edit', returnData.appointment, returnData.extras, dragExtras);
                                 removeInfoWindowModal();
                             }
@@ -6144,6 +6167,9 @@
                         dragState.$timeDisplay.remove();
                     }
                     if (dragState.dragged) {
+                        // A resize can end over an empty timeline/slot area. Prevent the
+                        // click generated after pointerup from being interpreted as add.
+                        globalDragState.suppressSlotClickUntil = Date.now() + 250;
                         globalDragState.suppressAppointmentClickUntil = Date.now() + 250;
                         const appointment = $appointment.data('appointment');
                         if (appointment) {
@@ -12285,14 +12311,45 @@
         }
     }
 
-    function getAppointmentLocations(appointment, unassignedLabel) {
-        const locations = Array.isArray(appointment.location)
-            ? appointment.location
-            : [appointment.location];
-        const normalized = locations
-            .map(location => String(location ?? '').trim())
-            .filter(Boolean);
-        return normalized.length ? [[...new Set(normalized)].join(' · ')] : [unassignedLabel];
+    function relayoutTimelineTrack($track, $movingAppointment, movingStart, movingEnd) {
+        if (!$track || !$track.length) {
+            return;
+        }
+
+        const appointments = [];
+        $track.find('[data-appointment]').each(function () {
+            const $appointmentElement = $(this);
+            const appointment = $appointmentElement.data('appointment');
+            if (!appointment) {
+                return;
+            }
+
+            let start = $.bsCalendar.utils.parseDateInput(appointment.start);
+            let end = $.bsCalendar.utils.parseDateInput(appointment.end);
+            if ($movingAppointment && $appointmentElement.is($movingAppointment)) {
+                start = movingStart;
+                end = movingEnd;
+            }
+            if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime()) || end <= start) {
+                return;
+            }
+            appointments.push({$element: $appointmentElement, start, end});
+        });
+
+        appointments.sort((a, b) => a.start - b.start || a.end - b.end);
+        const lanes = [];
+        appointments.forEach(item => {
+            let lane = lanes.findIndex(end => end <= item.start);
+            if (lane === -1) {
+                lane = lanes.length;
+            }
+            lanes[lane] = item.end;
+            item.$element.css('top', `${lane * 42 + 5}px`);
+        });
+
+        const rowHeight = Math.max(42, lanes.length * 42);
+        $track.css('min-height', `${rowHeight}px`);
+        $track.closest('.border-top').css('min-height', `${rowHeight}px`);
     }
 
     function drawAppointmentsAsTimeline($wrapper, appointments) {
@@ -12300,8 +12357,6 @@
         const settings = getSettings($wrapper);
         const date = getDate($wrapper);
         const $viewContainer = getViewContainer($wrapper).empty();
-        const unassignedLabel = settings.translations.timelineUnassigned;
-
         const rangeStart = new Date(date);
         rangeStart.setHours(Math.floor(settings.hourSlots.start), Math.round((settings.hourSlots.start % 1) * 60), 0, 0);
         const rangeEnd = new Date(date);
@@ -12324,16 +12379,9 @@
             return {appointment, start: visibleStart, end: visibleEnd};
         }).filter(Boolean);
 
-        const groups = new Map();
-        visibleAppointments.forEach(item => {
-            getAppointmentLocations(item.appointment, unassignedLabel).forEach(location => {
-                if (!groups.has(location)) groups.set(location, []);
-                groups.get(location).push(item);
-            });
-        });
-        if (!groups.size) {
-            groups.set(unassignedLabel, []);
-        }
+        // Keep one shared timeline track. Overlapping appointments are laid out in
+        // additional lanes within that track instead of being grouped by location.
+        const groups = new Map([['', visibleAppointments]]);
 
         const $outer = $('<div>', {class: 'wc-day-timeline overflow-auto'}).appendTo($viewContainer);
         const $heading = $('<div>', {class: 'd-flex align-items-end mb-2', css: {minWidth: `${timelineWidth + 150}px`}}).appendTo($outer);
@@ -12365,7 +12413,7 @@
 
             const rowHeight = Math.max(42, lanes.length * 42);
             const $row = $('<div>', {class: 'd-flex border-top', css: {minWidth: `${timelineWidth + 150}px`, minHeight: `${rowHeight}px`}}).appendTo($outer);
-            $('<div>', {class: 'flex-shrink-0 text-truncate small fw-semibold p-2', css: {width: '150px'}, text: location, title: location}).appendTo($row);
+            $('<div>', {class: 'flex-shrink-0', css: {width: '150px'}}).appendTo($row);
             const $track = $('<div>', {
                 class: 'position-relative flex-fill',
                 'data-timeline-track': true,

@@ -895,13 +895,13 @@ not be a reliable global data access API.
 The `day` view includes a toggle for switching between the standard vertical calendar grid and a horizontal timeline/Gantt layout. The toggle
 is shown inside the day view and is not part of the global view navigation.
 
-In timeline mode, timed appointments are grouped into one row per `location`. Appointments without a location use the localized
-`timelineUnassigned` translation. If `location` is an array, its values are combined into one row label using ` · ` so the appointment is
-rendered only once.
+In timeline mode, all timed appointments share one horizontal track. Appointments that overlap in time are placed into additional lanes
+within that track, so the track grows vertically as needed. The `location` field is not used for grouping.
+The lane layout is recalculated live while an appointment is moved.
 
-Timeline appointments support click-to-add, drag-create, horizontal move, moving between location rows, and horizontal resize when
-`draggable: true`. All of these interactions use the existing `add.bs.calendar` and `edit.bs.calendar` events and respect `hourSlots.rules`,
-`appointmentRules`, and `draggableSnapMinutes`. A timeline move between rows exposes the target row through `dragExtras.location`.
+Timeline appointments support click-to-add, drag-create, horizontal move, and horizontal resize when `draggable: true`. All of these
+interactions use the existing `add.bs.calendar` and `edit.bs.calendar` events and respect `hourSlots.rules`, `appointmentRules`, and
+`draggableSnapMinutes`.
 
 ## Formatters
 
