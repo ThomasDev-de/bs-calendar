@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**dev-main**](#dev-main)
     * [**Version 2.3.8**](#version-238)
     * [**Version 2.3.7**](#version-237)
     * [**Version 2.3.6**](#version-236)
@@ -58,6 +59,12 @@
 </ul>
 
 </details>
+
+### dev-main
+
+#### Bugfixes
+
+- Applied `appointmentRules.durationStepMinutes` to appointment resizing, so timeline/Gantt and normal day-view resize handles snap to configured duration intervals such as 45 minutes.
 
 ### Version 2.3.8
 

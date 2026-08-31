@@ -6,6 +6,117 @@
     <title>Bootstrap Calendar Demo</title>
     <link href="../vendor/twbs/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="../vendor/twbs/bootstrap-icons/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        #appointmentModal .modal-content {
+            border: 0;
+            border-radius: 1rem;
+            box-shadow: 0 1.25rem 3rem rgba(0, 0, 0, .32);
+        }
+
+        #appointmentModal .form-control,
+        #appointmentModal .form-select {
+            border-radius: .65rem;
+        }
+
+        #appointmentModal .form-floating > label {
+            color: var(--bs-secondary-color);
+        }
+
+        #appointmentModal .modal-title {
+            font-size: 1.25rem;
+            font-weight: 500;
+        }
+
+        #appointmentModal #appointmentTitle {
+            height: 3.5rem;
+            padding: .5rem 0;
+            border: 0;
+            border-bottom: 1px solid var(--bs-border-color);
+            border-radius: 0;
+            background: transparent;
+            font-size: 1.35rem;
+            box-shadow: none;
+        }
+
+        #appointmentModal #appointmentTitle:focus {
+            border-bottom: 2px solid var(--bs-primary);
+        }
+
+        #appointmentModal #appointmentTitle + label {
+            display: none;
+        }
+
+        #appointmentModal .editor-section {
+            padding: 0;
+            border: 0;
+            background: transparent;
+        }
+
+        #appointmentModal .editor-section .form-label {
+            color: var(--bs-secondary-color);
+            font-size: .8rem;
+            font-weight: 600;
+            letter-spacing: .02em;
+            text-transform: uppercase;
+        }
+
+        #appointmentModal .editor-section .form-control,
+        #appointmentModal .editor-section .form-select {
+            background: var(--bs-tertiary-bg);
+        }
+
+        #appointmentModal .event-row {
+            display: grid;
+            grid-template-columns: 2rem minmax(0, 1fr);
+            gap: .75rem;
+            align-items: start;
+        }
+
+        #appointmentModal .event-icon {
+            width: 2rem;
+            padding-top: .65rem;
+            color: var(--bs-secondary-color);
+            font-size: 1.1rem;
+            text-align: center;
+        }
+
+        #appointmentModal .js-priority-fields .btn-group {
+            display: inline-flex;
+            width: auto !important;
+            gap: .25rem;
+        }
+
+        #appointmentModal .js-priority-fields .btn-group .btn {
+            min-width: 5rem;
+            border: 1px solid var(--bs-border-color) !important;
+            border-radius: 999px !important;
+            color: var(--bs-secondary-color);
+            background: transparent;
+        }
+
+        #appointmentModal .js-priority-fields .btn-group .btn:hover,
+        #appointmentModal .js-priority-fields .btn-group .btn-check:checked + .btn {
+            color: var(--bs-primary);
+            background: var(--bs-primary-bg-subtle);
+            border-color: var(--bs-primary) !important;
+        }
+
+        #appointmentModal .powered-by {
+            display: none;
+        }
+
+        #appointmentModal .modal-footer-actions {
+            padding: 1rem 1.5rem;
+            background: var(--bs-secondary-bg);
+            border-radius: 0 0 1rem 1rem;
+        }
+
+        @media (min-width: 992px) {
+            #appointmentModal .modal-footer-actions {
+                padding-inline: 3rem;
+            }
+        }
+    </style>
 </head>
 <body class="p-1 p-lg-5">
 
@@ -40,11 +151,11 @@
                 <div class="small text-body-secondary mb-3" data-appointment-rule-help>
                     Drag-create and drag-resize respect the selected duration rule.
                 </div>
-                <div class="small text-body-secondary mb-3">
-                    BS-Toast powered by<br>
-                    <a href="https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-toast" target="_blank"
-                       rel="noopener noreferrer">ThomasDev-de/bs-toast</a>.
-                </div>
+<!--                <div class="small text-body-secondary mb-3">-->
+<!--                    BS-Toast powered by<br>-->
+<!--                    <a href="https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-toast" target="_blank"-->
+<!--                       rel="noopener noreferrer">ThomasDev-de/bs-toast</a>.-->
+<!--                </div>-->
             </div>
 
             <button type="button" class="btn btn-primary btn-sm mb-1 rounded-pill" data-method="setToday" data-view="week">setToday
@@ -66,45 +177,56 @@
 
 <div class="modal fade" id="appointmentModal" tabindex="-1" aria-labelledby="appointmentModalLabel"
      aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
-            <div class="modal-body">
-                <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="modal-header px-4 px-lg-5 py-3">
+                <div>
+                    <div class="small text-uppercase text-body-secondary fw-semibold">Calendar</div>
                     <h5 class="modal-title mb-0" id="appointmentModalLabel">Appointment</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
 
-                <div class="form-floating mb-3">
+            <div class="modal-body p-4 p-lg-5">
+
+                <div class="form-floating mb-4">
                     <input name="title" type="text" class="form-control" id="appointmentTitle"
                            placeholder="appointment title">
                     <label for="appointmentTitle">Title</label>
                 </div>
 
-                <div class="mb-3">
-                    <div id="appointmentDateRange">
-                        <input name="from_date" type="hidden" id="appointmentFromDate">
-                        <input name="to_date" type="hidden" id="appointmentToDate">
+                <div class="event-row mb-3">
+                    <i class="bi bi-calendar-event event-icon" aria-hidden="true"></i>
+                    <div class="editor-section">
+                        <div id="appointmentDateRange">
+                            <input name="from_date" type="hidden" id="appointmentFromDate">
+                            <input name="to_date" type="hidden" id="appointmentToDate">
+                        </div>
+<!--                        <div class="powered-by small text-body-secondary mt-1">-->
+<!--                        Date selection powered by-->
+<!--                        <a href="https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-datepicker" target="_blank"-->
+<!--                           rel="noopener noreferrer">ThomasDev-de/bs-datepicker</a>.-->
+<!--                        </div>-->
                     </div>
-                    <div class="small text-body-secondary mt-1">
-                        Date selection powered by
-                        <a href="https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-datepicker" target="_blank"
-                           rel="noopener noreferrer">ThomasDev-de/bs-datepicker</a>.
+                </div>
+
+                <div class="d-flex flex-wrap gap-4 mb-4">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="allDay" role="switch"
+                               id="appointmentAllDay">
+                        <label class="form-check-label" for="appointmentAllDay">all day</label>
+                    </div>
+                    <div class="form-check form-switch">
+                        <input class="form-check-input" type="checkbox" name="overlap" role="switch"
+                               id="appointmentOverlap">
+                        <label class="form-check-label" for="appointmentOverlap">allow overlap (stack)</label>
                     </div>
                 </div>
 
-                <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" name="allDay" role="switch"
-                           id="appointmentAllDay">
-                    <label class="form-check-label" for="appointmentAllDay">all day</label>
-                </div>
-
-                <div class="form-check form-switch mb-3">
-                    <input class="form-check-input" type="checkbox" name="overlap" role="switch"
-                           id="appointmentOverlap">
-                    <label class="form-check-label" for="appointmentOverlap">allow overlap (stack)</label>
-                </div>
-
-                <div class="row g-2 mb-3">
+                <div class="event-row mb-3">
+                    <i class="bi bi-arrow-repeat event-icon" aria-hidden="true"></i>
+                    <div class="editor-section">
+                    <div class="row g-2">
                     <div class="col-7">
                         <label class="form-label mb-1" for="appointmentRecurrenceFrequency">Repeat</label>
                         <select class="form-select" name="recurrence_frequency" id="appointmentRecurrenceFrequency">
@@ -118,6 +240,8 @@
                     <div class="col-5">
                         <label class="form-label mb-1" for="appointmentRecurrenceUntil">Until</label>
                         <input class="form-control" type="date" name="recurrence_until" id="appointmentRecurrenceUntil">
+                    </div>
+                    </div>
                     </div>
                 </div>
 
@@ -146,49 +270,66 @@
                     </div>
                 </div>
 
-                <div class="js-time-fields">
+                <div class="event-row mb-3 js-time-fields">
+                    <i class="bi bi-clock event-icon" aria-hidden="true"></i>
+                    <div class="editor-section">
                     <div class="d-flex justify-content-start align-items-center flex-nowrap mb-3 gap-2">
-                        <div class="flex-fill-">
+                        <div class="flex-fill">
                             <label for="appointmentFromTimePicker" class="form-label mb-1">From time</label>
                             <div id="appointmentFromTimePicker"></div>
                         </div>
-                        <div class="flex-fill-">
+                        <div class="flex-fill">
                             <label for="appointmentToTimePicker" class="form-label mb-1">To time</label>
                             <div id="appointmentToTimePicker"></div>
                         </div>
                     </div>
-                    <div class="small text-body-secondary mb-3">
-                        Time selection powered by
-                        <a href="https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-timepicker" target="_blank"
-                           rel="noopener noreferrer">ThomasDev-de/bs-timepicker</a>.
+<!--                    <div class="powered-by small text-body-secondary mb-3">-->
+<!--                        Time selection powered by-->
+<!--                        <a href="https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-timepicker" target="_blank"-->
+<!--                           rel="noopener noreferrer">ThomasDev-de/bs-timepicker</a>.-->
+<!--                    </div>-->
                     </div>
                 </div>
 
-                <div class="form-floating mb-3">
-                    <textarea class="form-control" style="height: 160px" name="description"
-                              placeholder="Description" id="appointmentDescription"></textarea>
-                    <label for="appointmentDescription">Description</label>
+                <div class="row g-3 mb-4">
+                    <div class="col-md-5">
+                        <div class="form-floating editor-section p-0">
+                            <textarea class="form-control" style="height: 110px" name="location"
+                                      placeholder="Location" id="appointmentLocation"></textarea>
+                            <label for="appointmentLocation">Location</label>
+                        </div>
+                        <div class="form-text">Use one location per line.</div>
+                    </div>
+                    <div class="col-md-7">
+                        <div class="form-floating editor-section p-0">
+                            <textarea class="form-control" style="height: 110px" name="description"
+                                      placeholder="Description" id="appointmentDescription"></textarea>
+                            <label for="appointmentDescription">Description</label>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="form-floating mb-3">
+                <div class="form-floating mb-4">
                     <input name="link" type="text" class="form-control" id="appointmentLink"
                            placeholder="appointment link">
                     <label for="appointmentLink">Link</label>
                 </div>
 
-                <div class="d-flex justify-content-end align-items-center">
-                    <div class="small text-body-secondary mb-3">
-                        Color picker powered by
-                        <a href="https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-color-picker" target="_blank"
-                           rel="noopener noreferrer">ThomasDev-de/bs-colorpicker</a>.
-                    </div>
+            </div>
+
+            <div class="modal-footer modal-footer-actions d-flex flex-wrap justify-content-end align-items-center gap-2">
+<!--                    <div class="small text-body-secondary me-auto">-->
+<!--                        Color picker powered by-->
+<!--                        <a href="https://github.webcito.de/?bootswatch=bootstrap&plugin=bs-color-picker" target="_blank"-->
+<!--                           rel="noopener noreferrer">ThomasDev-de/bs-colorpicker</a>.-->
+<!--                    </div>-->
                     <div class="me-2">
                         <label for="appointmentColor" class="d-none">Color</label>
                         <input type="color" name="color" class="form-control me-2" id="appointmentColor">
                     </div>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-primary ms-2" data-save-appointment>Save</button>
-                </div>
+            </div>
             </div>
         </div>
     </div>
@@ -405,6 +546,7 @@
                         allDay: isAllDay,
                         overlap: false,
                         description: '',
+                        location: '',
                         color: getRandomAppointmentColor(),
                         link: ''
                     });
@@ -437,6 +579,7 @@
                         overlap: !!sourceAppointment.overlap,
                         recurrence: sourceAppointment.recurrence || null,
                         description: sourceAppointment.description || '',
+                        location: sourceAppointment.location || '',
                         color: extras.colors.hex || '#0d6efd',
                         link: sourceAppointment.link || '',
                         task: sourceAppointment.task || null
@@ -657,6 +800,7 @@
             $modal.find('input[name="due"]').val(due ? due.substring(0, 16).replace(' ', 'T') : '');
 
             $modal.find('textarea[name="description"]').val(appointment.description || '');
+            $modal.find('textarea[name="location"]').val(formatLocationValue(appointment.location));
             $colorpicker.bsColorPicker('val', appointment.color);
             // $modal.find('input[name="color"]').val(normalizeColorInput(appointment.color));
             $modal.find('input[name="link"]').val(appointment.link || '');
@@ -714,6 +858,7 @@
                 } : null,
                 calendarId: 'personal',
                 description: $modal.find('textarea[name="description"]').val(),
+                location: parseLocationValue($modal.find('textarea[name="location"]').val()),
                 color: $modal.find('input[name="color"]').val(),
                 link: $modal.find('input[name="link"]').val()
             };
@@ -739,6 +884,24 @@
             }
 
             return appointment;
+        }
+
+        function formatLocationValue(location) {
+            if (Array.isArray(location)) {
+                return location.join('\n');
+            }
+            return location || '';
+        }
+
+        function parseLocationValue(value) {
+            const locations = String(value || '')
+                .split(/\r?\n/)
+                .map(location => location.trim())
+                .filter(Boolean);
+            if (locations.length > 1) {
+                return locations;
+            }
+            return locations[0] || '';
         }
 
         function buildDateTime(date, time, allDay, isEnd = false) {

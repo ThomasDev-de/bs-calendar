@@ -5983,12 +5983,22 @@
                             rangeMinutes,
                             ((pointX - trackRect.left) / trackRect.width) * rangeMinutes
                         ));
+                        const resizeStep = settings.appointmentRules?.durationStepMinutes || snap;
+                        const fixedMinutes = dragState.edge === 'start'
+                            ? dragState.originalEndMinutes
+                            : dragState.originalStartMinutes;
+                        const steppedDistance = Math.round(
+                            Math.abs(pointerMinutes - fixedMinutes) / resizeStep
+                        ) * resizeStep;
+                        const steppedPointerMinutes = dragState.edge === 'start'
+                            ? fixedMinutes - steppedDistance
+                            : fixedMinutes + steppedDistance;
                         const clampedResize = clampResizeMinutesToHourSlotRules(
                             dragState.$wrapper,
                             dragState.dateLocal,
                             dragState.edge,
-                            dragState.edge === 'start' ? dragState.originalEndMinutes : dragState.originalStartMinutes,
-                            pointerMinutes,
+                            fixedMinutes,
+                            steppedPointerMinutes,
                             snap
                         );
                         const tempStart = buildDateTimeByMinutes(dragState.$wrapper, dragState.dateLocal, clampedResize.startMinutes);
@@ -6023,14 +6033,22 @@
                         globalDragState.resizeDragState.$slotContainer,
                         pageY
                     );
+                    const resizeStep = settings.appointmentRules?.durationStepMinutes || snap;
+                    const fixedMinutes = globalDragState.resizeDragState.edge === 'start'
+                        ? globalDragState.resizeDragState.originalEndMinutes
+                        : globalDragState.resizeDragState.originalStartMinutes;
+                    const steppedDistance = Math.round(
+                        Math.abs(pointerMinutes - fixedMinutes) / resizeStep
+                    ) * resizeStep;
+                    const steppedPointerMinutes = globalDragState.resizeDragState.edge === 'start'
+                        ? fixedMinutes - steppedDistance
+                        : fixedMinutes + steppedDistance;
                     const clampedResize = clampResizeMinutesToHourSlotRules(
                         globalDragState.resizeDragState.$wrapper,
                         globalDragState.resizeDragState.dateLocal,
                         globalDragState.resizeDragState.edge,
-                        globalDragState.resizeDragState.edge === 'start'
-                            ? globalDragState.resizeDragState.originalEndMinutes
-                            : globalDragState.resizeDragState.originalStartMinutes,
-                        Math.max(0, Math.min(totalMinutes, pointerMinutes)),
+                        fixedMinutes,
+                        Math.max(0, Math.min(totalMinutes, steppedPointerMinutes)),
                         snap
                     );
                     const startMinutes = clampedResize.startMinutes;
