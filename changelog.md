@@ -1,7 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
-    * [**dev-main**](#dev-main)
+    * [**Version 2.4.0**](#version-240)
     * [**Version 2.3.9**](#version-239)
     * [**Version 2.3.8**](#version-238)
     * [**Version 2.3.7**](#version-237)
@@ -61,11 +61,15 @@
 
 </details>
 
-### dev-main
+### Version 2.4.0
+
+2026-08-31
 
 #### Features
 
+- Promoted the timeline/Gantt layout to a standalone `timeline` view with normal view navigation and `startView: 'timeline'` support.
 - Added calendar grouping support to the timeline via `timelineGroupBy: 'calendarId'` or the `'calendars'` alias, using configured calendar titles as row labels.
+- Added a dedicated `timeline` icon and ensured the timeline view label uses the localized `translations.timeline` value in the view selector.
 
 ### Version 2.3.9
 

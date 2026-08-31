@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.3.9
+ * @version 2.4.0
  * @date 2026-08-31
  * @license MIT
  * @requires "jQuery" ^3
@@ -187,7 +187,10 @@
             taskPriorityHigh: 'Alta',
             taskPriorityNormal: 'Media',
             taskPriorityLow: 'Baja',
-            duplicate: 'Duplicar', timeline: 'Línea de tiempo', calendar: 'Calendario', timelineUnassigned: 'Sin ubicación'
+            duplicate: 'Duplicar',
+            timeline: 'Línea de tiempo',
+            calendar: 'Calendario',
+            timelineUnassigned: 'Sin ubicación'
         },
 
         'fr': { // French
@@ -207,7 +210,10 @@
             taskPriorityHigh: 'Élevée',
             taskPriorityNormal: 'Moyenne',
             taskPriorityLow: 'Faible',
-            duplicate: 'Dupliquer', timeline: 'Chronologie', calendar: 'Calendrier', timelineUnassigned: 'Sans emplacement'
+            duplicate: 'Dupliquer',
+            timeline: 'Chronologie',
+            calendar: 'Calendrier',
+            timelineUnassigned: 'Sans emplacement'
         },
 
         'it': { // Italian
@@ -227,7 +233,10 @@
             taskPriorityHigh: 'Alta',
             taskPriorityNormal: 'Media',
             taskPriorityLow: 'Bassa',
-            duplicate: 'Duplica', timeline: 'Sequenza temporale', calendar: 'Calendario', timelineUnassigned: 'Senza posizione'
+            duplicate: 'Duplica',
+            timeline: 'Sequenza temporale',
+            calendar: 'Calendario',
+            timelineUnassigned: 'Senza posizione'
         },
 
         'pt': { // Portuguese
@@ -247,7 +256,10 @@
             taskPriorityHigh: 'Alta',
             taskPriorityNormal: 'Média',
             taskPriorityLow: 'Baixa',
-            duplicate: 'Duplicar', timeline: 'Linha do tempo', calendar: 'Calendário', timelineUnassigned: 'Sem localização'
+            duplicate: 'Duplicar',
+            timeline: 'Linha do tempo',
+            calendar: 'Calendário',
+            timelineUnassigned: 'Sem localização'
         },
 
         'nl': { // Dutch
@@ -307,7 +319,10 @@
             taskPriorityHigh: 'Высокий',
             taskPriorityNormal: 'Средний',
             taskPriorityLow: 'Низкий',
-            duplicate: 'Дублировать', timeline: 'Временная шкала', calendar: 'Календарь', timelineUnassigned: 'Без места'
+            duplicate: 'Дублировать',
+            timeline: 'Временная шкала',
+            calendar: 'Календарь',
+            timelineUnassigned: 'Без места'
         },
 
         'uk': { // Ukrainian
@@ -607,14 +622,17 @@
             taskPriorityHigh: 'Υψηλή',
             taskPriorityNormal: 'Μεσαία',
             taskPriorityLow: 'Χαμηλή',
-            duplicate: 'Διπλότυπο', timeline: 'Χρονολόγιο', calendar: 'Ημερολόγιο', timelineUnassigned: 'Χωρίς τοποθεσία'
+            duplicate: 'Διπλότυπο',
+            timeline: 'Χρονολόγιο',
+            calendar: 'Ημερολόγιο',
+            timelineUnassigned: 'Χωρίς τοποθεσία'
         }
     };
 
     $.bsCalendar = {
-        version: '2.3.9',
+        version: '2.4.0',
         about: {
-            version: '2.3.9',
+            version: '2.4.0',
             releaseDate: '2026-08-31',
             project: 'https://github.com/ThomasDev-de/bs-calendar/',
             issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
@@ -631,7 +649,7 @@
         getDefaults() {
             return this.DEFAULTS;
         },
-        possibleViews: ['agenda', '4day', 'day', 'week', 'month', 'year'],
+        possibleViews: ['agenda', '4day', 'day', 'timeline', 'week', 'month', 'year'],
         addTranslation(locale, translation) {
             const loc = locale.split('-')[0].toLowerCase();
 
@@ -666,9 +684,9 @@
                 offset: 0
             },
             startDate: new Date(),
-            startView: 'month', // agenda, day, week, month, year, 4day
+            startView: 'month', // agenda, day, timeline, week, month, year, 4day
             mainColor: 'primary',
-            views: ['year', 'month', 'agenda', 'week', '4day', 'day'],
+            views: ['year', 'month', 'agenda', 'week', '4day', 'day', 'timeline'],
             holidays: null,
             showAddButton: true,
             draggable: false,
@@ -676,6 +694,7 @@
             translations: null,
             icons: {
                 day: 'bi bi-calendar-day',
+                timeline: 'bi bi-bar-chart-steps',
                 '4day': 'bi bi-calendar-range',
                 week: 'bi bi-kanban',
                 month: 'bi bi-calendar-month',
@@ -3294,7 +3313,7 @@
         const isAllDay = appointment.allDay;
         const isDone = isTask && !!appointment.task.checked;
         const timeText = isAllDay
-            ? `<span>`+ (t.allDay || $.bsCalendar.getTranslation(extras.locale, 'allDay') || 'All day') + `</span>`
+            ? `<span>` + (t.allDay || $.bsCalendar.getTranslation(extras.locale, 'allDay') || 'All day') + `</span>`
             : `<span>${String(extras.start.time || '').slice(0, 5)}</span><span class="d-none d-lg-inline-block">-</span><span>${String(extras.end.time || '').slice(0, 5)}</span>`;
         const icon = extras.icon
             ? `<i class="${extras.icon} ${isTask ? 'task-toggle' : ''} flex-shrink-0" style="${isTask ? 'cursor:pointer' : ''}"></i>`
@@ -3784,7 +3803,7 @@
                 $wrapper.attr('data-bs-calendar-id', data.elements.wrapperId);
 
                 if (!data.settings.hasOwnProperty('views') || data.settings.views.length === 0) {
-                    data.settings.views = ['day', '4day', 'week', 'month', 'year'];
+                    data.settings.views = ['day', 'timeline', '4day', 'week', 'month', 'year'];
                 }
                 if (!data.settings.hasOwnProperty('startView') || !data.settings.startView) {
                     data.settings.startView = 'month';
@@ -4868,6 +4887,7 @@
 
         switch (view) {
             case 'day':
+            case 'timeline':
                 el.text(weekdayName + ', ' + dayName + ' ' + monthName + ' ' + yearName);
                 el.removeAttr('data-iso-week');
                 el.attr('title', '');
@@ -4944,6 +4964,7 @@
                 newDate.setDate(newDate.getDate() - 4);
                 break;
             case 'day':
+            case 'timeline':
                 newDate.setDate(newDate.getDate() - 1);
                 break;
         }
@@ -4988,6 +5009,7 @@
                 newDate.setDate(newDate.getDate() + 4);
                 break;
             case 'day':
+            case 'timeline':
                 newDate.setDate(newDate.getDate() + 1);
                 break;
 
@@ -6640,7 +6662,7 @@
 
                 const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
                 const settings = getSettings($eventWrapper);
-                if (!settings.draggable || !settings.showAddButton || getView($eventWrapper) !== 'day' || getBsCalendarData($eventWrapper).dayViewMode !== 'timeline') {
+                if (!settings.draggable || !settings.showAddButton || !isTimelineView($eventWrapper)) {
                     return;
                 }
 
@@ -6691,8 +6713,18 @@
                     zIndex: 12,
                     pointerEvents: 'none'
                 };
-                const $startTimeLabel = $('<span>', {css: $.extend({}, labelCss, {left: '0', top: '-18px'})}).appendTo($preview);
-                const $endTimeLabel = $('<span>', {css: $.extend({}, labelCss, {right: '0', bottom: '-18px'})}).appendTo($preview);
+                const $startTimeLabel = $('<span>', {
+                    css: $.extend({}, labelCss, {
+                        left: '0',
+                        top: '-18px'
+                    })
+                }).appendTo($preview);
+                const $endTimeLabel = $('<span>', {
+                    css: $.extend({}, labelCss, {
+                        right: '0',
+                        bottom: '-18px'
+                    })
+                }).appendTo($preview);
                 $startTimeLabel.text(formatDragTimeLabel($eventWrapper, startMinutes));
                 $endTimeLabel.text(formatDragTimeLabel($eventWrapper, initialEndMinutes));
 
@@ -6857,7 +6889,7 @@
                 const settings = getSettings($eventWrapper);
                 const view = getView($eventWrapper);
 
-                if (!settings.draggable || (view !== 'day' && view !== 'week' && view !== '4day') || !appointment || appointment.allDay || !isAppointmentEditable(appointment)) {
+                if (!settings.draggable || (view !== 'day' && view !== 'timeline' && view !== 'week' && view !== '4day') || !appointment || appointment.allDay || !isAppointmentEditable(appointment)) {
                     return;
                 }
                 if (settings.appointmentRules && settings.appointmentRules.durationMinutes !== null) {
@@ -6871,12 +6903,12 @@
                 }
 
                 const startPoint = getEventPageXY(e);
-                if (!Number.isFinite(startPoint.x) || (view !== 'day' || getBsCalendarData($eventWrapper).dayViewMode !== 'timeline') && !Number.isFinite(startPoint.y)) {
+                if (!Number.isFinite(startPoint.x) || (!isTimelineView($eventWrapper) && !Number.isFinite(startPoint.y))) {
                     return;
                 }
 
                 const $track = $appointment.closest('[data-timeline-track]');
-                const isTimelineResize = view === 'day' && getBsCalendarData($eventWrapper).dayViewMode === 'timeline' && $track.length;
+                const isTimelineResize = isTimelineView($eventWrapper) && $track.length;
                 const $slotContainer = $appointment.closest('.wc-day-view-time-slots');
                 if (!isTimelineResize && !$slotContainer.length) {
                     return;
@@ -6953,7 +6985,7 @@
                 }
                 const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
                 const view = getView($eventWrapper);
-                if (view !== 'day' && view !== 'week' && view !== '4day' && view !== 'month') {
+                if (view !== 'day' && view !== 'timeline' && view !== 'week' && view !== '4day' && view !== 'month') {
                     return;
                 }
                 const settings = getSettings($eventWrapper);
@@ -6968,7 +7000,7 @@
                     return;
                 }
 
-                if (view === 'day' && getBsCalendarData($eventWrapper).dayViewMode === 'timeline') {
+                if (isTimelineView($eventWrapper)) {
                     if (appointment.allDay) {
                         return;
                     }
@@ -7761,11 +7793,16 @@
         return data.view;
     }
 
+    function isTimelineView($wrapper) {
+        const data = getBsCalendarData($wrapper);
+        return data.view === 'timeline' || (data.view === 'day' && data.dayViewMode === 'timeline');
+    }
+
     /**
      * Sets the active calendar view and persists the selected view state.
      *
      * The function validates the requested view before applying it. Supported
-     * built-in views are `day`, `4day`, `week`, `month`, `year` and the special
+     * built-in views are `day`, `timeline`, `4day`, `week`, `month`, `year` and the special
      * `search` view.
      *
      * If an invalid non-search view is provided, the function falls back to the
@@ -7784,7 +7821,7 @@
      * The calendar wrapper whose active view should be changed.
      *
      * @param {string} view
-     * The requested view name. Supported values are `day`, `4day`, `week`,
+     * The requested view name. Supported values are `day`, `timeline`, `4day`, `week`,
      * `month`, `year` and `search`.
      *
      * @returns {void}
@@ -7815,7 +7852,7 @@
          * Invalid view names fall back to "month" so the calendar always remains
          * in a known and renderable state.
          */
-        if (view !== 'search' && !['agenda', 'day', '4day', 'week', 'month', 'year'].includes(view)) {
+        if (view !== 'search' && !['agenda', 'day', 'timeline', '4day', 'week', 'month', 'year'].includes(view)) {
             if (settings.debug) {
                 console.error(
                     'Invalid view type provided. Defaulting to month view.',
@@ -8068,7 +8105,7 @@
                 (view === 'year' && renderState.selectedDate !== currentSelectedDate) ||
                 (view === 'day' && renderState.dayViewMode !== data.dayViewMode) ||
                 (
-                    (view === 'day' || view === 'week' || view === '4day') &&
+                    (view === 'day' || view === 'timeline' || view === 'week' || view === '4day') &&
                     renderState.hourSlots !== currentHourSlots
                 );
 
@@ -8096,6 +8133,10 @@
 
                     case 'day':
                         buildDayView($wrapper);
+                        break;
+
+                    case 'timeline':
+                        drawAppointmentsAsTimeline($wrapper, data.appointments);
                         break;
 
                     default:
@@ -9680,7 +9721,6 @@
 
                 const dayName = date.toLocaleDateString(settings.locale, {weekday: 'short'});
                 const monthName = date.toLocaleDateString(settings.locale, {month: 'short'});
-
 
 
                 const dateWrapper = $('<div>', {
@@ -11395,13 +11435,12 @@
 
         switch (view) {
             case 'day':
-                if (data.dayViewMode === 'timeline') {
-                    drawAppointmentsAsTimeline($wrapper, appointments);
-                    break;
-                }
             case '4day':
             case 'week':
                 drawAppointmentsForDayOrWeek($wrapper, appointments);
+                break;
+            case 'timeline':
+                drawAppointmentsAsTimeline($wrapper, appointments);
                 break;
             case 'agenda':
                 drawAppointmentsForAgenda($wrapper, appointments);
@@ -11768,6 +11807,7 @@
 
         switch (view) {
             case "day":
+            case "timeline":
                 // nothing to change
                 break;
             case "4day": {
@@ -12307,7 +12347,6 @@
             class: 'position-relative px-1 px-lg-5'
         }).appendTo($container);
         appendUtcOffsetHeaderLabel(headerRow, date);
-        appendDayViewModeControl(headerRow, settings, 'position-absolute top-0 end-0');
 
         const headerContent = $('<div>', {
             css: {
@@ -12330,9 +12369,7 @@
             'data-date-local': $.bsCalendar.utils.formatDateToDateString(date),
         }).appendTo(headerContent);
 
-        if (getBsCalendarData($wrapper).dayViewMode !== 'timeline') {
-            buildDayViewContent($wrapper, date, $container);
-        }
+        buildDayViewContent($wrapper, date, $container);
     }
 
     function relayoutTimelineTrack($track, $movingAppointment, movingStart, movingEnd) {
@@ -12454,13 +12491,11 @@
             groups.set('', []);
         }
 
-        const $toolbar = $('<div>', {
-            class: 'd-flex justify-content-end px-1 px-lg-5 mb-2'
-        }).appendTo($viewContainer);
-        appendDayViewModeControl($toolbar, settings);
-
         const $outer = $('<div>', {class: 'wc-day-timeline overflow-auto'}).appendTo($viewContainer);
-        const $heading = $('<div>', {class: 'd-flex align-items-end mb-2 position-relative', css: {minWidth: `${timelineWidth + 150}px`}}).appendTo($outer);
+        const $heading = $('<div>', {
+            class: 'd-flex align-items-end mb-2 position-relative',
+            css: {minWidth: `${timelineWidth + 150}px`}
+        }).appendTo($outer);
         appendUtcOffsetHeaderLabel($heading, date);
         $('<div>', {
             class: 'flex-shrink-0',
@@ -12493,7 +12528,10 @@
             });
 
             const rowHeight = Math.max(42, lanes.length * 42);
-            const $row = $('<div>', {class: 'd-flex border-top', css: {minWidth: `${timelineWidth + 150}px`, minHeight: `${rowHeight}px`}}).appendTo($outer);
+            const $row = $('<div>', {
+                class: 'd-flex border-top',
+                css: {minWidth: `${timelineWidth + 150}px`, minHeight: `${rowHeight}px`}
+            }).appendTo($outer);
             $('<div>', {
                 class: 'flex-shrink-0 text-truncate small fw-semibold p-2',
                 css: {width: '150px', boxSizing: 'border-box'},
@@ -12566,12 +12604,22 @@
                     $('<span>', {
                         'data-appointment-resize': 'start',
                         class: 'position-absolute top-0 start-0 h-100',
-                        css: {width: '6px', cursor: 'ew-resize', zIndex: 2, backgroundColor: 'rgba(255, 255, 255, 0.55)'}
+                        css: {
+                            width: '6px',
+                            cursor: 'ew-resize',
+                            zIndex: 2,
+                            backgroundColor: 'rgba(255, 255, 255, 0.55)'
+                        }
                     }).appendTo($appointmentElement);
                     $('<span>', {
                         'data-appointment-resize': 'end',
                         class: 'position-absolute top-0 end-0 h-100',
-                        css: {width: '6px', cursor: 'ew-resize', zIndex: 2, backgroundColor: 'rgba(255, 255, 255, 0.55)'}
+                        css: {
+                            width: '6px',
+                            cursor: 'ew-resize',
+                            zIndex: 2,
+                            backgroundColor: 'rgba(255, 255, 255, 0.55)'
+                        }
                     }).appendTo($appointmentElement);
                 }
             });

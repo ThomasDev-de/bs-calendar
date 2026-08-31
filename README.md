@@ -612,7 +612,7 @@ later with `updateOptions`.
 | `search.limit`                | `number`                                      | `10`                                                       | Number of search results per page.                                                                                 |
 | `search.offset`               | `number`                                      | `0`                                                        | Initial search offset.                                                                                             |
 | `startDate`                   | `Date` or `string`                            | `new Date()`                                               | Initial reference date. String values are parsed during initialization.                                            |
-| `startView`                   | `string`                                      | `"month"`                                                  | Initial view. Allowed values: `day`, `4day`, `week`, `month`, `agenda`, `year`. Must be enabled in `views`.        |
+| `startView`                   | `string`                                      | `"month"`                                                  | Initial view. Allowed values: `day`, `timeline`, `4day`, `week`, `month`, `agenda`, `year`. Must be enabled in `views`. |
 | `mainColor`                   | `string`                                      | `"primary"`                                                | Default color used by highlights, controls, and appointments.                                                      |
 | `views`                       | `array` or comma-separated `string`           | `["year", "month", "agenda", "week", "4day", "day"]`       | Enabled views. Invalid entries are removed; duplicates are removed; empty result falls back to all possible views. |
 | `holidays`                    | `object` or `null`                            | `null`                                                     | OpenHolidays configuration. See [Holidays](#holidays).                                                             |
@@ -774,6 +774,7 @@ Calendar fields:
 | Key                 | Default                        |
 |---------------------|--------------------------------|
 | `day`               | `"bi bi-calendar-day"`         |
+| `timeline`          | `"bi bi-bar-chart-steps"`      |
 | `4day`              | `"bi bi-calendar-range"`       |
 | `week`              | `"bi bi-kanban"`               |
 | `month`             | `"bi bi-calendar-month"`       |
@@ -893,10 +894,10 @@ $('#calendar').bsCalendar('destroy');
 There is no public `getAppointment` method. The plugin only stores the currently loaded view/search appointment slice, so ID lookup would
 not be a reliable global data access API.
 
-## Day Timeline
+## Timeline View
 
-The `day` view includes a toggle for switching between the standard vertical calendar grid and a horizontal timeline/Gantt layout. The toggle
-is shown inside the day view and is not part of the global view navigation.
+The `timeline` view is a standalone horizontal timeline/Gantt view for one day. It is available as a normal calendar view and can be selected
+through the view navigation or configured with `startView: 'timeline'`.
 
 In timeline mode, all timed appointments share one horizontal track. Appointments that overlap in time are placed into additional lanes
 within that track, so the track grows vertically as needed. With the default `timelineGroupBy: null`, the `location` field is not used
@@ -905,7 +906,7 @@ The lane layout is recalculated live while an appointment is moved.
 Set `timelineGroupBy` to an appointment attribute such as `'location'` to render one timeline row per distinct value. Appointments without
 that attribute or without a value are collected in one additional localized unassigned row. Array values are combined into one group key.
 For configured calendars, use either `timelineGroupBy: 'calendarId'` or the `'calendars'` alias; the configured calendar titles are used as row labels.
-When `draggable` is disabled, resize handles are hidden and move/resize interactions are unavailable. The mode toggle and UTC offset stay
+When `draggable` is disabled, resize handles are hidden and move/resize interactions are unavailable. The view control and UTC offset stay
 visible independently of the horizontal timeline scroll area.
 
 Timeline appointments support click-to-add, drag-create, horizontal move, and horizontal resize when `draggable: true`. All of these
@@ -1152,7 +1153,7 @@ All built-in translation objects currently use these keys:
 | `taskPriorityNormal` | `"Medium"`               | Normal-priority task badge.                   |
 | `taskPriorityLow`    | `"Low"`                  | Low-priority task badge.                      |
 | `duplicate`          | `"Duplicate"`            | Duplicate action in the info-window dropdown. |
-| `timeline`           | `"Timeline"`             | Accessible label for the day timeline toggle. |
+| `timeline`           | `"Timeline"`             | Timeline view label.                          |
 | `calendar`           | `"Calendar"`             | Accessible label for the calendar view toggle. |
 | `timelineUnassigned` | `"Unassigned"`           | Row label used for appointments without a value for the configured timeline grouping attribute. |
 
