@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.3.8
- * @date 2026-08-28
+ * @version 2.3.9
+ * @date 2026-08-31
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -612,10 +612,10 @@
     };
 
     $.bsCalendar = {
-        version: '2.3.6',
+        version: '2.3.9',
         about: {
-            version: '2.3.6',
-            releaseDate: '2026-06-16',
+            version: '2.3.9',
+            releaseDate: '2026-08-31',
             project: 'https://github.com/ThomasDev-de/bs-calendar/',
             issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
             releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
@@ -745,6 +745,7 @@
             storeState: false,
             showTasks: true,
             dayViewMode: 'calendar',
+            timelineGroupBy: null,
             debug: false
         },
         utils: {
@@ -3053,6 +3054,11 @@
             } else {
                 settings.draggableSnapMinutes = Math.max(1, Math.floor(parsedSnap));
             }
+        }
+
+        if (settings.timelineGroupBy !== null && settings.timelineGroupBy !== undefined) {
+            const timelineGroupBy = String(settings.timelineGroupBy).trim();
+            settings.timelineGroupBy = timelineGroupBy || null;
         }
 
         if (!settings.appointmentRules || typeof settings.appointmentRules !== 'object') {
@@ -12370,11 +12376,32 @@
         $track.closest('.border-top').css('min-height', `${rowHeight}px`);
     }
 
+    function getTimelineGroupKey(appointment, groupBy, unassignedLabel) {
+        if (!groupBy || !appointment || !Object.prototype.hasOwnProperty.call(appointment, groupBy)) {
+            return '';
+        }
+
+        const value = appointment[groupBy];
+        if (Array.isArray(value)) {
+            const values = value
+                .map(item => String(item ?? '').trim())
+                .filter(Boolean);
+            return values.length ? [...new Set(values)].join(' · ') : unassignedLabel;
+        }
+
+        if (value === null || value === undefined || String(value).trim() === '') {
+            return unassignedLabel;
+        }
+        return String(value).trim();
+    }
+
     function drawAppointmentsAsTimeline($wrapper, appointments) {
         const data = getBsCalendarData($wrapper);
         const settings = getSettings($wrapper);
         const date = getDate($wrapper);
         const $viewContainer = getViewContainer($wrapper).empty();
+        const groupBy = settings.timelineGroupBy;
+        const unassignedLabel = settings.translations.timelineUnassigned;
         const rangeStart = new Date(date);
         rangeStart.setHours(Math.floor(settings.hourSlots.start), Math.round((settings.hourSlots.start % 1) * 60), 0, 0);
         const rangeEnd = new Date(date);
@@ -12397,19 +12424,36 @@
             return {appointment, start: visibleStart, end: visibleEnd};
         }).filter(Boolean);
 
-        // Keep one shared timeline track. Overlapping appointments are laid out in
-        // additional lanes within that track instead of being grouped by location.
-        const groups = new Map([['', visibleAppointments]]);
+        const groups = new Map();
+        visibleAppointments.forEach(item => {
+            const groupKey = getTimelineGroupKey(item.appointment, groupBy, unassignedLabel);
+            if (!groups.has(groupKey)) {
+                groups.set(groupKey, []);
+            }
+            groups.get(groupKey).push(item);
+        });
+        if (!groups.size) {
+            groups.set('', []);
+        }
+
+        const $toolbar = $('<div>', {
+            class: 'd-flex justify-content-end px-1 px-lg-5 mb-2'
+        }).appendTo($viewContainer);
+        appendDayViewModeControl($toolbar, settings);
 
         const $outer = $('<div>', {class: 'wc-day-timeline overflow-auto'}).appendTo($viewContainer);
-        const $heading = $('<div>', {class: 'd-flex align-items-end mb-2', css: {minWidth: `${timelineWidth + 150}px`}}).appendTo($outer);
-        $('<div>', {class: 'flex-shrink-0', css: {width: '150px'}, html: buildHeaderForDay($wrapper, date, false)}).appendTo($heading);
+        const $heading = $('<div>', {class: 'd-flex align-items-end mb-2 position-relative', css: {minWidth: `${timelineWidth + 150}px`}}).appendTo($outer);
+        appendUtcOffsetHeaderLabel($heading, date);
+        $('<div>', {
+            class: 'flex-shrink-0',
+            css: {width: '150px', boxSizing: 'border-box', paddingLeft: '40px'},
+            html: buildHeaderForDay($wrapper, date, false)
+        }).appendTo($heading);
         const timelineFlex = `1 0 ${timelineWidth}px`;
         const $axis = $('<div>', {
             class: 'position-relative flex-fill',
             css: {height: '48px', width: `${timelineWidth}px`, minWidth: `${timelineWidth}px`, flex: timelineFlex}
         }).appendTo($heading);
-        appendDayViewModeControl($heading, settings, 'flex-shrink-0 align-self-start');
         for (let hour = settings.hourSlots.start; hour < settings.hourSlots.end; hour++) {
             const left = ((hour - settings.hourSlots.start) / hourCount) * 100;
             const hourDate = new Date(2023, 0, 1, Math.floor(hour), Math.round((hour % 1) * 60));
@@ -12431,12 +12475,17 @@
 
             const rowHeight = Math.max(42, lanes.length * 42);
             const $row = $('<div>', {class: 'd-flex border-top', css: {minWidth: `${timelineWidth + 150}px`, minHeight: `${rowHeight}px`}}).appendTo($outer);
-            $('<div>', {class: 'flex-shrink-0', css: {width: '150px'}}).appendTo($row);
+            $('<div>', {
+                class: 'flex-shrink-0 text-truncate small fw-semibold p-2',
+                css: {width: '150px', boxSizing: 'border-box'},
+                text: groupBy ? location : '',
+                title: groupBy ? location : ''
+            }).appendTo($row);
             const $track = $('<div>', {
                 class: 'position-relative flex-fill',
                 'data-timeline-track': true,
                 'data-date-local': $.bsCalendar.utils.formatDateToDateString(date),
-                'data-timeline-location': location,
+                'data-timeline-location': groupBy === 'location' ? location : '',
                 css: {
                     width: `${timelineWidth}px`,
                     minWidth: `${timelineWidth}px`,
@@ -12494,7 +12543,7 @@
                     html: settings.formatter.timeline(returnData.appointment, returnData.extras)
                 }).data('appointment', appointment).appendTo($track);
 
-                if (!appointment.allDay) {
+                if (settings.draggable && !appointment.allDay) {
                     $('<span>', {
                         'data-appointment-resize': 'start',
                         class: 'position-absolute top-0 start-0 h-100',
@@ -12640,6 +12689,7 @@
                 paddingRight: '0.5rem',
                 left: 0,
                 width: '40px',
+                boxSizing: 'border-box',
                 fontSize: '10px',
                 lineHeight: '1.1',
                 whiteSpace: 'nowrap',

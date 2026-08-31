@@ -1,7 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
-    * [**dev-main**](#dev-main)
+    * [**Version 2.3.9**](#version-239)
     * [**Version 2.3.8**](#version-238)
     * [**Version 2.3.7**](#version-237)
     * [**Version 2.3.6**](#version-236)
@@ -60,11 +60,24 @@
 
 </details>
 
-### dev-main
+### Version 2.3.9
+
+2026-08-31
+
+#### Features
+
+- Added the `timelineGroupBy` option. It defaults to `null` for one shared track and can group timeline rows by an appointment attribute such as `location`, with missing values collected separately.
 
 #### Bugfixes
 
 - Applied `appointmentRules.durationStepMinutes` to appointment resizing, so timeline/Gantt and normal day-view resize handles snap to configured duration intervals such as 45 minutes.
+- Matched the timeline with the normal day view when `draggable` is disabled by hiding resize handles and keeping non-drag cursors.
+- Kept the timeline mode toggle outside the horizontally scrolling area and added the UTC offset to the timeline header.
+
+#### Demo
+
+- Added editable location input support, including one location per line as an appointment location array.
+- Refined the appointment editor layout and made its header and footer remain visible while the body scrolls.
 
 ### Version 2.3.8
 

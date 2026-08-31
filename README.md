@@ -617,6 +617,7 @@ later with `updateOptions`.
 | `showAddButton`               | `boolean`                                     | `true`                                                     | Shows the toolbar add button.                                                                                      |
 | `draggable`                   | `boolean`                                     | `false`                                                    | Enables drag-create in day/week/4day view, drag-move in day/week/4day/month view, and drag-resize from timed appointment edges in day/week/4day view. Touch locks native scrolling while a drag gesture is pending or active. |
 | `draggableSnapMinutes`        | `number`                                      | `5`                                                        | Snap interval in minutes for drag-create/move/resize in day/week/4day view. Minimum is `1`.                        |
+| `timelineGroupBy`             | `string` or `null`                            | `null`                                                     | Appointment attribute used to split the day timeline into rows. `null` keeps one shared track; missing values use the localized unassigned row. |
 | `translations`                | `object`                                      | `{search, searchNoResult}` merged with locale translations | Custom UI translations. See [Localization and Translations](#localization-and-translations).                       |
 | `icons`                       | `object`                                      | see [Icons](#icons)                                        | Bootstrap icon classes.                                                                                            |
 | `url`                         | `null`, `string`, or `function`               | `null`                                                     | Appointment data source. See [Remote Data with `url`](#remote-data-with-url).                                      |
@@ -896,8 +897,13 @@ The `day` view includes a toggle for switching between the standard vertical cal
 is shown inside the day view and is not part of the global view navigation.
 
 In timeline mode, all timed appointments share one horizontal track. Appointments that overlap in time are placed into additional lanes
-within that track, so the track grows vertically as needed. The `location` field is not used for grouping.
+within that track, so the track grows vertically as needed. With the default `timelineGroupBy: null`, the `location` field is not used
+for grouping.
 The lane layout is recalculated live while an appointment is moved.
+Set `timelineGroupBy` to an appointment attribute such as `'location'` to render one timeline row per distinct value. Appointments without
+that attribute or without a value are collected in one additional localized unassigned row. Array values are combined into one group key.
+When `draggable` is disabled, resize handles are hidden and move/resize interactions are unavailable. The mode toggle and UTC offset stay
+visible independently of the horizontal timeline scroll area.
 
 Timeline appointments support click-to-add, drag-create, horizontal move, and horizontal resize when `draggable: true`. All of these
 interactions use the existing `add.bs.calendar` and `edit.bs.calendar` events and respect `hourSlots.rules`, `appointmentRules`, and
@@ -949,6 +955,7 @@ Formatter signatures:
 | Formatter  | Signature                     | Return                           |
 |------------|-------------------------------|----------------------------------|
 | `day`      | `(appointment, extras)`       | HTML/string                      |
+| `timeline` | `(appointment, extras)`       | HTML/string                      |
 | `week`     | `(appointment, extras)`       | HTML/string                      |
 | `allDay`   | `(appointment, extras, view)` | HTML/string                      |
 | `month`    | `(appointment, extras)`       | HTML/string                      |
@@ -1144,7 +1151,7 @@ All built-in translation objects currently use these keys:
 | `duplicate`          | `"Duplicate"`            | Duplicate action in the info-window dropdown. |
 | `timeline`           | `"Timeline"`             | Accessible label for the day timeline toggle. |
 | `calendar`           | `"Calendar"`             | Accessible label for the calendar view toggle. |
-| `timelineUnassigned` | `"Unassigned"`           | Location row used for appointments without a location. |
+| `timelineUnassigned` | `"Unassigned"`           | Row label used for appointments without a value for the configured timeline grouping attribute. |
 
 ### Selecting A Locale
 
