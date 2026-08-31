@@ -416,15 +416,15 @@
             untitled: 'Untitled appointment',
             yearAppointments: 'appointments',
             appointmentPrefix: 'Appointment',
-            appointmentDescriptionPrefix: 'Demo appointment',
-            locations: [
-                'Room 1',
-                ['Room 2', 'Building A'],
-                'Meeting room',
-                ['Studio 3', '2nd floor'],
-                'Online'
-            ]
+            appointmentDescriptionPrefix: 'Demo appointment'
         };
+        const demoLocations = [
+            'Room 1',
+            ['Room 2', 'Building A'],
+            'Meeting room',
+            ['Studio 3', '2nd floor'],
+            'Online'
+        ];
 
         // Temporary in-memory store. Each year is generated once and then reused.
         // Example: appointmentStore[2026] = [{...}, {...}]
@@ -1028,7 +1028,7 @@
                 work: 'danger opacity-75 gradient',
                 sports: 'success opacity-75 gradient'
             };
-            const locations = demoText.locations;
+            const locations = demoLocations;
 
             for (let index = 0; index < 200; index++) {
                 const month = Math.floor(random() * 12);

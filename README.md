@@ -1,11 +1,11 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.3.6-blue)
+![Version](https://img.shields.io/badge/version-2.4.0-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-`bs-calendar` is a jQuery plugin for Bootstrap 5 calendars with `day`, `4day`, `week`, `month`, `agenda`, and `year` views. It supports remote
+`bs-calendar` is a jQuery plugin for Bootstrap 5 calendars with `day`, `timeline`, `4day`, `week`, `month`, `agenda`, and `year` views. It supports remote
 appointment loading, calendar filters, search, holidays, custom formatting, drag-create, drag-move, tasks, and local appointment
 add/edit/delete methods.
 
@@ -69,7 +69,7 @@ Use CDN/script tags:
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.3.6/dist/bs-calendar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.4.0/dist/bs-calendar.min.js"></script>
 ```
 
 Or install via Composer:
@@ -151,7 +151,7 @@ The demo contains one calendar instance and shows a modal-based add/edit/delete 
 
 ## Appointment Data
 
-For `day`, `4day`, `week`, `month`, `agenda`, and search results, appointments use this shape:
+For `day`, `timeline`, `4day`, `week`, `month`, `agenda`, and search results, appointments use this shape:
 
 ```json
 {
@@ -390,7 +390,7 @@ $('#calendar').bsCalendar({
 
 Remote data guidance:
 
-- For `day`, `4day`, `week`, `month`, and `agenda`, your `url` receives `fromDate` and `toDate`. Return recurring source appointments that
+- For `day`, `timeline`, `4day`, `week`, `month`, and `agenda`, your `url` receives `fromDate` and `toDate`. Return recurring source appointments that
   can have at least one occurrence in that range.
 - Do not filter recurring source appointments only by `start` date. A weekly source from January can still produce a June occurrence.
 - A practical server-side overlap check is: source `start <= toDate` and either no `until` or `until >= fromDate`. If you use `count`, your
@@ -457,7 +457,7 @@ Request data in normal appointment views:
 
 | View                           | Request fields                                           |
 |--------------------------------|----------------------------------------------------------|
-| `day`, `4day`, `week`, `month`, `agenda` | `fromDate`, `toDate`, `view`, `showTasks`, `calendarIds` |
+| `day`, `timeline`, `4day`, `week`, `month`, `agenda` | `fromDate`, `toDate`, `view`, `showTasks`, `calendarIds` |
 | `year`                         | `year`, `view`, `showTasks`, `calendarIds`               |
 
 Request data in search mode:
@@ -470,7 +470,7 @@ Request data in search mode:
 | `showTasks`   | Current task visibility state.                                                                  |
 | `calendarIds` | Active calendar IDs, always an array.                                                           |
 
-Normal response for `day`, `4day`, `week`, `month`, and `agenda`:
+Normal response for `day`, `timeline`, `4day`, `week`, `month`, and `agenda`:
 
 ```json
 [
@@ -614,11 +614,11 @@ later with `updateOptions`.
 | `startDate`                   | `Date` or `string`                            | `new Date()`                                               | Initial reference date. String values are parsed during initialization.                                            |
 | `startView`                   | `string`                                      | `"month"`                                                  | Initial view. Allowed values: `day`, `timeline`, `4day`, `week`, `month`, `agenda`, `year`. Must be enabled in `views`. |
 | `mainColor`                   | `string`                                      | `"primary"`                                                | Default color used by highlights, controls, and appointments.                                                      |
-| `views`                       | `array` or comma-separated `string`           | `["year", "month", "agenda", "week", "4day", "day"]`       | Enabled views. Invalid entries are removed; duplicates are removed; empty result falls back to all possible views. |
+| `views`                       | `array` or comma-separated `string`           | `["year", "month", "agenda", "week", "4day", "day", "timeline"]` | Enabled views. Invalid entries are removed; duplicates are removed; empty result falls back to all possible views. |
 | `holidays`                    | `object` or `null`                            | `null`                                                     | OpenHolidays configuration. See [Holidays](#holidays).                                                             |
 | `showAddButton`               | `boolean`                                     | `true`                                                     | Shows the toolbar add button.                                                                                      |
-| `draggable`                   | `boolean`                                     | `false`                                                    | Enables drag-create in day/week/4day view, drag-move in day/week/4day/month view, and drag-resize from timed appointment edges in day/week/4day view. Touch locks native scrolling while a drag gesture is pending or active. |
-| `draggableSnapMinutes`        | `number`                                      | `5`                                                        | Snap interval in minutes for drag-create/move/resize in day/week/4day view. Minimum is `1`.                        |
+| `draggable`                   | `boolean`                                     | `false`                                                    | Enables drag-create in day/timeline/week/4day view, drag-move in day/timeline/week/4day/month view, and drag-resize from timed appointment edges in day/timeline/week/4day view. Touch locks native scrolling while a drag gesture is pending or active. |
+| `draggableSnapMinutes`        | `number`                                      | `5`                                                        | Snap interval in minutes for drag-create/move/resize in day/timeline/week/4day view. Minimum is `1`.                        |
 | `timelineGroupBy`             | `string` or `null`                            | `null`                                                     | Appointment attribute used to split the day timeline into rows. `null` keeps one shared track; missing values use the localized unassigned row. Use `'calendarId'` or the `'calendars'` alias to group by configured calendar titles. |
 | `translations`                | `object`                                      | `{search, searchNoResult}` merged with locale translations | Custom UI translations. See [Localization and Translations](#localization-and-translations).                       |
 | `icons`                       | `object`                                      | see [Icons](#icons)                                        | Bootstrap icon classes.                                                                                            |
@@ -1345,7 +1345,7 @@ Changelog and support:
 
 ## Completeness Check
 
-This README is intended to cover the public surface of version `2.3.6`:
+This README is intended to cover the public surface of version `2.4.0`:
 
 - All `DEFAULTS` options from `dist/bs-calendar.js`
 - All public plugin methods in the method switch
