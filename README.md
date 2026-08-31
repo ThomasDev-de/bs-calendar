@@ -18,6 +18,8 @@ As of version 2, Bootstrap 4 is no longer supported. Use version `^1` for Bootst
 <td><img src="/demo/img/week.png" alt="Calendar Preview" width="200"></td>
 <td><img src="/demo/img/month.png" alt="Calendar Preview" width="200"></td>
 <td><img src="/demo/img/year.png" alt="Calendar Preview" width="200"></td>
+<td><img src="/demo/img/agenda.png" alt="Calendar Preview" width="200"></td>
+<td><img src="/demo/img/timeline.png" alt="Calendar Preview" width="200"></td>
 </tr>
 </tbody>
 </table>
