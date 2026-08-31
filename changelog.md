@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**dev-main**](#dev-main)
     * [**Version 2.3.9**](#version-239)
     * [**Version 2.3.8**](#version-238)
     * [**Version 2.3.7**](#version-237)
@@ -59,6 +60,12 @@
 </ul>
 
 </details>
+
+### dev-main
+
+#### Features
+
+- Added calendar grouping support to the timeline via `timelineGroupBy: 'calendarId'` or the `'calendars'` alias, using configured calendar titles as row labels.
 
 ### Version 2.3.9
 

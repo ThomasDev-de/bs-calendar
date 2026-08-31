@@ -617,7 +617,7 @@ later with `updateOptions`.
 | `showAddButton`               | `boolean`                                     | `true`                                                     | Shows the toolbar add button.                                                                                      |
 | `draggable`                   | `boolean`                                     | `false`                                                    | Enables drag-create in day/week/4day view, drag-move in day/week/4day/month view, and drag-resize from timed appointment edges in day/week/4day view. Touch locks native scrolling while a drag gesture is pending or active. |
 | `draggableSnapMinutes`        | `number`                                      | `5`                                                        | Snap interval in minutes for drag-create/move/resize in day/week/4day view. Minimum is `1`.                        |
-| `timelineGroupBy`             | `string` or `null`                            | `null`                                                     | Appointment attribute used to split the day timeline into rows. `null` keeps one shared track; missing values use the localized unassigned row. |
+| `timelineGroupBy`             | `string` or `null`                            | `null`                                                     | Appointment attribute used to split the day timeline into rows. `null` keeps one shared track; missing values use the localized unassigned row. Use `'calendarId'` or the `'calendars'` alias to group by configured calendar titles. |
 | `translations`                | `object`                                      | `{search, searchNoResult}` merged with locale translations | Custom UI translations. See [Localization and Translations](#localization-and-translations).                       |
 | `icons`                       | `object`                                      | see [Icons](#icons)                                        | Bootstrap icon classes.                                                                                            |
 | `url`                         | `null`, `string`, or `function`               | `null`                                                     | Appointment data source. See [Remote Data with `url`](#remote-data-with-url).                                      |
@@ -902,6 +902,7 @@ for grouping.
 The lane layout is recalculated live while an appointment is moved.
 Set `timelineGroupBy` to an appointment attribute such as `'location'` to render one timeline row per distinct value. Appointments without
 that attribute or without a value are collected in one additional localized unassigned row. Array values are combined into one group key.
+For configured calendars, use either `timelineGroupBy: 'calendarId'` or the `'calendars'` alias; the configured calendar titles are used as row labels.
 When `draggable` is disabled, resize handles are hidden and move/resize interactions are unavailable. The mode toggle and UTC offset stay
 visible independently of the horizontal timeline scroll area.
 

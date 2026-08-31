@@ -12395,12 +12395,30 @@
         return String(value).trim();
     }
 
+    function getTimelineGroupLabel($wrapper, groupBy, groupKey, unassignedLabel) {
+        if (!groupKey || groupKey === unassignedLabel) {
+            return groupKey;
+        }
+        if (groupBy !== 'calendarId' && groupBy !== 'calendars') {
+            return groupKey;
+        }
+
+        const calendars = getSettings($wrapper).calendars;
+        if (!Array.isArray(calendars)) {
+            return groupKey;
+        }
+        const calendar = calendars.find(item => item && String(item.id) === String(groupKey));
+        return calendar && calendar.title ? String(calendar.title) : groupKey;
+    }
+
     function drawAppointmentsAsTimeline($wrapper, appointments) {
         const data = getBsCalendarData($wrapper);
         const settings = getSettings($wrapper);
         const date = getDate($wrapper);
         const $viewContainer = getViewContainer($wrapper).empty();
-        const groupBy = settings.timelineGroupBy;
+        const groupBy = settings.timelineGroupBy === 'calendars'
+            ? 'calendarId'
+            : settings.timelineGroupBy;
         const unassignedLabel = settings.translations.timelineUnassigned;
         const rangeStart = new Date(date);
         rangeStart.setHours(Math.floor(settings.hourSlots.start), Math.round((settings.hourSlots.start % 1) * 60), 0, 0);
@@ -12465,6 +12483,7 @@
         }
 
         [...groups.entries()].sort((a, b) => a[0].localeCompare(b[0], settings.locale)).forEach(([location, items]) => {
+            const groupLabel = getTimelineGroupLabel($wrapper, settings.timelineGroupBy, location, unassignedLabel);
             const lanes = [];
             items.sort((a, b) => a.start - b.start || a.end - b.end).forEach(item => {
                 let lane = lanes.findIndex(end => end <= item.start);
@@ -12478,8 +12497,8 @@
             $('<div>', {
                 class: 'flex-shrink-0 text-truncate small fw-semibold p-2',
                 css: {width: '150px', boxSizing: 'border-box'},
-                text: groupBy ? location : '',
-                title: groupBy ? location : ''
+                text: groupBy ? groupLabel : '',
+                title: groupBy ? groupLabel : ''
             }).appendTo($row);
             const $track = $('<div>', {
                 class: 'position-relative flex-fill',
