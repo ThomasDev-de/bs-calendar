@@ -1901,8 +1901,12 @@
                     wrapperSearchNavId: $.bsCalendar.utils.generateRandomString(8),
                 },
                 loading: false,
+                destroyed: false,
                 loadingHolidays: false,
-                settings: $.bsCalendar.getDefaults(),
+                // Every instance must own its settings tree.  getDefaults() returns
+                // the mutable global defaults object, so using it directly would
+                // let normalizeSettings() leak changes between calendar instances.
+                settings: $.extend(true, {}, $.bsCalendar.getDefaults()),
                 appointments: [],
                 sourceAppointments: [],
                 date: new Date(),
@@ -2007,7 +2011,9 @@
 
             // Initialize UI and events — handle promise rejection defensively
             init(wrapper).then(() => {
-                onResize(wrapper, true);
+                if (isCalendarActive(wrapper, bsCalendarData)) {
+                    onResize(wrapper, true);
+                }
             }).catch(err => {
                 // If init fails, clean up and rethrow in debug
                 if (bsCalendarData.settings && bsCalendarData.settings.debug) {
@@ -2341,7 +2347,7 @@
             // Title/rounded simple UI tweaks (no full rebuild needed)
             if (typeof merged.title !== 'undefined') {
                 $wrapper.find('[data-calendar-static-title]')
-                    .html(merged.title || '');
+                    .text(merged.title || '');
             }
 
             if (shouldRebuildFramework) {
@@ -2455,6 +2461,10 @@
          */
         destroy($wrapper, callback = null) {
             const data = getBsCalendarData($wrapper);
+            if (!data) {
+                return;
+            }
+            data.destroyed = true;
             const settings = data.settings;
             $(globalCalendarElements.infoModal).modal("hide");
             methods.clear($wrapper);
@@ -2477,8 +2487,8 @@
             // If there is an active request stored, try to abort it (jqXHR or AbortController)
             const abortXHRAppointments = abortXhr(data.xhrs.appointments);
 
-            if (!abortXHRAppointments && settings.debug) {
-                log("Error while aborting xhrs.appointments during destroy:", e);
+            if (!abortXHRAppointments && settings.debug && data.xhrs.appointments) {
+                log("Error while aborting xhrs.appointments during destroy:", data.xhrs.appointments);
             }
 
 
@@ -2506,6 +2516,9 @@
             }
             restoreWrapperState($wrapper);
             $wrapper.removeData("bsCalendar");
+            if (getAllCalendarWrappers().length === 0) {
+                globalEventsInitialized = false;
+            }
             if (typeof callback === 'function') {
                 callback();
             }
@@ -2795,6 +2808,9 @@
      * @return {void} Does not return a value.
      */
     function setBsCalendarData(wrapper, data) {
+        if (data && data.destroyed) {
+            return;
+        }
         if (data.settings.debug) {
             log('setBsCalendarData:', data);
         }
@@ -2811,6 +2827,10 @@
     function getBsCalendarData(wrapper) {
         // Access the jQuery data store on the element and retrieve the 'bsCalendar' entry
         return wrapper.data('bsCalendar');
+    }
+
+    function isCalendarActive($wrapper, data = getBsCalendarData($wrapper)) {
+        return !!data && !data.destroyed && getBsCalendarData($wrapper) === data;
     }
 
 
@@ -3119,18 +3139,18 @@
         if (appointment.task) {
             const textClass = appointment.task.checked ? 'text-decoration-line-through' : '';
             const overdueClass = appointment.task.isOverdue ? '' : '';
-            return `<div class="badge d-flex align-items-center flex-nowrap ${textClass} ${overdueClass}" style=""><i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i> <span class="text-truncate">${appointment.title}</span></div>`;
+            return `<div class="badge d-flex align-items-center flex-nowrap ${textClass} ${overdueClass}" style=""><i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i> <span class="text-truncate">${escapeHtml(appointment.title)}</span></div>`;
         }
         void extras;
-        return `<small class="px-2">${appointment.title}</small>`;
+        return `<small class="px-2">${escapeHtml(appointment.title)}</small>`;
     }
 
     function formatterTimeline(appointment, extras) {
         if (appointment.task) {
             const textClass = appointment.task.checked ? 'text-decoration-line-through' : '';
-            return `<span class="d-flex align-items-center text-truncate small ${textClass}"><i class="${extras.icon} me-1 flex-shrink-0 task-toggle"></i><span class="text-truncate">${appointment.title}</span></span>`;
+            return `<span class="d-flex align-items-center text-truncate small ${textClass}"><i class="${extras.icon} me-1 flex-shrink-0 task-toggle"></i><span class="text-truncate">${escapeHtml(appointment.title)}</span></span>`;
         }
-        return `<span class="d-block text-truncate small px-1">${appointment.title}</span>`;
+        return `<span class="d-block text-truncate small px-1">${escapeHtml(appointment.title)}</span>`;
     }
 
     function formatterAllDay(appointment, extras, view) {
@@ -3149,7 +3169,7 @@
             return `
                     <div class="${classes.join(' ')}" style="background-color: ${extras.colors.backgroundColor}; background-image: ${extras.colors.backgroundImage}; color: ${extras.colors.color}">
                         <i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i>
-                        <span class="text-nowrap d-inline-block text-truncate">${appointment.title}</span>
+                        <span class="text-nowrap d-inline-block text-truncate">${escapeHtml(appointment.title)}</span>
                     </div>
                 `;
         }
@@ -3164,7 +3184,7 @@
 
         return [
             '<div class="' + classes.join(' ') + '" style="' + styleString + '">',
-            appointment.title,
+            escapeHtml(appointment.title),
             '</div>'
         ].join('')
     }
@@ -3207,7 +3227,7 @@
         if (view === 'day') {
             badgeClass += ' d-inline';
         }
-        return `<div class="${badgeClass}" style="${css}">${holiday.title}</div>`;
+        return `<div class="${badgeClass}" style="${css}">${escapeHtml(holiday.title)}</div>`;
     }
 
     /**
@@ -3221,10 +3241,10 @@
         if (appointment.task) {
             const textClass = appointment.task.checked ? 'text-decoration-line-through' : '';
             const overdueClass = appointment.task.isOverdue ? '' : '';
-            return `<div class="badge d-flex align-items-center flex-nowrap ${textClass} ${overdueClass}" style="font-size: 10px;"><i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i> <span class="text-truncate">${appointment.title}</span></div>`;
+            return `<div class="badge d-flex align-items-center flex-nowrap ${textClass} ${overdueClass}" style="font-size: 10px;"><i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i> <span class="text-truncate">${escapeHtml(appointment.title)}</span></div>`;
         }
         void extras;
-        return `<small class="px-2" style="font-size: 10px">${appointment.title}</small>`;
+        return `<small class="px-2" style="font-size: 10px">${escapeHtml(appointment.title)}</small>`;
     }
 
     /**
@@ -3241,7 +3261,7 @@
             return `
                 <div class="d-flex align-items-center flex-nowrap ${textClass}" style="font-size: 12px; line-height: 18px; color: ${extras.colors.color}; height: 18px; overflow: hidden;">
                     <i class="${extras.icon} me-1 task-toggle" style="cursor:pointer"></i>
-                    <span class="text-nowrap d-inline-block text-truncate" style="flex: 1; min-width: 0;">${appointment.title}</span>
+                    <span class="text-nowrap d-inline-block text-truncate" style="flex: 1; min-width: 0;">${escapeHtml(appointment.title)}</span>
                 </div>
             `;
         }
@@ -3262,7 +3282,7 @@
             `<div class=" d-flex align-items-center flex-nowrap" style="${styles}; color: ${extras.colors.color}">`,
             icon,
             timeToShow,
-            `<span class="text-nowrap d-inline-block text-truncate" style="flex: 1; min-width: 0;">${appointment.title}</span>`,
+            `<span class="text-nowrap d-inline-block text-truncate" style="flex: 1; min-width: 0;">${escapeHtml(appointment.title)}</span>`,
             `</div>`
         ].join('')
     }
@@ -3300,7 +3320,7 @@
             '<div class="d-flex align-items-start gap-2 w-100">',
             icon,
             '<div class="min-w-0 flex-fill">',
-            `<div class="fw-semibold text-truncate ${titleClass}">${appointment.title}</div>`,
+            `<div class="fw-semibold text-truncate ${titleClass}">${escapeHtml(appointment.title)}</div>`,
             meta.length ? `<div class="small text-body-secondary text-truncate">${meta.join(' · ')}</div>` : '',
             '</div>',
             '</div>'
@@ -3382,7 +3402,7 @@
             `${date}`,
             `</div>`,
             `<div class="title-container flex-fill text-nowrap d-flex justify-content-between align-items-center">`,
-            `<span>${appointment.title}</span>` + link,
+            `<span>${escapeHtml(appointment.title)}</span>` + link,
             `</div>`,
             `</div>`,
         ].join('');
@@ -3632,13 +3652,27 @@
         const defaultDisabled = false;
         const defaultColor = "danger";
 
+        const safeHref = value => {
+            const href = String(value || '').trim();
+            // Do not allow executable URL schemes in appointment data.
+            if (/^(?:javascript|data|vbscript):/i.test(href)) {
+                return '';
+            }
+            return href;
+        };
+
         if (typeof link === "string") {
             // treatment as a simple string
-            return `<a class="btn btn-primary px-5 rounded-pill" href="${link}" target="${defaultTarget}" rel="${defaultRel}">${defaultText}</a>`;
+            const href = safeHref(link);
+            return href ? `<a class="btn btn-primary px-5 rounded-pill" href="${escapeHtml(href)}" target="${defaultTarget}" rel="${defaultRel}">${defaultText}</a>` : '';
         }
 
         if (typeof link === "object" && link.href) {
             // treatment as an object with attributes
+            const href = safeHref(link.href);
+            if (!href) {
+                return '';
+            }
             const text = link.text || defaultText;
             const target = link.target || defaultTarget;
             const rel = link.rel || defaultRel;
@@ -3653,7 +3687,7 @@
 
             // When HTML content is defined, this is used
             const content = link.html || text;
-            return `<a class="btn px-5 rounded-pill ${disabledClass}" href="${link.href}" style="${combinedCss}" target="${target}" rel="${rel}">${content}</a>`;
+            return `<a class="btn px-5 rounded-pill ${disabledClass}" href="${escapeHtml(href)}" style="${combinedCss}" target="${escapeHtml(target)}" rel="${escapeHtml(rel)}">${link.html ? content : escapeHtml(content)}</a>`;
         }
 
         // If neither a string nor a correct object is available, return empty.
@@ -3680,10 +3714,10 @@
                 let location = "";
                 if (appointment.location) {
                     if (Array.isArray(appointment.location)) {
-                        location = appointment.location.join('<br>');
+                        location = appointment.location.map(escapeHtml).join('<br>');
                     }
                     if (typeof appointment.location === 'string') {
-                        location = appointment.location;
+                        location = escapeHtml(appointment.location);
                     }
                     if (location !== "") {
                         location = `<p>${location}</p>`;
@@ -3696,17 +3730,17 @@
                 const due = taskDue && !isNaN(taskDue.getTime()) ? [
                     '<p class="d-flex align-items-center gap-2 mb-2">',
                     '<i class="bi bi-calendar-check" aria-hidden="true"></i>',
-                    `<time datetime="${appointment.task.due}">${taskDue.toLocaleString(locale, {
+                    `<time datetime="${escapeHtml(appointment.task.due)}">${taskDue.toLocaleString(locale, {
                         dateStyle: 'medium',
                         timeStyle: 'short'
                     })}</time>`,
                     '</p>'
                 ].join('') : "";
 
-                const desc = appointment.description ? `<p>${appointment.description}</p>` : "";
+                const desc = appointment.description ? `<p>${escapeHtml(appointment.description)}</p>` : "";
                 // assemble the result and dissolve the promise
                 const result = [
-                    `<h3>${appointment.title}</h3>`,
+                    `<h3>${escapeHtml(appointment.title)}</h3>`,
                     `<p>${showTime}</p>`,
                     due,
                     location,
@@ -3750,7 +3784,11 @@
      */
     function trigger($wrapper, event, ...params) {
         // Retrieve settings for the wrapper
-        const settings = getSettings($wrapper);
+        const data = getBsCalendarData($wrapper);
+        if (!data || data.destroyed) {
+            return;
+        }
+        const settings = data.settings;
 
         // Debugging: Log event details if debug mode is enabled
         if (settings.debug) {
@@ -3859,6 +3897,9 @@
      */
     async function checkAndSetAppointments($wrapper, appointments) {
         const data = getBsCalendarData($wrapper);
+        if (!data || data.destroyed) {
+            return [];
+        }
         const settings = data.settings;
 
         // Return a Promise to manage asynchronous operations
@@ -5153,7 +5194,7 @@
      */
     function getSearchMode($wrapper) {
         const data = getBsCalendarData($wrapper);
-        return data.searchMode;
+        return !!data?.searchMode;
     }
 
     /**
@@ -5167,6 +5208,9 @@
      */
     function handleSidebarVisibility($wrapper, forceClose = false, forceOpen = false) {
         const data = getBsCalendarData($wrapper);
+        if (!data || data.destroyed) {
+            return;
+        }
         const $sidebar = $wrapper.find('#' + data.elements.wrapperSideNavId);
         const isVisible = $sidebar.data('visible'); // Current status of the sidebar
 
@@ -5185,7 +5229,7 @@
                 $sidebar.css({position: 'absolute'});
             }
 
-            if (getView($wrapper) === 'month') {
+            if (isCalendarActive($wrapper, data) && getView($wrapper) === 'month') {
                 onResize($wrapper, false);
             }
 
@@ -7790,12 +7834,12 @@
      */
     function getView($wrapper) {
         const data = getBsCalendarData($wrapper);
-        return data.view;
+        return data?.view;
     }
 
     function isTimelineView($wrapper) {
         const data = getBsCalendarData($wrapper);
-        return data.view === 'timeline' || (data.view === 'day' && data.dayViewMode === 'timeline');
+        return !!data && (data.view === 'timeline' || (data.view === 'day' && data.dayViewMode === 'timeline'));
     }
 
     /**
@@ -8568,6 +8612,7 @@
             }
 
             checkAndSetAppointments($wrapper, []).then(_cleanedAppointments => {
+                if (!isCalendarActive($wrapper, bsCalendarData)) return;
                 trigger($wrapper, 'after-load', _cleanedAppointments);
                 void _cleanedAppointments;
                 buildAppointmentsForView($wrapper);
@@ -8575,8 +8620,10 @@
                 /**
                  * Clear the loading flag even when the empty search workflow fails.
                  */
-                bsCalendarData.loading = false;
-                setBsCalendarData($wrapper, bsCalendarData);
+                if (isCalendarActive($wrapper, bsCalendarData)) {
+                    bsCalendarData.loading = false;
+                    setBsCalendarData($wrapper, bsCalendarData);
+                }
             });
 
             return;
@@ -8630,6 +8677,7 @@
                          * result view including the total result count.
                          */
                         checkAndSetAppointments($wrapper, appointments.rows).then(cleanedAppointments => {
+                            if (!isCalendarActive($wrapper, bsCalendarData)) return;
                             trigger($wrapper, 'after-load', cleanedAppointments);
                             buildAppointmentsForSearch(
                                 $wrapper,
@@ -8643,6 +8691,7 @@
                          * the current calendar view.
                          */
                         checkAndSetAppointments($wrapper, appointments).then(_cleanedAppointments => {
+                            if (!isCalendarActive($wrapper, bsCalendarData)) return;
                             trigger($wrapper, 'after-load', _cleanedAppointments);
                             void _cleanedAppointments;
                             buildAppointmentsForView($wrapper);
@@ -8665,8 +8714,10 @@
                      * function-based request finishes.
                      */
                     hideBSCalendarLoader($wrapper);
-                    bsCalendarData.loading = false;
-                    setBsCalendarData($wrapper, bsCalendarData);
+                    if (isCalendarActive($wrapper, bsCalendarData)) {
+                        bsCalendarData.loading = false;
+                        setBsCalendarData($wrapper, bsCalendarData);
+                    }
                 });
 
         } else if (callAjax) {
@@ -8703,7 +8754,8 @@
                          * In search mode, use response.rows as appointment data and
                          * response.total for pagination/result count rendering.
                          */
-                        checkAndSetAppointments($wrapper, response.rows).then(cleanedAppointments => {
+                            checkAndSetAppointments($wrapper, response.rows).then(cleanedAppointments => {
+                                if (!isCalendarActive($wrapper, bsCalendarData)) return;
                             trigger($wrapper, 'after-load', cleanedAppointments);
                             buildAppointmentsForSearch(
                                 $wrapper,
@@ -8716,7 +8768,8 @@
                          * In normal mode, use the full response as appointment data
                          * and rebuild the calendar view.
                          */
-                        checkAndSetAppointments($wrapper, response).then(_cleanedAppointments => {
+                            checkAndSetAppointments($wrapper, response).then(_cleanedAppointments => {
+                                if (!isCalendarActive($wrapper, bsCalendarData)) return;
                             trigger($wrapper, 'after-load', _cleanedAppointments);
                             void _cleanedAppointments;
                             buildAppointmentsForView($wrapper);
@@ -8744,8 +8797,10 @@
                     bsCalendarData.xhrs.appointments = null;
                     hideBSCalendarLoader($wrapper);
 
-                    bsCalendarData.loading = false;
-                    setBsCalendarData($wrapper, bsCalendarData);
+                    if (isCalendarActive($wrapper, bsCalendarData)) {
+                        bsCalendarData.loading = false;
+                        setBsCalendarData($wrapper, bsCalendarData);
+                    }
                 }
             });
         } else {
@@ -8761,6 +8816,7 @@
             }
 
             checkAndSetAppointments($wrapper, []).then(_cleanedAppointments => {
+                if (!isCalendarActive($wrapper, bsCalendarData)) return;
                 trigger($wrapper, 'after-load', _cleanedAppointments);
                 void _cleanedAppointments;
                 buildAppointmentsForView($wrapper);
@@ -8768,8 +8824,10 @@
                 /**
                  * Clear the loading flag after the local empty workflow finishes.
                  */
-                bsCalendarData.loading = false;
-                setBsCalendarData($wrapper, bsCalendarData);
+                if (isCalendarActive($wrapper, bsCalendarData)) {
+                    bsCalendarData.loading = false;
+                    setBsCalendarData($wrapper, bsCalendarData);
+                }
             });
         }
     }

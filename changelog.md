@@ -71,6 +71,19 @@
 - Added calendar grouping support to the timeline via `timelineGroupBy: 'calendarId'` or the `'calendars'` alias, using configured calendar titles as row labels.
 - Added a dedicated `timeline` icon and ensured the timeline view label uses the localized `translations.timeline` value in the view selector.
 
+#### Bugfixes
+
+- Prevented calendar instances from sharing and mutating the global defaults object during initialization and settings normalization.
+- Fixed asynchronous loading and animation callbacks that could access calendar data after `destroy()` and cause errors during rapid test or view changes.
+- Fixed cleanup of the global resize lifecycle after the last calendar instance is destroyed.
+- Fixed a debug-only `ReferenceError` in appointment-request cleanup.
+- Escaped appointment and holiday titles, descriptions, and locations in the built-in formatters and blocked executable URL schemes in appointment links.
+- Updated the API tests to match version `2.4.0`.
+
+#### Tests
+
+- The complete QUnit test suite passes successfully (`123/123` tests).
+
 ### Version 2.3.9
 
 2026-08-31
