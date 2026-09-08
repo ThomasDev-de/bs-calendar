@@ -112,6 +112,21 @@ QUnit.module('Plugin — Methods', function (hooks) {
             assert.strictEqual(data.settings.hourSlots.start, 7);
             assert.strictEqual(data.settings.hourSlots.end, origEnd);
         });
+
+        QUnit.test('preserves HTML title when updating options', function (assert) {
+            $('#cal').bsCalendar('destroy');
+            $('#qunit-fixture').html('<div id="cal"></div>');
+            $('#cal').bsCalendar({
+                url: null,
+                startView: 'month',
+                title: '<span class="custom-title">HTML Title</span>'
+            });
+
+            $('#cal').bsCalendar('updateOptions', { draggable: true });
+            const staticTitleHtml = $('#cal').find('[data-calendar-static-title]').html();
+            assert.ok(staticTitleHtml.includes('<span class="custom-title">HTML Title</span>'));
+            assert.notOk(staticTitleHtml.includes('&lt;span'));
+        });
     });
 
     // ── clear ─────────────────────────────────────────────────────────────────

@@ -2347,7 +2347,7 @@
             // Title/rounded simple UI tweaks (no full rebuild needed)
             if (typeof merged.title !== 'undefined') {
                 $wrapper.find('[data-calendar-static-title]')
-                    .text(merged.title || '');
+                    .html(merged.title || '');
             }
 
             if (shouldRebuildFramework) {

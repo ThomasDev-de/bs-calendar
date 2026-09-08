@@ -1,6 +1,7 @@
 ### Changelog for `bs-calendar.js`
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
+    * [**dev-main**](#dev-main)
     * [**Version 2.4.0**](#version-240)
     * [**Version 2.3.9**](#version-239)
     * [**Version 2.3.8**](#version-238)
@@ -60,6 +61,12 @@
 </ul>
 
 </details>
+
+### dev-main
+
+#### Bugfixes
+
+- Fixed static calendar titles displaying raw HTML tags after calling `updateOptions` (e.g. when toggling settings like `draggable`).
 
 ### Version 2.4.0
 
