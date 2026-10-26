@@ -6229,6 +6229,7 @@
                         globalDragState.moveDragState.$timeDisplay.remove();
                     }
                     if (globalDragState.moveDragState.dragged) {
+                        globalDragState.suppressSlotClickUntil = Date.now() + 250;
                         globalDragState.suppressAppointmentClickUntil = Date.now() + 250;
                         const appointment = $appointment.data('appointment');
                         if (appointment) {

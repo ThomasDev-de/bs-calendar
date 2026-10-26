@@ -67,6 +67,7 @@
 #### Bugfixes
 
 - Fixed static calendar titles displaying raw HTML tags after calling `updateOptions` (e.g. when toggling settings like `draggable`).
+- Prevented timeline appointment moves from triggering an additional `add` event when the pointer is released over an empty track.
 
 ### Version 2.4.0
 
