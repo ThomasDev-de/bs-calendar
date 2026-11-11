@@ -1,11 +1,11 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.4.0-blue)
+![Version](https://img.shields.io/badge/version-2.5.0-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-`bs-calendar` is a jQuery plugin for Bootstrap 5 calendars with `day`, `timeline`, `4day`, `week`, `month`, `agenda`, and `year` views. It supports remote
+`bs-calendar` is a jQuery plugin for Bootstrap 5 calendars with `day`, `timeline`, `4day`, `week`, `month`, `monthCompact`, `agenda`, and `year` views. It supports remote
 appointment loading, calendar filters, search, holidays, custom formatting, drag-create, drag-move, tasks, and local appointment
 add/edit/delete methods.
 
@@ -31,6 +31,7 @@ As of version 2, Bootstrap 4 is no longer supported. Use version `^1` for Bootst
 - [Quick Start](#quick-start)
 - [Run the Demo](#run-the-demo)
 - [Core Concepts](#core-concepts)
+- [Compact Month View](#compact-month-view)
 - [Appointment Data](#appointment-data)
 - [Recurring Appointments](#recurring-appointments)
 - [Remote Data with `url`](#remote-data-with-url)
@@ -69,7 +70,7 @@ Use CDN/script tags:
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.4.0/dist/bs-calendar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.5.0/dist/bs-calendar.min.js"></script>
 ```
 
 Or install via Composer:
@@ -138,7 +139,7 @@ The demo contains one calendar instance and shows a modal-based add/edit/delete 
 ## Core Concepts
 
 - `url` controls remote appointment loading. It can be `null`, a URL string, or a function returning a Promise.
-- `calendars` defines sidebar filters. Active calendar IDs are always sent as `calendarIds` in remote requests.
+- `calendars` defines sidebar filters. Normal views send active calendar IDs as `calendarIds` in remote requests. `monthCompact` has no calendar filter and sends all configured calendar IDs.
 - `add.bs.calendar`, `edit.bs.calendar`, and `delete.bs.calendar` are intent events. They tell your application what the user wants; they do
   not save anything.
 - `addAppointment`, `editAppointment`, and `deleteAppointment` mutate only the currently loaded browser-side appointment list. For
@@ -146,12 +147,46 @@ The demo contains one calendar instance and shows a modal-based add/edit/delete 
 - `refresh` reloads data from `url`.
 - `render` re-renders already loaded data without calling `url`.
 - `year` view uses summary objects (`date`, `total`, optional `content`), not full appointment objects.
+- `monthCompact` shows a compact month grid and the selected day's appointments below it. It can be enabled alongside the regular `month` view.
 - Recurring appointments are normal appointment objects with a `recurrence` object. They are expanded only for loaded appointment views.
 - Tasks are normal appointment objects with a `task` object.
 
+## Compact Month View
+
+Enable `monthCompact` in `views` to offer a compact month grid with a selected-day agenda. It has its own month navigation and omits the
+standard toolbar and sidebar. When multiple views are enabled, its compact header includes a view selector so users can switch back to
+the regular calendar views, plus an icon-only Today button. `monthCompact` is opt-in and is not added to the default `views` list.
+
+```javascript
+$('#calendar').bsCalendar({
+    locale: 'de-DE',
+    views: ['month', 'monthCompact'],
+    startView: 'monthCompact',
+    holidays: {
+        country: 'DE',
+        federalState: 'BE'
+    },
+    formatter: {
+        monthCompact(appointment, extras) {
+            const times = extras.monthCompact.displayDate.times;
+            const time = appointment.allDay ? 'Ganztägig' : `${times.start}–${times.end}`;
+            return `<strong>${time}</strong> ${appointment.title}`;
+        }
+    }
+});
+```
+
+The selected date starts at `startDate` (today by default). Clicking a day updates the agenda without leaving `monthCompact`. Day cells
+show appointment counts; recurring occurrences and multi-day appointments count on every day they cover. Holidays use the existing
+`holidays` setting, mute the matching day number and show their names on hover; holidays for the selected day are listed below.
+`formatter.monthCompact` customizes appointment rows; `formatter.holiday` continues to customize holiday labels.
+
+The view requests the same expanded month date range as `month`, including the leading and trailing days shown in the grid. Remote
+requests keep `view: 'month'` for compatibility with existing month data endpoints.
+
 ## Appointment Data
 
-For `day`, `timeline`, `4day`, `week`, `month`, `agenda`, and search results, appointments use this shape:
+For `day`, `timeline`, `4day`, `week`, `month`, `monthCompact`, `agenda`, and search results, appointments use this shape:
 
 ```json
 {
@@ -390,8 +425,10 @@ $('#calendar').bsCalendar({
 
 Remote data guidance:
 
-- For `day`, `timeline`, `4day`, `week`, `month`, and `agenda`, your `url` receives `fromDate` and `toDate`. Return recurring source appointments that
+- For `day`, `timeline`, `4day`, `week`, `month`, `monthCompact`, and `agenda`, your `url` receives `fromDate` and `toDate`. Return recurring source appointments that
   can have at least one occurrence in that range.
+- `monthCompact` sends `view: 'month'` so existing month endpoints remain compatible.
+- `monthCompact` sends all configured `calendarIds`, regardless of the active states of the normal calendar filters.
 - Do not filter recurring source appointments only by `start` date. A weekly source from January can still produce a June occurrence.
 - A practical server-side overlap check is: source `start <= toDate` and either no `until` or `until >= fromDate`. If you use `count`, your
   backend may need its own recurrence check for exact filtering.
@@ -457,7 +494,7 @@ Request data in normal appointment views:
 
 | View                           | Request fields                                           |
 |--------------------------------|----------------------------------------------------------|
-| `day`, `timeline`, `4day`, `week`, `month`, `agenda` | `fromDate`, `toDate`, `view`, `showTasks`, `calendarIds` |
+| `day`, `timeline`, `4day`, `week`, `month`, `monthCompact`, `agenda` | `fromDate`, `toDate`, `view`, `showTasks`, `calendarIds` |
 | `year`                         | `year`, `view`, `showTasks`, `calendarIds`               |
 
 Request data in search mode:
@@ -470,7 +507,7 @@ Request data in search mode:
 | `showTasks`   | Current task visibility state.                                                                  |
 | `calendarIds` | Active calendar IDs, always an array.                                                           |
 
-Normal response for `day`, `timeline`, `4day`, `week`, `month`, and `agenda`:
+Normal response for `day`, `timeline`, `4day`, `week`, `month`, `monthCompact`, and `agenda`:
 
 ```json
 [
@@ -612,7 +649,7 @@ later with `updateOptions`.
 | `search.limit`                | `number`                                      | `10`                                                       | Number of search results per page.                                                                                 |
 | `search.offset`               | `number`                                      | `0`                                                        | Initial search offset.                                                                                             |
 | `startDate`                   | `Date` or `string`                            | `new Date()`                                               | Initial reference date. String values are parsed during initialization.                                            |
-| `startView`                   | `string`                                      | `"month"`                                                  | Initial view. Allowed values: `day`, `timeline`, `4day`, `week`, `month`, `agenda`, `year`. Must be enabled in `views`. |
+| `startView`                   | `string`                                      | `"month"`                                                  | Initial view. Allowed values: `day`, `timeline`, `4day`, `week`, `month`, `monthCompact`, `agenda`, `year`. Must be enabled in `views`. |
 | `mainColor`                   | `string`                                      | `"primary"`                                                | Default color used by highlights, controls, and appointments.                                                      |
 | `views`                       | `array` or comma-separated `string`           | `["year", "month", "agenda", "week", "4day", "day", "timeline"]` | Enabled views. Invalid entries are removed; duplicates are removed; empty result falls back to all possible views. |
 | `holidays`                    | `object` or `null`                            | `null`                                                     | OpenHolidays configuration. See [Holidays](#holidays).                                                             |
@@ -758,6 +795,7 @@ Calendar fields:
 | `4day`               | `"4 Days"`               | Label for the 4-day view.                 |
 | `week`               | `"Week"`                 | Label for the week view.                  |
 | `month`              | `"Month"`                | Label for the month view.                 |
+| `monthCompact`       | `"Compact month"`        | Label for the compact month view.         |
 | `year`               | `"Year"`                 | Label for the year view.                  |
 | `agenda`             | `"Agenda"`               | Label for the agenda list view.           |
 | `allDay`             | `"All day"`              | Label for all-day appointments.           |
@@ -778,6 +816,8 @@ Calendar fields:
 | `4day`              | `"bi bi-calendar-range"`       |
 | `week`              | `"bi bi-kanban"`               |
 | `month`             | `"bi bi-calendar-month"`       |
+| `monthCompact`      | `"bi bi-calendar2-week"`       |
+| `today`             | `"bi bi-calendar-check"`       |
 | `year`              | `"bi bi-calendar4"`            |
 | `agenda`            | `"bi bi-list-ul"`              |
 | `about`             | `"bi bi-info-circle"`          |
@@ -935,6 +975,11 @@ $('#calendar').bsCalendar({
         month(appointment, extras) {
             return appointment.title;
         },
+        monthCompact(appointment, extras) {
+            const date = extras.monthCompact.date;
+            const times = extras.monthCompact.displayDate.times;
+            return `${date} ${times.start} ${appointment.title}`;
+        },
         agenda(appointment, extras) {
             return appointment.title;
         },
@@ -963,6 +1008,7 @@ Formatter signatures:
 | `week`     | `(appointment, extras)`       | HTML/string                      |
 | `allDay`   | `(appointment, extras, view)` | HTML/string                      |
 | `month`    | `(appointment, extras)`       | HTML/string                      |
+| `monthCompact` | `(appointment, extras)`    | HTML/string                      |
 | `agenda`   | `(appointment, extras)`       | HTML/string                      |
 | `search`   | `(appointment, extras)`       | HTML/string                      |
 | `holiday`  | `(holiday, view)`             | HTML/string                      |
@@ -971,6 +1017,9 @@ Formatter signatures:
 
 In month view, day cells automatically show a small expand button when their appointment list overflows. The expanded month-day overlay uses
 `formatter.monthExpanded(appointment, extras)` so the compact `formatter.month` output can stay single-line.
+
+For `monthCompact`, `extras.monthCompact` contains the selected `date` (`YYYY-MM-DD`) and its `displayDate` segment, including the
+visible `times.start` and `times.end` values for that day.
 
 ## Extras Object
 
@@ -1143,6 +1192,7 @@ All built-in translation objects currently use these keys:
 | `4day`               | `"4 Days"`               | 4-day view label.                             |
 | `week`               | `"Week"`                 | Week view label.                              |
 | `month`              | `"Month"`                | Month view label.                             |
+| `monthCompact`       | `"Compact month"`        | Compact month view label.                     |
 | `year`               | `"Year"`                 | Year view label.                              |
 | `agenda`             | `"Agenda"`               | Agenda list view label.                       |
 | `allDay`             | `"All day"`              | All-day appointment label.                     |
@@ -1345,7 +1395,7 @@ Changelog and support:
 
 ## Completeness Check
 
-This README is intended to cover the public surface of version `2.4.0`:
+This README is intended to cover the public surface of version `2.5.0`:
 
 - All `DEFAULTS` options from `dist/bs-calendar.js`
 - All public plugin methods in the method switch

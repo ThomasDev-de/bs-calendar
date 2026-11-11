@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.4.0
- * @date 2026-08-31
+ * @version 2.5.0
+ * @date 2026-11-11
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -76,6 +76,7 @@
             '4day': '٤ أيام',
             week: 'أسبوع',
             month: 'شهر',
+            monthCompact: 'شهر مصغّر',
             year: 'سنة',
             agenda: 'جدول الأعمال',
             allDay: 'طوال اليوم',
@@ -96,6 +97,7 @@
             '4day': '4 ימים',
             week: 'שבוע',
             month: 'חודש',
+            monthCompact: 'חודש קומפקטי',
             year: 'שנה',
             agenda: 'סדר יום',
             allDay: 'כל היום',
@@ -116,6 +118,7 @@
             '4day': '4天',
             week: '周',
             month: '月',
+            monthCompact: '紧凑月视图',
             year: '年',
             agenda: '日程',
             allDay: '全天',
@@ -136,6 +139,7 @@
             '4day': '4 Days',
             week: 'Week',
             month: 'Month',
+            monthCompact: 'Compact month',
             year: 'Year',
             agenda: 'Agenda',
             allDay: 'All day',
@@ -156,6 +160,7 @@
             '4day': '4 Tage',
             week: 'Woche',
             month: 'Monat',
+            monthCompact: 'Kompakter Monat',
             year: 'Jahr',
             agenda: 'Terminliste',
             allDay: 'Ganztägig',
@@ -176,6 +181,7 @@
             '4day': '4 días',
             week: 'Semana',
             month: 'Mes',
+            monthCompact: 'Mes compacto',
             year: 'Año',
             agenda: 'Agenda',
             allDay: 'Todo el día',
@@ -199,6 +205,7 @@
             '4day': '4 jours',
             week: 'Semaine',
             month: 'Mois',
+            monthCompact: 'Mois compact',
             year: 'Année',
             agenda: 'Agenda',
             allDay: 'Toute la journée',
@@ -222,6 +229,7 @@
             '4day': '4 giorni',
             week: 'Settimana',
             month: 'Mese',
+            monthCompact: 'Mese compatto',
             year: 'Anno',
             agenda: 'Agenda',
             allDay: 'Tutto il giorno',
@@ -245,6 +253,7 @@
             '4day': '4 dias',
             week: 'Semana',
             month: 'Mês',
+            monthCompact: 'Mês compacto',
             year: 'Ano',
             agenda: 'Agenda',
             allDay: 'Dia inteiro',
@@ -268,6 +277,7 @@
             '4day': '4 dagen',
             week: 'Week',
             month: 'Maand',
+            monthCompact: 'Compacte maand',
             year: 'Jaar',
             agenda: 'Agenda',
             allDay: 'Hele dag',
@@ -288,6 +298,7 @@
             '4day': '4 dni',
             week: 'Tydzień',
             month: 'Miesiąc',
+            monthCompact: 'Kompaktowy miesiąc',
             year: 'Rok',
             agenda: 'Agenda',
             allDay: 'Cały dzień',
@@ -308,6 +319,7 @@
             '4day': '4 дня',
             week: 'Неделя',
             month: 'Месяц',
+            monthCompact: 'Компактный месяц',
             year: 'Год',
             agenda: 'Повестка',
             allDay: 'Весь день',
@@ -331,6 +343,7 @@
             '4day': '4 дні',
             week: 'Тиждень',
             month: 'Місяць',
+            monthCompact: 'Компактний місяць',
             year: 'Рік',
             agenda: 'Порядок денний',
             allDay: 'Увесь день',
@@ -351,6 +364,7 @@
             '4day': '4 gün',
             week: 'Hafta',
             month: 'Ay',
+            monthCompact: 'Kompakt ay',
             year: 'Yıl',
             agenda: 'Ajanda',
             allDay: 'Tüm gün',
@@ -371,6 +385,7 @@
             '4day': '4日間',
             week: '週',
             month: '月',
+            monthCompact: 'コンパクト月表示',
             year: '年',
             agenda: '予定リスト',
             allDay: '終日',
@@ -391,6 +406,7 @@
             '4day': '4일',
             week: '주',
             month: '월',
+            monthCompact: '간결한 월 보기',
             year: '년',
             agenda: '일정',
             allDay: '종일',
@@ -411,6 +427,7 @@
             '4day': '4 दिन',
             week: 'सप्ताह',
             month: 'महीना',
+            monthCompact: 'संक्षिप्त माह',
             year: 'वर्ष',
             agenda: 'एजेंडा',
             allDay: 'पूरे दिन',
@@ -431,6 +448,7 @@
             '4day': '4 hari',
             week: 'Minggu',
             month: 'Bulan',
+            monthCompact: 'Bulan ringkas',
             year: 'Tahun',
             agenda: 'Agenda',
             allDay: 'Sepanjang hari',
@@ -451,6 +469,7 @@
             '4day': '4 ngày',
             week: 'Tuần',
             month: 'Tháng',
+            monthCompact: 'Tháng gọn',
             year: 'Năm',
             agenda: 'Lịch trình',
             allDay: 'Cả ngày',
@@ -471,6 +490,7 @@
             '4day': '4 วัน',
             week: 'สัปดาห์',
             month: 'เดือน',
+            monthCompact: 'เดือนแบบย่อ',
             year: 'ปี',
             agenda: 'กำหนดการ',
             allDay: 'ทั้งวัน',
@@ -491,6 +511,7 @@
             '4day': '4 dny',
             week: 'Týden',
             month: 'Měsíc',
+            monthCompact: 'Kompaktní měsíc',
             year: 'Rok',
             agenda: 'Agenda',
             allDay: 'Celý den',
@@ -511,6 +532,7 @@
             '4day': '4 dagar',
             week: 'Vecka',
             month: 'Månad',
+            monthCompact: 'Kompakt månad',
             year: 'År',
             agenda: 'Agenda',
             allDay: 'Hela dagen',
@@ -531,6 +553,7 @@
             '4day': '4 dage',
             week: 'Uge',
             month: 'Måned',
+            monthCompact: 'Kompakt måned',
             year: 'År',
             agenda: 'Agenda',
             allDay: 'Hele dagen',
@@ -551,6 +574,7 @@
             '4day': '4 dager',
             week: 'Uke',
             month: 'Måned',
+            monthCompact: 'Kompakt måned',
             year: 'År',
             agenda: 'Agenda',
             allDay: 'Hele dagen',
@@ -571,6 +595,7 @@
             '4day': '4 päivää',
             week: 'Viikko',
             month: 'Kuukausi',
+            monthCompact: 'Tiivis kuukausi',
             year: 'Vuosi',
             agenda: 'Agenda',
             allDay: 'Koko päivä',
@@ -591,6 +616,7 @@
             '4day': '4 zile',
             week: 'Săptămână',
             month: 'Lună',
+            monthCompact: 'Lună compactă',
             year: 'An',
             agenda: 'Agendă',
             allDay: 'Toată ziua',
@@ -611,6 +637,7 @@
             '4day': '4 ημέρες',
             week: 'Εβδομάδα',
             month: 'Μήνας',
+            monthCompact: 'Συμπαγής μήνας',
             year: 'Έτος',
             agenda: 'Ατζέντα',
             allDay: 'Όλη μέρα',
@@ -630,10 +657,10 @@
     };
 
     $.bsCalendar = {
-        version: '2.4.0',
+        version: '2.5.0',
         about: {
-            version: '2.4.0',
-            releaseDate: '2026-08-31',
+            version: '2.5.0',
+            releaseDate: '2026-11-11',
             project: 'https://github.com/ThomasDev-de/bs-calendar/',
             issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
             releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
@@ -649,7 +676,7 @@
         getDefaults() {
             return this.DEFAULTS;
         },
-        possibleViews: ['agenda', '4day', 'day', 'timeline', 'week', 'month', 'year'],
+        possibleViews: ['agenda', '4day', 'day', 'timeline', 'week', 'month', 'monthCompact', 'year'],
         addTranslation(locale, translation) {
             const loc = locale.split('-')[0].toLowerCase();
 
@@ -684,7 +711,7 @@
                 offset: 0
             },
             startDate: new Date(),
-            startView: 'month', // agenda, day, timeline, week, month, year, 4day
+            startView: 'month', // agenda, day, timeline, week, month, monthCompact, year, 4day
             mainColor: 'primary',
             views: ['year', 'month', 'agenda', 'week', '4day', 'day', 'timeline'],
             holidays: null,
@@ -698,6 +725,8 @@
                 '4day': 'bi bi-calendar-range',
                 week: 'bi bi-kanban',
                 month: 'bi bi-calendar-month',
+                monthCompact: 'bi bi-calendar2-week',
+                today: 'bi bi-calendar-check',
                 year: 'bi bi-calendar4',
                 agenda: 'bi bi-list-ul',
                 about: 'bi bi-info-circle',
@@ -724,6 +753,7 @@
                 week: formatterWeek,
                 allDay: formatterAllDay,
                 month: formatterMonth,
+                monthCompact: formatterMonthCompact,
                 monthExpanded: formatterMonthExpanded,
                 agenda: formatterAgenda,
                 search: formatterSearch,
@@ -1909,6 +1939,7 @@
                 settings: $.extend(true, {}, $.bsCalendar.getDefaults()),
                 appointments: [],
                 sourceAppointments: [],
+                holidays: [],
                 date: new Date(),
                 lastView: null,
                 viewBeforeSearch: null,
@@ -2389,15 +2420,20 @@
             $wrapper.find('[data-month-expand-toggle], [data-month-expanded-day]').remove();
             $wrapper.find('[data-month-expanded-active]').removeAttr('data-month-expanded-active');
 
-            // Clean up holidays in year view (preserve the day element, just remove styling)
+            // Clean up holiday styling in year and compact month views.
             $wrapper.find('.wc-holiday-marked').each(function () {
                 $(this).removeClass('text-secondary wc-holiday-marked');
             });
 
-            // Reset badges in year view
+            // Reset appointment count badges in year and compact month views.
             $wrapper.find('.js-badge').text('').removeAttr('style');
 
             if (removeAppointments) {
+                const data = getBsCalendarData($wrapper);
+                if (data) {
+                    data.holidays = [];
+                    setBsCalendarData($wrapper, data);
+                }
                 checkAndSetAppointments($wrapper, []).then(_cleanedAppointments => {
                     void _cleanedAppointments; // Prevents the warning, but serves no purpose
                 });
@@ -3285,6 +3321,46 @@
             `<span class="text-nowrap d-inline-block text-truncate" style="flex: 1; min-width: 0;">${escapeHtml(appointment.title)}</span>`,
             `</div>`
         ].join('')
+    }
+
+    function formatterMonthCompact(appointment, extras) {
+        const t = $.bsCalendar.getTranslations(extras.locale);
+        const isTask = !!appointment.task;
+        const isDone = isTask && !!appointment.task.checked;
+        const displayDate = extras.monthCompact?.displayDate || {};
+        const times = displayDate.times || {};
+        const startTime = String(times.start || extras.start?.time || '').slice(0, 5);
+        const endTime = String(times.end || extras.end?.time || '').slice(0, 5);
+        const timeText = appointment.allDay
+            ? (t.allDay || $.bsCalendar.getTranslation(extras.locale, 'allDay') || 'All day')
+            : [startTime, endTime].filter(Boolean).join(' - ');
+        const icon = extras.icon
+            ? `<i class="${extras.icon} ${isTask ? 'task-toggle' : ''} flex-shrink-0" style="${isTask ? 'cursor:pointer' : ''}"></i>`
+            : '';
+        const titleClass = isDone ? 'text-decoration-line-through text-body-secondary' : 'text-body';
+        const meta = [];
+
+        if (appointment.location) {
+            meta.push(Array.isArray(appointment.location) ? appointment.location.join(' · ') : appointment.location);
+        }
+        if (appointment.task && appointment.task.priority) {
+            const priority = appointment.task.priority;
+            const translationKey = `taskPriority${priority.charAt(0).toUpperCase()}${priority.slice(1)}`;
+            meta.push(t[translationKey] || priority);
+        }
+
+        return [
+            '<div class="d-flex align-items-start gap-3 w-100">',
+            `<div class="small text-body-secondary text-center flex-shrink-0" style="width:76px;">${escapeHtml(timeText)}</div>`,
+            '<div class="flex-fill" style="min-width:0;">',
+            `<div class="d-flex align-items-center gap-2 fw-semibold ${titleClass}">`,
+            icon,
+            `<span class="text-truncate">${escapeHtml(appointment.title)}</span>`,
+            '</div>',
+            meta.length ? `<small class="text-body-secondary">${meta.map(value => escapeHtml(value)).join(' · ')}</small>` : '',
+            '</div>',
+            '</div>'
+        ].join('');
     }
 
     function formatterMonthExpanded(appointment, extras) {
@@ -4320,7 +4396,8 @@
 
         // initial wrapper and put it at a 100% height and width
         const innerWrapper = $('<div>', {
-            class: 'd-flex flex-column align-items-stretch h-100 w-100 rounded-2 gap-3 pb-3'
+            class: 'd-flex flex-column align-items-stretch h-100 w-100 rounded-2 gap-3 pb-3',
+            'data-bs-calendar-inner-wrapper': true
         }).appendTo($wrapper);
 
         const roundedClass = 'rounded-' + settings.rounded;
@@ -4408,12 +4485,17 @@
         }
 
         function appendTodayButton($target, extraClass = '') {
-            return $('<button>', {
+            const button = $('<button>', {
                 type: 'button',
                 class: `btn border-0 text-body shadow-none ${extraClass} ${roundedClass} bs-calendar-border-style fw-bold`,
-                html: settings.translations.today,
                 'data-today': true
-            }).appendTo($target);
+            });
+            $('<i>', {
+                class: `${settings.icons.today || 'bi bi-calendar-check'} me-2`,
+                'aria-hidden': 'true'
+            }).appendTo(button);
+            button.append(document.createTextNode(settings.translations.today || 'Today'));
+            return button.appendTo($target);
         }
 
         function appendViewDropdown($target, extraClass = '', iconOnly = false) {
@@ -4759,7 +4841,10 @@
         }
 
         if (settings.topbarAddons && $(settings.topbarAddons).length > 0) {
-            $(settings.topbarAddons).insertAfter(topSearchNav || topNav);
+            const topbarAddonWrapper = $('<div>', {
+                'data-bs-calendar-topbar-addons': true
+            }).insertAfter(topSearchNav || topNav);
+            $(settings.topbarAddons).appendTo(topbarAddonWrapper);
         }
 
         const mobileOffcanvas = $('<div>', {
@@ -4811,7 +4896,8 @@
 
         // The head was completed, creates a container for Sidebar and the view
         const container = $('<div>', {
-            class: 'd-flex flex-fill wc-calendar-container gap-3'
+            class: 'd-flex flex-fill wc-calendar-container gap-3',
+            'data-bs-calendar-main-container': true
         }).appendTo(innerWrapper);
 
         appendSidebarContent(container, true, 'd-none d-lg-block');
@@ -4819,7 +4905,8 @@
         // add the viewer
         // FIX: Wir erstellen einen "Design-Wrapper", der das Padding und den Hintergrund hält.
         const viewWrapper = $('<div>', {
-            class: `w-100 bg-body-tertiary rounded-2 shadow-sm p-3 p-lg-4 flex-fill d-flex flex-column overflow-hidden`
+            class: 'w-100 bg-body-tertiary rounded-2 shadow-sm p-3 p-lg-4 flex-fill d-flex flex-column overflow-hidden',
+            'data-bs-calendar-view-frame': true
         }).appendTo(container);
 
         // Der eigentliche View-Container (den JS resized) kommt da rein.
@@ -4830,6 +4917,44 @@
             class: `wc-calendar-view-container w-100 flex-fill d-flex flex-column align-items-stretch`,
         }).appendTo(viewWrapper);
         // done
+    }
+
+    function updateCalendarViewLayout($wrapper) {
+        const data = getBsCalendarData($wrapper);
+        if (!data) {
+            return;
+        }
+
+        const isCompactMonth = !data.searchMode && data.view === 'monthCompact';
+        const hidden = isCompactMonth;
+
+        const $navigation = $wrapper.find('[data-bs-calendar-mobile-topnav], [data-bs-calendar-mobile-offcanvas], [data-bs-calendar-topbar-addons]')
+            .add($wrapper.find('#' + data.elements.wrapperTopNavId + ', #' + data.elements.wrapperSearchNavId + ', #' + data.elements.wrapperSideNavId));
+        $navigation.each(function () {
+            if (hidden) {
+                this.setAttribute('hidden', 'hidden');
+                this.style.setProperty('display', 'none', 'important');
+            } else {
+                this.removeAttribute('hidden');
+                this.style.removeProperty('display');
+            }
+        });
+
+        const $innerWrapper = $wrapper.find('[data-bs-calendar-inner-wrapper]');
+        $innerWrapper.toggleClass('gap-3', !isCompactMonth).toggleClass('gap-0', isCompactMonth);
+        $innerWrapper.toggleClass('pb-3', !isCompactMonth).toggleClass('pb-0', isCompactMonth);
+
+        const $viewFrame = $wrapper.find('[data-bs-calendar-view-frame]');
+        $viewFrame.toggleClass('bg-body-tertiary', true)
+            .toggleClass('bg-body', false)
+            .toggleClass('rounded-2', true)
+            .toggleClass('rounded-0', false)
+            .toggleClass('shadow-sm', true)
+            .toggleClass('shadow-none', false)
+            .toggleClass('p-3', true)
+            .toggleClass('p-lg-4', true)
+            .toggleClass('p-0', false);
+        $wrapper.find('#' + data.elements.wrapperViewContainerId).toggleClass('overflow-auto', isCompactMonth);
     }
 
     /**
@@ -4954,6 +5079,7 @@
                 break;
             }
             case 'month':
+            case 'monthCompact':
                 el.text(monthName + ' ' + yearName);
                 el.removeAttr('data-iso-week');
                 el.attr('title', '');
@@ -4986,13 +5112,12 @@
         switch (view) {
             case 'agenda':
             case 'month':
-                newDate.setMonth(newDate.getMonth() - 1); // Subtract a month
-
-                // check whether the day in the new month exists
-                if (newDate.getDate() !== date.getDate()) {
-                    // If not, set on the first day of the new month
-                    newDate.setDate(1);
-                }
+            case 'monthCompact':
+                newDate.setDate(1);
+                newDate.setMonth(date.getMonth() - 1);
+                newDate.setDate(date.getDate() <= new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0).getDate()
+                    ? date.getDate()
+                    : 1);
                 break;
             case 'year':
                 newDate.setFullYear(newDate.getFullYear() - 1);
@@ -5031,13 +5156,12 @@
         switch (view) {
             case 'agenda':
             case 'month':
-                newDate.setMonth(newDate.getMonth() + 1); // add a month
-
-                // check whether the day in the new month exists
-                if (newDate.getDate() !== date.getDate()) {
-                    // If not, set on the first day of the new month
-                    newDate.setDate(1);
-                }
+            case 'monthCompact':
+                newDate.setDate(1);
+                newDate.setMonth(date.getMonth() + 1);
+                newDate.setDate(date.getDate() <= new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0).getDate()
+                    ? date.getDate()
+                    : 1);
                 break;
             case 'year':
                 newDate.setFullYear(newDate.getFullYear() + 1);
@@ -7400,6 +7524,37 @@
                     buildByView($wrapper, viewBefore !== 'week');
                 }
             })
+            .off('click' + namespace, '[data-month-compact-date]')
+            .on('click' + namespace, '[data-month-compact-date]', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const data = getBsCalendarData($wrapper);
+                if (!data || data.view !== 'monthCompact') {
+                    return;
+                }
+
+                const date = $.bsCalendar.utils.parseDateInput($(e.currentTarget).attr('data-month-compact-date'));
+                if (!date || isNaN(date.getTime())) {
+                    return;
+                }
+
+                const oldDate = new Date(data.date);
+                const monthChanged = oldDate.getFullYear() !== date.getFullYear() || oldDate.getMonth() !== date.getMonth();
+                if (oldDate.toDateString() === date.toDateString()) {
+                    return;
+                }
+
+                setDate($wrapper, date);
+                updateAboutDebugInfo($wrapper);
+                if (monthChanged) {
+                    buildByView($wrapper, false);
+                    return;
+                }
+
+                updateMonthCompactSelection($wrapper);
+                renderMonthCompactAgenda($wrapper, data.appointments);
+            })
             .off('click' + namespace, '[data-date]')
             .on('click' + namespace, '[data-date]', function (e) {
                 e.preventDefault();
@@ -7867,7 +8022,7 @@
      *
      * @param {string} view
      * The requested view name. Supported values are `day`, `timeline`, `4day`, `week`,
-     * `month`, `year` and `search`.
+     * `month`, `monthCompact`, `year` and `search`.
      *
      * @returns {void}
      * This function updates the calendar state and local storage as side effects.
@@ -7897,7 +8052,7 @@
          * Invalid view names fall back to "month" so the calendar always remains
          * in a known and renderable state.
          */
-        if (view !== 'search' && !['agenda', 'day', 'timeline', '4day', 'week', 'month', 'year'].includes(view)) {
+        if (view !== 'search' && !['agenda', 'day', 'timeline', '4day', 'week', 'month', 'monthCompact', 'year'].includes(view)) {
             if (settings.debug) {
                 console.error(
                     'Invalid view type provided. Defaulting to month view.',
@@ -8080,6 +8235,8 @@
          */
         destroyCalendarTooltips($wrapper);
 
+        updateCalendarViewLayout($wrapper);
+
         /**
          * Optional debug output for tracing view rebuilds.
          */
@@ -8147,7 +8304,7 @@
             const needsRebuild = renderState.view !== view ||
                 renderState.start !== period.start ||
                 renderState.end !== period.end ||
-                (view === 'year' && renderState.selectedDate !== currentSelectedDate) ||
+                ((view === 'year' || view === 'monthCompact') && renderState.selectedDate !== currentSelectedDate) ||
                 (view === 'day' && renderState.dayViewMode !== data.dayViewMode) ||
                 (
                     (view === 'day' || view === 'timeline' || view === 'week' || view === '4day') &&
@@ -8165,6 +8322,10 @@
 
                     case 'month':
                         buildMonthView($wrapper);
+                        break;
+
+                    case 'monthCompact':
+                        buildMonthCompactView($wrapper);
                         break;
 
                     case '4day':
@@ -8483,6 +8644,7 @@
              * Load appointments for the currently visible view range.
              */
             const view = bsCalendarData.view;
+            const requestView = view === 'monthCompact' ? 'month' : view;
             const period = getStartAndEndDateByView($wrapper);
 
             if (view === 'year') {
@@ -8491,7 +8653,7 @@
                  */
                 requestData = {
                     year: $.bsCalendar.utils.parseDateInput(period.date).getFullYear(),
-                    view: view,
+                    view: requestView,
                     showTasks: bsCalendarData.showTasks
                 };
             } else {
@@ -8501,7 +8663,7 @@
                 requestData = {
                     fromDate: period.start,
                     toDate: period.end,
-                    view: view,
+                    view: requestView,
                     showTasks: bsCalendarData.showTasks,
                 };
             }
@@ -8527,25 +8689,23 @@
         }
 
         /**
-         * Inject active calendar IDs into every request.
-         *
-         * This ensures that the backend or function-based data source always knows
-         * which calendars are currently enabled, independent of the current mode.
+         * Inject calendar IDs into every request. Normal views follow the calendar
+         * filters; compact month has no calendar filter, so it requests every
+         * configured calendar regardless of its active state.
          */
-        let activeCalendarIds = [];
-
-        if (settings.calendars && Array.isArray(settings.calendars)) {
-            activeCalendarIds = settings.calendars
-                .filter(c => c.active === true)
-                .map(c => c.id);
-        }
+        const configuredCalendars = Array.isArray(settings.calendars) ? settings.calendars : [];
+        const calendarIds = bsCalendarData.view === 'monthCompact'
+            ? configuredCalendars.map(calendar => calendar.id)
+            : configuredCalendars
+                .filter(calendar => calendar.active === true)
+                .map(calendar => calendar.id);
 
         /**
          * Always attach calendarIds, even if the array is empty.
          *
          * This keeps the request shape stable for all transport types.
          */
-        requestData.calendarIds = activeCalendarIds;
+        requestData.calendarIds = calendarIds;
 
         /**
          * Allow custom query parameters to enrich the request payload.
@@ -11507,6 +11667,9 @@
             case 'month':
                 drawAppointmentsForMonth($wrapper, appointments);
                 break;
+            case 'monthCompact':
+                drawAppointmentsForMonthCompact($wrapper, appointments);
+                break;
             case 'year':
                 drawAppointmentsForYear($wrapper, appointments);
                 break;
@@ -11536,11 +11699,11 @@
         const settings = data.settings;
         const period = getStartAndEndDateByView($wrapper);
         const locale = $.bsCalendar.utils.getLanguageAndCountry(settings.locale);
+        let federalState = null;
 
         if (typeof settings.holidays === 'object' && !$.bsCalendar.utils.isValueEmpty(settings.holidays)) {
             let countryIsoCode;
             let languageIsoCode;
-            let federalState = null;
 
             if (settings.holidays.hasOwnProperty('country') && !$.bsCalendar.utils.isValueEmpty(settings.holidays.country)) {
                 countryIsoCode = settings.holidays.country.toUpperCase();
@@ -11661,8 +11824,12 @@
                 });
         } else {
             // nothing to load → clean up flag
+            data.holidays = [];
             data.loadingHolidays = false;
             setBsCalendarData($wrapper, data);
+            if (getView($wrapper) === 'monthCompact') {
+                renderMonthCompactAgenda($wrapper, data.appointments);
+            }
         }
     }
 
@@ -11681,11 +11848,16 @@
      */
     function drawHolidays($wrapper, holidays) {
         // Get the current view of the calendar (e.g. "day", "week", "month")
+        const data = getBsCalendarData($wrapper);
         const settings = getSettings($wrapper);
         const view = getView($wrapper);
         const isDayOrWeek = view === 'day' || view === 'week' || view === '4day';
         const isMonth = view === 'month';
+        const isMonthCompact = view === 'monthCompact';
         const isYear = view === 'year';
+        holidays = Array.isArray(holidays) ? holidays : [];
+        data.holidays = holidays;
+        setBsCalendarData($wrapper, data);
         // Get the container element for the current calendar view
         const $viewContainer = getViewContainer($wrapper);
         // Iterate through each holiday object
@@ -11715,13 +11887,15 @@
                     container = $viewContainer.find(
                         `[data-month-date="${formattedDate}"] [data-role="day-wrapper"]`
                     );
+                } else if (isMonthCompact) {
+                    container = $viewContainer.find(`[data-month-compact-date="${formattedDate}"]`);
                 } else if (isYear) {
                     container = $viewContainer.find(`[data-date="${formattedDate}"]`);
                 }
 
                 // Add the holiday element to the container if it exists
                 if (container?.length) {
-                    if (!isYear) {
+                    if (!isYear && !isMonthCompact) {
                         // build a wrapper for a holiday element
                         if (container.is(':empty') && (view === 'day' || view === 'week' || view === '4day')) {
                             container.addClass('pb-3');
@@ -11732,10 +11906,14 @@
                         }).prependTo(container);
                         $(settings.formatter.holiday(holiday, view)).appendTo($holidayWrapper);
                     } else {
-                        // Year view: Mark the existing day container instead of adding a removable element
-                        container.addClass('text-secondary wc-holiday-marked');
-                        container.attr('data-bs-calendar-tooltip', '1');
-                        initBootstrapTooltip(container, {
+                        // Year and compact month views: mark the existing day instead of adding a separate marker
+                        const holidayDay = isMonthCompact
+                            ? container.find('[data-month-compact-day-number]').parent()
+                            : container;
+                        holidayDay.addClass('text-secondary wc-holiday-marked');
+                        const tooltipTarget = isMonthCompact ? container : holidayDay;
+                        tooltipTarget.attr('data-bs-calendar-tooltip', '1');
+                        initBootstrapTooltip(tooltipTarget, {
                             title: holiday.title,
                             container: $wrapper,
                             customClass: 'wc-calendar-tooltip'
@@ -11744,6 +11922,10 @@
                 }
             }
         });
+
+        if (isMonthCompact) {
+            renderMonthCompactAgenda($wrapper, data.appointments);
+        }
     }
 
     /**
@@ -11908,7 +12090,8 @@
                 break;
             }
             case "agenda":
-            case "month": {
+            case "month":
+            case "monthCompact": {
                 startDate.setDate(1);
                 const startDayOfWeek = startDate.getDay();
                 if (settings.startWeekOnSunday) {
@@ -12198,6 +12381,291 @@
         }
     }
 
+    function buildMonthCompactView($wrapper) {
+        const data = getBsCalendarData($wrapper);
+        const settings = data.settings;
+        const selectedDate = new Date(data.date);
+        const container = getViewContainer($wrapper).empty();
+        const roundedClass = `rounded-${settings.rounded}`;
+        const calendarCard = $('<div>', {
+            class: `d-flex flex-column align-items-center wc-year-month-container bs-calendar-border-style bg-body shadow-sm p-3 ${roundedClass} w-100 mx-auto`,
+            css: {maxWidth: '340px'}
+        }).appendTo(container);
+
+        const header = $('<div>', {
+            class: 'd-flex align-items-center w-100 gap-2 mb-2'
+        }).appendTo(calendarCard);
+        const viewControls = $('<div>', {
+            class: 'd-flex align-items-center justify-content-start gap-1 flex-fill'
+        }).appendTo(header);
+        if (settings.views.length > 1) {
+            const viewDropdown = $('<div>', {
+                class: 'dropdown dropdown-center wc-select-calendar-view'
+            }).appendTo(viewControls);
+            const viewToggle = $('<button>', {
+                type: 'button',
+                class: 'btn btn-sm btn-link text-body-secondary p-1 dropdown-toggle',
+                'data-dropdown-text': true,
+                'data-dropdown-icon-only': 'true',
+                'data-bs-toggle': 'dropdown',
+                'aria-expanded': 'false'
+            }).appendTo(viewDropdown);
+            const menu = $('<ul>', {
+                class: 'dropdown-menu dropdown-menu-end shadow border-0 mt-1'
+            }).appendTo(viewDropdown);
+
+            settings.views.forEach(view => {
+                const item = $('<a>', {
+                    class: 'dropdown-item',
+                    'data-view': view,
+                    href: '#'
+                });
+                if (settings.icons[view]) {
+                    $('<i>', {class: settings.icons[view] + ' me-2'}).appendTo(item);
+                }
+                item.append(document.createTextNode(settings.translations[view] || $.bsCalendar.getTranslation(settings.locale, view)));
+                $('<li>').append(item).appendTo(menu);
+            });
+
+            const viewLabel = settings.translations.monthCompact || $.bsCalendar.getTranslation(settings.locale, 'monthCompact');
+            viewToggle.attr({'aria-label': viewLabel, title: viewLabel});
+        }
+
+        const todayLabel = settings.translations.today || $.bsCalendar.getTranslation(settings.locale, 'today') || 'Today';
+        $('<button>', {
+            type: 'button',
+            class: 'btn btn-sm btn-link text-body-secondary px-1',
+            'data-today': true,
+            'aria-label': todayLabel,
+            title: todayLabel,
+            html: `<i class="${settings.icons.today || 'bi bi-calendar-check'}" aria-hidden="true"></i>`
+        }).appendTo(viewControls);
+        const spinnerSlot = $('<span>', {
+            class: 'position-relative d-inline-flex flex-shrink-0 ms-1',
+            css: {width: '1rem', height: '1rem'}
+        }).appendTo(viewControls);
+        $('<span>', {
+            class: 'spinner-border spinner-border-sm text-secondary wc-calendar-spinner position-absolute top-0 start-0',
+            css: {display: 'none', width: '1rem', height: '1rem'},
+            role: 'status',
+            html: '<span class="visually-hidden">Loading...</span>'
+        }).appendTo(spinnerSlot);
+
+        $('<strong>', {
+            class: 'fw-bold text-uppercase text-body-secondary text-center flex-fill text-nowrap',
+            text: selectedDate.toLocaleDateString(settings.locale, {month: 'long', year: 'numeric'}),
+            'data-calendar-view-title': true,
+            css: {letterSpacing: '1px', fontSize: '0.75rem'}
+        }).appendTo(header);
+
+        const navigation = $('<div>', {
+            class: 'd-flex align-items-center justify-content-end gap-1 flex-fill'
+        }).appendTo(header);
+
+        $('<a>', {
+            href: '#',
+            class: 'btn btn-sm btn-link text-body-secondary p-1 d-flex align-items-center justify-content-center',
+            'data-prev': true,
+            'aria-label': settings.translations.previous || 'Previous'
+        }).html(`<i class="${settings.icons.prev}"></i>`).appendTo(navigation);
+        $('<a>', {
+            href: '#',
+            class: 'btn btn-sm btn-link text-body-secondary p-1 d-flex align-items-center justify-content-center',
+            'data-next': true,
+            'aria-label': settings.translations.next || 'Next'
+        }).html(`<i class="${settings.icons.next}"></i>`).appendTo(navigation);
+
+        const monthGrid = $('<div>').appendTo(calendarCard);
+        buildMonthSmallView($wrapper, selectedDate, monthGrid, false, true);
+
+        const agenda = $('<section>', {
+            class: `d-flex flex-column w-100 mx-auto mt-4 bg-body shadow-sm p-3 bs-calendar-border-style ${roundedClass}`,
+            css: {maxWidth: '760px'},
+            'data-month-compact-agenda': true
+        }).appendTo(container);
+        $('<h2>', {
+            class: 'h5 fw-semibold mb-3 pb-2 border-bottom text-capitalize',
+            'data-month-compact-date-title': true
+        }).appendTo(agenda);
+        $('<div>', {
+            class: 'list-group list-group-flush mb-2',
+            'data-month-compact-holiday-list': true
+        }).appendTo(agenda);
+        $('<div>', {
+            class: 'list-group list-group-flush',
+            'data-month-compact-appointment-list': true
+        }).appendTo(agenda);
+    }
+
+    function getMonthCompactItems(appointments, dateString) {
+        const items = [];
+        (appointments || []).forEach(appointment => {
+            const displayDate = appointment.extras?.displayDates?.find(item => item.date === dateString);
+            if (displayDate) {
+                items.push({appointment, displayDate});
+            }
+        });
+
+        return items.sort((a, b) => {
+            if (!!a.appointment.allDay !== !!b.appointment.allDay) {
+                return a.appointment.allDay ? -1 : 1;
+            }
+            const startA = String(a.displayDate.times?.start || '00:00');
+            const startB = String(b.displayDate.times?.start || '00:00');
+            return startA.localeCompare(startB) || String(a.appointment.title || '').localeCompare(String(b.appointment.title || ''));
+        });
+    }
+
+    function getMonthCompactHolidays(holidays, dateString) {
+        return (holidays || []).filter(holiday => {
+            const startDate = $.bsCalendar.utils.parseDateInput(holiday.startDate);
+            const endDate = $.bsCalendar.utils.parseDateInput(holiday.endDate || holiday.startDate);
+            if (!startDate || !endDate || isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+                return false;
+            }
+            const start = $.bsCalendar.utils.formatDateToDateString(startDate);
+            const end = $.bsCalendar.utils.formatDateToDateString(endDate);
+            return dateString >= start && dateString <= end;
+        });
+    }
+
+    function updateMonthCompactSelection($wrapper) {
+        const data = getBsCalendarData($wrapper);
+        const settings = data.settings;
+        const selectedDate = new Date(data.date);
+        const selectedDateString = $.bsCalendar.utils.formatDateToDateString(selectedDate);
+
+        $wrapper.find('[data-month-compact-date]').each(function () {
+            const button = $(this);
+            const dayCircle = button.find('[data-month-compact-day-number]').parent();
+            const dateString = String(button.attr('data-month-compact-date'));
+            const cellDate = $.bsCalendar.utils.parseDateInput(dateString);
+            const isSelected = dateString === selectedDateString;
+            const isToday = cellDate && cellDate.toDateString() === new Date().toDateString();
+            const isOtherMonth = cellDate && cellDate.getMonth() !== selectedDate.getMonth();
+
+            button.attr('aria-pressed', isSelected ? 'true' : 'false');
+            dayCircle.removeClass('text-body-tertiary shadow-sm hover-bg-body-secondary').css({
+                backgroundColor: '',
+                backgroundImage: '',
+                color: '',
+                boxShadow: '',
+                fontWeight: isToday || isSelected ? '600' : '400'
+            });
+
+            if (isToday) {
+                dayCircle.css({
+                    backgroundColor: data.mainColor.backgroundColor,
+                    backgroundImage: data.mainColor.backgroundImage,
+                    color: data.mainColor.color
+                }).addClass('shadow-sm');
+            } else if (isSelected) {
+                dayCircle.css({
+                    boxShadow: `inset 0 0 0 2px ${data.mainColor.backgroundColor}`,
+                    color: 'var(--bs-body-color)'
+                });
+            } else if (isOtherMonth) {
+                dayCircle.addClass('text-body-tertiary');
+            } else {
+                dayCircle.addClass('hover-bg-body-secondary');
+            }
+        });
+
+        $wrapper.find('[data-month-compact-date-title]').text(selectedDate.toLocaleDateString(settings.locale, {
+            weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+        }));
+    }
+
+    function renderMonthCompactAgenda($wrapper, appointments) {
+        const data = getBsCalendarData($wrapper);
+        const settings = data.settings;
+        const selectedDateString = $.bsCalendar.utils.formatDateToDateString(data.date);
+        const $holidayList = getViewContainer($wrapper).find('[data-month-compact-holiday-list]').empty();
+        const $appointmentList = getViewContainer($wrapper).find('[data-month-compact-appointment-list]').empty();
+        const holidays = getMonthCompactHolidays(data.holidays, selectedDateString);
+        const items = getMonthCompactItems(appointments || data.appointments, selectedDateString);
+
+        holidays.forEach(holiday => {
+            const holidayRow = $('<div>', {
+                class: 'list-group-item list-group-item-warning d-flex align-items-center gap-2 px-2 py-2',
+                'data-role': 'holiday'
+            }).appendTo($holidayList);
+            $(settings.formatter.holiday(holiday, 'monthCompact')).appendTo(holidayRow);
+        });
+
+        items.forEach(item => {
+            const returnData = getAppointmentForReturn(item.appointment);
+            const colors = returnData.extras.colors || $.bsCalendar.utils.getColors(item.appointment.color, settings.mainColor);
+            const compactExtras = $.extend(true, {}, returnData.extras, {
+                monthCompact: {
+                    date: selectedDateString,
+                    displayDate: item.displayDate
+                }
+            });
+            const appointmentRow = $('<div>', {
+                'data-appointment': true,
+                class: 'list-group-item list-group-item-action d-flex align-items-start px-2 py-2',
+                css: {
+                    borderLeft: `4px solid ${colors.backgroundColor}`,
+                    cursor: 'pointer'
+                },
+                html: settings.formatter.monthCompact(returnData.appointment, compactExtras)
+            }).appendTo($appointmentList);
+            appointmentRow.data('appointment', item.appointment);
+        });
+
+        if (!items.length && !holidays.length) {
+            const emptyState = $('<div>', {
+                class: 'd-flex flex-column align-items-center text-body-secondary text-center py-4'
+            }).appendTo($appointmentList);
+            $('<i>', {
+                class: 'bi bi-calendar2-x fs-4 mb-2',
+                'aria-hidden': 'true'
+            }).appendTo(emptyState);
+            $('<span>', {
+                class: 'small',
+                text: settings.translations.searchNoResult || $.bsCalendar.getTranslation(settings.locale, 'searchNoResult')
+            }).appendTo(emptyState);
+        }
+    }
+
+    function drawAppointmentsForMonthCompact($wrapper, appointments) {
+        const data = getBsCalendarData($wrapper);
+        const $viewContainer = getViewContainer($wrapper);
+        const counts = new Map();
+
+        (appointments || []).forEach(appointment => {
+            (appointment.extras?.displayDates || []).forEach(displayDate => {
+                counts.set(displayDate.date, (counts.get(displayDate.date) || 0) + 1);
+            });
+        });
+
+        $viewContainer.find('[data-month-compact-count]').each(function () {
+            const countElement = $(this);
+            const dateString = String(countElement.closest('[data-month-compact-date]').attr('data-month-compact-date'));
+            const count = counts.get(dateString) || 0;
+            countElement.text(count > 0 ? String(count) : '');
+            countElement.attr('aria-label', count > 0 ? String(count) : '').css({
+                backgroundColor: data.mainColor.backgroundColor,
+                color: '#ffffff',
+                width: '14px',
+                height: '14px',
+                fontSize: '9px',
+                display: count > 0 ? 'flex' : 'none',
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderRadius: '50%',
+                border: '0',
+                boxSizing: 'border-box',
+                overflow: 'hidden',
+                lineHeight: '1'
+            });
+        });
+
+        updateMonthCompactSelection($wrapper);
+        renderMonthCompactAgenda($wrapper, appointments);
+    }
+
     /**
      * Handles the resizing logic for a calendar or UI container, adjusting element heights and visibility as needed.
      *
@@ -12253,7 +12721,7 @@
      * @param {boolean} [forYearView=false] Indicates if the calendar is being built as part of a year view, which adjusts styles accordingly.
      * @return {void} Does not return a value; renders the small view calendar into the specified container.
      */
-    function buildMonthSmallView($wrapper, forDate, $container, forYearView = false) {
+    function buildMonthSmallView($wrapper, forDate, $container, forYearView = false, forMonthCompactView = false) {
         const data = getBsCalendarData($wrapper);
         const mainColor = data.mainColor;
         const settings = data.settings;
@@ -12261,8 +12729,8 @@
         const activeDate = data.date;
         const {startWeekOnSunday} = settings;
 
-        const cellSize = forYearView ? 36 : 28;
-        const fontSize = forYearView ? 13 : 11;
+        const cellSize = forYearView || forMonthCompactView ? 36 : 28;
+        const fontSize = forYearView || forMonthCompactView ? 13 : 11;
         const weekRowWidth = 24;
 
         const year = date.getFullYear();
@@ -12361,26 +12829,46 @@
                     dayClass += ' hover-bg-body-secondary';
                 }
 
+                const $dayNumber = $('<span>', {text: currentDate.getDate()});
+                if (forMonthCompactView) {
+                    $dayNumber.attr('data-month-compact-day-number', true);
+                }
+
                 const $cellContent = $('<div>', {
                     class: dayClass,
-                    css: dayStyles,
-                    html: `<span>${currentDate.getDate()}</span>`
-                });
-                if (forYearView) {
-                    $('<span>', {
-                        // Nur Positionierung, KEINE Border, KEINE Badge-Klasse hier!
+                    css: dayStyles
+                }).append($dayNumber);
+                if (forYearView || forMonthCompactView) {
+                    const $countBadge = $('<span>', {
                         class: 'js-badge position-absolute top-100 start-50 translate-middle z-1',
                         css: {
                             display: 'none' // Garantiert unsichtbar
                         }
                     }).appendTo($cellContent);
+                    if (forMonthCompactView) {
+                        $countBadge.attr('data-month-compact-count', true);
+                    }
                 }
 
-                $('<td>', {
-                    'data-date': $.bsCalendar.utils.formatDateToDateString(currentDate),
+                const dateString = $.bsCalendar.utils.formatDateToDateString(currentDate);
+                const $dayCell = $('<td>', {
                     class: 'p-0 align-middle position-relative',
                     css: {cursor: 'pointer'}
-                }).append($cellContent).appendTo(weekRow);
+                }).appendTo(weekRow);
+
+                if (forMonthCompactView) {
+                    $('<button>', {
+                        type: 'button',
+                        class: 'btn d-flex align-items-center justify-content-center w-100 h-100 border-0 bg-transparent p-0 rounded-circle',
+                        'data-month-compact-date': dateString,
+                        'aria-label': currentDate.toLocaleDateString(settings.locale, {
+                            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+                        }),
+                        'aria-pressed': isSelected ? 'true' : 'false'
+                    }).append($cellContent).appendTo($dayCell);
+                } else {
+                    $dayCell.attr('data-date', dateString).append($cellContent);
+                }
 
                 currentDate.setDate(currentDate.getDate() + 1);
             }

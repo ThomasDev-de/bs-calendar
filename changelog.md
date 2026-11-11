@@ -2,6 +2,7 @@
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
     * [**dev-main**](#dev-main)
+    * [**Version 2.5.0**](#version-250)
     * [**Version 2.4.0**](#version-240)
     * [**Version 2.3.9**](#version-239)
     * [**Version 2.3.8**](#version-238)
@@ -64,10 +65,24 @@
 
 ### dev-main
 
+_No unreleased changes._
+
+### Version 2.5.0
+
+2026-11-11
+
+#### Features
+
+- Added the opt-in `monthCompact` view with a compact month grid, per-day appointment counts, a selected-day appointment list, and holiday styling consistent with the year view.
+- Added `formatter.monthCompact` for customizing appointment rows in the compact month view.
+- Added a configurable Today icon, shown alongside the label in the standard toolbar and by itself in `monthCompact`.
+
 #### Bugfixes
 
 - Fixed static calendar titles displaying raw HTML tags after calling `updateOptions` (e.g. when toggling settings like `draggable`).
 - Prevented timeline appointment moves from triggering an additional `add` event when the pointer is released over an empty track.
+- Fixed the region argument for custom holiday loader functions.
+- Made `monthCompact` request appointments from all configured calendars, regardless of the normal view's calendar filters.
 
 ### Version 2.4.0
 
