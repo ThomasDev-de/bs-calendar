@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.5.2
+ * @version 2.5.3
  * @date 2026-11-11
  * @license MIT
  * @requires "jQuery" ^3
@@ -684,9 +684,9 @@
     };
 
     $.bsCalendar = {
-        version: '2.5.2',
+        version: '2.5.3',
         about: {
-            version: '2.5.2',
+            version: '2.5.3',
             releaseDate: '2026-11-11',
             project: 'https://github.com/ThomasDev-de/bs-calendar/',
             issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
@@ -7468,7 +7468,11 @@
                     return; // If in search mode, cancel directly
                 }
 
-                const period = getStartAndEndDateByView($eventWrapper);
+                const isCompactMonthAdd = $(e.currentTarget).is('[data-month-compact-add]');
+                const selectedDate = getDate($eventWrapper);
+                const period = isCompactMonthAdd
+                    ? {start: selectedDate, end: selectedDate}
+                    : getStartAndEndDateByView($eventWrapper);
 
                 const data = {
                     start: {
@@ -12554,10 +12558,23 @@
             css: {maxWidth: '760px'},
             'data-month-compact-agenda': true
         }).appendTo(container);
-        $('<h2>', {
-            class: 'h5 fw-semibold mb-3 pb-2 border-bottom text-capitalize',
-            'data-month-compact-date-title': true
+        const $agendaHeader = $('<div>', {
+            class: 'd-flex align-items-center justify-content-between gap-2 mb-3 pb-2 border-bottom'
         }).appendTo(agenda);
+        $('<h2>', {
+            class: 'h5 fw-semibold mb-0 text-capitalize flex-fill',
+            'data-month-compact-date-title': true
+        }).appendTo($agendaHeader);
+        if (settings.showAddButton) {
+            $('<button>', {
+                type: 'button',
+                class: `btn border-0 text-body shadow-none flex-shrink-0 ${roundedClass} bs-calendar-border-style`,
+                html: `<i class="${settings.icons.add}"></i>`,
+                'data-add-appointment': true,
+                'data-month-compact-add': true,
+                'aria-label': 'Add'
+            }).appendTo($agendaHeader);
+        }
         $('<div>', {
             class: 'list-group list-group-flush mb-2',
             'data-month-compact-holiday-list': true

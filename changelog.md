@@ -2,6 +2,7 @@
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
     * [**dev-main**](#dev-main)
+    * [**Version 2.5.3**](#version-253)
     * [**Version 2.5.2**](#version-252)
     * [**Version 2.4.0**](#version-240)
     * [**Version 2.3.9**](#version-239)
@@ -66,6 +67,14 @@
 ### dev-main
 
 _No unreleased changes._
+
+### Version 2.5.3
+
+2026-11-11
+
+#### Features
+
+- Added an icon-only add button to the selected-day agenda header in `monthCompact` when `showAddButton` is enabled. It opens the add flow for the selected date.
 
 ### Version 2.5.2
 

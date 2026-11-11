@@ -1,6 +1,6 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.5.2-blue)
+![Version](https://img.shields.io/badge/version-2.5.3-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -71,7 +71,7 @@ Use CDN/script tags:
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.5.2/dist/bs-calendar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.5.3/dist/bs-calendar.min.js"></script>
 ```
 
 Or install via Composer:
@@ -173,7 +173,8 @@ to show all seven days, while `4day` continues to show four consecutive days.
 
 Enable `monthCompact` in `views` to offer a compact month grid with a selected-day agenda. It has its own month navigation and omits the
 standard toolbar and sidebar. When multiple views are enabled, its compact header includes a view selector so users can switch back to
-the regular calendar views, plus an icon-only Today button. `monthCompact` is opt-in and is not added to the default `views` list.
+the regular calendar views, plus an icon-only Today button. When `showAddButton` is enabled, the selected-day agenda header also has an
+add button that starts an appointment on that date. `monthCompact` is opt-in and is not added to the default `views` list.
 
 ```javascript
 $('#calendar').bsCalendar({
@@ -672,7 +673,7 @@ later with `updateOptions`.
 | `mainColor`                   | `string`                                      | `"primary"`                                                | Default color used by highlights, controls, and appointments.                                                      |
 | `views`                       | `array` or comma-separated `string`           | `["year", "month", "agenda", "week", "workweek", "4day", "day", "timeline"]` | Enabled views. Invalid entries are removed; duplicates are removed; empty result falls back to all possible views. |
 | `holidays`                    | `object` or `null`                            | `null`                                                     | OpenHolidays configuration. See [Holidays](#holidays).                                                             |
-| `showAddButton`               | `boolean`                                     | `true`                                                     | Shows the toolbar add button.                                                                                      |
+| `showAddButton`               | `boolean`                                     | `true`                                                     | Shows the toolbar add button and the selected-day add button in `monthCompact`.                                    |
 | `draggable`                   | `boolean`                                     | `false`                                                    | Enables drag-create in day/timeline/week/workweek/4day view, drag-move in day/timeline/week/workweek/4day/month view, and drag-resize from timed appointment edges in day/timeline/week/workweek/4day view. Touch locks native scrolling while a drag gesture is pending or active. |
 | `draggableSnapMinutes`        | `number`                                      | `5`                                                        | Snap interval in minutes for drag-create/move/resize in day/timeline/week/workweek/4day view. Minimum is `1`.                        |
 | `timelineGroupBy`             | `string` or `null`                            | `null`                                                     | Appointment attribute used to split the day timeline into rows. `null` keeps one shared track; missing values use the localized unassigned row. Use `'calendarId'` or the `'calendars'` alias to group by configured calendar titles. |
@@ -1418,7 +1419,7 @@ Changelog and support:
 
 ## Completeness Check
 
-This README is intended to cover the public surface of version `2.5.2`:
+This README is intended to cover the public surface of version `2.5.3`:
 
 - All `DEFAULTS` options from `dist/bs-calendar.js`
 - All public plugin methods in the method switch
