@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.5.0
+ * @version 2.5.2
  * @date 2026-11-11
  * @license MIT
  * @requires "jQuery" ^3
@@ -684,9 +684,9 @@
     };
 
     $.bsCalendar = {
-        version: '2.5.0',
+        version: '2.5.2',
         about: {
-            version: '2.5.0',
+            version: '2.5.2',
             releaseDate: '2026-11-11',
             project: 'https://github.com/ThomasDev-de/bs-calendar/',
             issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',

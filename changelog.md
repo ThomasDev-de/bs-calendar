@@ -2,7 +2,7 @@
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
     * [**dev-main**](#dev-main)
-    * [**Version 2.5.0**](#version-250)
+    * [**Version 2.5.2**](#version-252)
     * [**Version 2.4.0**](#version-240)
     * [**Version 2.3.9**](#version-239)
     * [**Version 2.3.8**](#version-238)
@@ -67,7 +67,7 @@
 
 _No unreleased changes._
 
-### Version 2.5.0
+### Version 2.5.2
 
 2026-11-11
 
