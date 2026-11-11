@@ -76,6 +76,9 @@ _No unreleased changes._
 - Added the opt-in `monthCompact` view with a compact month grid, per-day appointment counts, a selected-day appointment list, and holiday styling consistent with the year view.
 - Added `formatter.monthCompact` for customizing appointment rows in the compact month view.
 - Added a configurable Today icon, shown alongside the label in the standard toolbar and by itself in `monthCompact`.
+- Added the `workweek` view to the default view list for Monday-to-Friday scheduling, with Monday-based navigation and date-range requests.
+- Enabled appointments, holidays, drag interactions, and month-week navigation in the `workweek` view.
+- Added localized `workweek` labels for all built-in locales.
 
 #### Bugfixes
 

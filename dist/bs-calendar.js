@@ -74,6 +74,7 @@
             today: 'اليوم',
             day: 'يوم',
             '4day': '٤ أيام',
+            workweek: 'أسبوع العمل',
             week: 'أسبوع',
             month: 'شهر',
             monthCompact: 'شهر مصغّر',
@@ -95,6 +96,7 @@
             today: 'היום',
             day: 'יום',
             '4day': '4 ימים',
+            workweek: 'שבוע עבודה',
             week: 'שבוע',
             month: 'חודש',
             monthCompact: 'חודש קומפקטי',
@@ -116,6 +118,7 @@
             today: '今天',
             day: '天',
             '4day': '4天',
+            workweek: '工作周',
             week: '周',
             month: '月',
             monthCompact: '紧凑月视图',
@@ -137,6 +140,7 @@
             today: 'Today',
             day: 'Day',
             '4day': '4 Days',
+            workweek: 'Workweek',
             week: 'Week',
             month: 'Month',
             monthCompact: 'Compact month',
@@ -158,6 +162,7 @@
             today: 'Heute',
             day: 'Tag',
             '4day': '4 Tage',
+            workweek: 'Arbeitswoche',
             week: 'Woche',
             month: 'Monat',
             monthCompact: 'Kompakter Monat',
@@ -179,6 +184,7 @@
             today: 'Hoy',
             day: 'Día',
             '4day': '4 días',
+            workweek: 'Semana laboral',
             week: 'Semana',
             month: 'Mes',
             monthCompact: 'Mes compacto',
@@ -203,6 +209,7 @@
             today: 'Aujourd’hui',
             day: 'Jour',
             '4day': '4 jours',
+            workweek: 'Semaine de travail',
             week: 'Semaine',
             month: 'Mois',
             monthCompact: 'Mois compact',
@@ -227,6 +234,7 @@
             today: 'Oggi',
             day: 'Giorno',
             '4day': '4 giorni',
+            workweek: 'Settimana lavorativa',
             week: 'Settimana',
             month: 'Mese',
             monthCompact: 'Mese compatto',
@@ -251,6 +259,7 @@
             today: 'Hoje',
             day: 'Dia',
             '4day': '4 dias',
+            workweek: 'Semana de trabalho',
             week: 'Semana',
             month: 'Mês',
             monthCompact: 'Mês compacto',
@@ -275,6 +284,7 @@
             today: 'Vandaag',
             day: 'Dag',
             '4day': '4 dagen',
+            workweek: 'Werkweek',
             week: 'Week',
             month: 'Maand',
             monthCompact: 'Compacte maand',
@@ -296,6 +306,7 @@
             today: 'Dzisiaj',
             day: 'Dzień',
             '4day': '4 dni',
+            workweek: 'Tydzień roboczy',
             week: 'Tydzień',
             month: 'Miesiąc',
             monthCompact: 'Kompaktowy miesiąc',
@@ -317,6 +328,7 @@
             today: 'Сегодня',
             day: 'День',
             '4day': '4 дня',
+            workweek: 'Рабочая неделя',
             week: 'Неделя',
             month: 'Месяц',
             monthCompact: 'Компактный месяц',
@@ -341,6 +353,7 @@
             today: 'Сьогодні',
             day: 'День',
             '4day': '4 дні',
+            workweek: 'Робочий тиждень',
             week: 'Тиждень',
             month: 'Місяць',
             monthCompact: 'Компактний місяць',
@@ -362,6 +375,7 @@
             today: 'Bugün',
             day: 'Gün',
             '4day': '4 gün',
+            workweek: 'İş haftası',
             week: 'Hafta',
             month: 'Ay',
             monthCompact: 'Kompakt ay',
@@ -383,6 +397,7 @@
             today: '今日',
             day: '日',
             '4day': '4日間',
+            workweek: '平日',
             week: '週',
             month: '月',
             monthCompact: 'コンパクト月表示',
@@ -404,6 +419,7 @@
             today: '오늘',
             day: '일',
             '4day': '4일',
+            workweek: '근무 주',
             week: '주',
             month: '월',
             monthCompact: '간결한 월 보기',
@@ -425,6 +441,7 @@
             today: 'आज',
             day: 'दिन',
             '4day': '4 दिन',
+            workweek: 'कार्यसप्ताह',
             week: 'सप्ताह',
             month: 'महीना',
             monthCompact: 'संक्षिप्त माह',
@@ -446,6 +463,7 @@
             today: 'Hari ini',
             day: 'Hari',
             '4day': '4 hari',
+            workweek: 'Minggu kerja',
             week: 'Minggu',
             month: 'Bulan',
             monthCompact: 'Bulan ringkas',
@@ -467,6 +485,7 @@
             today: 'Hôm nay',
             day: 'Ngày',
             '4day': '4 ngày',
+            workweek: 'Tuần làm việc',
             week: 'Tuần',
             month: 'Tháng',
             monthCompact: 'Tháng gọn',
@@ -488,6 +507,7 @@
             today: 'วันนี้',
             day: 'วัน',
             '4day': '4 วัน',
+            workweek: 'สัปดาห์ทำงาน',
             week: 'สัปดาห์',
             month: 'เดือน',
             monthCompact: 'เดือนแบบย่อ',
@@ -509,6 +529,7 @@
             today: 'Dnes',
             day: 'Den',
             '4day': '4 dny',
+            workweek: 'Pracovní týden',
             week: 'Týden',
             month: 'Měsíc',
             monthCompact: 'Kompaktní měsíc',
@@ -530,6 +551,7 @@
             today: 'Idag',
             day: 'Dag',
             '4day': '4 dagar',
+            workweek: 'Arbetsvecka',
             week: 'Vecka',
             month: 'Månad',
             monthCompact: 'Kompakt månad',
@@ -551,6 +573,7 @@
             today: 'I dag',
             day: 'Dag',
             '4day': '4 dage',
+            workweek: 'Arbejdsuge',
             week: 'Uge',
             month: 'Måned',
             monthCompact: 'Kompakt måned',
@@ -572,6 +595,7 @@
             today: 'I dag',
             day: 'Dag',
             '4day': '4 dager',
+            workweek: 'Arbeidsuke',
             week: 'Uke',
             month: 'Måned',
             monthCompact: 'Kompakt måned',
@@ -593,6 +617,7 @@
             today: 'Tänään',
             day: 'Päivä',
             '4day': '4 päivää',
+            workweek: 'Työviikko',
             week: 'Viikko',
             month: 'Kuukausi',
             monthCompact: 'Tiivis kuukausi',
@@ -614,6 +639,7 @@
             today: 'Astăzi',
             day: 'Zi',
             '4day': '4 zile',
+            workweek: 'Săptămână de lucru',
             week: 'Săptămână',
             month: 'Lună',
             monthCompact: 'Lună compactă',
@@ -635,6 +661,7 @@
             today: 'Σήμερα',
             day: 'Ημέρα',
             '4day': '4 ημέρες',
+            workweek: 'Εργάσιμη εβδομάδα',
             week: 'Εβδομάδα',
             month: 'Μήνας',
             monthCompact: 'Συμπαγής μήνας',
@@ -676,7 +703,7 @@
         getDefaults() {
             return this.DEFAULTS;
         },
-        possibleViews: ['agenda', '4day', 'day', 'timeline', 'week', 'month', 'monthCompact', 'year'],
+        possibleViews: ['agenda', '4day', 'day', 'timeline', 'week', 'workweek', 'month', 'monthCompact', 'year'],
         addTranslation(locale, translation) {
             const loc = locale.split('-')[0].toLowerCase();
 
@@ -711,9 +738,9 @@
                 offset: 0
             },
             startDate: new Date(),
-            startView: 'month', // agenda, day, timeline, week, month, monthCompact, year, 4day
+            startView: 'month', // agenda, day, timeline, week, workweek, month, monthCompact, year, 4day
             mainColor: 'primary',
-            views: ['year', 'month', 'agenda', 'week', '4day', 'day', 'timeline'],
+            views: ['year', 'month', 'agenda', 'week', 'workweek', '4day', 'day', 'timeline'],
             holidays: null,
             showAddButton: true,
             draggable: false,
@@ -724,6 +751,7 @@
                 timeline: 'bi bi-bar-chart-steps',
                 '4day': 'bi bi-calendar-range',
                 week: 'bi bi-kanban',
+                workweek: 'bi bi-calendar-week',
                 month: 'bi bi-calendar-month',
                 monthCompact: 'bi bi-calendar2-week',
                 today: 'bi bi-calendar-check',
@@ -3190,7 +3218,7 @@
     }
 
     function formatterAllDay(appointment, extras, view) {
-        const isStackedAllDayView = view === 'week' || view === '4day';
+        const isStackedAllDayView = view === 'week' || view === 'workweek' || view === '4day';
         const classes = ['badge', isStackedAllDayView ? 'd-flex' : 'd-inline-flex', 'align-items-center', 'flex-nowrap', 'px-2'];
         if (isStackedAllDayView) {
             classes.push('w-100');
@@ -3252,7 +3280,7 @@
      * @return {string} A styled HTML string representing the holiday for display.
      */
     function formatterHoliday(holiday, view) {
-        const isDayOrWeek = view === 'day' || view === 'week' || view === '4day';
+        const isDayOrWeek = view === 'day' || view === 'week' || view === 'workweek' || view === '4day';
         const css = [
             'font-size: 12px',
             'line-height: 12px',
@@ -5051,6 +5079,18 @@
             return startStr + ' — ' + endStr;
         }
 
+        function getWorkweekDateRange(d, locale) {
+            const day = d.getDay();
+            const start = new Date(d);
+            start.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+            const end = new Date(start);
+            end.setDate(start.getDate() + 4);
+            const options = {day: 'numeric', month: 'short', year: 'numeric'};
+            const startStr = start.toLocaleDateString(locale, options);
+            const endStr = end.toLocaleDateString(locale, options);
+            return startStr + ' — ' + endStr;
+        }
+
         switch (view) {
             case 'day':
             case 'timeline':
@@ -5076,6 +5116,13 @@
                 el.text(visibleLabel + ' · ' + monthName + ' ' + yearName);
                 el.attr('data-iso-week', iso);
                 el.attr('title', range); // browser tooltip shows localized date range
+                break;
+            }
+            case 'workweek': {
+                const range = getWorkweekDateRange(date, settings.locale);
+                el.text(range);
+                el.removeAttr('data-iso-week');
+                el.attr('title', '');
                 break;
             }
             case 'month':
@@ -5126,6 +5173,9 @@
             case 'week':
                 newDate.setDate(newDate.getDate() - 7);
                 break;
+            case 'workweek':
+                newDate.setDate(newDate.getDate() - 7);
+                break;
             case '4day':
                 newDate.setDate(newDate.getDate() - 4);
                 break;
@@ -5168,6 +5218,9 @@
                 newDate.setDate(1);
                 break;
             case 'week':
+                newDate.setDate(newDate.getDate() + 7);
+                break;
+            case 'workweek':
                 newDate.setDate(newDate.getDate() + 7);
                 break;
             case '4day':
@@ -5447,7 +5500,7 @@
 
         function getMoveSlotContainerFromPointer($wrapperRef, point, $fallbackSlotContainer) {
             const view = getView($wrapperRef);
-            if ((view !== 'week' && view !== '4day') || !Number.isFinite(point.x)) {
+            if ((view !== 'week' && view !== 'workweek' && view !== '4day') || !Number.isFinite(point.x)) {
                 return $fallbackSlotContainer;
             }
 
@@ -6924,7 +6977,7 @@
                 const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
                 const settings = getSettings($eventWrapper);
                 const view = getView($eventWrapper);
-                if (!settings.draggable || !settings.showAddButton || (view !== 'day' && view !== 'week' && view !== '4day')) {
+                if (!settings.draggable || !settings.showAddButton || (view !== 'day' && view !== 'week' && view !== 'workweek' && view !== '4day')) {
                     return;
                 }
                 const isTouch = isTouchLikeEvent(e);
@@ -7058,7 +7111,7 @@
                 const settings = getSettings($eventWrapper);
                 const view = getView($eventWrapper);
 
-                if (!settings.draggable || (view !== 'day' && view !== 'timeline' && view !== 'week' && view !== '4day') || !appointment || appointment.allDay || !isAppointmentEditable(appointment)) {
+                if (!settings.draggable || (view !== 'day' && view !== 'timeline' && view !== 'week' && view !== 'workweek' && view !== '4day') || !appointment || appointment.allDay || !isAppointmentEditable(appointment)) {
                     return;
                 }
                 if (settings.appointmentRules && settings.appointmentRules.durationMinutes !== null) {
@@ -7154,7 +7207,7 @@
                 }
                 const $eventWrapper = resolveEventWrapper(e.currentTarget, $wrapper);
                 const view = getView($eventWrapper);
-                if (view !== 'day' && view !== 'timeline' && view !== 'week' && view !== '4day' && view !== 'month') {
+                if (view !== 'day' && view !== 'timeline' && view !== 'week' && view !== 'workweek' && view !== '4day' && view !== 'month') {
                     return;
                 }
                 const settings = getSettings($eventWrapper);
@@ -7517,11 +7570,12 @@
                 if (inSearchMode) {
                     toggleSearchMode($wrapper, false, false);
                 }
-                if (settings.views.includes('week')) {
+                const targetView = settings.views.includes('week') ? 'week' : settings.views.includes('workweek') ? 'workweek' : null;
+                if (targetView) {
                     const date = $.bsCalendar.utils.parseDateInput($(e.currentTarget).attr('data-week-date'));
-                    setView($wrapper, 'week');
+                    setView($wrapper, targetView);
                     setDate($wrapper, date);
-                    buildByView($wrapper, viewBefore !== 'week');
+                    buildByView($wrapper, viewBefore !== targetView);
                 }
             })
             .off('click' + namespace, '[data-month-compact-date]')
@@ -7638,7 +7692,7 @@
                 const view = getView($eventWrapper);
 
                 // Only show if draggable is enabled and we're in day or week view
-                if (!settings.draggable || (view !== 'day' && view !== 'week' && view !== '4day')) {
+                if (!settings.draggable || (view !== 'day' && view !== 'week' && view !== 'workweek' && view !== '4day')) {
                     return;
                 }
 
@@ -8052,7 +8106,7 @@
          * Invalid view names fall back to "month" so the calendar always remains
          * in a known and renderable state.
          */
-        if (view !== 'search' && !['agenda', 'day', 'timeline', '4day', 'week', 'month', 'monthCompact', 'year'].includes(view)) {
+        if (view !== 'search' && !['agenda', 'day', 'timeline', '4day', 'week', 'workweek', 'month', 'monthCompact', 'year'].includes(view)) {
             if (settings.debug) {
                 console.error(
                     'Invalid view type provided. Defaulting to month view.',
@@ -8307,7 +8361,7 @@
                 ((view === 'year' || view === 'monthCompact') && renderState.selectedDate !== currentSelectedDate) ||
                 (view === 'day' && renderState.dayViewMode !== data.dayViewMode) ||
                 (
-                    (view === 'day' || view === 'timeline' || view === 'week' || view === '4day') &&
+                    (view === 'day' || view === 'timeline' || view === 'week' || view === 'workweek' || view === '4day') &&
                     renderState.hourSlots !== currentHourSlots
                 );
 
@@ -8330,6 +8384,7 @@
 
                     case '4day':
                     case 'week':
+                    case 'workweek':
                         buildWeekView($wrapper);
                         break;
 
@@ -9069,7 +9124,7 @@
                  * This prevents hidden or out-of-range appointment segments from
                  * affecting overlap calculations.
                  */
-                if ((view === 'week' || view === '4day') && !obj.visibleInWeek) {
+                if ((view === 'week' || view === 'workweek' || view === '4day') && !obj.visibleInWeek) {
                     return;
                 }
 
@@ -10771,7 +10826,7 @@
     function addAppointmentResizeHandles($wrapper, $appointmentElement, appointment, slotStart, slotEnd) {
         const settings = getSettings($wrapper);
         const view = getView($wrapper);
-        if (!settings.draggable || appointment.allDay || !isAppointmentEditable(appointment) || (view !== 'day' && view !== 'week' && view !== '4day')) {
+        if (!settings.draggable || appointment.allDay || !isAppointmentEditable(appointment) || (view !== 'day' && view !== 'week' && view !== 'workweek' && view !== '4day')) {
             return;
         }
         if (settings.appointmentRules && settings.appointmentRules.durationMinutes !== null) {
@@ -11656,6 +11711,7 @@
             case 'day':
             case '4day':
             case 'week':
+            case 'workweek':
                 drawAppointmentsForDayOrWeek($wrapper, appointments);
                 break;
             case 'timeline':
@@ -11851,7 +11907,7 @@
         const data = getBsCalendarData($wrapper);
         const settings = getSettings($wrapper);
         const view = getView($wrapper);
-        const isDayOrWeek = view === 'day' || view === 'week' || view === '4day';
+        const isDayOrWeek = view === 'day' || view === 'week' || view === 'workweek' || view === '4day';
         const isMonth = view === 'month';
         const isMonthCompact = view === 'monthCompact';
         const isYear = view === 'year';
@@ -11897,7 +11953,7 @@
                 if (container?.length) {
                     if (!isYear && !isMonthCompact) {
                         // build a wrapper for a holiday element
-                        if (container.is(':empty') && (view === 'day' || view === 'week' || view === '4day')) {
+                        if (container.is(':empty') && (view === 'day' || view === 'week' || view === 'workweek' || view === '4day')) {
                             container.addClass('pb-3');
                         }
                         const $holidayWrapper = $('<small>', {
@@ -12085,6 +12141,21 @@
                         start: $.bsCalendar.utils.formatDateToDateString(startDate),
                         end: $.bsCalendar.utils.formatDateToDateString(endDate),
                         startWeekOnSunday: settings.startWeekOnSunday
+                    });
+                }
+                break;
+            }
+            case "workweek": {
+                const dayOfWeek = startDate.getDay();
+                startDate.setDate(startDate.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
+                endDate.setTime(startDate.getTime());
+                endDate.setDate(endDate.getDate() + 4);
+
+                if (settings.debug) {
+                    log("getStartAndEndDateByView (workweek) computed:", {
+                        viewDate: $.bsCalendar.utils.formatDateToDateString(date),
+                        start: $.bsCalendar.utils.formatDateToDateString(startDate),
+                        end: $.bsCalendar.utils.formatDateToDateString(endDate)
                     });
                 }
                 break;
@@ -12298,7 +12369,7 @@
             }).appendTo(tr);
 
             // If "week" is allowed in the views, make the column clickable
-            if (settings.views.includes('week')) {
+            if (settings.views.includes('week') || settings.views.includes('workweek')) {
                 weekColumn
                     .attr('data-week-date', $.bsCalendar.utils.formatDateToDateString(currentDate))
                     .css('cursor', 'pointer');
@@ -12794,7 +12865,7 @@
             }).appendTo(weekRow);
 
             // If "week" is allowed in the views, make the column clickable
-            if (settings.views.includes('week')) {
+            if (settings.views.includes('week') || settings.views.includes('workweek')) {
                 weekColumn
                     .attr('data-week-date', $.bsCalendar.utils.formatDateToDateString(currentDate))
                     .css('cursor', 'pointer');
@@ -13184,7 +13255,8 @@
         const $viewContainer = getViewContainer($wrapper);
         const data = getBsCalendarData($wrapper);
         const is4Day = data.view === '4day';
-        const dayCount = is4Day ? 4 : 7;
+        const isWorkweek = data.view === 'workweek';
+        const dayCount = is4Day ? 4 : isWorkweek ? 5 : 7;
 
         // empty container (remove the old content)
         $viewContainer.empty();
@@ -13201,6 +13273,10 @@
         let startOfWeek;
         if (is4Day) {
             startOfWeek = new Date(date);
+        } else if (isWorkweek) {
+            startOfWeek = new Date(date);
+            const startOffset = currentDay === 0 ? 6 : currentDay - 1;
+            startOfWeek.setDate(date.getDate() - startOffset);
         } else {
             startOfWeek = new Date(date);
             const startOffset = startWeekOnSunday ? currentDay : currentDay === 0 ? 6 : currentDay - 1;

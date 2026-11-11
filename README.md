@@ -5,7 +5,7 @@
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-`bs-calendar` is a jQuery plugin for Bootstrap 5 calendars with `day`, `timeline`, `4day`, `week`, `month`, `monthCompact`, `agenda`, and `year` views. It supports remote
+`bs-calendar` is a jQuery plugin for Bootstrap 5 calendars with `day`, `timeline`, `4day`, `week`, `workweek`, `month`, `monthCompact`, `agenda`, and `year` views. It supports remote
 appointment loading, calendar filters, search, holidays, custom formatting, drag-create, drag-move, tasks, and local appointment
 add/edit/delete methods.
 
@@ -31,6 +31,7 @@ As of version 2, Bootstrap 4 is no longer supported. Use version `^1` for Bootst
 - [Quick Start](#quick-start)
 - [Run the Demo](#run-the-demo)
 - [Core Concepts](#core-concepts)
+- [Workweek View](#workweek-view)
 - [Compact Month View](#compact-month-view)
 - [Appointment Data](#appointment-data)
 - [Recurring Appointments](#recurring-appointments)
@@ -151,6 +152,23 @@ The demo contains one calendar instance and shows a modal-based add/edit/delete 
 - Recurring appointments are normal appointment objects with a `recurrence` object. They are expanded only for loaded appointment views.
 - Tasks are normal appointment objects with a `task` object.
 
+## Workweek View
+
+The `workweek` view shows Monday through Friday, regardless of `startWeekOnSunday`. It is included in the default `views` list; if you
+provide your own list, include `workweek` to keep it available. Navigation moves one workweek at a time, and remote appointment requests
+cover Monday through Friday only.
+
+```javascript
+$('#calendar').bsCalendar({
+    locale: 'en-GB',
+    views: ['month', 'week', 'workweek'],
+    startView: 'workweek'
+});
+```
+
+The selected `startDate` determines which workweek is shown; the view aligns it to that week's Monday. The existing `week` view continues
+to show all seven days, while `4day` continues to show four consecutive days.
+
 ## Compact Month View
 
 Enable `monthCompact` in `views` to offer a compact month grid with a selected-day agenda. It has its own month navigation and omits the
@@ -186,7 +204,7 @@ requests keep `view: 'month'` for compatibility with existing month data endpoin
 
 ## Appointment Data
 
-For `day`, `timeline`, `4day`, `week`, `month`, `monthCompact`, `agenda`, and search results, appointments use this shape:
+For `day`, `timeline`, `4day`, `week`, `workweek`, `month`, `monthCompact`, `agenda`, and search results, appointments use this shape:
 
 ```json
 {
@@ -240,7 +258,7 @@ Optional fields:
 | `location`    | `string`, `array`, or `null`     | none                     | Rendered by the default info window formatter. Arrays are joined with `<br>`.                                                                      |
 | `editable`    | `boolean`, `string`, or `number` | `true`                   | Controls whether the info window shows edit/duplicate controls. Boolean-like strings such as `"false"`, `"0"`, and `"no"` are treated as false.    |
 | `deleteable`  | `boolean`                        | `true`                   | Controls whether the info window shows a delete button.                                                                                            |
-| `overlap`     | `boolean`, `string`, or `number` | `false`                  | Day/week/4day view only. Boolean-like `true`, `"true"`, `"1"`, or `"yes"` renders this appointment full-width and stacked instead of side-by-side. |
+| `overlap`     | `boolean`, `string`, or `number` | `false`                  | Day/week/workweek/4day view only. Boolean-like `true`, `"true"`, `"1"`, or `"yes"` renders this appointment full-width and stacked instead of side-by-side. |
 | `recurrence`  | `object` or `null`               | none                     | Expands one source appointment into visible occurrences. See [Recurring appointments](#recurring-appointments).                                    |
 | `task`        | `object` or `null`               | none                     | If provided, the appointment is treated as a task. See [Task fields](#task-fields).                                                                |
 
@@ -425,9 +443,10 @@ $('#calendar').bsCalendar({
 
 Remote data guidance:
 
-- For `day`, `timeline`, `4day`, `week`, `month`, `monthCompact`, and `agenda`, your `url` receives `fromDate` and `toDate`. Return recurring source appointments that
+- For `day`, `timeline`, `4day`, `week`, `workweek`, `month`, `monthCompact`, and `agenda`, your `url` receives `fromDate` and `toDate`. Return recurring source appointments that
   can have at least one occurrence in that range.
 - `monthCompact` sends `view: 'month'` so existing month endpoints remain compatible.
+- `workweek` sends `view: 'workweek'` and requests the Monday-to-Friday date range.
 - `monthCompact` sends all configured `calendarIds`, regardless of the active states of the normal calendar filters.
 - Do not filter recurring source appointments only by `start` date. A weekly source from January can still produce a June occurrence.
 - A practical server-side overlap check is: source `start <= toDate` and either no `until` or `until >= fromDate`. If you use `count`, your
@@ -494,7 +513,7 @@ Request data in normal appointment views:
 
 | View                           | Request fields                                           |
 |--------------------------------|----------------------------------------------------------|
-| `day`, `timeline`, `4day`, `week`, `month`, `monthCompact`, `agenda` | `fromDate`, `toDate`, `view`, `showTasks`, `calendarIds` |
+| `day`, `timeline`, `4day`, `week`, `workweek`, `month`, `monthCompact`, `agenda` | `fromDate`, `toDate`, `view`, `showTasks`, `calendarIds` |
 | `year`                         | `year`, `view`, `showTasks`, `calendarIds`               |
 
 Request data in search mode:
@@ -507,7 +526,7 @@ Request data in search mode:
 | `showTasks`   | Current task visibility state.                                                                  |
 | `calendarIds` | Active calendar IDs, always an array.                                                           |
 
-Normal response for `day`, `timeline`, `4day`, `week`, `month`, `monthCompact`, and `agenda`:
+Normal response for `day`, `timeline`, `4day`, `week`, `workweek`, `month`, `monthCompact`, and `agenda`:
 
 ```json
 [
@@ -610,7 +629,7 @@ When drag-create is used, `dragExtras` contains the proposed `start`, `end`, hou
 availability. When drag-move or drag-resize is used, `appointment` still contains the original appointment and `dragExtras` contains the
 proposed new range.
 
-If `hourSlots.rules[].mode` is `blocked` or `exclusive`, interactive creation, drag-moving, and drag-resizing respect those rules. Day/week/4day
+If `hourSlots.rules[].mode` is `blocked` or `exclusive`, interactive creation, drag-moving, and drag-resizing respect those rules. Day/week/workweek/4day
 drag-create, drag-move, and drag-resize clamp to the nearest valid rule edge while dragging; invalid click-create and invalid drop targets
 do not fire `add.bs.calendar` or `edit.bs.calendar`.
 
@@ -641,7 +660,7 @@ later with `updateOptions`.
 | `showAbout`                   | `boolean`                                     | `true`                                                     | Shows the About dropdown.                                                                                          |
 | `locale`                      | `string`                                      | `"en-GB"`                                                  | Locale for labels and date formatting. Underscores are normalized to hyphens.                                      |
 | `title`                       | `string` or `null`                            | `null`                                                     | HTML/string title in the toolbar.                                                                                  |
-| `startWeekOnSunday`           | `boolean`                                     | `true`                                                     | If `false`, weeks start on Monday.                                                                                 |
+| `startWeekOnSunday`           | `boolean`                                     | `true`                                                     | If `false`, the 7-day week view starts on Monday. The `workweek` view always shows Monday through Friday.           |
 | `navigateOnWheel`             | `boolean`                                     | `true`                                                     | Enables mouse-wheel navigation over the calendar.                                                                  |
 | `rounded`                     | `number`                                      | `5`                                                        | Bootstrap rounded level `0` to `5`. Invalid values fall back to `5`.                                               |
 | `border`                      | `string`                                      | `"border border-0 rounded-0 shadow"`                       | Bootstrap classes used by bordered calendar UI elements.                                                           |
@@ -649,13 +668,13 @@ later with `updateOptions`.
 | `search.limit`                | `number`                                      | `10`                                                       | Number of search results per page.                                                                                 |
 | `search.offset`               | `number`                                      | `0`                                                        | Initial search offset.                                                                                             |
 | `startDate`                   | `Date` or `string`                            | `new Date()`                                               | Initial reference date. String values are parsed during initialization.                                            |
-| `startView`                   | `string`                                      | `"month"`                                                  | Initial view. Allowed values: `day`, `timeline`, `4day`, `week`, `month`, `monthCompact`, `agenda`, `year`. Must be enabled in `views`. |
+| `startView`                   | `string`                                      | `"month"`                                                  | Initial view. Allowed values: `day`, `timeline`, `4day`, `week`, `workweek`, `month`, `monthCompact`, `agenda`, `year`. Must be enabled in `views`. |
 | `mainColor`                   | `string`                                      | `"primary"`                                                | Default color used by highlights, controls, and appointments.                                                      |
-| `views`                       | `array` or comma-separated `string`           | `["year", "month", "agenda", "week", "4day", "day", "timeline"]` | Enabled views. Invalid entries are removed; duplicates are removed; empty result falls back to all possible views. |
+| `views`                       | `array` or comma-separated `string`           | `["year", "month", "agenda", "week", "workweek", "4day", "day", "timeline"]` | Enabled views. Invalid entries are removed; duplicates are removed; empty result falls back to all possible views. |
 | `holidays`                    | `object` or `null`                            | `null`                                                     | OpenHolidays configuration. See [Holidays](#holidays).                                                             |
 | `showAddButton`               | `boolean`                                     | `true`                                                     | Shows the toolbar add button.                                                                                      |
-| `draggable`                   | `boolean`                                     | `false`                                                    | Enables drag-create in day/timeline/week/4day view, drag-move in day/timeline/week/4day/month view, and drag-resize from timed appointment edges in day/timeline/week/4day view. Touch locks native scrolling while a drag gesture is pending or active. |
-| `draggableSnapMinutes`        | `number`                                      | `5`                                                        | Snap interval in minutes for drag-create/move/resize in day/timeline/week/4day view. Minimum is `1`.                        |
+| `draggable`                   | `boolean`                                     | `false`                                                    | Enables drag-create in day/timeline/week/workweek/4day view, drag-move in day/timeline/week/workweek/4day/month view, and drag-resize from timed appointment edges in day/timeline/week/workweek/4day view. Touch locks native scrolling while a drag gesture is pending or active. |
+| `draggableSnapMinutes`        | `number`                                      | `5`                                                        | Snap interval in minutes for drag-create/move/resize in day/timeline/week/workweek/4day view. Minimum is `1`.                        |
 | `timelineGroupBy`             | `string` or `null`                            | `null`                                                     | Appointment attribute used to split the day timeline into rows. `null` keeps one shared track; missing values use the localized unassigned row. Use `'calendarId'` or the `'calendars'` alias to group by configured calendar titles. |
 | `translations`                | `object`                                      | `{search, searchNoResult}` merged with locale translations | Custom UI translations. See [Localization and Translations](#localization-and-translations).                       |
 | `icons`                       | `object`                                      | see [Icons](#icons)                                        | Bootstrap icon classes.                                                                                            |
@@ -664,7 +683,7 @@ later with `updateOptions`.
 | `topbarAddons`                | selector, element, jQuery object, or `null`   | `null`                                                     | Element(s) inserted after the top toolbar.                                                                         |
 | `sidebarAddons`               | selector, element, jQuery object, or `null`   | `null`                                                     | Element(s) appended to the sidebar.                                                                                |
 | `formatter`                   | `object`                                      | see [Formatters](#formatters)                              | Custom render functions.                                                                                           |
-| `hourSlots`                   | `object`                                      | `{height: 30, start: 0, end: 24}`                          | Day/week/4day hour grid configuration.                                                                             |
+| `hourSlots`                   | `object`                                      | `{height: 30, start: 0, end: 24}`                          | Day/week/workweek/4day hour grid configuration.                                                                    |
 | `hourSlots.height`            | `number`                                      | `30`                                                       | Height in pixels for one hour. Minimum normalized value is `1`.                                                    |
 | `hourSlots.start`             | `number` or `string`                          | `0`                                                        | First visible hour. Normalized to `0` to `23`. Supports decimals and `HH:mm` strings.                               |
 | `hourSlots.end`               | `number` or `string`                          | `24`                                                       | Last visible hour boundary. Normalized to `1` to `24` and kept greater than `start`. Supports decimals and `HH:mm` strings. |
@@ -794,6 +813,7 @@ Calendar fields:
 | `day`                | `"Day"`                  | Label for the day view.                   |
 | `4day`               | `"4 Days"`               | Label for the 4-day view.                 |
 | `week`               | `"Week"`                 | Label for the week view.                  |
+| `workweek`           | `"Workweek"`             | Label for the Monday-to-Friday view.      |
 | `month`              | `"Month"`                | Label for the month view.                 |
 | `monthCompact`       | `"Compact month"`        | Label for the compact month view.         |
 | `year`               | `"Year"`                 | Label for the year view.                  |
@@ -815,6 +835,7 @@ Calendar fields:
 | `timeline`          | `"bi bi-bar-chart-steps"`      |
 | `4day`              | `"bi bi-calendar-range"`       |
 | `week`              | `"bi bi-kanban"`               |
+| `workweek`          | `"bi bi-calendar-week"`        |
 | `month`             | `"bi bi-calendar-month"`       |
 | `monthCompact`      | `"bi bi-calendar2-week"`       |
 | `today`             | `"bi bi-calendar-check"`       |
@@ -1088,7 +1109,7 @@ visible `times.start` and `times.end` values for that day.
 | `day`            | Weekday index.                                  |
 | `times.start`    | Visible start time for that day.                |
 | `times.end`      | Visible end time for that day.                  |
-| `visibleInWeek`  | Whether this date is visible in week/4day view. |
+| `visibleInWeek`  | Whether this date is visible in week/workweek/4day view. |
 | `visibleInMonth` | Whether this date is visible in month view.     |
 
 Year-view summary objects get a smaller `extras` object with `colors`, `isToday`, and `isNow`.
@@ -1190,7 +1211,8 @@ All built-in translation objects currently use these keys:
 | `today`              | `"Today"`                | Today toolbar button.                         |
 | `day`                | `"Day"`                  | Day view label.                               |
 | `4day`               | `"4 Days"`               | 4-day view label.                             |
-| `week`               | `"Week"`                 | Week view label.                              |
+| `week`               | `"Week"`                 | 7-day week view label.                       |
+| `workweek`           | `"Workweek"`             | Monday-to-Friday workweek view label.        |
 | `month`              | `"Month"`                | Month view label.                             |
 | `monthCompact`       | `"Compact month"`        | Compact month view label.                     |
 | `year`               | `"Year"`                 | Year view label.                              |
@@ -1245,6 +1267,7 @@ $.bsCalendar.addTranslation('eo', {
     today: 'Hodiau',
     day: 'Tago',
     '4day': '4 Tagoj',
+    workweek: 'Laborsemajno',
     week: 'Semajno',
     month: 'Monato',
     year: 'Jaro',
