@@ -76,6 +76,8 @@ _No unreleased changes._
 #### Features
 
 - Clicks in day, week, workweek, 4-day, and timeline views select the nearest quarter-hour based on the pointer position.
+- Added optional smaller sub-hour time labels and dashed guides through `hourSlots.timeLabelIntervalMinutes`; label size grows with the available spacing.
+- Added monthly recurrence by weekday position through `recurrence.weekOfMonth`, including the last matching weekday.
 
 ### Version 2.5.3
 

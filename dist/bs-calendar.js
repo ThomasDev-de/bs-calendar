@@ -793,6 +793,7 @@
                 height: 30, // one hour in px
                 start: 0, // starting hour as integer
                 end: 24, // ending hour as integer
+                timeLabelIntervalMinutes: null,
                 rules: null
             },
             appointmentRules: {
@@ -3122,6 +3123,13 @@
                     parseFloat($.bsCalendar.utils.parseTimeToDecimal(settings.hourSlots.end)) :
                     NaN;
             settings.hourSlots.height = Number.isFinite(Number(settings.hourSlots.height)) ? parseInt(settings.hourSlots.height, 10) : NaN;
+            const timeLabelInterval = Number(settings.hourSlots.timeLabelIntervalMinutes);
+            settings.hourSlots.timeLabelIntervalMinutes =
+                settings.hourSlots.timeLabelIntervalMinutes !== null &&
+                settings.hourSlots.timeLabelIntervalMinutes !== undefined &&
+                Number.isFinite(timeLabelInterval) && timeLabelInterval >= 1 && timeLabelInterval < 60
+                    ? Math.floor(timeLabelInterval)
+                    : null;
 
             // Fallbacks für nicht-numerische Werte
             if (Number.isNaN(settings.hourSlots.start)) settings.hourSlots.start = 0;
@@ -4185,13 +4193,19 @@
                 .map(day => Number(day))
                 .filter(day => Number.isInteger(day) && day >= 0 && day <= 6)
             : [];
+        const parsedWeekOfMonth = Number(rule.weekOfMonth);
+        const weekOfMonth = Number.isInteger(parsedWeekOfMonth) &&
+            (parsedWeekOfMonth === -1 || (parsedWeekOfMonth >= 1 && parsedWeekOfMonth <= 5))
+            ? parsedWeekOfMonth
+            : null;
 
         return {
             frequency,
             interval,
             count,
             untilDate: untilDate && !isNaN(untilDate.getTime()) ? untilDate : null,
-            daysOfWeek: daysOfWeek.length ? [...new Set(daysOfWeek)] : [start.getDay()]
+            daysOfWeek: daysOfWeek.length ? [...new Set(daysOfWeek)] : [start.getDay()],
+            weekOfMonth
         };
     }
 
@@ -4263,9 +4277,24 @@
 
         if (recurrence.frequency === 'monthly') {
             const monthIndex = ((date.getFullYear() - seriesStartDay.getFullYear()) * 12) + (date.getMonth() - seriesStartDay.getMonth());
-            return monthIndex >= 0 &&
-                monthIndex % recurrence.interval === 0 &&
-                date.getDate() === seriesStartDay.getDate();
+            if (monthIndex < 0 || monthIndex % recurrence.interval !== 0) {
+                return false;
+            }
+
+            if (recurrence.weekOfMonth !== null) {
+                if (!recurrence.daysOfWeek.includes(date.getDay())) {
+                    return false;
+                }
+
+                const weekOfMonth = Math.floor((date.getDate() - 1) / 7) + 1;
+                if (recurrence.weekOfMonth === -1) {
+                    const daysInMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+                    return date.getDate() + 7 > daysInMonth;
+                }
+                return weekOfMonth === recurrence.weekOfMonth;
+            }
+
+            return date.getDate() === seriesStartDay.getDate();
         }
 
         if (recurrence.frequency === 'yearly') {
@@ -13573,8 +13602,8 @@
                 isLast: isLast
             });
 
-            // Half-hour dashed line: only when row-height is even and sufficiently tall (> 30px)
-            if (!isLast && Number.isFinite(rowHeight) && rowHeight > 30 && rowHeight % 2 === 0 && (rowHour % 1 === 0)) {
+            // Preserve the default half-hour guide when no finer time-label interval is configured.
+            if (!isLast && settings.hourSlots.timeLabelIntervalMinutes === null && Number.isFinite(rowHeight) && rowHeight > 30 && rowHeight % 2 === 0 && (rowHour % 1 === 0)) {
                 $('<div>', {
                     class: 'position-absolute w-100',
                     css: {
@@ -13586,6 +13615,49 @@
                     },
                     'aria-hidden': 'true'
                 }).appendTo(row);
+            }
+
+            if (!isLast && Number.isFinite(rowHeight) && settings.hourSlots.timeLabelIntervalMinutes !== null) {
+                const intervalMinutes = settings.hourSlots.timeLabelIntervalMinutes;
+                const rowStartMinutes = Math.round(rowHour * 60);
+                const rowEndMinutes = Math.min(
+                    Math.round(settings.hourSlots.end * 60),
+                    (Math.floor(rowHour) + 1) * 60
+                );
+                const firstMarkMinutes = (Math.floor(rowStartMinutes / intervalMinutes) + 1) * intervalMinutes;
+                const labelSpacingPx = settings.hourSlots.height * intervalMinutes / 60;
+                const canShowSmallLabels = showLabels && labelSpacingPx >= 12;
+                const smallLabelFontSize = Math.max(8, Math.min(12, labelSpacingPx * 0.72));
+
+                for (let markMinutes = firstMarkMinutes; markMinutes < rowEndMinutes; markMinutes += intervalMinutes) {
+                    const markTop = ((markMinutes - rowStartMinutes) / 60) * settings.hourSlots.height;
+                    $('<div>', {
+                        class: 'position-absolute w-100',
+                        css: {
+                            top: Math.max(0, Math.floor(markTop) - 1) + 'px',
+                            left: 0,
+                            borderTop: '1px dashed var(--bs-border-color, #dee2e6)',
+                            pointerEvents: 'none'
+                        },
+                        'aria-hidden': 'true'
+                    }).appendTo(row);
+
+                    if (canShowSmallLabels) {
+                        const markDate = new Date(2023, 0, 1, Math.floor(markMinutes / 60), markMinutes % 60);
+                        $('<div>', {
+                            class: 'wc-time-label wc-time-label-minor ps-2 position-absolute user-select-none pe-none',
+                            css: {
+                                left: '-38px',
+                                top: markTop + 'px',
+                                transform: 'translateY(-50%)',
+                                fontSize: smallLabelFontSize + 'px',
+                                lineHeight: '1',
+                                whiteSpace: 'nowrap'
+                            },
+                            text: $.bsCalendar.utils.formatTime(markDate, false)
+                        }).appendTo(row);
+                    }
+                }
             }
 
             if (showLabels) {
