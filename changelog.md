@@ -2,6 +2,7 @@
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
     * [**dev-main**](#dev-main)
+    * [**Version 2.5.4**](#version-254)
     * [**Version 2.5.3**](#version-253)
     * [**Version 2.5.2**](#version-252)
     * [**Version 2.4.0**](#version-240)
@@ -67,6 +68,14 @@
 ### dev-main
 
 _No unreleased changes._
+
+### Version 2.5.4
+
+2026-11-12
+
+#### Features
+
+- Clicks in day, week, workweek, 4-day, and timeline views select the nearest quarter-hour based on the pointer position.
 
 ### Version 2.5.3
 

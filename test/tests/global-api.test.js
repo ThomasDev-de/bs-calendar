@@ -1,12 +1,12 @@
 QUnit.module('$.bsCalendar — Global API', function () {
 
-    QUnit.test('version is 2.5.3', function (assert) {
-        assert.strictEqual($.bsCalendar.version, '2.5.3');
+    QUnit.test('version is 2.5.4', function (assert) {
+        assert.strictEqual($.bsCalendar.version, '2.5.4');
     });
 
     QUnit.test('about has expected fields', function (assert) {
         const a = $.bsCalendar.about;
-        assert.strictEqual(a.version, '2.5.3');
+        assert.strictEqual(a.version, '2.5.4');
         assert.strictEqual(a.license, 'MIT');
         assert.ok(a.project.startsWith('https://'));
         assert.ok(a.issues.startsWith('https://'));

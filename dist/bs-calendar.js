@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.5.3
- * @date 2026-11-11
+ * @version 2.5.4
+ * @date 2026-11-12
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -684,9 +684,9 @@
     };
 
     $.bsCalendar = {
-        version: '2.5.3',
+        version: '2.5.4',
         about: {
-            version: '2.5.3',
+            version: '2.5.4',
             releaseDate: '2026-11-11',
             project: 'https://github.com/ThomasDev-de/bs-calendar/',
             issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
@@ -5428,6 +5428,7 @@
      */
     function handleEvents($wrapper) {
         let resizeTimer;
+        const clickSnapMinutes = 15;
         if (!globalEventsInitialized) {
             $(window).off("resize" + namespace);
             $(window).on("resize" + namespace, function () {
@@ -5485,7 +5486,7 @@
             return fallbackWrapper;
         }
 
-        function getMinutesFromPointer($wrapperRef, $slotContainer, pageY) {
+        function getMinutesFromPointer($wrapperRef, $slotContainer, pageY, snapMinutesOverride) {
             const settings = getSettings($wrapperRef);
             const offset = $slotContainer.offset();
             const slotHeight = settings.hourSlots.height;
@@ -5493,7 +5494,10 @@
             const totalHeightPx = Math.max(0.1, (settings.hourSlots.end - settings.hourSlots.start) * slotHeight);
             const relativeY = Math.max(0, Math.min(totalHeightPx, pageY - offset.top));
             const minutesFloat = (relativeY / totalHeightPx) * totalMinutes;
-            const snap = getSnapMinutes($wrapperRef);
+            const parsedSnapOverride = Number(snapMinutesOverride);
+            const snap = snapMinutesOverride !== undefined && Number.isFinite(parsedSnapOverride)
+                ? Math.max(1, Math.floor(parsedSnapOverride))
+                : getSnapMinutes($wrapperRef);
             const snapped = Math.round(minutesFloat / snap) * snap;
             return Math.max(0, Math.min(totalMinutes, snapped));
         }
@@ -6796,9 +6800,29 @@
                 if (settings.debug) {
                     log('Day hour clicked:', details);
                 }
-                const clickHour = Math.floor(details.hour);
-                const clickMin = Math.round((details.hour % 1) * 60);
-                const start = new Date(`${$.bsCalendar.utils.formatDateToDateString(details.date)} ${String(clickHour).padStart(2, '0')}:${String(clickMin).padStart(2, '0')}:00`);
+                const dateString = $.bsCalendar.utils.formatDateToDateString(details.date);
+                const $slotContainer = $(e.currentTarget).closest('.wc-day-view-time-slots');
+                const clickPoint = getEventPageXY(e);
+                const slotOffset = $slotContainer.offset();
+                const totalHeightPx = (settings.hourSlots.end - settings.hourSlots.start) * settings.hourSlots.height;
+                const hasClickPosition = $slotContainer.length && slotOffset && Number.isFinite(clickPoint.y) &&
+                    clickPoint.y >= slotOffset.top && clickPoint.y <= slotOffset.top + totalHeightPx + 1;
+                let start;
+                if (hasClickPosition) {
+                    const minutesFromStart = getMinutesFromPointer($eventWrapper, $slotContainer, clickPoint.y, 1);
+                    const startMinutes = settings.hourSlots.start * 60;
+                    const nearestSlot = Math.round((startMinutes + minutesFromStart) / clickSnapMinutes) * clickSnapMinutes;
+                    const snappedMinutesFromStart = Math.max(0, Math.min(
+                        (settings.hourSlots.end - settings.hourSlots.start) * 60,
+                        nearestSlot - startMinutes
+                    ));
+                    start = buildDateTimeByMinutes($eventWrapper, dateString, snappedMinutesFromStart);
+                } else {
+                    // Keep keyboard and programmatic clicks aligned to the clicked hour row.
+                    const clickHour = Math.floor(details.hour);
+                    const clickMin = Math.round((details.hour % 1) * 60);
+                    start = new Date(`${dateString} ${String(clickHour).padStart(2, '0')}:${String(clickMin).padStart(2, '0')}:00`);
+                }
                 const end = new Date(start);
                 end.setMinutes(end.getMinutes() + getDefaultAppointmentCreateDurationMinutes($eventWrapper, 30));
                 const dragExtras = getDragAppointmentExtras($eventWrapper, start, end);
@@ -6841,9 +6865,11 @@
                 const percentage = Math.max(0, Math.min(1, (pageX - trackLeft) / trackRect.width));
                 const rangeMinutes = (settings.hourSlots.end - settings.hourSlots.start) * 60;
                 const snapMinutes = getSnapMinutes($eventWrapper);
+                const startMinutes = settings.hourSlots.start * 60;
+                const nearestSlot = Math.round((startMinutes + percentage * rangeMinutes) / clickSnapMinutes) * clickSnapMinutes;
                 const minutesFromStart = Math.max(0, Math.min(
                     rangeMinutes,
-                    Math.round((percentage * rangeMinutes) / snapMinutes) * snapMinutes
+                    nearestSlot - startMinutes
                 ));
                 const start = buildDateTimeByMinutes(
                     $eventWrapper,
