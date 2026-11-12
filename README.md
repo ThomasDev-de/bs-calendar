@@ -1,13 +1,13 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-2.5.4-blue)
+![Version](https://img.shields.io/badge/version-3.0.0-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
 `bs-calendar` is a jQuery plugin for Bootstrap 5 calendars with `day`, `timeline`, `4day`, `week`, `workweek`, `month`, `monthCompact`, `agenda`, and `year` views. It supports remote
-appointment loading, calendar filters, search, holidays, custom formatting, drag-create, drag-move, tasks, and local appointment
-add/edit/delete methods.
+appointment and availability rule loading, calendar filters, search, holidays, custom formatting, drag-create, drag-move, tasks, and local
+appointment add/edit/delete methods.
 
 As of version 2, Bootstrap 4 is no longer supported. Use version `^1` for Bootstrap 4 projects.
 
@@ -38,6 +38,7 @@ As of version 2, Bootstrap 4 is no longer supported. Use version `^1` for Bootst
 - [Remote Data with `url`](#remote-data-with-url)
 - [Add, Edit, and Delete Workflow](#add-edit-and-delete-workflow)
 - [Options](#options)
+- [Availability Rules](#availability-rules)
 - [Events and Callbacks](#events-and-callbacks)
 - [Methods](#methods)
 - [Formatters](#formatters)
@@ -71,7 +72,7 @@ Use CDN/script tags:
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@2.5.4/dist/bs-calendar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@3.0.0/dist/bs-calendar.min.js"></script>
 ```
 
 Or install via Composer:
@@ -651,8 +652,8 @@ $('#calendar').bsCalendar({
 });
 ```
 
-`queryParams` receives the generated `requestData` and should return an object. The returned object is merged into the request. Protected
-keys `fromDate`, `toDate`, `year`, and `view` cannot be overridden.
+`queryParams` receives the generated `requestData` and should return an object. The returned object is merged into requests for both
+appointments and `availabilityRules`. Protected keys `fromDate`, `toDate`, `year`, and `view` cannot be overridden.
 
 You can also change remote loading at runtime:
 
@@ -686,17 +687,13 @@ After a local mutation method has succeeded, the calendar fires completion event
 | `edited.bs.calendar`  | `onEdited(appointment, extras)`  | Appointment after the local update. |
 | `deleted.bs.calendar` | `onDeleted(appointment, extras)` | Appointment that was removed.       |
 
-When drag-create is used, `dragExtras` contains the proposed `start`, `end`, hour-slot rule availability, and appointment duration rule
+When drag-create is used, `dragExtras` contains the proposed `start`, `end`, availability rule results, and appointment duration rule
 availability. When drag-move or drag-resize is used, `appointment` still contains the original appointment and `dragExtras` contains the
 proposed new range.
 
-If `hourSlots.rules[].mode` is `blocked` or `exclusive`, interactive creation, drag-moving, and drag-resizing respect those rules. Day/week/workweek/4day
-drag-create, drag-move, and drag-resize clamp to the nearest valid rule edge while dragging; invalid click-create and invalid drop targets
-do not fire `add.bs.calendar` or `edit.bs.calendar`.
-
-For drag-create, drag-move, and drag-resize, the allowed interval starts as every `exclusive` range for that weekday. If no `exclusive` range exists,
-the whole visible `hourSlots.start` to `hourSlots.end` range is allowed. `blocked` ranges are then subtracted from those intervals.
-`preferred` ranges do not block dragging.
+`availabilityRules` are checked before a proposed appointment is created or moved. Invalid click-create and invalid drop targets do not fire
+`add.bs.calendar` or `edit.bs.calendar`. In day, week, workweek, 4-day, and timeline views, drag-create, drag-move, and drag-resize stop at
+the nearest valid rule boundary.
 
 For backend-backed calendars, save to your backend first and then either call `refresh` so the updated data is loaded from `url`, or call
 `addAppointment`, `editAppointment`, or `deleteAppointment` for an immediate local update and ensure the backend returns the same data on
@@ -740,21 +737,16 @@ later with `updateOptions`.
 | `translations`                | `object`                                      | `{search, searchNoResult}` merged with locale translations | Custom UI translations. See [Localization and Translations](#localization-and-translations).                       |
 | `icons`                       | `object`                                      | see [Icons](#icons)                                        | Bootstrap icon classes.                                                                                            |
 | `url`                         | `null`, `string`, or `function`               | `null`                                                     | Appointment data source. See [Remote Data with `url`](#remote-data-with-url).                                      |
-| `queryParams`                 | `function` or `null`                          | `null`                                                     | Adds custom request params before loading appointments.                                                            |
+| `queryParams`                 | `function` or `null`                          | `null`                                                     | Adds custom request params before loading appointments and remote availability rules.                              |
+| `availabilityRules`           | `array`, `object`, `string`, `function`, or `null` | `null`                                                | Static rules, a URL returning rules, or a function returning rules. See [Availability Rules](#availability-rules). |
 | `topbarAddons`                | selector, element, jQuery object, or `null`   | `null`                                                     | Element(s) inserted after the top toolbar.                                                                         |
 | `sidebarAddons`               | selector, element, jQuery object, or `null`   | `null`                                                     | Element(s) appended to the sidebar.                                                                                |
 | `formatter`                   | `object`                                      | see [Formatters](#formatters)                              | Custom render functions.                                                                                           |
-| `hourSlots`                   | `object`                                      | `{height: 30, start: 0, end: 24, timeLabelIntervalMinutes: null}` | Day/week/workweek/4day hour grid configuration.                                                                    |
+| `hourSlots`                   | `object`                                      | `{height: 30, start: 0, end: 24, timeLabelIntervalMinutes: null}` | Day/week/workweek/4day hour grid display configuration.                                                            |
 | `hourSlots.height`            | `number`                                      | `30`                                                       | Height in pixels for one hour. Minimum normalized value is `1`.                                                    |
 | `hourSlots.start`             | `number` or `string`                          | `0`                                                        | First visible hour. Normalized to `0` to `23`. Supports decimals and `HH:mm` strings.                               |
 | `hourSlots.end`               | `number` or `string`                          | `24`                                                       | Last visible hour boundary. Normalized to `1` to `24` and kept greater than `start`. Supports decimals and `HH:mm` strings. |
 | `hourSlots.timeLabelIntervalMinutes` | `number` or `null`                    | `null`                                                     | Adds small time labels and dashed guide lines within each hour, e.g. `15` displays :15, :30, and :45. Label size grows with available spacing, up to 12 px. |
-| `hourSlots.rules`             | `object`, `array`, or `null`                  | `null`                                                     | Highlight and availability rules for specific time slots. Accepts one object or an array of objects.               |
-| `hourSlots.rules.startTime`   | `string`                                      | `'08:00'`                                                  | Start time for each rule range (format `HH:mm`).                                                                   |
-| `hourSlots.rules.endTime`     | `string`                                      | `'17:00'`                                                  | End time for each rule range (format `HH:mm`).                                                                     |
-| `hourSlots.rules.daysOfWeek`  | `array`                                       | `[1,2,3,4,5]`                                              | Days of the week (0-6, Sun-Sat) for each rule range.                                                               |
-| `hourSlots.rules.mode`        | `string`                                      | `'highlight'`                                              | `exclusive` allows creation/move only inside the range, `blocked` prevents overlapping creation/move, `preferred` marks preferred work time, omitted mode only highlights. |
-| `hourSlots.rules.color`       | `string`                                      | `rgba(0,0,0,0.05)`                                         | Color/styling for each rule range, normalized with `getColors`.                                                    |
 | `appointmentRules`            | `object`                                      | `{durationMinutes: null, durationStepMinutes: null, minDurationMinutes: null, maxDurationMinutes: null}` | Timed appointment duration rules for click-create, drag-create, drag-move, and drag-resize.                        |
 | `appointmentRules.durationMinutes` | `number` or `null`                       | `null`                                                     | Exact required duration in minutes. If set, resize handles are hidden for timed appointments.                      |
 | `appointmentRules.durationStepMinutes` | `number` or `null`                   | `null`                                                     | Allows only durations divisible by this value, e.g. `45` allows 45/90/135-minute appointments.                     |
@@ -795,26 +787,142 @@ $('#calendar').bsCalendar({
 });
 ```
 
-### Hour Slot Rule Priority
+### Availability Rules
 
-`hourSlots.rules` affect availability in this order:
+`hourSlots` controls how the time grid looks. `availabilityRules` controls when appointments may be created or moved. A rule can cover a
+specific date and time or repeat using the same `recurrence` format as recurring appointments.
 
-1. `blocked` wins whenever the requested time range overlaps a blocked range.
-2. `exclusive` applies next. If any `exclusive` rule exists for the weekday, work is allowed only when the requested time range is fully
-   contained in an `exclusive` range.
-3. `preferred` allows work and sets `isPreferred`.
-4. `highlight` or an omitted `mode` is visual only and does not block work.
-5. If no rule matches, work is allowed.
+Set `availabilityRules` to a static rule object or array, a URL, or a function. A URL must return a JSON array of rules. A function receives
+the current `requestData` and can return an array or a promise for one. The plugin requests remote rules whenever it loads calendar data,
+including after navigation, a view change, or `refresh`. It passes the same date range or year and view parameters used for appointments.
+The plugin waits for both responses before normalizing and rendering the appointments.
 
-This means overlapping `blocked` and `exclusive` rules are treated as blocked. Overlapping `blocked` and `preferred` rules are also
-treated as blocked.
+Each rule needs `start`, `end`, and `mode`. Use date-time strings for timed ranges and date-only strings for full days. `id` and `color` are
+optional. For all-day rules, set `allDay: true`; date-only start and end values also represent complete days.
 
-Slot background colors use the same mode-aware priority. For overlapping colors, the winning availability rule provides the color.
+```javascript
+$('#calendar').bsCalendar({
+    availabilityRules: [
+        {
+            id: 'one-time-block',
+            start: '2026-12-08 08:00:00',
+            end: '2026-12-08 11:00:00',
+            mode: 'blocked'
+        },
+        {
+            id: 'weekly-day-off',
+            start: '2026-11-08',
+            end: '2026-11-08',
+            allDay: true,
+            mode: 'blocked',
+            recurrence: {
+                frequency: 'weekly',
+                interval: 1,
+                until: '2026-12-31',
+                daysOfWeek: [0, 1]
+            }
+        },
+        {
+            id: 'first-saturday-off',
+            start: '2026-11-07',
+            end: '2026-11-07',
+            allDay: true,
+            mode: 'blocked',
+            recurrence: {
+                frequency: 'monthly',
+                interval: 1,
+                daysOfWeek: [6],
+                weekOfMonth: 1
+            }
+        }
+    ]
+});
+```
+
+The example blocks Tuesday, December 8 from 08:00 to 11:00, every Sunday and Monday through December 31, and the first Saturday of each
+month. For a weekly rule, the source `start` and `end` dates anchor the recurring series; `daysOfWeek` uses `0` for Sunday through `6` for
+Saturday. `weekOfMonth: 1` means the first matching weekday in a month.
+
+Use a URL when the server supplies changing rules:
+
+```javascript
+$('#calendar').bsCalendar({
+    url: '/api/appointments',
+    availabilityRules: '/api/availability-rules'
+});
+```
+
+The rules endpoint receives the same view parameters as the appointments endpoint and returns rules directly:
+
+```json
+[
+  {
+    "id": "lunch-break",
+    "start": "2026-12-08 12:00:00",
+    "end": "2026-12-08 13:00:00",
+    "mode": "blocked"
+  }
+]
+```
+
+A function can load the same response, for example when the application needs to add an authentication header:
+
+```javascript
+$('#calendar').bsCalendar({
+    url: '/api/appointments',
+    availabilityRules(requestData) {
+        const query = new URLSearchParams(requestData);
+        return fetch('/api/availability-rules?' + query)
+            .then(response => response.json());
+    }
+});
+```
+
+Supported modes:
+
+- `blocked` prevents a proposed appointment from overlapping the rule. It takes priority over every other mode.
+- `available` limits appointments to the matching available intervals on dates where an available rule applies. The proposed appointment
+  must fit fully within the combined intervals. Time outside those intervals is shaded as blocked. Dates without a matching available rule are unaffected.
+- `preferred` and `highlight` add visual information but do not block an appointment.
+
+Availability rules validate new appointments and interactive moves/resizes. Appointments returned by the appointment source remain visible
+even if they overlap a blocked time; the calendar does not filter existing data.
+
+For example, this repeats a Monday-to-Friday working window every week. On those weekdays, a new appointment must fit between 09:00 and
+17:00. Other dates without a matching `available` rule are unaffected.
+
+```javascript
+$('#calendar').bsCalendar({
+    availabilityRules: {
+        start: '2026-11-09 09:00:00',
+        end: '2026-11-09 17:00:00',
+        mode: 'available',
+        recurrence: {
+            frequency: 'weekly',
+            interval: 1,
+            daysOfWeek: [1, 2, 3, 4, 5]
+        }
+    }
+});
+```
+
+You can replace the source while the calendar is open with `setAvailabilityRules` or `updateOptions`:
+
+```javascript
+$('#calendar').bsCalendar('setAvailabilityRules', [
+    {start: '2026-12-24', end: '2026-12-26', allDay: true, mode: 'blocked'}
+]);
+```
+
+Version 3 removes `hourSlots.rules` and `setHourSlotRules`. Move rules to the top-level `availabilityRules` option and replace
+`startTime`/`endTime` with dated `start`/`end` values. For repeating rules, put `frequency` and `daysOfWeek` inside `recurrence`; keep
+`start` and `end` at the rule's top level to anchor the series and define each occurrence's time. Rename the old `exclusive` mode to
+`available`, and add an explicit `mode` to each rule. The old `extras.hourSlotRules` property is now `extras.availability`.
 
 ### Appointment Duration Rules
 
 `appointmentRules` validates timed appointment durations during interactive creation, moving, and resizing. It is separate from
-`hourSlots.rules`: `hourSlots.rules` describes when work is allowed, while `appointmentRules` describes how long a timed appointment may be.
+`availabilityRules`: `availabilityRules` describes when work is allowed, while `appointmentRules` describes how long a timed appointment may be.
 
 Fixed 60-minute appointments:
 
@@ -980,11 +1088,11 @@ $('#calendar').bsCalendar('refresh');
 | `editAppointment`     | appointment object with `id`, or `{id, appointment}` / `{id, data}` | Deep-merges changes into the currently loaded appointment with the same ID, normalizes it, renders, and fires `edited.bs.calendar`. Ignored in search mode and year view. |
 | `editApointment`      | same as `editAppointment`                                           | Backward-compatible misspelled alias.                                                                                                                                     |
 | `deleteAppointment`   | appointment `id` or object with `id`                                | Deletes one currently loaded appointment by ID, renders, and fires `deleted.bs.calendar`. Ignored in search mode and year view.                                           |
-| `destroy`             | none                                                                | Removes generated markup/events, aborts outstanding appointment requests, removes the info modal, and restores the original element state.                                |
+| `destroy`             | none                                                                | Removes generated markup/events, aborts outstanding data requests, removes the info modal, and restores the original element state.                                       |
 | `setDate`             | date string, `Date`, or `{date, view}`                              | Sets the visible reference date and optionally switches to an enabled view. Ignored in search mode.                                                                       |
 | `setToday`            | optional view string                                                | Sets the reference date to today and optionally switches to an enabled view. Ignored in search mode.                                                                      |
 | `setView`             | view string                                                         | Switches to an enabled view and reloads/renders. Ignored in search mode.                                                                                                  |
-| `setHourSlotRules`     | `object`, `array`, or `null`                                         | Updates `hourSlots.rules` and refreshes the grid.                                                                                                                       |
+| `setAvailabilityRules` | `array`, `object`, `string`, `function`, or `null`                    | Replaces the availability rule source and reloads the current view.                                                                                                    |
 | `setLocale`           | locale string                                                       | Normalizes the locale and applies it through `updateOptions`. Ignored in search mode.                                                                                     |
 
 Examples:
@@ -1000,29 +1108,7 @@ $('#calendar').bsCalendar('deleteAppointment', 123);
 $('#calendar').bsCalendar('setDate', {date: '2026-05-08', view: 'day'});
 $('#calendar').bsCalendar('setToday', 'week');
 $('#calendar').bsCalendar('setView', 'month');
-$('#calendar').bsCalendar('setHourSlotRules', [
-    {
-        daysOfWeek: [1, 2, 3, 4, 5],
-        startTime: '09:00',
-        endTime: '17:00',
-        mode: 'exclusive',
-        color: 'rgba(25, 135, 84, 0.055)'
-    },
-    {
-        daysOfWeek: [6],
-        startTime: '10:00',
-        endTime: '14:00',
-        mode: 'preferred',
-        color: 'rgba(13, 110, 253, 0.045)'
-    },
-    {
-        daysOfWeek: [0],
-        startTime: '00:00',
-        endTime: '23:59',
-        mode: 'blocked',
-        color: 'rgba(220, 53, 69, 0.06)'
-    }
-]);
+$('#calendar').bsCalendar('setAvailabilityRules', '/api/availability-rules');
 $('#calendar').bsCalendar('setLocale', 'de-DE');
 $('#calendar').bsCalendar('destroy');
 ```
@@ -1046,7 +1132,7 @@ When `draggable` is disabled, resize handles are hidden and move/resize interact
 visible independently of the horizontal timeline scroll area.
 
 Timeline appointments support click-to-add, drag-create, horizontal move, and horizontal resize when `draggable: true`. All of these
-interactions use the existing `add.bs.calendar` and `edit.bs.calendar` events and respect `hourSlots.rules`, `appointmentRules`, and
+interactions use the existing `add.bs.calendar` and `edit.bs.calendar` events and respect `availabilityRules`, `appointmentRules`, and
 `draggableSnapMinutes`.
 
 ## Formatters
@@ -1142,7 +1228,7 @@ visible `times.start` and `times.end` values for that day.
 | `duration.totalMinutes`     | Total minutes.                                                            |
 | `duration.totalSeconds`     | Total seconds.                                                            |
 | `duration.formatted`        | Formatter output from `formatter.duration`.                               |
-| `hourSlotRules`              | Mode-aware availability object derived from `hourSlots.rules`.                  |
+| `availability`               | Result of checking the appointment range against the loaded `availabilityRules`. |
 | `displayDates`              | Per-day display data used by month/week/day rendering.                    |
 | `allDay`                    | Whether the appointment is all-day.                                       |
 | `inADay`                    | Whether it stays within one calendar day.                                 |
@@ -1163,18 +1249,18 @@ visible `times.start` and `times.end` values for that day.
 | `frequency`       | Normalized frequency value.                          |
 | `interval`        | Normalized interval value.                           |
 
-`extras.hourSlotRules` and drag `dragExtras.hourSlotRules` contain:
+`extras.availability` and drag `dragExtras.availability` contain:
 
 | Field         | Description                                                                 |
 |---------------|-----------------------------------------------------------------------------|
-| `canWork`     | `false` for blocked ranges and outside exclusive ranges, otherwise `true`.   |
-| `mode`        | Matching mode: `exclusive`, `preferred`, `blocked`, `highlight`, or `null`.  |
-| `reason`      | Availability reason: `available`, `blocked`, `exclusive`, `outsideExclusive`, `preferred`, or `highlighted`. |
-| `range`       | The matching `hourSlots.rules` object, or `null`.                           |
-| `inRange`     | Whether the appointment is fully contained in the matching range.            |
-| `isBlocked`   | Whether the range blocks work.                                               |
-| `isPreferred` | Whether the range marks preferred work time.                                 |
-| `isExclusive` | Whether exclusive mode affects this appointment.                             |
+| `canWork`     | `false` when blocked, still loading, or outside matching available intervals. |
+| `mode`        | Matching mode: `available`, `preferred`, `blocked`, `highlight`, or `null`.   |
+| `reason`      | Why the range is allowed or blocked, such as `blocked` or `outsideAvailable`.  |
+| `range`       | The matching availability rule, or `null` when no single rule applies.        |
+| `inRange`     | Whether the appointment is fully contained in the matching rule.              |
+| `isBlocked`   | Whether a blocked rule overlaps the appointment.                              |
+| `isAvailable` | Whether an available rule fully covers the appointment.                       |
+| `isPreferred` | Whether the appointment overlaps a preferred rule.                            |
 
 `displayDates[]` entries contain:
 
@@ -1472,9 +1558,12 @@ Key files:
 ├── dist/
 │   ├── bs-calendar.js
 │   └── bs-calendar.min.js
-└── demo/
+├── demo/
     ├── index.html
     └── img/
+└── test/
+    ├── index.html
+    └── tests/
 ```
 
 Development notes:
@@ -1483,7 +1572,7 @@ Development notes:
 - `dist/bs-calendar.js` is the unminified browser source.
 - `dist/bs-calendar.min.js` should be regenerated after changes to `dist/bs-calendar.js`.
 - The demo expects Composer dependencies in `vendor/`.
-- No automated test suite is currently included.
+- The browser-based QUnit suite is loaded from `test/index.html` and also expects Composer dependencies in `vendor/`.
 
 Changelog and support:
 
@@ -1493,13 +1582,13 @@ Changelog and support:
 
 ## Completeness Check
 
-This README is intended to cover the public surface of version `2.5.4`:
+This README is intended to cover the public surface of version `3.0.0`:
 
 - All `DEFAULTS` options from `dist/bs-calendar.js`
 - All public plugin methods in the method switch
 - All jQuery events emitted through `trigger()` and matching `on*` callback options
 - Appointment object fields, including task fields and generated `id` behavior
-- `url` value types, request data, and response contracts
+- `url` and `availabilityRules` source types, request data, and response contracts
 - Formatter signatures
 - `extras` fields used by callbacks and formatters
 - Global `$.bsCalendar` API and utility helpers

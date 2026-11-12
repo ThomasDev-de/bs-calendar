@@ -7,7 +7,7 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 2.5.4
+ * @version 3.0.0
  * @date 2026-11-12
  * @license MIT
  * @requires "jQuery" ^3
@@ -684,9 +684,9 @@
     };
 
     $.bsCalendar = {
-        version: '2.5.4',
+        version: '3.0.0',
         about: {
-            version: '2.5.4',
+            version: '3.0.0',
             releaseDate: '2026-11-12',
             project: 'https://github.com/ThomasDev-de/bs-calendar/',
             issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
@@ -793,9 +793,9 @@
                 height: 30, // one hour in px
                 start: 0, // starting hour as integer
                 end: 24, // ending hour as integer
-                timeLabelIntervalMinutes: null,
-                rules: null
+                timeLabelIntervalMinutes: null
             },
+            availabilityRules: null,
             appointmentRules: {
                 durationMinutes: null,
                 durationStepMinutes: null,
@@ -1979,8 +1979,11 @@
                 showTasks: true,
                 searchPagination: null,
                 xhrs: {
-                    appointments: null
+                    appointments: null,
+                    availabilityRules: null
                 },
+                availabilityRules: [],
+                availabilityRulesReady: true,
                 mainColor: null,
                 borderBefore: null,
             };
@@ -2144,12 +2147,12 @@
                         }
                     }
                     break;
-                case 'setHourSlotRules':
+                case 'setAvailabilityRules':
                     if (!inSearchMode) {
-                        methods.setHourSlotRules(wrapper, params);
+                        methods.setAvailabilityRules(wrapper, params);
                     } else {
                         if (getSettings(wrapper).debug) {
-                            log('Attempt to call setHourSlotRules() in search mode — ignored.');
+                            log('Attempt to call setAvailabilityRules() in search mode — ignored.');
                         }
                     }
                     break;
@@ -2325,12 +2328,8 @@
             if (Object.prototype.hasOwnProperty.call(options, 'topbarAddons')) {
                 merged.topbarAddons = Array.isArray(options.topbarAddons) ? [...options.topbarAddons] : options.topbarAddons;
             }
-            if (
-                options.hourSlots &&
-                typeof options.hourSlots === 'object' &&
-                Object.prototype.hasOwnProperty.call(options.hourSlots, 'rules')
-            ) {
-                merged.hourSlots.rules = copyHourSlotRules(options.hourSlots.rules);
+            if (Object.prototype.hasOwnProperty.call(options, 'availabilityRules')) {
+                merged.availabilityRules = copyAvailabilityRulesSource(options.availabilityRules);
             }
             if (Object.prototype.hasOwnProperty.call(options, 'calendars')) {
                 if (Array.isArray(options.calendars) && Array.isArray(prevSettings.calendars)) {
@@ -2446,6 +2445,7 @@
 
             $wrapper.find('[data-appointment]').remove();
             $wrapper.find('[data-role="holiday"]').remove();
+            $wrapper.find('[data-availability-marker]').remove();
             $wrapper.find('[data-month-expand-toggle], [data-month-expanded-day]').remove();
             $wrapper.find('[data-month-expanded-active]').removeAttr('data-month-expanded-active');
 
@@ -2551,9 +2551,13 @@
 
             // If there is an active request stored, try to abort it (jqXHR or AbortController)
             const abortXHRAppointments = abortXhr(data.xhrs.appointments);
+            const abortXHRAvailabilityRules = abortXhr(data.xhrs.availabilityRules);
 
             if (!abortXHRAppointments && settings.debug && data.xhrs.appointments) {
                 log("Error while aborting xhrs.appointments during destroy:", data.xhrs.appointments);
+            }
+            if (!abortXHRAvailabilityRules && settings.debug && data.xhrs.availabilityRules) {
+                log("Error while aborting xhrs.availabilityRules during destroy:", data.xhrs.availabilityRules);
             }
 
 
@@ -2679,18 +2683,16 @@
             buildByView($wrapper, true);
         },
         /**
-         * Updates hour slot rules and refreshes the current view.
+         * Updates the availability rule source and reloads the current view.
          *
          * @param {jQuery} $wrapper - The calendar wrapper.
-         * @param {Object|Object[]|null} hourSlotRules - A rule object,
-         * an array of rule objects, or null to disable rules.
+         * @param {Array|String|Function|null} availabilityRules - Static rules,
+         * a URL, a function returning rules, or null to clear the rules.
          * @return {void}
          */
-        setHourSlotRules($wrapper, hourSlotRules) {
+        setAvailabilityRules($wrapper, availabilityRules) {
             methods.updateOptions($wrapper, {
-                hourSlots: {
-                    rules: hourSlotRules
-                }
+                availabilityRules: availabilityRules
             });
         },
         /**
@@ -3170,6 +3172,15 @@
         if (settings.timelineGroupBy !== null && settings.timelineGroupBy !== undefined) {
             const timelineGroupBy = String(settings.timelineGroupBy).trim();
             settings.timelineGroupBy = timelineGroupBy || null;
+        }
+
+        if (
+            Array.isArray(settings.availabilityRules) ||
+            (settings.availabilityRules && typeof settings.availabilityRules === 'object')
+        ) {
+            settings.availabilityRules = copyAvailabilityRulesSource(settings.availabilityRules);
+        } else if (typeof settings.availabilityRules !== 'string' && typeof settings.availabilityRules !== 'function') {
+            settings.availabilityRules = null;
         }
 
         if (!settings.appointmentRules || typeof settings.appointmentRules !== 'object') {
@@ -5949,7 +5960,7 @@
                                     getLocalDateIndex(globalDragState.monthMoveDragState.sourceDateLocal);
                                 const tempStart = addDaysPreservingTime(start, dayDelta);
                                 const tempEnd = addDaysPreservingTime(end, dayDelta);
-                                canUseTargetCell = isHourSlotRuleRangeAllowed(globalDragState.monthMoveDragState.$wrapper, tempStart, tempEnd) &&
+                                canUseTargetCell = isAvailabilityRuleRangeAllowed(globalDragState.monthMoveDragState.$wrapper, tempStart, tempEnd) &&
                                     isAppointmentDurationAllowed(globalDragState.monthMoveDragState.$wrapper, tempStart, tempEnd);
                             }
 
@@ -5980,7 +5991,7 @@
                                 getLocalDateIndex(globalDragState.monthMoveDragState.sourceDateLocal);
                             const tempStart = addDaysPreservingTime(start, dayDelta);
                             const tempEnd = addDaysPreservingTime(end, dayDelta);
-                            const canWork = isHourSlotRuleRangeAllowed(globalDragState.monthMoveDragState.$wrapper, tempStart, tempEnd) &&
+                            const canWork = isAvailabilityRuleRangeAllowed(globalDragState.monthMoveDragState.$wrapper, tempStart, tempEnd) &&
                                 isAppointmentDurationAllowed(globalDragState.monthMoveDragState.$wrapper, tempStart, tempEnd);
                             globalDragState.monthMoveDragState.canWork = canWork;
                             globalDragState.monthMoveDragState.$appointment.css('cursor', canWork ? 'grabbing' : 'not-allowed');
@@ -6006,7 +6017,7 @@
                         const percentage = Math.max(0, Math.min(1, (pointX - trackRect.left) / trackRect.width));
                         const endMinutesRaw = percentage * rangeMinutes;
                         const snap = getSnapMinutes(dragState.$wrapper);
-                        const clampedRange = clampCreateMinutesToHourSlotRules(
+                        const clampedRange = clampCreateMinutesToAvailabilityRules(
                             dragState.$wrapper,
                             String($track.attr('data-date-local')),
                             dragState.startMinutes,
@@ -6017,7 +6028,7 @@
                         const endMinutes = clampedRange.endMinutes;
                         const previewStart = buildDateTimeByMinutes(dragState.$wrapper, String($track.attr('data-date-local')), startMinutes);
                         const previewEnd = buildDateTimeByMinutes(dragState.$wrapper, String($track.attr('data-date-local')), endMinutes);
-                        const canWork = isHourSlotRuleRangeAllowed(dragState.$wrapper, previewStart, previewEnd) &&
+                        const canWork = isAvailabilityRuleRangeAllowed(dragState.$wrapper, previewStart, previewEnd) &&
                             isAppointmentDurationAllowed(dragState.$wrapper, previewStart, previewEnd);
                         const previousTrack = dragState.$track;
                         dragState.$track = $track;
@@ -6045,7 +6056,7 @@
                     if (endMinutes - startMinutes < snap) {
                         endMinutes = Math.min(endMinutes + snap, (settings.hourSlots.end - settings.hourSlots.start) * 60);
                     }
-                    const clampedRange = clampCreateMinutesToHourSlotRules(
+                    const clampedRange = clampCreateMinutesToAvailabilityRules(
                         globalDragState.createDragState.$wrapper,
                         globalDragState.createDragState.dateLocal,
                         globalDragState.createDragState.startMinutes,
@@ -6059,7 +6070,7 @@
                     const heightPx = Math.max(10, ((endMinutes - startMinutes) / 60) * settings.hourSlots.height);
                     const previewStart = buildDateTimeByMinutes(globalDragState.createDragState.$wrapper, globalDragState.createDragState.dateLocal, startMinutes);
                     const previewEnd = buildDateTimeByMinutes(globalDragState.createDragState.$wrapper, globalDragState.createDragState.dateLocal, endMinutes);
-                    const canWork = isHourSlotRuleRangeAllowed(globalDragState.createDragState.$wrapper, previewStart, previewEnd) &&
+                    const canWork = isAvailabilityRuleRangeAllowed(globalDragState.createDragState.$wrapper, previewStart, previewEnd) &&
                         isAppointmentDurationAllowed(globalDragState.createDragState.$wrapper, previewStart, previewEnd);
 
                     globalDragState.createDragState.$preview.css({
@@ -6113,7 +6124,7 @@
                         const newStartMinutes = Math.max(0, Math.min(maxStart, pointerMinutes - dragState.offsetMinutes));
                         const snappedStart = Math.round(newStartMinutes / snap) * snap;
                         const targetDateLocal = String($track.attr('data-date-local'));
-                        const clampedMove = clampMoveMinutesToHourSlotRules(
+                        const clampedMove = clampMoveMinutesToAvailabilityRules(
                             dragState.$wrapper,
                             targetDateLocal,
                             snappedStart,
@@ -6122,7 +6133,7 @@
                         const clampedStart = clampedMove.startMinutes;
                         const tempStart = buildDateTimeByMinutes(dragState.$wrapper, targetDateLocal, clampedStart);
                         const tempEnd = new Date(tempStart.getTime() + dragState.durationMs);
-                        const canWork = isHourSlotRuleRangeAllowed(dragState.$wrapper, tempStart, tempEnd) &&
+                        const canWork = isAvailabilityRuleRangeAllowed(dragState.$wrapper, tempStart, tempEnd) &&
                             isAppointmentDurationAllowed(dragState.$wrapper, tempStart, tempEnd);
 
                         // Keep the last valid position while the pointer is over a blocked range.
@@ -6180,7 +6191,7 @@
                         const targetNewStartMinutes = Math.max(0, Math.min(targetMaxStart, targetPointerMinutes - globalDragState.moveDragState.offsetMinutes));
                         const targetSnap = getSnapMinutes(globalDragState.moveDragState.$wrapper);
                         const targetSnappedStart = Math.round(targetNewStartMinutes / targetSnap) * targetSnap;
-                        const targetClampedMove = clampMoveMinutesToHourSlotRules(
+                        const targetClampedMove = clampMoveMinutesToAvailabilityRules(
                             globalDragState.moveDragState.$wrapper,
                             targetDateLocal,
                             targetSnappedStart,
@@ -6208,7 +6219,7 @@
                     const newStartMinutes = Math.max(0, Math.min(maxStart, pointerMinutes - globalDragState.moveDragState.offsetMinutes));
                     const snap = getSnapMinutes(globalDragState.moveDragState.$wrapper);
                     let snappedStart = Math.round(newStartMinutes / snap) * snap;
-                    const clampedMove = clampMoveMinutesToHourSlotRules(
+                    const clampedMove = clampMoveMinutesToAvailabilityRules(
                         globalDragState.moveDragState.$wrapper,
                         globalDragState.moveDragState.dateLocal,
                         snappedStart,
@@ -6222,7 +6233,7 @@
                     );
                     const tempEnd = new Date(tempStart.getTime() + globalDragState.moveDragState.durationMs);
                     const canWork = !blockedMoveTarget &&
-                        isHourSlotRuleRangeAllowed(globalDragState.moveDragState.$wrapper, tempStart, tempEnd) &&
+                        isAvailabilityRuleRangeAllowed(globalDragState.moveDragState.$wrapper, tempStart, tempEnd) &&
                         isAppointmentDurationAllowed(globalDragState.moveDragState.$wrapper, tempStart, tempEnd);
                     relayoutDayContainerForDrag(
                         globalDragState.moveDragState.$wrapper,
@@ -6275,7 +6286,7 @@
                         const steppedPointerMinutes = dragState.edge === 'start'
                             ? fixedMinutes - steppedDistance
                             : fixedMinutes + steppedDistance;
-                        const clampedResize = clampResizeMinutesToHourSlotRules(
+                        const clampedResize = clampResizeMinutesToAvailabilityRules(
                             dragState.$wrapper,
                             dragState.dateLocal,
                             dragState.edge,
@@ -6286,7 +6297,7 @@
                         const tempStart = buildDateTimeByMinutes(dragState.$wrapper, dragState.dateLocal, clampedResize.startMinutes);
                         const tempEnd = buildDateTimeByMinutes(dragState.$wrapper, dragState.dateLocal, clampedResize.endMinutes);
                         const canWork = clampedResize.canWork &&
-                            isHourSlotRuleRangeAllowed(dragState.$wrapper, tempStart, tempEnd) &&
+                            isAvailabilityRuleRangeAllowed(dragState.$wrapper, tempStart, tempEnd) &&
                             isAppointmentDurationAllowed(dragState.$wrapper, tempStart, tempEnd);
                         const left = (clampedResize.startMinutes / rangeMinutes) * 100;
                         const width = ((clampedResize.endMinutes - clampedResize.startMinutes) / rangeMinutes) * 100;
@@ -6325,7 +6336,7 @@
                     const steppedPointerMinutes = globalDragState.resizeDragState.edge === 'start'
                         ? fixedMinutes - steppedDistance
                         : fixedMinutes + steppedDistance;
-                    const clampedResize = clampResizeMinutesToHourSlotRules(
+                    const clampedResize = clampResizeMinutesToAvailabilityRules(
                         globalDragState.resizeDragState.$wrapper,
                         globalDragState.resizeDragState.dateLocal,
                         globalDragState.resizeDragState.edge,
@@ -6346,7 +6357,7 @@
                         endMinutes
                     );
                     const canWork = clampedResize.canWork &&
-                        isHourSlotRuleRangeAllowed(globalDragState.resizeDragState.$wrapper, tempStart, tempEnd) &&
+                        isAvailabilityRuleRangeAllowed(globalDragState.resizeDragState.$wrapper, tempStart, tempEnd) &&
                         isAppointmentDurationAllowed(globalDragState.resizeDragState.$wrapper, tempStart, tempEnd);
 
                     relayoutDayContainerForDrag(
@@ -6404,7 +6415,7 @@
                         const start = buildDateTimeByMinutes(globalDragState.createDragState.$wrapper, globalDragState.createDragState.dateLocal, globalDragState.createDragState.currentStartMinutes);
                         const end = buildDateTimeByMinutes(globalDragState.createDragState.$wrapper, globalDragState.createDragState.dateLocal, globalDragState.createDragState.currentEndMinutes);
                         const dragExtras = getDragAppointmentExtras(globalDragState.createDragState.$wrapper, start, end);
-                        if (!dragExtras.hourSlotRules.canWork || !dragExtras.appointmentRules.canWork) {
+                        if (!dragExtras.availability.canWork || !dragExtras.appointmentRules.canWork) {
                             globalDragState.createDragState = null;
                         } else {
                             if (globalDragState.createDragState.timeline) {
@@ -6448,7 +6459,7 @@
 
                             const returnData = getAppointmentForReturn(appointment);
                             const dragExtras = getDragAppointmentExtras(globalDragState.moveDragState.$wrapper, newStart, newEnd);
-                            if (!dragExtras.hourSlotRules.canWork || !dragExtras.appointmentRules.canWork) {
+                            if (!dragExtras.availability.canWork || !dragExtras.appointmentRules.canWork) {
                                 buildAppointmentsForView(globalDragState.moveDragState.$wrapper);
                                 globalDragState.moveDragState = null;
                             } else {
@@ -6478,7 +6489,7 @@
                             const newEnd = buildDateTimeByMinutes(dragState.$wrapper, dragState.dateLocal, dragState.currentEndMinutes);
                             const returnData = getAppointmentForReturn(appointment);
                             const dragExtras = getDragAppointmentExtras(dragState.$wrapper, newStart, newEnd);
-                            if (!dragExtras.hourSlotRules.canWork || !dragExtras.appointmentRules.canWork) {
+                            if (!dragExtras.availability.canWork || !dragExtras.appointmentRules.canWork) {
                                 buildAppointmentsForView(dragState.$wrapper);
                                 globalDragState.resizeDragState = null;
                             } else {
@@ -6511,8 +6522,8 @@
                                 const newStart = addDaysPreservingTime(start, dayDelta);
                                 const newEnd = addDaysPreservingTime(end, dayDelta);
                                 const returnData = getAppointmentForReturn(appointment);
-                                const dragExtras = getDragAppointmentExtras(dragState.$wrapper, newStart, newEnd);
-                                if (!dragExtras.hourSlotRules.canWork || !dragExtras.appointmentRules.canWork) {
+                                const dragExtras = getDragAppointmentExtras(dragState.$wrapper, newStart, newEnd, !!appointment.allDay);
+                                if (!dragExtras.availability.canWork || !dragExtras.appointmentRules.canWork) {
                                     buildAppointmentsForView(dragState.$wrapper);
                                     globalDragState.monthMoveDragState = null;
                                 } else {
@@ -6855,7 +6866,7 @@
                 const end = new Date(start);
                 end.setMinutes(end.getMinutes() + getDefaultAppointmentCreateDurationMinutes($eventWrapper, 30));
                 const dragExtras = getDragAppointmentExtras($eventWrapper, start, end);
-                if (!dragExtras.hourSlotRules.canWork || !dragExtras.appointmentRules.canWork) {
+                if (!dragExtras.availability.canWork || !dragExtras.appointmentRules.canWork) {
                     e.preventDefault();
                     e.stopPropagation();
                     return;
@@ -6908,7 +6919,7 @@
                 const end = new Date(start.getTime());
                 end.setMinutes(end.getMinutes() + getDefaultAppointmentCreateDurationMinutes($eventWrapper, snapMinutes));
                 const dragExtras = getDragAppointmentExtras($eventWrapper, start, end);
-                if (!dragExtras.hourSlotRules.canWork || !dragExtras.appointmentRules.canWork) {
+                if (!dragExtras.availability.canWork || !dragExtras.appointmentRules.canWork) {
                     e.preventDefault();
                     e.stopPropagation();
                     return;
@@ -6960,7 +6971,7 @@
                 const initialStart = buildDateTimeByMinutes($eventWrapper, dateLocal, startMinutes);
                 const initialEnd = buildDateTimeByMinutes($eventWrapper, dateLocal, initialEndMinutes);
                 const initialExtras = getDragAppointmentExtras($eventWrapper, initialStart, initialEnd);
-                if (!initialExtras.hourSlotRules.canWork || !initialExtras.appointmentRules.canWork) {
+                if (!initialExtras.availability.canWork || !initialExtras.appointmentRules.canWork) {
                     e.preventDefault();
                     e.stopPropagation();
                     return;
@@ -7057,7 +7068,7 @@
                 const initialEnd = new Date(initialStart.getTime());
                 const initialDuration = getDefaultAppointmentCreateDurationMinutes($eventWrapper, getSnapMinutes($eventWrapper));
                 initialEnd.setMinutes(initialEnd.getMinutes() + initialDuration);
-                if (!isHourSlotRuleRangeAllowed($eventWrapper, initialStart, initialEnd) || !isAppointmentDurationAllowed($eventWrapper, initialStart, initialEnd)) {
+                if (!isAvailabilityRuleRangeAllowed($eventWrapper, initialStart, initialEnd) || !isAppointmentDurationAllowed($eventWrapper, initialStart, initialEnd)) {
                     e.preventDefault();
                     e.stopPropagation();
                     return;
@@ -7493,7 +7504,7 @@
 
                 end.setMinutes(end.getMinutes() + 30);
                 const dragExtras = getDragAppointmentExtras($eventWrapper, start, end);
-                if (!dragExtras.hourSlotRules.canWork) {
+                if (!dragExtras.availability.canWork) {
                     e.preventDefault();
                     e.stopPropagation();
                     return;
@@ -7529,6 +7540,14 @@
                     ? {start: selectedDate, end: selectedDate}
                     : getStartAndEndDateByView($eventWrapper);
 
+                const start = $.bsCalendar.utils.parseDateInput(period.start);
+                const end = $.bsCalendar.utils.parseDateInput(period.end);
+                const dragExtras = getDragAppointmentExtras($eventWrapper, start, end, true);
+                if (!dragExtras.availability.canWork) {
+                    e.stopPropagation();
+                    return;
+                }
+
                 const data = {
                     start: {
                         date: $.bsCalendar.utils.formatDateToDateString(period.start),
@@ -7540,7 +7559,7 @@
                     },
                     view: getView($eventWrapper)
                 };
-                trigger($eventWrapper, 'add', data);
+                trigger($eventWrapper, 'add', data, dragExtras);
                 removeInfoWindowModal();
             })
             .off('click' + namespace, '[data-today]')
@@ -8648,6 +8667,115 @@
     }
 
     /**
+     * Loads availability rules from the configured source before appointments are rendered.
+     * Static rules are normalized immediately; URL and function sources receive the
+     * same request data as the appointment source.
+     *
+     * @param {jQuery} $wrapper - The calendar wrapper.
+     * @param {Object} requestData - The current view's request parameters.
+     * @return {Promise<Array>} A promise resolving to the normalized rules.
+     */
+    function loadAvailabilityRules($wrapper, requestData) {
+        const data = getBsCalendarData($wrapper);
+        const source = data.settings.availabilityRules;
+
+        if (
+            Array.isArray(source) ||
+            (source && typeof source === 'object') ||
+            source === null ||
+            source === undefined
+        ) {
+            data.availabilityRules = normalizeAvailabilityRules(source);
+            data.availabilityRulesReady = true;
+            setBsCalendarData($wrapper, data);
+            return Promise.resolve(data.availabilityRules);
+        }
+
+        data.availabilityRulesReady = false;
+        data.availabilityRules = [];
+        setBsCalendarData($wrapper, data);
+
+        let request;
+        if (typeof source === 'function') {
+            request = Promise.resolve().then(() => source(requestData));
+        } else if (typeof source === 'string') {
+            request = $.ajax({
+                url: source,
+                method: 'GET',
+                contentType: 'application/json',
+                data: requestData,
+                dataType: 'json'
+            });
+            data.xhrs.availabilityRules = request;
+            setBsCalendarData($wrapper, data);
+        } else {
+            request = Promise.resolve([]);
+        }
+
+        return Promise.resolve(request).then(rules => {
+            const currentData = getBsCalendarData($wrapper);
+            currentData.availabilityRules = normalizeAvailabilityRules(rules);
+            currentData.availabilityRulesReady = true;
+            currentData.xhrs.availabilityRules = null;
+            setBsCalendarData($wrapper, currentData);
+            return currentData.availabilityRules;
+        }).catch(error => {
+            const currentData = getBsCalendarData($wrapper);
+            currentData.availabilityRules = [];
+            currentData.availabilityRulesReady = false;
+            currentData.xhrs.availabilityRules = null;
+            setBsCalendarData($wrapper, currentData);
+            throw error;
+        });
+    }
+
+    function requestAppointments($wrapper, requestData, inSearchMode) {
+        const data = getBsCalendarData($wrapper);
+        const source = data.settings.url;
+
+        if (typeof source === 'function') {
+            return Promise.resolve().then(() => source(requestData));
+        }
+
+        if (typeof source === 'string') {
+            const request = $.ajax({
+                url: source,
+                method: 'GET',
+                contentType: 'application/json',
+                data: requestData
+            });
+            data.xhrs.appointments = request;
+            setBsCalendarData($wrapper, data);
+            return Promise.resolve(request);
+        }
+
+        return Promise.resolve(inSearchMode ? {rows: [], total: 0} : []);
+    }
+
+    function renderLoadedAppointments($wrapper, response, inSearchMode) {
+        const data = getBsCalendarData($wrapper);
+        const appointments = inSearchMode ? response?.rows : response;
+
+        if (!Array.isArray(appointments)) {
+            return Promise.reject(new TypeError('Appointment data must be an array.'));
+        }
+
+        return checkAndSetAppointments($wrapper, appointments).then(cleanedAppointments => {
+            if (!isCalendarActive($wrapper, data)) {
+                return cleanedAppointments;
+            }
+
+            trigger($wrapper, 'after-load', cleanedAppointments);
+            if (inSearchMode) {
+                buildAppointmentsForSearch($wrapper, cleanedAppointments, response.total);
+            } else {
+                buildAppointmentsForView($wrapper);
+            }
+            return cleanedAppointments;
+        });
+    }
+
+    /**
      * Fetches appointments for the current calendar wrapper and rebuilds the
      * appointment-related view state.
      *
@@ -8663,16 +8791,20 @@
      * - no remote source, in which case the calendar continues with an empty
      *   appointment list
      *
+     * Availability rules can be provided as static values, a URL, or a function.
+     * Remote rules receive the same request data and must finish loading before
+     * appointments are normalized and rendered.
+     *
      * The function prevents duplicate concurrent loads for the same calendar
      * wrapper by using a wrapper-specific loading flag. It also injects the active
      * calendar IDs into every request and optionally allows user-defined query
      * parameters to enrich the request data without overriding protected core keys.
      *
      * During the lifecycle, the function keeps the previous rendered appointments
-     * visible while the next async result is loading, triggers before-load and
+     * visible while the next async results are loading, triggers before-load and
      * after-load events, shows and hides the calendar loader, stores cleaned
-     * appointments, and rebuilds either the normal calendar view or the search
-     * result view.
+     * appointments and availability rules, and rebuilds either the normal calendar
+     * view or the search result view.
      *
      * @param {jQuery} $wrapper
      * The calendar wrapper whose appointments should be fetched and rendered.
@@ -8909,202 +9041,53 @@
          */
         trigger($wrapper, 'before-load', requestData);
 
-        /**
-         * Determine which transport type should be used.
-         *
-         * A function source is expected to return a Promise.
-         * A string source is treated as an AJAX URL.
-         */
-        const callFunction = typeof settings.url === 'function';
-        const callAjax = typeof settings.url === 'string';
+        const hasRemoteAppointmentSource = typeof settings.url === 'function' || typeof settings.url === 'string';
+        const hasRemoteAvailabilitySource =
+            typeof settings.availabilityRules === 'function' ||
+            typeof settings.availabilityRules === 'string';
 
-        /**
-         * Show the calendar loader only when a remote or function-based data source
-         * is actually called.
-         */
-        if (callFunction || callAjax) {
+        if (hasRemoteAppointmentSource || hasRemoteAvailabilitySource) {
             showBSCalendarLoader($wrapper);
         }
 
-        if (callFunction) {
-            /**
-             * Function-based appointment loading.
-             *
-             * The configured function receives the prepared request data and should
-             * resolve with either:
-             *
-             * - an appointment array in normal mode
-             * - an object containing rows and total in search mode
-             */
-            if (settings.debug) {
-                log('Call appointments by function with query:', requestData);
+        if (settings.debug) {
+            if (hasRemoteAppointmentSource) {
+                log('Load appointments with query:', requestData);
             }
-
-            settings.url(requestData)
-                .then(appointments => {
-                    if (settings.debug) {
-                        log('result:', appointments);
-                    }
-
-                    if (inSearchMode) {
-                        /**
-                         * In search mode, process returned rows and build the search
-                         * result view including the total result count.
-                         */
-                        checkAndSetAppointments($wrapper, appointments.rows).then(cleanedAppointments => {
-                            if (!isCalendarActive($wrapper, bsCalendarData)) return;
-                            trigger($wrapper, 'after-load', cleanedAppointments);
-                            buildAppointmentsForSearch(
-                                $wrapper,
-                                cleanedAppointments,
-                                appointments.total
-                            );
-                        });
-                    } else {
-                        /**
-                         * In normal mode, process the appointment array and rebuild
-                         * the current calendar view.
-                         */
-                        checkAndSetAppointments($wrapper, appointments).then(_cleanedAppointments => {
-                            if (!isCalendarActive($wrapper, bsCalendarData)) return;
-                            trigger($wrapper, 'after-load', _cleanedAppointments);
-                            void _cleanedAppointments;
-                            buildAppointmentsForView($wrapper);
-                        });
-                    }
-                })
-                .catch(error => {
-                    /**
-                     * Handle errors from the function-based data source.
-                     */
-                    hideBSCalendarLoader($wrapper);
-
-                    if (settings.debug) {
-                        log('Error fetching appointments:', error);
-                    }
-                })
-                .finally(() => {
-                    /**
-                     * Always hide the loader and clear the loading flag after the
-                     * function-based request finishes.
-                     */
-                    hideBSCalendarLoader($wrapper);
-                    if (isCalendarActive($wrapper, bsCalendarData)) {
-                        bsCalendarData.loading = false;
-                        setBsCalendarData($wrapper, bsCalendarData);
-                    }
-                });
-
-        } else if (callAjax) {
-            /**
-             * AJAX-based appointment loading.
-             *
-             * The configured URL is called with a GET request and the prepared
-             * request data.
-             */
-
-            /**
-             * Abort any existing appointment request for this wrapper before
-             * starting a new one.
-             *
-             * This prevents stale responses from older requests from updating the
-             * calendar after a newer request has already been started.
-             */
-            abortXhr(bsCalendarData.xhrs.appointments);
-            bsCalendarData.xhrs.appointments = null;
-
-            if (settings.debug) {
-                log('Call appointments by URL:', settings.url);
+            if (hasRemoteAvailabilitySource) {
+                log('Load availability rules with query:', requestData);
             }
-
-            bsCalendarData.xhrs.appointments = $.ajax({
-                url: settings.url,
-                method: 'GET',
-                contentType: 'application/json',
-                data: requestData,
-
-                success: function (response) {
-                    if (inSearchMode) {
-                        /**
-                         * In search mode, use response.rows as appointment data and
-                         * response.total for pagination/result count rendering.
-                         */
-                            checkAndSetAppointments($wrapper, response.rows).then(cleanedAppointments => {
-                                if (!isCalendarActive($wrapper, bsCalendarData)) return;
-                            trigger($wrapper, 'after-load', cleanedAppointments);
-                            buildAppointmentsForSearch(
-                                $wrapper,
-                                cleanedAppointments,
-                                response.total
-                            );
-                        });
-                    } else {
-                        /**
-                         * In normal mode, use the full response as appointment data
-                         * and rebuild the calendar view.
-                         */
-                            checkAndSetAppointments($wrapper, response).then(_cleanedAppointments => {
-                                if (!isCalendarActive($wrapper, bsCalendarData)) return;
-                            trigger($wrapper, 'after-load', _cleanedAppointments);
-                            void _cleanedAppointments;
-                            buildAppointmentsForView($wrapper);
-                        });
-                    }
-                },
-
-                error: function (xhr, status, error) {
-                    /**
-                     * Ignore abort errors because they are expected when a request
-                     * is intentionally cancelled.
-                     */
-                    if (status !== 'abort') {
-                        if (settings.debug) {
-                            log('Error when retrieving the dates:', status, error);
-                        }
-                    }
-                },
-
-                complete: function () {
-                    /**
-                     * Clear the stored XHR reference, hide the loader and reset the
-                     * loading flag after the AJAX request has completed.
-                     */
-                    bsCalendarData.xhrs.appointments = null;
-                    hideBSCalendarLoader($wrapper);
-
-                    if (isCalendarActive($wrapper, bsCalendarData)) {
-                        bsCalendarData.loading = false;
-                        setBsCalendarData($wrapper, bsCalendarData);
-                    }
-                }
-            });
-        } else {
-            /**
-             * No remote appointment source is configured.
-             *
-             * The calendar still runs the normal appointment workflow with an empty
-             * appointment list. This allows other data sources or side effects, such
-             * as holidays, to continue working.
-             */
-            if (settings.debug) {
-                log('No URL provided, skipping appointment fetch but continuing with local workflow');
-            }
-
-            checkAndSetAppointments($wrapper, []).then(_cleanedAppointments => {
-                if (!isCalendarActive($wrapper, bsCalendarData)) return;
-                trigger($wrapper, 'after-load', _cleanedAppointments);
-                void _cleanedAppointments;
-                buildAppointmentsForView($wrapper);
-            }).finally(() => {
-                /**
-                 * Clear the loading flag after the local empty workflow finishes.
-                 */
-                if (isCalendarActive($wrapper, bsCalendarData)) {
-                    bsCalendarData.loading = false;
-                    setBsCalendarData($wrapper, bsCalendarData);
-                }
-            });
         }
+
+        const appointmentRequest = Promise.resolve().then(() =>
+            requestAppointments($wrapper, requestData, inSearchMode)
+        );
+        const availabilityRequest = loadAvailabilityRules($wrapper, requestData);
+
+        Promise.allSettled([appointmentRequest, availabilityRequest])
+            .then(results => {
+                const failedRequest = results.find(result => result.status === 'rejected');
+                if (failedRequest) {
+                    throw failedRequest.reason;
+                }
+
+                return renderLoadedAppointments($wrapper, results[0].value, inSearchMode);
+            })
+            .catch(error => {
+                if (settings.debug) {
+                    log('Error loading calendar data:', error);
+                }
+            })
+            .finally(() => {
+                const currentData = getBsCalendarData($wrapper);
+                currentData.xhrs.appointments = null;
+                currentData.xhrs.availabilityRules = null;
+                hideBSCalendarLoader($wrapper);
+                if (isCalendarActive($wrapper, currentData)) {
+                    currentData.loading = false;
+                    setBsCalendarData($wrapper, currentData);
+                }
+            });
     }
 
     /**
@@ -10456,10 +10439,16 @@
      * @param {Date} end - The dragged end date.
      * @return {Object} The dragged start/end date and time values.
      */
-    function getDragAppointmentExtras($wrapper, start, end) {
-        const settings = getSettings($wrapper);
-        const hourSlotRulesAvailability = getHourSlotRulesAvailabilityForRange($wrapper, start, end);
-        const appointmentRulesAvailability = getAppointmentRulesAvailabilityForRange($wrapper, start, end);
+    function getDragAppointmentExtras($wrapper, start, end, allDay = false) {
+        const availability = getAvailabilityRulesAvailabilityForRange($wrapper, start, end, allDay);
+        const appointmentRulesAvailability = allDay
+            ? {
+                canWork: true,
+                durationMinutes: null,
+                rules: $.extend(true, {}, getAppointmentRules($wrapper)),
+                violations: []
+            }
+            : getAppointmentRulesAvailabilityForRange($wrapper, start, end);
 
         return {
             start: {
@@ -10470,7 +10459,7 @@
                 date: $.bsCalendar.utils.formatDateToDateString(end),
                 time: $.bsCalendar.utils.formatTime(end, false)
             },
-            hourSlotRules: hourSlotRulesAvailability,
+            availability: availability,
             appointmentRules: appointmentRulesAvailability
         };
     }
@@ -10577,105 +10566,234 @@
         return getAppointmentRulesAvailabilityForRange($wrapper, start, end).canWork;
     }
 
-    function getHourSlotRulesAvailabilityForRange($wrapper, start, end) {
-        const settings = getSettings($wrapper);
+    /**
+     * Evaluates a proposed appointment range against the rules loaded for this view.
+     * Blocking rules take priority; available rules limit work to their intervals
+     * on dates where they apply. Preferred and highlighted rules are informational.
+     *
+     * @param {jQuery} $wrapper - The calendar wrapper.
+     * @param {Date|string} start - Proposed start.
+     * @param {Date|string} end - Proposed end.
+     * @param {boolean} [allDay=false] - Whether the proposal covers whole calendar days.
+     * @return {Object} Availability details used by interactions and appointment extras.
+     */
+    function getAvailabilityRulesAvailabilityForRange($wrapper, start, end, allDay = false) {
+        const data = getBsCalendarData($wrapper);
+        const rules = getAvailabilityRulesList(data.availabilityRules);
+        const range = normalizeAvailabilityCandidateRange(start, end, allDay);
 
-        if ($.bsCalendar.utils.isValueEmpty(settings.hourSlots.rules)) {
-            return getDefaultHourSlotRulesAvailability();
+        if (!data.availabilityRulesReady) {
+            return getDefaultAvailability(false, 'loading');
+        }
+        if (!range || !rules.length) {
+            return getDefaultAvailability();
         }
 
-        return evaluateHourSlotRulesAvailability(
-            settings.hourSlots.rules,
-            start.getDay(),
-            $.bsCalendar.utils.formatTime(start, false),
-            $.bsCalendar.utils.formatTime(end, false)
+        const occurrences = getAvailabilityRuleOccurrences(rules, range.start, range.end);
+        const blockedOccurrence = occurrences.find(item =>
+            normalizeAvailabilityMode(item.rule.mode) === 'blocked' &&
+            availabilityRangesOverlap(range.start, range.end, item.start, item.end)
         );
+
+        if (blockedOccurrence) {
+            return {
+                ...getDefaultAvailability(false, 'blocked'),
+                mode: 'blocked',
+                range: blockedOccurrence.rule,
+                inRange: true,
+                isBlocked: true
+            };
+        }
+
+        let cursor = new Date(range.start.getFullYear(), range.start.getMonth(), range.start.getDate());
+        while (cursor < range.end) {
+            const dayStart = new Date(cursor);
+            const dayEnd = new Date(cursor);
+            dayEnd.setDate(dayEnd.getDate() + 1);
+            const segmentStart = new Date(Math.max(range.start.getTime(), dayStart.getTime()));
+            const segmentEnd = new Date(Math.min(range.end.getTime(), dayEnd.getTime()));
+            const availableOccurrences = getAvailabilityRuleOccurrences(
+                rules.filter(item => normalizeAvailabilityMode(item.mode) === 'available'),
+                dayStart,
+                dayEnd
+            );
+
+            if (
+                segmentEnd > segmentStart &&
+                availableOccurrences.length &&
+                !isAvailabilityRangeCovered(segmentStart, segmentEnd, availableOccurrences)
+            ) {
+                return {
+                    ...getDefaultAvailability(false, 'outsideAvailable'),
+                    mode: 'available',
+                    isAvailable: false
+                };
+            }
+
+            cursor.setDate(cursor.getDate() + 1);
+        }
+
+        const availableOccurrence = occurrences.find(item =>
+            normalizeAvailabilityMode(item.rule.mode) === 'available' &&
+            range.start >= item.start && range.end <= item.end
+        );
+        if (availableOccurrence) {
+            return {
+                ...getDefaultAvailability(),
+                mode: 'available',
+                reason: 'available',
+                range: availableOccurrence.rule,
+                inRange: true,
+                isAvailable: true
+            };
+        }
+
+        const preferredOccurrence = occurrences.find(item =>
+            normalizeAvailabilityMode(item.rule.mode) === 'preferred' &&
+            availabilityRangesOverlap(range.start, range.end, item.start, item.end)
+        );
+        if (preferredOccurrence) {
+            return {
+                ...getDefaultAvailability(),
+                mode: 'preferred',
+                reason: 'preferred',
+                range: preferredOccurrence.rule,
+                inRange: range.start >= preferredOccurrence.start && range.end <= preferredOccurrence.end,
+                isPreferred: true
+            };
+        }
+
+        const highlightedOccurrence = occurrences.find(item =>
+            normalizeAvailabilityMode(item.rule.mode) === 'highlight' &&
+            availabilityRangesOverlap(range.start, range.end, item.start, item.end)
+        );
+        if (highlightedOccurrence) {
+            return {
+                ...getDefaultAvailability(),
+                mode: 'highlight',
+                reason: 'highlighted',
+                range: highlightedOccurrence.rule,
+                inRange: range.start >= highlightedOccurrence.start && range.end <= highlightedOccurrence.end
+            };
+        }
+
+        return getDefaultAvailability();
     }
 
-    function isHourSlotRuleRangeAllowed($wrapper, start, end) {
-        return getHourSlotRulesAvailabilityForRange($wrapper, start, end).canWork;
+    /**
+     * Returns whether an appointment range is allowed by the loaded availability rules.
+     *
+     * @param {jQuery} $wrapper - The calendar wrapper.
+     * @param {Date|string} start - Proposed start.
+     * @param {Date|string} end - Proposed end.
+     * @return {boolean} True when no availability rule blocks the range.
+     */
+    function isAvailabilityRuleRangeAllowed($wrapper, start, end) {
+        return getAvailabilityRulesAvailabilityForRange($wrapper, start, end).canWork;
     }
 
-    function getHourSlotRulesAllowedIntervals($wrapper, day) {
+    function normalizeAvailabilityCandidateRange(start, end, allDay = false) {
+        const parsedStart = start instanceof Date ? new Date(start) : $.bsCalendar.utils.parseDateInput(start);
+        const parsedEnd = end instanceof Date ? new Date(end) : $.bsCalendar.utils.parseDateInput(end);
+        if (!parsedStart || !parsedEnd || isNaN(parsedStart.getTime()) || isNaN(parsedEnd.getTime())) {
+            return null;
+        }
+
+        if (allDay) {
+            parsedStart.setHours(0, 0, 0, 0);
+            parsedEnd.setHours(23, 59, 59, 0);
+        }
+
+        return parsedEnd > parsedStart ? {start: parsedStart, end: parsedEnd} : null;
+    }
+
+    /**
+     * Builds the allowed minute intervals for one date in the visible hour grid.
+     * Available intervals are combined first, then blocked intervals are removed.
+     *
+     * @param {jQuery} $wrapper - The calendar wrapper.
+     * @param {Date|string} dateValue - Date whose intervals should be calculated.
+     * @return {Array<Object>} Allowed intervals with minute-based start and end values.
+     */
+    function getAvailabilityRulesAllowedIntervals($wrapper, dateValue) {
         const settings = getSettings($wrapper);
+        const data = getBsCalendarData($wrapper);
+        const date = dateValue instanceof Date ? new Date(dateValue) : $.bsCalendar.utils.parseDateInput(dateValue);
+        if (!data.availabilityRulesReady || !date || isNaN(date.getTime())) {
+            return [];
+        }
+
+        const dayStart = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+        const dayEnd = new Date(dayStart);
+        dayEnd.setDate(dayEnd.getDate() + 1);
+        const rules = getAvailabilityRulesList(data.availabilityRules);
+        const dayOccurrences = getAvailabilityRuleOccurrences(rules, dayStart, dayEnd);
+        const availableOccurrences = dayOccurrences.filter(item => normalizeAvailabilityMode(item.rule.mode) === 'available');
+        const blockedOccurrences = dayOccurrences.filter(item => normalizeAvailabilityMode(item.rule.mode) === 'blocked');
         const visibleStart = settings.hourSlots.start * 60;
         const visibleEnd = settings.hourSlots.end * 60;
-        const ranges = getHourSlotRulesList(settings.hourSlots.rules)
-            .filter(item => hourSlotRulesMatchesDay(item, day));
-        const exclusiveRanges = ranges.filter(item => normalizeHourSlotRulesMode(item.mode) === 'exclusive');
-        const blockedRanges = ranges.filter(item => normalizeHourSlotRulesMode(item.mode) === 'blocked');
-        let intervals = exclusiveRanges.length
-            ? exclusiveRanges.map(item => getHourSlotRulesTimeRange(item))
-            : [{start: settings.hourSlots.start, end: settings.hourSlots.end}];
-
-        intervals = intervals
-            .map(interval => ({
-                start: Math.max(visibleStart, interval.start * 60),
-                end: Math.min(visibleEnd, interval.end * 60)
+        let intervals = availableOccurrences.length
+            ? availableOccurrences.map(item => ({
+                start: Math.max(visibleStart, (Math.max(item.start.getTime(), dayStart.getTime()) - dayStart.getTime()) / 60000),
+                end: Math.min(visibleEnd, (Math.min(item.end.getTime(), dayEnd.getTime()) - dayStart.getTime()) / 60000)
             }))
-            .filter(interval => interval.end > interval.start)
-            .sort((a, b) => a.start - b.start || a.end - b.end);
+            : [{start: visibleStart, end: visibleEnd}];
 
-        intervals = mergeHourSlotRulesIntervals(intervals);
+        intervals = mergeAvailabilityIntervals(intervals.filter(item => item.end > item.start));
 
-        blockedRanges.forEach(blockedRange => {
-            const range = getHourSlotRulesTimeRange(blockedRange);
-            const blockedStart = Math.max(visibleStart, range.start * 60);
-            const blockedEnd = Math.min(visibleEnd, range.end * 60);
+        blockedOccurrences.forEach(item => {
+            const blockedStart = Math.max(visibleStart, (Math.max(item.start.getTime(), dayStart.getTime()) - dayStart.getTime()) / 60000);
+            const blockedEnd = Math.min(visibleEnd, (Math.min(item.end.getTime(), dayEnd.getTime()) - dayStart.getTime()) / 60000);
             if (blockedEnd <= blockedStart) {
                 return;
             }
 
-            const nextIntervals = [];
+            const remaining = [];
             intervals.forEach(interval => {
                 if (blockedEnd <= interval.start || blockedStart >= interval.end) {
-                    nextIntervals.push(interval);
+                    remaining.push(interval);
                     return;
                 }
                 if (blockedStart > interval.start) {
-                    nextIntervals.push({
-                        start: interval.start,
-                        end: Math.min(blockedStart, interval.end)
-                    });
+                    remaining.push({start: interval.start, end: Math.min(blockedStart, interval.end)});
                 }
                 if (blockedEnd < interval.end) {
-                    nextIntervals.push({
-                        start: Math.max(blockedEnd, interval.start),
-                        end: interval.end
-                    });
+                    remaining.push({start: Math.max(blockedEnd, interval.start), end: interval.end});
                 }
             });
-            intervals = nextIntervals.filter(interval => interval.end > interval.start);
+            intervals = remaining.filter(item => item.end > item.start);
         });
 
         return intervals;
     }
 
-    function mergeHourSlotRulesIntervals(intervals) {
+    /**
+     * Sorts and joins overlapping or adjacent minute intervals.
+     *
+     * @param {Array<Object>} intervals - Intervals with numeric start and end values.
+     * @return {Array<Object>} Sorted, merged intervals.
+     */
+    function mergeAvailabilityIntervals(intervals) {
         const merged = [];
-
-        intervals.forEach(interval => {
+        intervals.sort((a, b) => a.start - b.start || a.end - b.end).forEach(interval => {
             const previous = merged[merged.length - 1];
             if (!previous || interval.start > previous.end) {
-                merged.push($.extend({}, interval));
-                return;
+                merged.push({...interval});
+            } else {
+                previous.end = Math.max(previous.end, interval.end);
             }
-            previous.end = Math.max(previous.end, interval.end);
         });
-
         return merged;
     }
 
-    function clampCreateMinutesToHourSlotRules($wrapper, dateLocal, anchorMinutes, floatingMinutes, minDurationMinutes) {
+    function clampCreateMinutesToAvailabilityRules($wrapper, dateLocal, anchorMinutes, floatingMinutes, minDurationMinutes) {
         const settings = getSettings($wrapper);
         const visibleStart = settings.hourSlots.start * 60;
-        const date = $.bsCalendar.utils.parseDateInput(dateLocal);
-        const day = date.getDay();
         const anchor = visibleStart + anchorMinutes;
         const floating = visibleStart + floatingMinutes;
         const minDuration = getMinimumAppointmentDurationMinutes($wrapper, minDurationMinutes);
-        const intervals = getHourSlotRulesAllowedIntervals($wrapper, day)
-            .filter(interval => interval.end - interval.start >= minDuration);
+        const intervals = getAvailabilityRulesAllowedIntervals($wrapper, dateLocal)
+            .filter(item => item.end - item.start >= minDuration);
 
         if (!intervals.length) {
             return {
@@ -10688,12 +10806,10 @@
 
         let interval = intervals.find(item => anchor >= item.start && anchor <= item.end);
         if (!interval) {
-            interval = intervals
-                .map(item => ({
-                    interval: item,
-                    distance: Math.min(Math.abs(anchor - item.start), Math.abs(anchor - item.end))
-                }))
-                .sort((a, b) => a.distance - b.distance)[0].interval;
+            interval = intervals.map(item => ({
+                interval: item,
+                distance: Math.min(Math.abs(anchor - item.start), Math.abs(anchor - item.end))
+            })).sort((a, b) => a.distance - b.distance)[0].interval;
         }
 
         let start = anchor;
@@ -10714,61 +10830,47 @@
         start = Math.max(interval.start, Math.min(start, interval.end - duration));
         end = Math.min(interval.end, Math.max(end, start + duration));
 
-        const startMinutes = start - visibleStart;
-        const endMinutes = end - visibleStart;
         return {
-            startMinutes: startMinutes,
-            endMinutes: endMinutes,
-            canWork: endMinutes > startMinutes,
+            startMinutes: start - visibleStart,
+            endMinutes: end - visibleStart,
+            canWork: end > start,
             clamped: start !== Math.min(anchor, floating) || end !== Math.max(anchor, floating)
         };
     }
 
-    function clampMoveMinutesToHourSlotRules($wrapper, dateLocal, startMinutes, durationMinutes) {
+    function clampMoveMinutesToAvailabilityRules($wrapper, dateLocal, startMinutes, durationMinutes) {
         const settings = getSettings($wrapper);
         const visibleStart = settings.hourSlots.start * 60;
-        const date = $.bsCalendar.utils.parseDateInput(dateLocal);
-        const day = date.getDay();
         const duration = Math.max(1, durationMinutes || 1);
         const proposedStart = visibleStart + startMinutes;
-        const intervals = getHourSlotRulesAllowedIntervals($wrapper, day)
-            .filter(interval => interval.end - interval.start >= duration);
+        const intervals = getAvailabilityRulesAllowedIntervals($wrapper, dateLocal)
+            .filter(item => item.end - item.start >= duration);
 
         if (!intervals.length) {
-            return {
-                startMinutes: startMinutes,
-                canWork: false,
-                clamped: false
-            };
+            return {startMinutes: startMinutes, canWork: false, clamped: false};
         }
 
         const candidates = intervals.map(interval => {
             const start = Math.max(interval.start, Math.min(proposedStart, interval.end - duration));
-            return {
-                start: start,
-                distance: Math.abs(start - proposedStart)
-            };
+            return {start: start, distance: Math.abs(start - proposedStart)};
         }).sort((a, b) => a.distance - b.distance || a.start - b.start);
 
-        const best = candidates[0];
         return {
-            startMinutes: best.start - visibleStart,
+            startMinutes: candidates[0].start - visibleStart,
             canWork: true,
-            clamped: best.start !== proposedStart
+            clamped: candidates[0].start !== proposedStart
         };
     }
 
-    function clampResizeMinutesToHourSlotRules($wrapper, dateLocal, edge, fixedMinutes, floatingMinutes, minDurationMinutes) {
+    function clampResizeMinutesToAvailabilityRules($wrapper, dateLocal, edge, fixedMinutes, floatingMinutes, minDurationMinutes) {
         const settings = getSettings($wrapper);
         const visibleStart = settings.hourSlots.start * 60;
         const visibleEnd = settings.hourSlots.end * 60;
-        const date = $.bsCalendar.utils.parseDateInput(dateLocal);
-        const day = date.getDay();
         const minDuration = getMinimumAppointmentDurationMinutes($wrapper, minDurationMinutes);
         const fixed = visibleStart + fixedMinutes;
         const floating = Math.max(visibleStart, Math.min(visibleEnd, visibleStart + floatingMinutes));
-        const intervals = getHourSlotRulesAllowedIntervals($wrapper, day)
-            .filter(interval => interval.end - interval.start >= minDuration);
+        const intervals = getAvailabilityRulesAllowedIntervals($wrapper, dateLocal)
+            .filter(item => item.end - item.start >= minDuration);
 
         if (!intervals.length) {
             const startMinutes = edge === 'start'
@@ -10777,7 +10879,6 @@
             const endMinutes = edge === 'start'
                 ? fixedMinutes
                 : Math.max(floatingMinutes, fixedMinutes + minDuration);
-
             return {
                 startMinutes: Math.max(0, startMinutes),
                 endMinutes: Math.min((settings.hourSlots.end - settings.hourSlots.start) * 60, endMinutes),
@@ -10788,12 +10889,10 @@
 
         let interval = intervals.find(item => fixed >= item.start && fixed <= item.end);
         if (!interval) {
-            interval = intervals
-                .map(item => ({
-                    interval: item,
-                    distance: Math.min(Math.abs(fixed - item.start), Math.abs(fixed - item.end))
-                }))
-                .sort((a, b) => a.distance - b.distance)[0].interval;
+            interval = intervals.map(item => ({
+                interval: item,
+                distance: Math.min(Math.abs(fixed - item.start), Math.abs(fixed - item.end))
+            })).sort((a, b) => a.distance - b.distance)[0].interval;
         }
 
         let start;
@@ -11046,180 +11145,219 @@
         return ['low', 'normal', 'high'].includes(normalized) ? normalized : 'normal';
     }
 
-    function copyHourSlotRules(hourSlotRules) {
-        if (hourSlotRules === null || hourSlotRules === undefined) {
-            return null;
+    /**
+     * Copies a static rules value without cloning URL strings or callback functions.
+     *
+     * @param {Array|Object|String|Function|null} source - Availability rule source.
+     * @return {Array|Object|String|Function|null} A copy for static values, or the original source.
+     */
+    function copyAvailabilityRulesSource(source) {
+        if (Array.isArray(source)) {
+            return $.extend(true, [], source);
         }
-        return $.extend(true, Array.isArray(hourSlotRules) ? [] : {}, hourSlotRules);
+        if (source && typeof source === 'object') {
+            return $.extend(true, {}, source);
+        }
+        return source;
     }
 
-    function getHourSlotRulesList(hourSlotRules) {
-        if ($.bsCalendar.utils.isValueEmpty(hourSlotRules)) {
+    /**
+     * Returns a rules value as an array and filters out non-object entries.
+     *
+     * @param {Array|Object|null|undefined} rules - Static rules or a single rule.
+     * @return {Array<Object>} Rule objects.
+     */
+    function getAvailabilityRulesList(rules) {
+        if (rules === null || rules === undefined) {
             return [];
         }
-
-        const list = Array.isArray(hourSlotRules) ? hourSlotRules : [hourSlotRules];
-
+        const list = Array.isArray(rules) ? rules : [rules];
         return list.filter(item => item && typeof item === 'object');
     }
 
-    function getMatchingHourSlotRules(hourSlotRules, day, startTime, endTime = null) {
-        const start = $.bsCalendar.utils.parseTimeToDecimal(startTime);
-        const end = endTime === null ? null : $.bsCalendar.utils.parseTimeToDecimal(endTime);
+    /**
+     * Keeps only rules with a valid date range and supported mode.
+     *
+     * @param {Array|Object|null|undefined} rules - Raw rules from options or a response.
+     * @return {Array<Object>} Normalized rule objects.
+     */
+    function normalizeAvailabilityRules(rules) {
+        return getAvailabilityRulesList(rules)
+            .filter(rule => getAvailabilityRuleDateRange(rule) && normalizeAvailabilityMode(rule.mode))
+            .map(rule => $.extend(true, {}, rule, {mode: normalizeAvailabilityMode(rule.mode)}));
+    }
 
-        return getHourSlotRulesList(hourSlotRules).find(item => {
-            if (!hourSlotRulesMatchesDay(item, day)) {
+    /**
+     * Normalizes a rule mode. `exclusive` remains accepted as an alias for `available`.
+     *
+     * @param {*} mode - Raw mode value.
+     * @return {string|null} A supported mode, or null for an invalid value.
+     */
+    function normalizeAvailabilityMode(mode) {
+        const normalized = typeof mode === 'string' ? mode.trim().toLowerCase() : '';
+        if (normalized === 'exclusive') {
+            return 'available';
+        }
+        return ['available', 'blocked', 'preferred', 'highlight'].includes(normalized)
+            ? normalized
+            : null;
+    }
+
+    /**
+     * Parses a rule's start and end values. Date-only values represent complete days.
+     *
+     * @param {Object} rule - Availability rule.
+     * @return {Object|null} Parsed range and all-day state, or null if invalid.
+     */
+    function getAvailabilityRuleDateRange(rule) {
+        if (!rule || rule.start === null || rule.end === null || rule.start === undefined || rule.end === undefined) {
+            return null;
+        }
+
+        const startIsDateOnly = isAvailabilityDateOnly(rule.start);
+        const endIsDateOnly = isAvailabilityDateOnly(rule.end);
+        const start = $.bsCalendar.utils.parseDateInput(rule.start);
+        const end = $.bsCalendar.utils.parseDateInput(rule.end);
+        if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) {
+            return null;
+        }
+
+        const allDay = rule.allDay === true || (startIsDateOnly && endIsDateOnly);
+        if (allDay || startIsDateOnly) {
+            start.setHours(0, 0, 0, 0);
+        }
+        if (allDay || endIsDateOnly) {
+            end.setHours(23, 59, 59, 0);
+        }
+
+        return end > start ? {start: start, end: end, allDay: allDay} : null;
+    }
+
+    function isAvailabilityDateOnly(value) {
+        return typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.trim());
+    }
+
+    /**
+     * Expands recurring rules that overlap the requested date range.
+     *
+     * @param {Array<Object>} rules - Availability rules.
+     * @param {Date} rangeStart - Inclusive beginning of the range to inspect.
+     * @param {Date} rangeEnd - Exclusive end of the range to inspect.
+     * @return {Array<Object>} Matching rules paired with their occurrence dates.
+     */
+    function getAvailabilityRuleOccurrences(rules, rangeStart, rangeEnd) {
+        const occurrences = [];
+        getAvailabilityRulesList(rules).forEach((rule, index) => {
+            const range = getAvailabilityRuleDateRange(rule);
+            if (!range) {
+                return;
+            }
+
+            const source = $.extend(true, {}, rule, {
+                id: rule.id === null || rule.id === undefined ? `availability-${index}` : rule.id,
+                start: formatLocalDateTime(range.start),
+                end: formatLocalDateTime(range.end)
+            });
+            const recurrence = normalizeRecurrenceRule(source);
+            const items = recurrence
+                ? expandRecurringAppointment(source, recurrence, rangeStart, rangeEnd)
+                : (availabilityRangesOverlap(rangeStart, rangeEnd, range.start, range.end) ? [source] : []);
+
+            items.forEach(item => {
+                const start = $.bsCalendar.utils.parseDateInput(item.start);
+                const end = $.bsCalendar.utils.parseDateInput(item.end);
+                if (
+                    start && end &&
+                    !isNaN(start.getTime()) && !isNaN(end.getTime()) &&
+                    availabilityRangesOverlap(rangeStart, rangeEnd, start, end)
+                ) {
+                    occurrences.push({rule: rule, start: start, end: end});
+                }
+            });
+        });
+        return occurrences;
+    }
+
+    /**
+     * Checks whether two date ranges overlap, treating their end values as exclusive.
+     *
+     * @param {Date} startA - First range start.
+     * @param {Date} endA - First range end.
+     * @param {Date} startB - Second range start.
+     * @param {Date} endB - Second range end.
+     * @return {boolean} True when the ranges overlap.
+     */
+    function availabilityRangesOverlap(startA, endA, startB, endB) {
+        return startA < endB && endA > startB;
+    }
+
+    /**
+     * Checks whether matching available occurrences cover a full candidate range.
+     *
+     * @param {Date} start - Candidate start.
+     * @param {Date} end - Candidate end.
+     * @param {Array<Object>} occurrences - Available rule occurrences.
+     * @return {boolean} True when there are no gaps in the combined intervals.
+     */
+    function isAvailabilityRangeCovered(start, end, occurrences) {
+        const intervals = occurrences
+            .map(item => ({start: item.start.getTime(), end: item.end.getTime()}))
+            .filter(item => item.end > start.getTime() && item.start < end.getTime())
+            .sort((a, b) => a.start - b.start || a.end - b.end);
+
+        let coveredUntil = start.getTime();
+        for (const interval of intervals) {
+            if (interval.start > coveredUntil) {
                 return false;
             }
-
-            if (end === null) {
-                return hourSlotRulesContainsPoint(item, start);
+            coveredUntil = Math.max(coveredUntil, interval.end);
+            if (coveredUntil >= end.getTime()) {
+                return true;
             }
-
-            return hourSlotRulesContainsRange(item, start, end);
-        }) || null;
+        }
+        return coveredUntil >= end.getTime();
     }
 
-    function getHourSlotRulesColors(hourSlotRules) {
-        return $.bsCalendar.utils.getColors(
-            hourSlotRules && hourSlotRules.color ? hourSlotRules.color : null,
-            'rgba(0, 0, 0, 0.05)'
-        );
+    function getAvailabilityRuleColors(rule) {
+        const mode = normalizeAvailabilityMode(rule && rule.mode);
+        const defaultColor = mode === 'blocked'
+            ? 'rgba(220, 53, 69, 0.18)'
+            : mode === 'available'
+                ? 'rgba(25, 135, 84, 0.12)'
+                : mode === 'preferred'
+                    ? 'rgba(13, 110, 253, 0.10)'
+                    : 'rgba(0, 0, 0, 0.05)';
+        return $.bsCalendar.utils.getColors(rule && rule.color ? rule.color : null, defaultColor);
     }
 
-    function normalizeHourSlotRulesMode(mode) {
-        const normalized = typeof mode === 'string' ? mode.trim().toLowerCase() : '';
-        return ['exclusive', 'preferred', 'blocked'].includes(normalized) ? normalized : 'highlight';
+    /**
+     * Gets the background colors for a time segment. Time outside an applicable
+     * available range uses the blocked color to make its disabled state visible.
+     *
+     * @param {Object} availability - Availability result for the segment.
+     * @return {Object|null} Resolved colors, or null when the segment has no rule styling.
+     */
+    function getAvailabilityBackgroundColors(availability) {
+        if (availability.range) {
+            return getAvailabilityRuleColors(availability.range);
+        }
+        if (availability.reason === 'outsideAvailable') {
+            return getAvailabilityRuleColors({mode: 'blocked'});
+        }
+        return null;
     }
 
-    function getHourSlotRulesTimeRange(hourSlotRules) {
+    function getDefaultAvailability(canWork = true, reason = 'available') {
         return {
-            start: $.bsCalendar.utils.parseTimeToDecimal(hourSlotRules.startTime || '00:00'),
-            end: $.bsCalendar.utils.parseTimeToDecimal(hourSlotRules.endTime || '23:59')
-        };
-    }
-
-    function hourSlotRulesMatchesDay(hourSlotRules, day) {
-        return Array.isArray(hourSlotRules.daysOfWeek)
-            ? hourSlotRules.daysOfWeek.includes(day)
-            : false;
-    }
-
-    function hourSlotRulesContainsPoint(hourSlotRules, point) {
-        const range = getHourSlotRulesTimeRange(hourSlotRules);
-        return point >= range.start && point < range.end;
-    }
-
-    function hourSlotRulesContainsRange(hourSlotRules, start, end) {
-        const range = getHourSlotRulesTimeRange(hourSlotRules);
-        return start >= range.start && end <= range.end;
-    }
-
-    function hourSlotRulesOverlapsRange(hourSlotRules, start, end) {
-        const range = getHourSlotRulesTimeRange(hourSlotRules);
-        return start < range.end && end > range.start;
-    }
-
-    function getDefaultHourSlotRulesAvailability() {
-        return {
-            canWork: true,
+            canWork: canWork,
             mode: null,
-            reason: 'available',
+            reason: reason,
             range: null,
             inRange: false,
             isBlocked: false,
-            isPreferred: false,
-            isExclusive: false
+            isAvailable: false,
+            isPreferred: false
         };
-    }
-
-    function evaluateHourSlotRulesAvailability(hourSlotRules, day, startTime, endTime) {
-        const start = $.bsCalendar.utils.parseTimeToDecimal(startTime);
-        const end = $.bsCalendar.utils.parseTimeToDecimal(endTime);
-        const ranges = getHourSlotRulesList(hourSlotRules)
-            .filter(item => hourSlotRulesMatchesDay(item, day));
-
-        const availability = getDefaultHourSlotRulesAvailability();
-
-        if (!ranges.length) {
-            return availability;
-        }
-
-        const containedRanges = ranges.filter(item => hourSlotRulesContainsRange(item, start, end));
-        const overlappingRanges = ranges.filter(item => hourSlotRulesOverlapsRange(item, start, end));
-        const blockedRange = overlappingRanges.find(item => normalizeHourSlotRulesMode(item.mode) === 'blocked');
-
-        if (blockedRange) {
-            return {
-                canWork: false,
-                mode: 'blocked',
-                reason: 'blocked',
-                range: blockedRange,
-                inRange: containedRanges.includes(blockedRange),
-                isBlocked: true,
-                isPreferred: false,
-                isExclusive: false
-            };
-        }
-
-        const exclusiveRanges = ranges.filter(item => normalizeHourSlotRulesMode(item.mode) === 'exclusive');
-        const exclusiveRange = containedRanges.find(item => normalizeHourSlotRulesMode(item.mode) === 'exclusive');
-
-        if (exclusiveRange) {
-            return {
-                canWork: true,
-                mode: 'exclusive',
-                reason: 'exclusive',
-                range: exclusiveRange,
-                inRange: true,
-                isBlocked: false,
-                isPreferred: false,
-                isExclusive: true
-            };
-        }
-
-        if (exclusiveRanges.length) {
-            return {
-                canWork: false,
-                mode: 'exclusive',
-                reason: 'outsideExclusive',
-                range: null,
-                inRange: false,
-                isBlocked: false,
-                isPreferred: false,
-                isExclusive: true
-            };
-        }
-
-        const preferredRange = containedRanges.find(item => normalizeHourSlotRulesMode(item.mode) === 'preferred');
-
-        if (preferredRange) {
-            return {
-                canWork: true,
-                mode: 'preferred',
-                reason: 'preferred',
-                range: preferredRange,
-                inRange: true,
-                isBlocked: false,
-                isPreferred: true,
-                isExclusive: false
-            };
-        }
-
-        if (containedRanges.length) {
-            return {
-                canWork: true,
-                mode: normalizeHourSlotRulesMode(containedRanges[0].mode),
-                reason: 'highlighted',
-                range: containedRanges[0],
-                inRange: true,
-                isBlocked: false,
-                isPreferred: false,
-                isExclusive: false
-            };
-        }
-
-        return availability;
     }
 
     /**
@@ -11289,7 +11427,7 @@
              *
              * This includes normalized start/end values, icon and color data,
              * duration information, visible display dates, task state and
-             * hour-slot-rules detection.
+             * availability-rules detection.
              */
             appointments.forEach(appointment => {
                 const start = $.bsCalendar.utils.parseDateInput(appointment.start);
@@ -11392,7 +11530,7 @@
                     },
 
                     /**
-                     * Availability metadata derived from hourSlots.rules.
+                     * Availability metadata derived from availabilityRules.
                      *
                      * Modes:
                      * - blocked: overlapping appointments cannot be worked.
@@ -11400,7 +11538,7 @@
                      * - preferred: appointments can be worked and are marked as preferred.
                      * - highlight/default: visual highlight only.
                      */
-                    hourSlotRules: getDefaultHourSlotRulesAvailability(),
+                    availability: getDefaultAvailability(),
 
                     /**
                      * Contains one entry per calendar day touched by this appointment.
@@ -11446,44 +11584,16 @@
                 };
 
                 /**
-                 * Evaluate whether the appointment is affected by one configured
-                 * hourSlots.rules range.
-                 *
-                 * Expected hourSlots.rules item structure:
-                 *
-                 * {
-                 *   daysOfWeek: [1, 2, 3, 4, 5],
-                 *   startTime: "09:00",
-                 *   endTime: "17:00",
-                 *   mode: "exclusive",
-                 *   color: "primary"
-                 * }
-                 *
-                 * The same object can also be provided as an array of objects.
-                 *
-                 * daysOfWeek uses JavaScript weekday numbers:
-                 * 0 = Sunday
-                 * 1 = Monday
-                 * 2 = Tuesday
-                 * 3 = Wednesday
-                 * 4 = Thursday
-                 * 5 = Friday
-                 * 6 = Saturday
-                 *
-                 * The mode-aware work decision is exposed via
-                 * `extras.hourSlotRules.canWork`.
+                 * Evaluate the full appointment range against the rules loaded for
+                 * the current calendar view. The result is render context only and
+                 * is recalculated whenever appointment data is normalized.
                  */
-                if (!isAllDay && !$.bsCalendar.utils.isValueEmpty(data.settings.hourSlots.rules)) {
-                    const date = new Date(startDate);
-                    const day = date.getDay();
-                    const hourSlotRulesAvailability = evaluateHourSlotRulesAvailability(
-                        data.settings.hourSlots.rules,
-                        day,
-                        startTime,
-                        endTime
-                    );
-                    extras.hourSlotRules = hourSlotRulesAvailability;
-                }
+                extras.availability = getAvailabilityRulesAvailabilityForRange(
+                    $wrapper,
+                    start,
+                    end,
+                    isAllDay
+                );
 
                 /**
                  * Apply task-specific metadata and icon overrides.
@@ -11789,11 +11899,120 @@
                 drawAppointmentsForYear($wrapper, appointments);
                 break;
         }
+        drawAvailabilityRules($wrapper);
+        drawAvailabilityTimeSlots($wrapper);
         if (!isSearchMode && view !== 'agenda') {
             loadHolidays($wrapper);
         }
 
         container.find('[data-appointment]').css('cursor', 'pointer');
+    }
+
+    /**
+     * Refreshes availability colors and cursors on an existing day/week time grid.
+     * The grid is built before asynchronous rules finish loading, so its initial
+     * row styles need to be updated after appointment data is ready.
+     *
+     * @param {jQuery} $wrapper - The calendar wrapper.
+     * @return {void}
+     */
+    function drawAvailabilityTimeSlots($wrapper) {
+        const data = getBsCalendarData($wrapper);
+        if (!data.availabilityRulesReady || !['day', 'week', 'workweek', '4day'].includes(data.view)) {
+            return;
+        }
+
+        getViewContainer($wrapper).find('.wc-day-view-time-slots [data-day-hour]').each(function () {
+            const $row = $(this);
+            const details = $row.data('details');
+            if (!details || details.isLast || !(details.date instanceof Date)) {
+                return;
+            }
+
+            const rowHour = Number(details.hour);
+            const start = new Date(details.date.getTime());
+            start.setHours(Math.floor(rowHour), Math.round((rowHour % 1) * 60), 0, 0);
+            const end = new Date(start.getTime());
+            end.setMinutes(end.getMinutes() + 30);
+
+            const availability = getAvailabilityRulesAvailabilityForRange($wrapper, start, end);
+            const colors = getAvailabilityBackgroundColors(availability);
+
+            $row
+                .attr('data-availability-rules-mode', availability.mode || '')
+                .attr('data-availability-rules-can-work', availability.canWork ? 'true' : 'false')
+                .css({
+                    cursor: availability.canWork ? 'copy' : 'not-allowed',
+                    backgroundColor: colors ? colors.backgroundColor : '',
+                    backgroundImage: colors && colors.backgroundImage !== 'none' ? colors.backgroundImage : ''
+                });
+        });
+    }
+
+    /**
+     * Adds small availability markers to date cells in date-oriented views.
+     * Time-grid views render rule ranges directly in their slot backgrounds.
+     *
+     * @param {jQuery} $wrapper - The calendar wrapper.
+     * @return {void}
+     */
+    function drawAvailabilityRules($wrapper) {
+        const data = getBsCalendarData($wrapper);
+        const view = data.view;
+        const $container = getViewContainer($wrapper);
+        let selector = null;
+
+        if (view === 'month') {
+            selector = '[data-month-date]';
+        } else if (view === 'monthCompact') {
+            selector = '[data-month-compact-date]';
+        } else if (view === 'year') {
+            selector = 'td[data-date]';
+        } else if (view === 'agenda') {
+            selector = '.wc-agenda-day [data-date]';
+        } else if (view === 'day' || view === 'week' || view === 'workweek' || view === '4day') {
+            selector = '[data-all-day][data-date-local]';
+        }
+
+        if (!selector || !data.availabilityRulesReady) {
+            return;
+        }
+
+        $container.find(selector).each(function () {
+            const $target = $(this);
+            const date = $.bsCalendar.utils.parseDateInput(
+                $target.attr('data-month-date') ||
+                $target.attr('data-month-compact-date') ||
+                $target.attr('data-date-local') ||
+                $target.attr('data-date')
+            );
+            if (!date || isNaN(date.getTime())) {
+                return;
+            }
+
+            const start = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+            const end = new Date(start);
+            end.setHours(23, 59, 59, 0);
+            const availability = getAvailabilityRulesAvailabilityForRange($wrapper, start, end, true);
+            if (availability.canWork && !availability.isPreferred && !availability.range) {
+                return;
+            }
+
+            const colors = getAvailabilityRuleColors(availability.range || {mode: availability.mode});
+            $('<span>', {
+                'data-availability-marker': true,
+                'aria-hidden': 'true',
+                title: availability.reason,
+                class: 'position-absolute top-0 end-0 rounded-circle',
+                css: {
+                    width: '7px',
+                    height: '7px',
+                    margin: '3px',
+                    backgroundColor: colors.backgroundColor,
+                    pointerEvents: 'none'
+                }
+            }).appendTo($target.css('position', 'relative'));
+        });
     }
 
     /**
@@ -13248,12 +13467,12 @@
                     segmentStart.getTime() + 30 * 60000,
                     rangeEnd.getTime()
                 ));
-                const availability = getHourSlotRulesAvailabilityForRange($wrapper, segmentStart, segmentEnd);
-                if (!availability.range) {
+                const availability = getAvailabilityRulesAvailabilityForRange($wrapper, segmentStart, segmentEnd);
+                const ruleColors = getAvailabilityBackgroundColors(availability);
+                if (!ruleColors) {
                     continue;
                 }
 
-                const ruleColors = getHourSlotRulesColors(availability.range);
                 const left = ((segmentStart - rangeStart) / (rangeMinutes * 60000)) * 100;
                 const width = ((segmentEnd - segmentStart) / (rangeMinutes * 60000)) * 100;
                 $('<div>', {
@@ -13556,7 +13775,7 @@
             }
             if (isLast) rowHeight = 0;
             let rowCursor = 'copy';
-            let rowHourSlotRulesAvailability = getDefaultHourSlotRulesAvailability();
+            let rowAvailability = getDefaultAvailability();
             if (!isLast) {
                 const slotStartHour = Math.floor(rowHour);
                 const slotStartMinute = Math.round((rowHour % 1) * 60);
@@ -13564,8 +13783,8 @@
                 slotStart.setHours(slotStartHour, slotStartMinute, 0, 0);
                 const slotEnd = new Date(slotStart.getTime());
                 slotEnd.setMinutes(slotEnd.getMinutes() + 30);
-                rowHourSlotRulesAvailability = getHourSlotRulesAvailabilityForRange($wrapper, slotStart, slotEnd);
-                rowCursor = rowHourSlotRulesAvailability.canWork ? 'copy' : 'not-allowed';
+                rowAvailability = getAvailabilityRulesAvailabilityForRange($wrapper, slotStart, slotEnd);
+                rowCursor = rowAvailability.canWork ? 'copy' : 'not-allowed';
             }
             let css = isLast ? {} : {
                 boxSizing: 'border-box',
@@ -13574,13 +13793,12 @@
             };
 
             if (!isLast) {
-                const hourSlotRules = rowHourSlotRulesAvailability.range;
+                const availabilityColors = getAvailabilityBackgroundColors(rowAvailability);
 
-                if (hourSlotRules) {
-                    const hhColors = getHourSlotRulesColors(hourSlotRules);
-                    css.backgroundColor = hhColors.backgroundColor;
-                    if (hhColors.backgroundImage && hhColors.backgroundImage !== "none") {
-                        css.backgroundImage = hhColors.backgroundImage;
+                if (availabilityColors) {
+                    css.backgroundColor = availabilityColors.backgroundColor;
+                    if (availabilityColors.backgroundImage && availabilityColors.backgroundImage !== "none") {
+                        css.backgroundImage = availabilityColors.backgroundImage;
                     }
                 }
             }
@@ -13588,8 +13806,8 @@
             // One row per hour with a top border to form the grid
             const row = $('<div>', {
                 'data-day-hour': rowHour,
-                'data-hour-slot-rules-mode': rowHourSlotRulesAvailability.mode || '',
-                'data-hour-slot-rules-can-work': rowHourSlotRulesAvailability.canWork ? 'true' : 'false',
+                'data-availability-rules-mode': rowAvailability.mode || '',
+                'data-availability-rules-can-work': rowAvailability.canWork ? 'true' : 'false',
                 css: css,
                 class: 'd-flex align-items-center border-top position-relative'
             }).appendTo(timeSlots);

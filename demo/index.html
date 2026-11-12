@@ -465,38 +465,60 @@
                     start: '06:30',
                     end: '20:30',
                     height: 100,
-                    timeLabelIntervalMinutes: $('#switchQuarterHourLabels').is(':checked') ? 15 : null,
-                    rules: [
-                        {
-                            daysOfWeek: [1, 2, 3],
-                            startTime: '09:00',
-                            endTime: '17:00',
-                            mode: 'exclusive',
-                            color: 'rgba(25, 135, 84, 0.055)'
-                        },
-                        {
-                            daysOfWeek: [4, 5],
-                            startTime: '07:00',
-                            endTime: '09:00',
-                            mode: 'exclusive',
-                            color: 'rgba(25, 135, 84, 0.055)'
-                        },
-                        {
-                            daysOfWeek: [6],
-                            startTime: '10:00',
-                            endTime: '14:00',
-                            mode: 'preferred',
-                            color: 'rgba(13, 110, 253, 0.045)'
-                        },
-                        {
-                            daysOfWeek: [0],
-                            startTime: '00:00',
-                            endTime: '23:59',
-                            mode: 'blocked',
-                            color: 'rgba(220, 53, 69, 0.06)'
-                        }
-                    ]
+                    timeLabelIntervalMinutes: $('#switchQuarterHourLabels').is(':checked') ? 15 : null
                 },
+                // Dated availability ranges repeat through the shared recurrence format.
+                availabilityRules: [
+                    {
+                        id: 'weekday-hours',
+                        start: '2026-01-05 09:00:00',
+                        end: '2026-01-05 17:00:00',
+                        mode: 'available',
+                        color: 'rgba(25, 135, 84, 0.12)',
+                        recurrence: {
+                            frequency: 'weekly',
+                            interval: 1,
+                            daysOfWeek: [1, 2, 3]
+                        }
+                    },
+                    {
+                        id: 'early-hours',
+                        start: '2026-01-01 07:00:00',
+                        end: '2026-01-01 09:00:00',
+                        mode: 'available',
+                        color: 'rgba(25, 135, 84, 0.12)',
+                        recurrence: {
+                            frequency: 'weekly',
+                            interval: 1,
+                            daysOfWeek: [4, 5]
+                        }
+                    },
+                    {
+                        id: 'saturday-preferred',
+                        start: '2026-01-03 10:00:00',
+                        end: '2026-01-03 14:00:00',
+                        mode: 'preferred',
+                        color: 'rgba(13, 110, 253, 0.10)',
+                        recurrence: {
+                            frequency: 'weekly',
+                            interval: 1,
+                            daysOfWeek: [6]
+                        }
+                    },
+                    {
+                        id: 'sunday-off',
+                        start: '2026-01-04',
+                        end: '2026-01-04',
+                        allDay: true,
+                        mode: 'blocked',
+                        color: 'rgba(220, 53, 69, 0.22)',
+                        recurrence: {
+                            frequency: 'weekly',
+                            interval: 1,
+                            daysOfWeek: [0]
+                        }
+                    }
+                ],
                 calendars: demoText.calendars,
                 onDuplicate(appointment) {
                     appointment.id = 'copy_of_' + appointment.id;

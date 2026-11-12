@@ -2,6 +2,7 @@
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
     * [**dev-main**](#dev-main)
+    * [**Version 3.0.0**](#version-300)
     * [**Version 2.5.4**](#version-254)
     * [**Version 2.5.3**](#version-253)
     * [**Version 2.5.2**](#version-252)
@@ -68,6 +69,27 @@
 ### dev-main
 
 _No unreleased changes._
+
+### Version 3.0.0
+
+2026-11-12
+
+#### Features
+
+- Added top-level `availabilityRules` for static date/time ranges, URL-loaded rules, or rules returned by a function.
+- Remote rules receive the current appointment request parameters and load before appointments are rendered for the new view.
+- Added recurring availability rules using the existing `recurrence` format, including weekly days and monthly weekday positions.
+- Availability rules now control appointment creation, drag-moving, and resizing. Blocked ranges take priority over available, preferred, and highlighted ranges.
+- Time outside an applicable `available` range is now visibly shaded with the blocked color, including in the timeline view.
+- Refreshes time-grid row colors after asynchronous availability rules load, so the first rendered view shows the blocked intervals too.
+- Added `setAvailabilityRules` for replacing the rule source at runtime. Appointment `extras` and `dragExtras` expose the result as `availability`.
+- Kept `hourSlots` focused on time-grid display settings such as the visible hours, row height, and sub-hour labels.
+
+#### Breaking Changes
+
+- Removed `hourSlots.rules` and `setHourSlotRules`. Move those rules to the top-level `availabilityRules` option and use `start`, `end`, `mode`, and optional `recurrence` fields.
+- Renamed the availability result in callbacks from `hourSlotRules` to `availability`.
+- Updated the README and demo with static, URL-based, and function-based availability rule examples.
 
 ### Version 2.5.4
 
