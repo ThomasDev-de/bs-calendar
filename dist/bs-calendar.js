@@ -687,7 +687,7 @@
         version: '2.5.4',
         about: {
             version: '2.5.4',
-            releaseDate: '2026-11-11',
+            releaseDate: '2026-11-12',
             project: 'https://github.com/ThomasDev-de/bs-calendar/',
             issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
             releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
