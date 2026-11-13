@@ -2,6 +2,7 @@
 
 - [Changelog for `bs-calendar.js`](#changelog-for-bs-calendarjs)
     * [**dev-main**](#dev-main)
+    * [**Version 3.1.0**](#version-310)
     * [**Version 3.0.0**](#version-300)
     * [**Version 2.5.4**](#version-254)
     * [**Version 2.5.3**](#version-253)
@@ -69,6 +70,14 @@
 ### dev-main
 
 _No unreleased changes._
+
+### Version 3.1.0
+
+2026-11-13
+
+#### Features
+
+- Added `clickSnapMode` to choose whether click-to-add rounds to the nearest, previous, or next quarter-hour boundary in day, week, workweek, 4-day, and timeline views. The default remains `nearest`; drag snapping is unchanged.
 
 ### Version 3.0.0
 

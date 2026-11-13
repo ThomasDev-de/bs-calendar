@@ -146,6 +146,12 @@
                     <input class="form-check-input" type="checkbox" role="switch" id="switchQuarterHourLabels" checked>
                     <label class="form-check-label" for="switchQuarterHourLabels">Quarter-hour labels</label>
                 </div>
+                <label class="form-label mt-3 mb-1" for="selectClickSnapMode">Click-to-add rounding</label>
+                <select class="form-select form-select-sm mb-2" id="selectClickSnapMode">
+                    <option value="nearest">Nearest quarter hour</option>
+                    <option value="previous">Previous quarter hour</option>
+                    <option value="next">Next quarter hour</option>
+                </select>
                 <label class="form-label mt-3 mb-1" for="selectAppointmentRule">Appointment duration</label>
                 <select class="form-select form-select-sm mb-2" id="selectAppointmentRule">
                     <option value="none">No duration rule</option>
@@ -454,6 +460,7 @@
                 startWeekOnSunday: false,
                 navigateOnWheel: false,
                 draggable: $('#switchToggleDraggable').is(':checked'),
+                clickSnapMode: $('#selectClickSnapMode').val(),
                 storeState: false,
                 debug: false,
                 url: loadAppointments,
@@ -559,6 +566,11 @@
                         hourSlots: {
                             timeLabelIntervalMinutes: $(this).is(':checked') ? 15 : null
                         }
+                    });
+                })
+                .on('change', '#selectClickSnapMode', function () {
+                    $calendar.bsCalendar('updateOptions', {
+                        clickSnapMode: $(this).val()
                     });
                 })
                 .on('change', '#selectAppointmentRule', function () {

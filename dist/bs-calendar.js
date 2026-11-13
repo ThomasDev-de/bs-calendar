@@ -7,8 +7,8 @@
  *               through defined default settings or options provided at runtime.
  *
  * @author Thomas Kirsch
- * @version 3.0.0
- * @date 2026-11-12
+ * @version 3.1.0
+ * @date 2026-11-13
  * @license MIT
  * @requires "jQuery" ^3
  * @requires "Bootstrap" ^v5
@@ -684,10 +684,10 @@
     };
 
     $.bsCalendar = {
-        version: '3.0.0',
+        version: '3.1.0',
         about: {
-            version: '3.0.0',
-            releaseDate: '2026-11-12',
+            version: '3.1.0',
+            releaseDate: '2026-11-13',
             project: 'https://github.com/ThomasDev-de/bs-calendar/',
             issues: 'https://github.com/ThomasDev-de/bs-calendar/issues',
             releases: 'https://github.com/ThomasDev-de/bs-calendar/releases',
@@ -745,6 +745,7 @@
             showAddButton: true,
             draggable: false,
             draggableSnapMinutes: 5,
+            clickSnapMode: 'nearest',
             translations: null,
             icons: {
                 day: 'bi bi-calendar-day',
@@ -3169,6 +3170,14 @@
             }
         }
 
+        if (settings.hasOwnProperty('clickSnapMode')) {
+            const parsedClickSnapMode = String(settings.clickSnapMode).trim().toLowerCase();
+            const allowedClickSnapModes = ['nearest', 'previous', 'next'];
+            settings.clickSnapMode = allowedClickSnapModes.includes(parsedClickSnapMode)
+                ? parsedClickSnapMode
+                : $.bsCalendar.getDefaults().clickSnapMode;
+        }
+
         if (settings.timelineGroupBy !== null && settings.timelineGroupBy !== undefined) {
             const timelineGroupBy = String(settings.timelineGroupBy).trim();
             settings.timelineGroupBy = timelineGroupBy || null;
@@ -4555,7 +4564,7 @@
         function appendTodayButton($target, extraClass = '') {
             const button = $('<button>', {
                 type: 'button',
-                class: `btn border-0 text-body shadow-none ${extraClass} ${roundedClass} bs-calendar-border-style fw-bold`,
+                class: `btn text-nowrap border-0 text-body shadow-none ${extraClass} ${roundedClass} bs-calendar-border-style fw-bold`,
                 'data-today': true
             });
             $('<i>', {
@@ -5491,6 +5500,22 @@
                 return $.bsCalendar.getDefaults().draggableSnapMinutes;
             }
             return Math.max(1, Math.floor(snap));
+        }
+
+        function getClickSnapMode($wrapperRef) {
+            const mode = getSettings($wrapperRef)?.clickSnapMode;
+            return ['nearest', 'previous', 'next'].includes(mode) ? mode : 'nearest';
+        }
+
+        function getSnappedClickMinutes(minutes, mode) {
+            const interval = minutes / clickSnapMinutes;
+            let roundedInterval = Math.round(interval);
+            if (mode === 'previous') {
+                roundedInterval = Math.floor(interval);
+            } else if (mode === 'next') {
+                roundedInterval = Math.ceil(interval);
+            }
+            return roundedInterval * clickSnapMinutes;
         }
 
         function isTouchPointerEvent(e) {
@@ -6851,10 +6876,13 @@
                 if (hasClickPosition) {
                     const minutesFromStart = getMinutesFromPointer($eventWrapper, $slotContainer, clickPoint.y, 1);
                     const startMinutes = settings.hourSlots.start * 60;
-                    const nearestSlot = Math.round((startMinutes + minutesFromStart) / clickSnapMinutes) * clickSnapMinutes;
+                    const snappedSlot = getSnappedClickMinutes(
+                        startMinutes + minutesFromStart,
+                        getClickSnapMode($eventWrapper)
+                    );
                     const snappedMinutesFromStart = Math.max(0, Math.min(
                         (settings.hourSlots.end - settings.hourSlots.start) * 60,
-                        nearestSlot - startMinutes
+                        snappedSlot - startMinutes
                     ));
                     start = buildDateTimeByMinutes($eventWrapper, dateString, snappedMinutesFromStart);
                 } else {
@@ -6906,10 +6934,13 @@
                 const rangeMinutes = (settings.hourSlots.end - settings.hourSlots.start) * 60;
                 const snapMinutes = getSnapMinutes($eventWrapper);
                 const startMinutes = settings.hourSlots.start * 60;
-                const nearestSlot = Math.round((startMinutes + percentage * rangeMinutes) / clickSnapMinutes) * clickSnapMinutes;
+                const snappedSlot = getSnappedClickMinutes(
+                    startMinutes + percentage * rangeMinutes,
+                    getClickSnapMode($eventWrapper)
+                );
                 const minutesFromStart = Math.max(0, Math.min(
                     rangeMinutes,
-                    nearestSlot - startMinutes
+                    snappedSlot - startMinutes
                 ));
                 const start = buildDateTimeByMinutes(
                     $eventWrapper,

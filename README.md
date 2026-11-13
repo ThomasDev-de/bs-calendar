@@ -1,6 +1,6 @@
 # Bootstrap Calendar Plugin
 
-![Version](https://img.shields.io/badge/version-3.0.0-blue)
+![Version](https://img.shields.io/badge/version-3.1.0-blue)
 ![jQuery](https://img.shields.io/badge/jQuery-v3.x-orange)
 ![Bootstrap](https://img.shields.io/badge/Bootstrap-v5-blueviolet)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -72,7 +72,7 @@ Use CDN/script tags:
 
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@3.0.0/dist/bs-calendar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/ThomasDev-de/bs-calendar@3.1.0/dist/bs-calendar.min.js"></script>
 ```
 
 Or install via Composer:
@@ -733,6 +733,7 @@ later with `updateOptions`.
 | `showAddButton`               | `boolean`                                     | `true`                                                     | Shows the toolbar add button and the selected-day add button in `monthCompact`.                                    |
 | `draggable`                   | `boolean`                                     | `false`                                                    | Enables drag-create in day/timeline/week/workweek/4day view, drag-move in day/timeline/week/workweek/4day/month view, and drag-resize from timed appointment edges in day/timeline/week/workweek/4day view. Touch locks native scrolling while a drag gesture is pending or active. |
 | `draggableSnapMinutes`        | `number`                                      | `5`                                                        | Snap interval in minutes for drag-create/move/resize in day/timeline/week/workweek/4day view. Minimum is `1`.                        |
+| `clickSnapMode`               | `string`                                      | `'nearest'`                                                | Rounds pointer clicks for click-to-add in day/week/workweek/4day/timeline views to a 15-minute boundary: `'nearest'`, `'previous'` (round down), or `'next'` (round up). Exact quarter-hour boundaries stay unchanged. |
 | `timelineGroupBy`             | `string` or `null`                            | `null`                                                     | Appointment attribute used to split the day timeline into rows. `null` keeps one shared track; missing values use the localized unassigned row. Use `'calendarId'` or the `'calendars'` alias to group by configured calendar titles. |
 | `translations`                | `object`                                      | `{search, searchNoResult}` merged with locale translations | Custom UI translations. See [Localization and Translations](#localization-and-translations).                       |
 | `icons`                       | `object`                                      | see [Icons](#icons)                                        | Bootstrap icon classes.                                                                                            |
@@ -784,6 +785,24 @@ $('#calendar').bsCalendar({
         height: 80,
         timeLabelIntervalMinutes: 15
     }
+});
+```
+
+### Click-to-add Time Rounding
+
+Clicking a time slot or the timeline creates an appointment at the 15-minute boundary selected by `clickSnapMode`:
+
+- `'nearest'` selects the closest quarter-hour boundary. This is the default.
+- `'previous'` rounds down to the start of the quarter-hour interval under the pointer.
+- `'next'` rounds up to the next quarter-hour boundary. A click exactly on a boundary keeps that time.
+
+For example, clicking at `08:10` selects `08:15` with `'nearest'`, `08:00` with `'previous'`, and `08:15` with `'next'`.
+The setting works vertically in day, week, workweek, and 4-day views, and horizontally in the timeline view.
+It only affects click-to-add; dragging continues to use `draggableSnapMinutes`.
+
+```javascript
+$('#calendar').bsCalendar({
+    clickSnapMode: 'previous'
 });
 ```
 
@@ -1582,7 +1601,7 @@ Changelog and support:
 
 ## Completeness Check
 
-This README is intended to cover the public surface of version `3.0.0`:
+This README is intended to cover the public surface of version `3.1.0`:
 
 - All `DEFAULTS` options from `dist/bs-calendar.js`
 - All public plugin methods in the method switch
